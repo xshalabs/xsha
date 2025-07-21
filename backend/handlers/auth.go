@@ -1,21 +1,32 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
-	"sleep0-backend/config"
-	"sleep0-backend/database"
 	"sleep0-backend/i18n"
 	"sleep0-backend/middleware"
+	"sleep0-backend/services"
 	"sleep0-backend/utils"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
+// AuthHandlers 认证处理器结构体
+type AuthHandlers struct {
+	authService     services.AuthService
+	loginLogService services.LoginLogService
+}
+
+// NewAuthHandlers 创建认证处理器实例
+func NewAuthHandlers(authService services.AuthService, loginLogService services.LoginLogService) *AuthHandlers {
+	return &AuthHandlers{
+		authService:     authService,
+		loginLogService: loginLogService,
+	}
+}
+
 // LoginHandler handles login
-func LoginHandler(c *gin.Context) {
-	cfg := config.Load()
+func (h *AuthHandlers) LoginHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
 	var loginData struct {
@@ -34,37 +45,16 @@ func LoginHandler(c *gin.Context) {
 	clientIP := c.ClientIP()
 	userAgent := c.GetHeader("User-Agent")
 
-	// 验证用户名和密码
-	var loginSuccess bool
-	var failureReason string
-
-	if loginData.Username == cfg.AdminUser {
-		if loginData.Password == cfg.AdminPass {
-			loginSuccess = true
-		} else {
-			failureReason = "invalid_password"
-		}
-	} else {
-		failureReason = "invalid_username"
+	// 使用authService进行登录验证和日志记录
+	loginSuccess, token, err := h.authService.Login(loginData.Username, loginData.Password, clientIP, userAgent)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "login.token_generate_error"),
+		})
+		return
 	}
 
-	// 异步记录登录日志（不阻塞登录流程）
-	go func() {
-		if err := database.AddLoginLog(loginData.Username, clientIP, userAgent, failureReason, loginSuccess); err != nil {
-			log.Printf("记录登录日志失败: %v", err)
-		}
-	}()
-
 	if loginSuccess {
-		// 生成JWT token
-		token, err := utils.GenerateJWT(loginData.Username, cfg.JWTSecret)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": i18n.T(lang, "login.token_generate_error"),
-			})
-			return
-		}
-
 		c.JSON(http.StatusOK, gin.H{
 			"message": i18n.T(lang, "login.success"),
 			"user":    loginData.Username,
@@ -78,8 +68,7 @@ func LoginHandler(c *gin.Context) {
 }
 
 // LogoutHandler handles logout
-func LogoutHandler(c *gin.Context) {
-	cfg := config.Load()
+func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
 	// Get token from Authorization header
@@ -93,7 +82,7 @@ func LogoutHandler(c *gin.Context) {
 	}
 
 	// Validate token and get user information
-	claims, err := utils.ValidateJWT(token, cfg.JWTSecret)
+	claims, err := utils.ValidateJWT(token, "")
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": i18n.T(lang, "logout.invalid_token") + ": " + err.Error(),
@@ -101,17 +90,8 @@ func LogoutHandler(c *gin.Context) {
 		return
 	}
 
-	// Get token expiration time
-	expiresAt, err := utils.GetTokenExpiration(token, cfg.JWTSecret)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "auth.get_token_exp_error"),
-		})
-		return
-	}
-
-	// Add token to blacklist
-	if err := database.AddTokenToBlacklist(token, claims.Username, expiresAt, "logout"); err != nil {
+	// 使用认证服务进行登出
+	if err := h.authService.Logout(token, claims.Username); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "logout.failed"),
 		})
@@ -124,7 +104,7 @@ func LogoutHandler(c *gin.Context) {
 }
 
 // CurrentUserHandler gets current user information
-func CurrentUserHandler(c *gin.Context) {
+func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
 	// Get user information from context (set by auth middleware)
@@ -144,7 +124,7 @@ func CurrentUserHandler(c *gin.Context) {
 }
 
 // GetLoginLogsHandler 获取登录日志（需要管理员权限）
-func GetLoginLogsHandler(c *gin.Context) {
+func (h *AuthHandlers) GetLoginLogsHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
 	// 获取查询参数
@@ -165,8 +145,8 @@ func GetLoginLogsHandler(c *gin.Context) {
 		}
 	}
 
-	// 获取登录日志
-	logs, total, err := database.GetLoginLogs(username, page, pageSize)
+	// 使用登录日志服务获取日志
+	logs, total, err := h.loginLogService.GetLogs(username, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "common.internal_error"),
@@ -184,4 +164,32 @@ func GetLoginLogsHandler(c *gin.Context) {
 		"page_size":   pageSize,
 		"total_pages": totalPages,
 	})
+}
+
+// 保持向后兼容的全局函数
+var globalAuthHandlers *AuthHandlers
+
+// SetAuthHandlers 设置全局认证处理器实例
+func SetAuthHandlers(handlers *AuthHandlers) {
+	globalAuthHandlers = handlers
+}
+
+// LoginHandler 全局登录处理器（向后兼容）
+func LoginHandler(c *gin.Context) {
+	globalAuthHandlers.LoginHandler(c)
+}
+
+// LogoutHandler 全局登出处理器（向后兼容）
+func LogoutHandler(c *gin.Context) {
+	globalAuthHandlers.LogoutHandler(c)
+}
+
+// CurrentUserHandler 全局当前用户处理器（向后兼容）
+func CurrentUserHandler(c *gin.Context) {
+	globalAuthHandlers.CurrentUserHandler(c)
+}
+
+// GetLoginLogsHandler 全局登录日志处理器（向后兼容）
+func GetLoginLogsHandler(c *gin.Context) {
+	globalAuthHandlers.GetLoginLogsHandler(c)
 }

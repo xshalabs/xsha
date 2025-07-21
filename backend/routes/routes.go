@@ -3,12 +3,13 @@ package routes
 import (
 	"sleep0-backend/handlers"
 	"sleep0-backend/middleware"
+	"sleep0-backend/services"
 
 	"github.com/gin-gonic/gin"
 )
 
 // SetupRoutes sets up routes
-func SetupRoutes(r *gin.Engine) {
+func SetupRoutes(r *gin.Engine, authService services.AuthService) {
 	// Apply global middleware
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
@@ -33,7 +34,7 @@ func SetupRoutes(r *gin.Engine) {
 
 	// API route group (authentication required)
 	api := r.Group("/api/v1")
-	api.Use(middleware.AuthMiddleware())
+	api.Use(middleware.AuthMiddlewareWithService(authService))
 	{
 		// User information
 		api.GET("/user/current", handlers.CurrentUserHandler)
