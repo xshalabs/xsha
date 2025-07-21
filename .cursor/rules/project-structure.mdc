@@ -1,0 +1,38 @@
+---
+alwaysApply: true
+description: "Project structure and architecture guide"
+---
+
+# Sleep0 Backend Project Structure
+
+This is a Go backend application with a clean architecture pattern.
+
+## Entry Points
+- Main application: [main.go](mdc:backend/main.go)
+- Configuration: [config.go](mdc:backend/config/config.go)
+- Database setup: [database.go](mdc:backend/database/database.go)
+- Routes definition: [routes.go](mdc:backend/routes/routes.go)
+
+## Architecture Layers
+- **Handlers**: HTTP request handlers in [handlers/](mdc:backend/handlers/)
+- **Services**: Business logic in [services/](mdc:backend/services/)
+- **Repository**: Data access layer in [repository/](mdc:backend/repository/)
+- **Middleware**: Cross-cutting concerns in [middleware/](mdc:backend/middleware/)
+- **Models**: Database models in [models.go](mdc:backend/database/models.go)
+
+## Key Features
+- Authentication system with JWT tokens
+- Internationalization (i18n) support
+- Rate limiting middleware
+- Error handling middleware
+- Login logging functionality
+- Token blacklisting for security
+
+## Utilities
+- JWT utilities: [jwt.go](mdc:backend/utils/jwt.go)
+- Crypto utilities: [crypto.go](mdc:backend/utils/crypto.go)
+- i18n helpers: [i18n/helper.go](mdc:backend/i18n/helper.go)
+
+## Commands
+- Password encryption tool: [encrypt-password/main.go](mdc:backend/cmd/encrypt-password/main.go)
+- Cleanup tool: [cleanup/main.go](mdc:backend/cmd/cleanup/main.go)

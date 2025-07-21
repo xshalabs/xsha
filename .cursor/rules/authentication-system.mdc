@@ -1,0 +1,41 @@
+---
+description: "Authentication system architecture and flow"
+---
+
+# Authentication System Guide
+
+## Authentication Flow Components
+
+### Core Files
+- **Auth Handler**: [auth.go](mdc:backend/handlers/auth.go) - HTTP endpoints for login/logout
+- **Auth Service**: [auth.go](mdc:backend/services/auth.go) - Business logic for authentication
+- **Auth Middleware**: [auth.go](mdc:backend/middleware/auth.go) - JWT token validation
+- **JWT Utils**: [jwt.go](mdc:backend/utils/jwt.go) - Token generation and validation
+- **Crypto Utils**: [crypto.go](mdc:backend/utils/crypto.go) - Password hashing
+
+### Security Features
+- **Token Blacklisting**: [token_blacklist.go](mdc:backend/repository/token_blacklist.go) - Invalidated tokens storage
+- **Login Logging**: [login_log.go](mdc:backend/services/login_log.go) - Track login attempts
+- **Password Encryption**: [encrypt-password/main.go](mdc:backend/cmd/encrypt-password/main.go) - CLI tool for password hashing
+
+## Authentication Workflow
+1. User submits credentials to auth handler
+2. Service validates credentials against database
+3. JWT token generated with user claims
+4. Token returned to client for subsequent requests
+5. Middleware validates JWT on protected routes
+6. Login attempts logged for security monitoring
+7. Logout adds token to blacklist
+
+## Security Best Practices
+- Use bcrypt for password hashing
+- Implement token expiration
+- Blacklist tokens on logout
+- Rate limit authentication endpoints
+- Log all authentication attempts
+- Validate JWT signatures on each request
+
+## Key Interfaces
+- Repository interfaces define data access contracts
+- Service interfaces enable dependency injection
+- Middleware chain handles cross-cutting concerns

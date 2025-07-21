@@ -1,0 +1,42 @@
+---
+globs: *.go
+description: "Go coding standards and patterns"
+---
+
+# Go Coding Standards for Sleep0 Backend
+
+## Project Patterns
+- Follow clean architecture: handlers → services → repository
+- Use dependency injection via interfaces (see [interfaces.go](mdc:backend/services/interfaces.go))
+- Implement proper error handling with custom error types
+- Use context.Context for request handling and cancellation
+
+## Database Patterns
+- Use GORM for ORM operations (see [models.go](mdc:backend/database/models.go))
+- Repository pattern for data access
+- Database transactions for multi-step operations
+
+## Authentication & Security
+- JWT tokens for stateless authentication
+- Token blacklisting for logout functionality
+- Bcrypt for password hashing
+- Rate limiting middleware for API protection
+
+## Middleware Chain
+- Logger middleware for request logging
+- Error middleware for centralized error handling
+- Auth middleware for protected routes
+- i18n middleware for localization
+- Rate limit middleware for protection
+
+## Testing & Error Handling
+- Return errors using Go idioms (error as last return value)
+- Use proper HTTP status codes
+- Implement structured logging
+- Validate input parameters
+
+## Code Organization
+- Group related functionality in packages
+- Use meaningful interface names
+- Follow Go naming conventions
+- Keep handlers thin, business logic in services

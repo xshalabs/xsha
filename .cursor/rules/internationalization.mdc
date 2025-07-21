@@ -1,0 +1,45 @@
+---
+description: "Internationalization (i18n) system guide"
+---
+
+# Internationalization (i18n) System Guide
+
+## i18n Architecture
+
+### Core Components
+- **i18n Package**: [i18n.go](mdc:backend/i18n/i18n.go) - Main i18n functionality
+- **i18n Helper**: [helper.go](mdc:backend/i18n/helper.go) - Utility functions
+- **i18n Handler**: [i18n.go](mdc:backend/handlers/i18n.go) - HTTP endpoints for i18n
+- **i18n Middleware**: [i18n.go](mdc:backend/middleware/i18n.go) - Language detection and setup
+
+### Locale Files
+- **English**: [en-US.json](mdc:backend/i18n/locales/en-US.json) - English translations
+- **Chinese**: [zh-CN.json](mdc:backend/i18n/locales/zh-CN.json) - Chinese translations
+
+## i18n Workflow
+1. Middleware detects user language preference (header/query/session)
+2. Appropriate locale file loaded based on detected language
+3. Translation keys resolved to localized strings
+4. Response messages returned in user's preferred language
+
+## Working with Translations
+- Store all user-facing strings as translation keys
+- Use descriptive key names (e.g., "auth.login.success")
+- Maintain consistent key structure across locales
+- Add new translations to all supported locale files
+- Test with different languages during development
+
+## Best Practices
+- Always use translation keys instead of hardcoded strings
+- Provide fallback to default language (en-US)
+- Handle missing translations gracefully
+- Use parameterized translations for dynamic content
+- Keep locale files organized with nested JSON structure
+- Validate all locale files have same key structure
+
+## Adding New Languages
+1. Create new locale file in [locales/](mdc:backend/i18n/locales/) directory
+2. Copy key structure from existing locale file
+3. Translate all values to target language
+4. Update i18n configuration to include new language
+5. Test language switching functionality

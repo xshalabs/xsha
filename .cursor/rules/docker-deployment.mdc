@@ -1,0 +1,54 @@
+---
+description: "Docker and deployment configuration guide"
+---
+
+# Docker & Deployment Guide
+
+## Docker Configuration
+
+### Docker Files
+- **Production Dockerfile**: [Dockerfile](mdc:Dockerfile) - Multi-stage build for production
+- **Development Dockerfile**: [Dockerfile.dev](mdc:Dockerfile.dev) - Development environment setup
+- **Production Compose**: [docker-compose.yml](mdc:docker-compose.yml) - Production container orchestration
+- **Development Compose**: [docker-compose.dev.yml](mdc:docker-compose.dev.yml) - Development container setup
+
+### Database Setup
+- **Database Initialization**: [init.sql](mdc:scripts/init.sql) - Initial database schema and data
+- Database runs in separate container with persistent volumes
+
+## Development Workflow
+1. Use `docker-compose.dev.yml` for local development
+2. Includes hot reload and development tools
+3. Database runs in development mode with exposed ports
+4. Volumes mounted for live code changes
+
+## Production Deployment
+1. Multi-stage Docker build optimizes image size
+2. Production compose includes security configurations
+3. Database runs with production-grade settings
+4. Health checks and restart policies configured
+
+## Build & Deploy Commands
+```bash
+# Development
+docker-compose -f docker-compose.dev.yml up
+
+# Production build
+docker build -f Dockerfile -t sleep0-backend .
+
+# Production deployment
+docker-compose up -d
+```
+
+## Environment Configuration
+- Use environment variables for configuration
+- Different configs for development vs production
+- Database connection strings via environment
+- JWT secrets and API keys from environment
+
+## Docker Best Practices
+- Multi-stage builds to reduce image size
+- Non-root user for security
+- Health checks for container monitoring
+- Proper volume mounting for data persistence
+- Environment-specific configuration files
