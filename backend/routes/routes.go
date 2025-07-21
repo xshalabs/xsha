@@ -9,7 +9,7 @@ import (
 )
 
 // SetupRoutes sets up routes
-func SetupRoutes(r *gin.Engine, authService services.AuthService, gitCredHandlers *handlers.GitCredentialHandlers) {
+func SetupRoutes(r *gin.Engine, authService services.AuthService, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers) {
 	// Apply global middleware
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
@@ -42,13 +42,13 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, gitCredHandler
 		// Logout (requires token)
 		api.POST("/auth/logout", handlers.LogoutHandler)
 
-		// 新增：管理员功能
+		// 管理员功能
 		admin := api.Group("/admin")
 		{
 			admin.GET("/login-logs", handlers.GetLoginLogsHandler)
 		}
 
-		// Git凭据管理 - 直接使用处理器实例方法
+		// Git凭据管理
 		gitCreds := api.Group("/git-credentials")
 		{
 			gitCreds.POST("", gitCredHandlers.CreateCredential)            // 创建凭据
@@ -60,6 +60,17 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, gitCredHandler
 			gitCreds.POST("/:id/use", gitCredHandlers.UseCredential)       // 使用凭据
 		}
 
-		// Additional authenticated routes can be added here
+		// 项目管理
+		projects := api.Group("/projects")
+		{
+			projects.POST("", projectHandlers.CreateProject)                       // 创建项目
+			projects.GET("", projectHandlers.ListProjects)                         // 获取项目列表
+			projects.GET("/credentials", projectHandlers.GetCompatibleCredentials) // 获取兼容的凭据列表
+			projects.GET("/:id", projectHandlers.GetProject)                       // 获取单个项目
+			projects.PUT("/:id", projectHandlers.UpdateProject)                    // 更新项目
+			projects.DELETE("/:id", projectHandlers.DeleteProject)                 // 删除项目
+			projects.POST("/:id/toggle", projectHandlers.ToggleProject)            // 切换激活状态
+			projects.POST("/:id/use", projectHandlers.UseProject)                  // 使用项目
+		}
 	}
 }

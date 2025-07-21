@@ -34,3 +34,20 @@ type GitCredentialRepository interface {
 	SetActive(id uint, createdBy string, isActive bool) error
 	ListActive(createdBy string, credType *database.GitCredentialType) ([]database.GitCredential, error)
 }
+
+// ProjectRepository 定义项目仓库接口
+type ProjectRepository interface {
+	// 基本CRUD操作
+	Create(project *database.Project) error
+	GetByID(id uint, createdBy string) (*database.Project, error)
+	GetByName(name, createdBy string) (*database.Project, error)
+	List(createdBy string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
+	Update(project *database.Project) error
+	Delete(id uint, createdBy string) error
+
+	// 业务操作
+	UpdateLastUsed(id uint, createdBy string) error
+	SetActive(id uint, createdBy string, isActive bool) error
+	ListActive(createdBy string, protocol *database.GitProtocolType) ([]database.Project, error)
+	GetByCredentialID(credentialID uint, createdBy string) ([]database.Project, error)
+}

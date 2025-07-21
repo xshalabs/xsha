@@ -45,5 +45,20 @@
   "git_credential.use_failed": "凭据使用失败",
   "git_credential.not_found": "凭据不存在",
   "git_credential.name_exists": "凭据名称已存在",
-  "git_credential.invalid_type": "无效的凭据类型"
+  "git_credential.invalid_type": "无效的凭据类型",
+  "project.create_success": "项目创建成功",
+  "project.create_failed": "项目创建失败",
+  "project.update_success": "项目更新成功",
+  "project.update_failed": "项目更新失败",
+  "project.delete_success": "项目删除成功",
+  "project.delete_failed": "项目删除失败",
+  "project.toggle_success": "项目状态切换成功",
+  "project.toggle_failed": "项目状态切换失败",
+  "project.use_success": "项目使用成功",
+  "project.use_failed": "项目使用失败",
+  "project.not_found": "项目不存在",
+  "project.name_exists": "项目名称已存在",
+  "project.invalid_protocol": "无效的协议类型",
+  "project.incompatible_credential": "凭据与协议不兼容",
+  "project.get_credentials_failed": "获取兼容凭据失败"
 } 

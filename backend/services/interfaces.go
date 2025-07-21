@@ -47,3 +47,23 @@ type GitCredentialService interface {
 	DecryptCredentialSecret(credential *database.GitCredential, secretType string) (string, error)
 	ValidateCredentialData(credType string, data map[string]string) error
 }
+
+// ProjectService 定义项目服务接口
+type ProjectService interface {
+	// 项目管理
+	CreateProject(name, description, repoURL, protocol, defaultBranch, createdBy string, credentialID *uint) (*database.Project, error)
+	GetProject(id uint, createdBy string) (*database.Project, error)
+	GetProjectByName(name, createdBy string) (*database.Project, error)
+	ListProjects(createdBy string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
+	UpdateProject(id uint, createdBy string, updates map[string]interface{}) error
+	DeleteProject(id uint, createdBy string) error
+
+	// 项目操作
+	UseProject(id uint, createdBy string) (*database.Project, error)
+	ToggleProject(id uint, createdBy string, isActive bool) error
+	ListActiveProjects(createdBy string, protocol *database.GitProtocolType) ([]database.Project, error)
+
+	// 协议和凭据验证
+	ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint, createdBy string) error
+	GetCompatibleCredentials(protocol database.GitProtocolType, createdBy string) ([]database.GitCredential, error)
+}

@@ -68,3 +68,37 @@ type GitCredential struct {
 	// 关联用户
 	CreatedBy string `gorm:"not null;index;uniqueIndex:idx_name_user" json:"created_by"` // 创建者用户名
 }
+
+// GitProtocolType 定义Git协议类型
+type GitProtocolType string
+
+const (
+	GitProtocolHTTPS GitProtocolType = "https" // HTTPS协议
+	GitProtocolSSH   GitProtocolType = "ssh"   // SSH协议
+)
+
+// Project 项目模型
+type Project struct {
+	ID        uint           `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	// 基本信息
+	Name        string `gorm:"not null;uniqueIndex:idx_project_name_user" json:"name"` // 项目名称
+	Description string `gorm:"type:text" json:"description"`                           // 项目描述
+
+	// Git配置
+	RepoURL       string          `gorm:"not null" json:"repo_url"`                  // Git仓库地址
+	Protocol      GitProtocolType `gorm:"not null;index" json:"protocol"`            // Git协议类型
+	DefaultBranch string          `gorm:"default:'main'" json:"default_branch"`      // 默认分支
+	CredentialID  *uint           `gorm:"index" json:"credential_id"`                // 绑定的凭据ID
+	Credential    *GitCredential  `gorm:"foreignKey:CredentialID" json:"credential"` // 关联的凭据
+
+	// 元数据
+	IsActive bool       `gorm:"default:true;index" json:"is_active"` // 是否激活
+	LastUsed *time.Time `json:"last_used"`                           // 最后使用时间
+
+	// 关联用户
+	CreatedBy string `gorm:"not null;index;uniqueIndex:idx_project_name_user" json:"created_by"` // 创建者用户名
+}
