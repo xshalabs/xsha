@@ -4,12 +4,16 @@ import (
 	"log"
 	"sleep0-backend/config"
 	"sleep0-backend/database"
+	"sleep0-backend/i18n"
 	"sleep0-backend/routes"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	// 初始化国际化
+	i18nInstance := i18n.GetInstance()
+
 	// 加载配置
 	cfg := config.Load()
 
@@ -28,8 +32,10 @@ func main() {
 	routes.SetupRoutes(r)
 
 	// 启动服务器
+	log.Printf(i18nInstance.GetMessage("zh-CN", "server.starting"))
 	log.Printf("服务器启动在端口 %s", cfg.Port)
+
 	if err := r.Run(":" + cfg.Port); err != nil {
-		log.Fatal("启动服务器失败:", err)
+		log.Fatal(i18nInstance.GetMessage("zh-CN", "server.start_failed"), ":", err)
 	}
 }

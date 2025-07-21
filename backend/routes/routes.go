@@ -11,9 +11,18 @@ import (
 func SetupRoutes(r *gin.Engine) {
 	// 应用全局中间件
 	r.Use(middleware.I18nMiddleware())
+	r.Use(middleware.ErrorHandlerMiddleware())
+
+	// 设置404和405错误处理器
+	r.NoRoute(middleware.NotFoundHandler())
+	r.NoMethod(middleware.MethodNotAllowedHandler())
 
 	// 健康检查路由
 	r.GET("/health", handlers.HealthHandler)
+
+	// 国际化相关路由（无需认证）
+	r.GET("/api/v1/languages", handlers.GetLanguagesHandler)
+	r.POST("/api/v1/language", handlers.SetLanguageHandler)
 
 	// 认证相关路由（无需认证）
 	auth := r.Group("/api/v1/auth")
