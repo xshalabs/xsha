@@ -2,6 +2,7 @@ package services
 
 import (
 	"sleep0-backend/database"
+	"time"
 )
 
 // AuthService 定义认证服务接口
@@ -66,4 +67,31 @@ type ProjectService interface {
 	// 协议和凭据验证
 	ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint, createdBy string) error
 	GetCompatibleCredentials(protocol database.GitProtocolType, createdBy string) ([]database.GitCredential, error)
+}
+
+// AdminOperationLogService 定义管理员操作日志服务接口
+type AdminOperationLogService interface {
+	// 日志记录
+	LogOperation(username, operation, resource, resourceID, description, details string,
+		success bool, errorMsg, ip, userAgent, method, path string) error
+
+	// 便捷记录方法
+	LogCreate(username, resource, resourceID, description, ip, userAgent, path string, success bool, errorMsg string) error
+	LogUpdate(username, resource, resourceID, description, ip, userAgent, path string, success bool, errorMsg string) error
+	LogDelete(username, resource, resourceID, description, ip, userAgent, path string, success bool, errorMsg string) error
+	LogRead(username, resource, resourceID, description, ip, userAgent, path string) error
+	LogLogin(username, ip, userAgent string, success bool, errorMsg string) error
+	LogLogout(username, ip, userAgent string, success bool, errorMsg string) error
+
+	// 查询操作
+	GetLogs(username string, operation *database.AdminOperationType, resource string,
+		success *bool, startTime, endTime *time.Time, page, pageSize int) ([]database.AdminOperationLog, int64, error)
+	GetLog(id uint) (*database.AdminOperationLog, error)
+
+	// 统计操作
+	GetOperationStats(username string, startTime, endTime time.Time) (map[string]int64, error)
+	GetResourceStats(username string, startTime, endTime time.Time) (map[string]int64, error)
+
+	// 清理操作
+	CleanOldLogs(days int) error
 }

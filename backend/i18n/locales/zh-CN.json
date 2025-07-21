@@ -60,5 +60,11 @@
   "project.name_exists": "项目名称已存在",
   "project.invalid_protocol": "无效的协议类型",
   "project.incompatible_credential": "凭据与协议不兼容",
-  "project.get_credentials_failed": "获取兼容凭据失败"
+  "project.get_credentials_failed": "获取兼容凭据失败",
+  "operation_log.get_success": "获取操作日志成功",
+  "operation_log.get_failed": "获取操作日志失败",
+  "operation_log.stats_success": "获取操作统计成功",
+  "operation_log.clean_success": "清理日志成功",
+  "common.invalid_id": "无效的ID",
+  "common.not_found": "资源不存在"
 } 

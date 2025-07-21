@@ -9,7 +9,7 @@ import (
 )
 
 // SetupRoutes sets up routes
-func SetupRoutes(r *gin.Engine, authService services.AuthService, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers) {
+func SetupRoutes(r *gin.Engine, authService services.AuthService, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers) {
 	// Apply global middleware
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
@@ -35,6 +35,10 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, gitCredHandler
 	// API route group (authentication required)
 	api := r.Group("/api/v1")
 	api.Use(middleware.AuthMiddlewareWithService(authService))
+
+	// 添加操作日志记录中间件（在认证中间件之后）
+	api.Use(middleware.OperationLogMiddleware(operationLogHandlers.OperationLogService))
+
 	{
 		// User information
 		api.GET("/user/current", handlers.CurrentUserHandler)
@@ -46,6 +50,11 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, gitCredHandler
 		admin := api.Group("/admin")
 		{
 			admin.GET("/login-logs", handlers.GetLoginLogsHandler)
+
+			// 新增：操作日志相关路由
+			admin.GET("/operation-logs", handlers.GetOperationLogsHandler)    // 获取操作日志列表
+			admin.GET("/operation-logs/:id", handlers.GetOperationLogHandler) // 获取单个操作日志
+			admin.GET("/operation-stats", handlers.GetOperationStatsHandler)  // 获取操作统计
 		}
 
 		// Git凭据管理

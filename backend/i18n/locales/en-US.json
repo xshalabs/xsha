@@ -60,5 +60,11 @@
   "project.name_exists": "Project name already exists",
   "project.invalid_protocol": "Invalid protocol type",
   "project.incompatible_credential": "Credential is not compatible with protocol",
-  "project.get_credentials_failed": "Failed to get compatible credentials"
+  "project.get_credentials_failed": "Failed to get compatible credentials",
+  "operation_log.get_success": "Operation logs fetched successfully",
+  "operation_log.get_failed": "Failed to fetch operation logs",
+  "operation_log.stats_success": "Operation statistics fetched successfully",
+  "operation_log.clean_success": "Logs cleaned successfully",
+  "common.invalid_id": "Invalid ID",
+  "common.not_found": "Resource not found"
 } 

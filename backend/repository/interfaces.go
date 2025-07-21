@@ -51,3 +51,21 @@ type ProjectRepository interface {
 	ListActive(createdBy string, protocol *database.GitProtocolType) ([]database.Project, error)
 	GetByCredentialID(credentialID uint, createdBy string) ([]database.Project, error)
 }
+
+// AdminOperationLogRepository 定义管理员操作日志仓库接口
+type AdminOperationLogRepository interface {
+	// 基本操作
+	Add(log *database.AdminOperationLog) error
+	GetByID(id uint) (*database.AdminOperationLog, error)
+
+	// 查询操作
+	List(username string, operation *database.AdminOperationType, resource string,
+		success *bool, startTime, endTime *time.Time, page, pageSize int) ([]database.AdminOperationLog, int64, error)
+
+	// 统计操作
+	GetOperationStats(username string, startTime, endTime time.Time) (map[string]int64, error)
+	GetResourceStats(username string, startTime, endTime time.Time) (map[string]int64, error)
+
+	// 清理操作
+	CleanOld(days int) error
+}

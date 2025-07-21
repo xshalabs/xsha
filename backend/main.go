@@ -33,22 +33,26 @@ func main() {
 	// Initialize repositories
 	tokenRepo := repository.NewTokenBlacklistRepository(dbManager.GetDB())
 	loginLogRepo := repository.NewLoginLogRepository(dbManager.GetDB())
+	adminOperationLogRepo := repository.NewAdminOperationLogRepository(dbManager.GetDB())
 	gitCredRepo := repository.NewGitCredentialRepository(dbManager.GetDB())
 	projectRepo := repository.NewProjectRepository(dbManager.GetDB())
 
 	// Initialize services
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, cfg)
 	loginLogService := services.NewLoginLogService(loginLogRepo)
+	adminOperationLogService := services.NewAdminOperationLogService(adminOperationLogRepo)
 	gitCredService := services.NewGitCredentialService(gitCredRepo, cfg)
 	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService)
 
 	// Initialize handlers
 	authHandlers := handlers.NewAuthHandlers(authService, loginLogService)
+	adminOperationLogHandlers := handlers.NewAdminOperationLogHandlers(adminOperationLogService)
 	gitCredHandlers := handlers.NewGitCredentialHandlers(gitCredService)
 	projectHandlers := handlers.NewProjectHandlers(projectService)
 
-	// Set global handlers for backward compatibility (只保留auth相关)
+	// Set global handlers for backward compatibility
 	handlers.SetAuthHandlers(authHandlers)
+	handlers.SetAdminOperationLogHandlers(adminOperationLogHandlers)
 
 	// Set gin mode
 	if cfg.Environment == "production" {
@@ -59,7 +63,7 @@ func main() {
 	r := gin.Default()
 
 	// Setup routes - 传递所有处理器实例
-	routes.SetupRoutes(r, authService, gitCredHandlers, projectHandlers)
+	routes.SetupRoutes(r, authService, gitCredHandlers, projectHandlers, adminOperationLogHandlers)
 
 	// Start server
 	log.Print(i18nInstance.GetMessage("zh-CN", "server.starting"))

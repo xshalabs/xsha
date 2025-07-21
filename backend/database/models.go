@@ -102,3 +102,50 @@ type Project struct {
 	// 关联用户
 	CreatedBy string `gorm:"not null;index;uniqueIndex:idx_project_name_user" json:"created_by"` // 创建者用户名
 }
+
+// AdminOperationType 管理员操作类型
+type AdminOperationType string
+
+const (
+	AdminOperationCreate AdminOperationType = "create" // 创建
+	AdminOperationRead   AdminOperationType = "read"   // 查询
+	AdminOperationUpdate AdminOperationType = "update" // 更新
+	AdminOperationDelete AdminOperationType = "delete" // 删除
+	AdminOperationLogin  AdminOperationType = "login"  // 登录
+	AdminOperationLogout AdminOperationType = "logout" // 登出
+	AdminOperationExport AdminOperationType = "export" // 导出
+	AdminOperationImport AdminOperationType = "import" // 导入
+)
+
+// AdminOperationLog 管理员操作日志模型
+type AdminOperationLog struct {
+	ID        uint           `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	// 操作者信息
+	Username string `gorm:"not null;index" json:"username"` // 操作用户名
+
+	// 操作信息
+	Operation   AdminOperationType `gorm:"not null;index" json:"operation"` // 操作类型
+	Resource    string             `gorm:"not null;index" json:"resource"`  // 操作的资源类型（如：project, credential, user等）
+	ResourceID  string             `gorm:"default:''" json:"resource_id"`   // 操作的资源ID
+	Description string             `gorm:"type:text" json:"description"`    // 操作描述
+	Details     string             `gorm:"type:text" json:"details"`        // 操作详情（JSON格式存储）
+
+	// 操作结果
+	Success  bool   `gorm:"not null;index" json:"success"` // 操作是否成功
+	ErrorMsg string `gorm:"type:text" json:"error_msg"`    // 错误信息（如果失败）
+
+	// 客户端信息
+	IP        string `gorm:"not null" json:"ip"`          // 客户端IP
+	UserAgent string `gorm:"type:text" json:"user_agent"` // 用户代理
+
+	// 请求信息
+	Method string `gorm:"not null" json:"method"` // HTTP方法
+	Path   string `gorm:"not null" json:"path"`   // 请求路径
+
+	// 时间信息
+	OperationTime time.Time `gorm:"not null;index" json:"operation_time"` // 操作时间
+}
