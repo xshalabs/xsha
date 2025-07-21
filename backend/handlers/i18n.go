@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetLanguagesHandler 获取支持的语言列表
+// GetLanguagesHandler handles getting supported language list
 func GetLanguagesHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	helper := i18n.NewHelper(lang)
@@ -21,7 +21,7 @@ func GetLanguagesHandler(c *gin.Context) {
 	})
 }
 
-// SetLanguageHandler 设置语言偏好（示例）
+// SetLanguageHandler handles setting language preference (example)
 func SetLanguageHandler(c *gin.Context) {
 	helper := i18n.NewHelperFromContext(c)
 
@@ -34,7 +34,7 @@ func SetLanguageHandler(c *gin.Context) {
 		return
 	}
 
-	// 验证语言是否支持
+	// Validate if the language is supported
 	supportedLangs := i18n.GetInstance().GetSupportedLanguages()
 	isSupported := false
 	for _, lang := range supportedLangs {
@@ -45,11 +45,11 @@ func SetLanguageHandler(c *gin.Context) {
 	}
 
 	if !isSupported {
-		helper.ErrorResponse(c, http.StatusBadRequest, "validation.invalid_format", "不支持的语言")
+		helper.ErrorResponse(c, http.StatusBadRequest, "validation.invalid_format", "Unsupported language")
 		return
 	}
 
-	// 在实际项目中，这里可以保存用户的语言偏好到数据库或cookies
+	// In real projects, here you can save user's language preference to database or cookies
 	helper.SetLang(langData.Language)
 
 	helper.Response(c, http.StatusOK, "common.success", gin.H{

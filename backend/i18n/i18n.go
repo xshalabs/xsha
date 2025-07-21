@@ -9,10 +9,10 @@ import (
 	"sync"
 )
 
-// I18n 国际化结构
+// I18n internationalization structure
 type I18n struct {
 	mu          sync.RWMutex
-	messages    map[string]map[string]string // [语言代码][消息键]消息内容
+	messages    map[string]map[string]string // [language code][message key]message content
 	defaultLang string
 }
 
@@ -21,7 +21,7 @@ var (
 	once     sync.Once
 )
 
-// GetInstance 获取单例实例
+// GetInstance gets singleton instance
 func GetInstance() *I18n {
 	once.Do(func() {
 		instance = &I18n{
@@ -33,40 +33,40 @@ func GetInstance() *I18n {
 	return instance
 }
 
-// loadMessages 加载消息文件
+// loadMessages loads message files
 func (i *I18n) loadMessages() {
-	// 尝试从文件加载消息
+	// Try to load messages from file
 	langDir := "i18n/locales"
 	if _, err := os.Stat(langDir); os.IsNotExist(err) {
-		log.Printf("语言文件目录不存在，使用内置消息: %s", langDir)
+		log.Printf("Language file directory does not exist, using built-in messages: %s", langDir)
 		return
 	}
 
 	files, err := os.ReadDir(langDir)
 	if err != nil {
-		log.Printf("读取语言文件目录失败: %v", err)
+		log.Printf("Failed to read language file directory: %v", err)
 		return
 	}
 
 	for _, file := range files {
 		if filepath.Ext(file.Name()) == ".json" {
-			lang := file.Name()[:len(file.Name())-5] // 移除.json扩展名
+			lang := file.Name()[:len(file.Name())-5] // Remove .json extension
 			i.loadMessageFile(filepath.Join(langDir, file.Name()), lang)
 		}
 	}
 }
 
-// loadMessageFile 加载指定语言的消息文件
+// loadMessageFile loads message file for specified language
 func (i *I18n) loadMessageFile(filename, lang string) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		log.Printf("读取语言文件失败 %s: %v", filename, err)
+		log.Printf("Failed to read language file %s: %v", filename, err)
 		return
 	}
 
 	var messages map[string]string
 	if err := json.Unmarshal(data, &messages); err != nil {
-		log.Printf("解析语言文件失败 %s: %v", filename, err)
+		log.Printf("Failed to parse language file %s: %v", filename, err)
 		return
 	}
 
@@ -74,22 +74,22 @@ func (i *I18n) loadMessageFile(filename, lang string) {
 	i.messages[lang] = messages
 	i.mu.Unlock()
 
-	log.Printf("已加载语言文件: %s (%d 条消息)", filename, len(messages))
+	log.Printf("Language file loaded: %s (%d messages)", filename, len(messages))
 }
 
-// GetMessage 获取指定语言的消息
+// GetMessage gets message for specified language
 func (i *I18n) GetMessage(lang, key string) string {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
 
-	// 尝试获取指定语言的消息
+	// Try to get message for specified language
 	if messages, exists := i.messages[lang]; exists {
 		if message, found := messages[key]; found {
 			return message
 		}
 	}
 
-	// 回退到默认语言
+	// Fall back to default language
 	if lang != i.defaultLang {
 		if messages, exists := i.messages[i.defaultLang]; exists {
 			if message, found := messages[key]; found {
@@ -98,11 +98,11 @@ func (i *I18n) GetMessage(lang, key string) string {
 		}
 	}
 
-	// 如果都没找到，返回key本身
+	// If not found, return key itself
 	return key
 }
 
-// GetMessageWithArgs 获取带参数的消息
+// GetMessageWithArgs gets message with arguments
 func (i *I18n) GetMessageWithArgs(lang, key string, args ...interface{}) string {
 	message := i.GetMessage(lang, key)
 	if len(args) > 0 {
@@ -111,7 +111,7 @@ func (i *I18n) GetMessageWithArgs(lang, key string, args ...interface{}) string 
 	return message
 }
 
-// GetSupportedLanguages 获取支持的语言列表
+// GetSupportedLanguages gets list of supported languages
 func (i *I18n) GetSupportedLanguages() []string {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
@@ -123,7 +123,7 @@ func (i *I18n) GetSupportedLanguages() []string {
 	return langs
 }
 
-// T 简化的翻译函数
+// T simplified translation function
 func T(lang, key string, args ...interface{}) string {
 	return GetInstance().GetMessageWithArgs(lang, key, args...)
 }

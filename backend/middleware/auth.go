@@ -10,24 +10,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AuthMiddleware 认证中间件
+// AuthMiddleware authentication middleware
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cfg := config.Load()
 		lang := GetLangFromContext(c)
 
-		// 从Authorization header中获取token
+		// Get token from Authorization header
 		authHeader := c.GetHeader("Authorization")
 		token, err := utils.ExtractTokenFromAuthHeader(authHeader)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": i18n.T(lang, "auth.unauthorized") + "：" + err.Error(),
+				"error": i18n.T(lang, "auth.unauthorized") + ": " + err.Error(),
 			})
 			c.Abort()
 			return
 		}
 
-		// 检查token是否在黑名单中
+		// Check if token is in blacklist
 		if database.IsTokenBlacklisted(token) {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": i18n.T(lang, "auth.token_blacklisted"),
@@ -36,17 +36,17 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 验证JWT token
+		// Validate JWT token
 		claims, err := utils.ValidateJWT(token, cfg.JWTSecret)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": i18n.T(lang, "auth.invalid_token") + "：" + err.Error(),
+				"error": i18n.T(lang, "auth.invalid_token") + ": " + err.Error(),
 			})
 			c.Abort()
 			return
 		}
 
-		// 将用户信息存储到context中供后续处理器使用
+		// Store user information in context for subsequent handlers
 		c.Set("username", claims.Username)
 		c.Next()
 	}

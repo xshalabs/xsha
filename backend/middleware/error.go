@@ -7,19 +7,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ErrorHandlerMiddleware 错误处理中间件
+// ErrorHandlerMiddleware error handling middleware
 func ErrorHandlerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
 
-		// 处理错误
+		// Handle errors
 		if len(c.Errors) > 0 {
 			lang := GetLangFromContext(c)
 
-			// 获取最后一个错误
+			// Get the last error
 			err := c.Errors.Last()
 
-			// 根据错误类型返回相应的HTTP状态码和消息
+			// Return appropriate HTTP status code and message based on error type
 			switch err.Type {
 			case gin.ErrorTypeBind:
 				c.JSON(http.StatusBadRequest, gin.H{
@@ -39,7 +39,7 @@ func ErrorHandlerMiddleware() gin.HandlerFunc {
 	}
 }
 
-// NotFoundHandler 404错误处理
+// NotFoundHandler handles 404 errors
 func NotFoundHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		lang := GetLangFromContext(c)
@@ -49,7 +49,7 @@ func NotFoundHandler() gin.HandlerFunc {
 	}
 }
 
-// MethodNotAllowedHandler 405错误处理
+// MethodNotAllowedHandler handles 405 errors
 func MethodNotAllowedHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		lang := GetLangFromContext(c)

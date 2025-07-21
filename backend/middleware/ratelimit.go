@@ -10,22 +10,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RateLimitEntry 限流条目
+// RateLimitEntry rate limit entry
 type RateLimitEntry struct {
-	Count     int       // 请求次数
-	FirstTime time.Time // 第一次请求时间
-	LastTime  time.Time // 最后一次请求时间
+	Count     int       // Request count
+	FirstTime time.Time // First request time
+	LastTime  time.Time // Last request time
 }
 
-// RateLimiter 限流器
+// RateLimiter rate limiter
 type RateLimiter struct {
 	mu      sync.RWMutex
 	entries map[string]*RateLimitEntry
-	limit   int           // 时间窗口内最大请求数
-	window  time.Duration // 时间窗口
+	limit   int           // Maximum requests within time window
+	window  time.Duration // Time window
 }
 
-// NewRateLimiter 创建新的限流器
+// NewRateLimiter creates a new rate limiter
 func NewRateLimiter(limit int, window time.Duration) *RateLimiter {
 	rl := &RateLimiter{
 		entries: make(map[string]*RateLimitEntry),
@@ -33,13 +33,13 @@ func NewRateLimiter(limit int, window time.Duration) *RateLimiter {
 		window:  window,
 	}
 
-	// 启动清理过期条目的协程
+	// Start goroutine to clean expired entries
 	go rl.cleanup()
 
 	return rl
 }
 
-// IsAllowed 检查是否允许请求
+// IsAllowed checks if the request is allowed
 func (rl *RateLimiter) IsAllowed(key string) bool {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
@@ -48,7 +48,7 @@ func (rl *RateLimiter) IsAllowed(key string) bool {
 	entry, exists := rl.entries[key]
 
 	if !exists {
-		// 首次请求
+		// First request
 		rl.entries[key] = &RateLimitEntry{
 			Count:     1,
 			FirstTime: now,
@@ -57,29 +57,29 @@ func (rl *RateLimiter) IsAllowed(key string) bool {
 		return true
 	}
 
-	// 检查是否超出时间窗口
+	// Check if beyond time window
 	if now.Sub(entry.FirstTime) > rl.window {
-		// 重置计数器
+		// Reset counter
 		entry.Count = 1
 		entry.FirstTime = now
 		entry.LastTime = now
 		return true
 	}
 
-	// 更新最后请求时间
+	// Update last request time
 	entry.LastTime = now
 
-	// 检查是否超出限制
+	// Check if limit exceeded
 	if entry.Count >= rl.limit {
 		return false
 	}
 
-	// 增加计数
+	// Increment counter
 	entry.Count++
 	return true
 }
 
-// GetRemainingTime 获取剩余等待时间
+// GetRemainingTime gets remaining wait time
 func (rl *RateLimiter) GetRemainingTime(key string) time.Duration {
 	rl.mu.RLock()
 	defer rl.mu.RUnlock()
@@ -97,16 +97,16 @@ func (rl *RateLimiter) GetRemainingTime(key string) time.Duration {
 	return rl.window - elapsed
 }
 
-// cleanup 清理过期条目
+// cleanup cleans expired entries
 func (rl *RateLimiter) cleanup() {
-	ticker := time.NewTicker(time.Minute * 5) // 每5分钟清理一次
+	ticker := time.NewTicker(time.Minute * 5) // Clean every 5 minutes
 	defer ticker.Stop()
 
 	for range ticker.C {
 		rl.mu.Lock()
 		now := time.Now()
 		for key, entry := range rl.entries {
-			// 清理超过时间窗口且很久没有活动的条目
+			// Clean entries that exceed time window and have been inactive for long
 			if now.Sub(entry.LastTime) > rl.window*2 {
 				delete(rl.entries, key)
 			}
@@ -115,28 +115,28 @@ func (rl *RateLimiter) cleanup() {
 	}
 }
 
-// 全局限流器实例
+// Global rate limiter instances
 var (
 	loginRateLimiter *RateLimiter
 	once             sync.Once
 )
 
-// getLoginRateLimiter 获取登录限流器实例
+// getLoginRateLimiter gets login rate limiter instance
 func getLoginRateLimiter() *RateLimiter {
 	once.Do(func() {
-		// 15分钟内最多允许5次登录尝试
+		// Allow maximum 5 login attempts within 15 minutes
 		loginRateLimiter = NewRateLimiter(5, 15*time.Minute)
 	})
 	return loginRateLimiter
 }
 
-// LoginRateLimitMiddleware 登录限流中间件
+// LoginRateLimitMiddleware login rate limit middleware
 func LoginRateLimitMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		limiter := getLoginRateLimiter()
 		lang := GetLangFromContext(c)
 
-		// 使用客户端IP作为限流key
+		// Use client IP as rate limit key
 		clientIP := c.ClientIP()
 
 		if !limiter.IsAllowed(clientIP) {
@@ -145,7 +145,7 @@ func LoginRateLimitMiddleware() gin.HandlerFunc {
 			c.JSON(http.StatusTooManyRequests, gin.H{
 				"error":               i18n.T(lang, "login.rate_limit"),
 				"retry_after_seconds": int(remainingTime.Seconds()),
-				"retry_after":         fmt.Sprintf("%.0f分钟", remainingTime.Minutes()),
+				"retry_after":         fmt.Sprintf("%.0f minutes", remainingTime.Minutes()),
 			})
 			c.Abort()
 			return

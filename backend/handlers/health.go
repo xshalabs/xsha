@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// HealthHandler 健康检查处理
+// HealthHandler handles health check
 func HealthHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 

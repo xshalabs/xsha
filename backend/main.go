@@ -11,31 +11,31 @@ import (
 )
 
 func main() {
-	// 初始化国际化
+	// Initialize internationalization
 	i18nInstance := i18n.GetInstance()
 
-	// 加载配置
+	// Load configuration
 	cfg := config.Load()
 
-	// 初始化数据库
+	// Initialize database
 	database.InitDatabase()
 
-	// 设置 gin 模式
+	// Set gin mode
 	if cfg.Environment == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	// 创建 gin 引擎
+	// Create gin engine
 	r := gin.Default()
 
-	// 设置路由
+	// Setup routes
 	routes.SetupRoutes(r)
 
-	// 启动服务器
-	log.Printf(i18nInstance.GetMessage("zh-CN", "server.starting"))
-	log.Printf("服务器启动在端口 %s", cfg.Port)
+	// Start server
+	log.Print(i18nInstance.GetMessage("zh-CN", "server.starting"))
+	log.Printf("Server starting on port %s", cfg.Port)
 
 	if err := r.Run(":" + cfg.Port); err != nil {
-		log.Fatal(i18nInstance.GetMessage("zh-CN", "server.start_failed"), ":", err)
+		log.Fatalf("%s: %v", i18nInstance.GetMessage("zh-CN", "server.start_failed"), err)
 	}
 }

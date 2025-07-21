@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// LoginHandler 登录处理
+// LoginHandler handles login
 func LoginHandler(c *gin.Context) {
 	cfg := config.Load()
 	lang := middleware.GetLangFromContext(c)
@@ -28,9 +28,9 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	// 验证用户名和密码
+	// Validate username and password
 	if loginData.Username == cfg.AdminUser && loginData.Password == cfg.AdminPass {
-		// 生成JWT token
+		// Generate JWT token
 		token, err := utils.GenerateJWT(loginData.Username, cfg.JWTSecret)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -51,31 +51,31 @@ func LoginHandler(c *gin.Context) {
 	}
 }
 
-// LogoutHandler 登出处理
+// LogoutHandler handles logout
 func LogoutHandler(c *gin.Context) {
 	cfg := config.Load()
 	lang := middleware.GetLangFromContext(c)
 
-	// 从Authorization header中获取token
+	// Get token from Authorization header
 	authHeader := c.GetHeader("Authorization")
 	token, err := utils.ExtractTokenFromAuthHeader(authHeader)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "logout.invalid_token") + "：" + err.Error(),
+			"error": i18n.T(lang, "logout.invalid_token") + ": " + err.Error(),
 		})
 		return
 	}
 
-	// 验证token并获取用户信息
+	// Validate token and get user information
 	claims, err := utils.ValidateJWT(token, cfg.JWTSecret)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": i18n.T(lang, "logout.invalid_token") + "：" + err.Error(),
+			"error": i18n.T(lang, "logout.invalid_token") + ": " + err.Error(),
 		})
 		return
 	}
 
-	// 获取token过期时间
+	// Get token expiration time
 	expiresAt, err := utils.GetTokenExpiration(token, cfg.JWTSecret)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -84,7 +84,7 @@ func LogoutHandler(c *gin.Context) {
 		return
 	}
 
-	// 将token添加到黑名单
+	// Add token to blacklist
 	if err := database.AddTokenToBlacklist(token, claims.Username, expiresAt, "logout"); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "logout.failed"),
@@ -97,11 +97,11 @@ func LogoutHandler(c *gin.Context) {
 	})
 }
 
-// CurrentUserHandler 获取当前用户信息
+// CurrentUserHandler gets current user information
 func CurrentUserHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	// 从context中获取用户信息（由认证中间件设置）
+	// Get user information from context (set by auth middleware)
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{

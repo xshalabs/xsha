@@ -21,31 +21,31 @@ func InitDatabase() {
 	switch cfg.DatabaseType {
 	case "mysql":
 		if cfg.MySQLDSN == "" {
-			log.Fatal("MySQL DSN 未配置，请设置 SLEEP0_MYSQL_DSN 环境变量")
+			log.Fatal("MySQL DSN not configured, please set SLEEP0_MYSQL_DSN environment variable")
 		}
 		DB, err = gorm.Open(mysql.Open(cfg.MySQLDSN), &gorm.Config{})
 		if err != nil {
-			log.Fatalf("连接 MySQL 数据库失败: %v", err)
+			log.Fatalf("Failed to connect to MySQL database: %v", err)
 		}
-		log.Println("MySQL 数据库连接成功")
+		log.Println("MySQL database connected successfully")
 	case "sqlite":
 		DB, err = gorm.Open(sqlite.Open(cfg.SQLitePath), &gorm.Config{})
 		if err != nil {
-			log.Fatalf("连接 SQLite 数据库失败: %v", err)
+			log.Fatalf("Failed to connect to SQLite database: %v", err)
 		}
-		log.Println("SQLite 数据库连接成功")
+		log.Println("SQLite database connected successfully")
 	default:
-		log.Fatalf("不支持的数据库类型: %s", cfg.DatabaseType)
+		log.Fatalf("Unsupported database type: %s", cfg.DatabaseType)
 	}
 
-	// 自动迁移数据库表
+	// Auto-migrate database tables
 	if err := DB.AutoMigrate(&TokenBlacklist{}); err != nil {
-		log.Fatalf("数据库迁移失败: %v", err)
+		log.Fatalf("Database migration failed: %v", err)
 	}
-	log.Println("数据库表迁移完成")
+	log.Println("Database table migration completed")
 }
 
-// 保留向后兼容性
+// Maintain backward compatibility
 func InitSQLite() {
 	InitDatabase()
 }
@@ -54,7 +54,7 @@ func GetDB() *gorm.DB {
 	return DB
 }
 
-// AddTokenToBlacklist 将token添加到黑名单
+// AddTokenToBlacklist adds token to blacklist
 func AddTokenToBlacklist(token string, username string, expiresAt time.Time, reason string) error {
 	blacklistEntry := TokenBlacklist{
 		Token:     token,
@@ -66,14 +66,14 @@ func AddTokenToBlacklist(token string, username string, expiresAt time.Time, rea
 	return DB.Create(&blacklistEntry).Error
 }
 
-// IsTokenBlacklisted 检查token是否在黑名单中
+// IsTokenBlacklisted checks if token is in blacklist
 func IsTokenBlacklisted(token string) bool {
 	var count int64
 	DB.Model(&TokenBlacklist{}).Where("token = ? AND expires_at > ?", token, time.Now()).Count(&count)
 	return count > 0
 }
 
-// CleanExpiredTokens 清理过期的黑名单token（可以通过定时任务调用）
+// CleanExpiredTokens cleans expired blacklist tokens (can be called by scheduled tasks)
 func CleanExpiredTokens() error {
 	return DB.Where("expires_at < ?", time.Now()).Delete(&TokenBlacklist{}).Error
 }
