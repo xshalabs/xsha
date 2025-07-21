@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 	"sleep0-backend/config"
+	"sleep0-backend/utils"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,14 +26,19 @@ func LoginHandler(c *gin.Context) {
 
 	// 验证用户名和密码
 	if loginData.Username == cfg.AdminUser && loginData.Password == cfg.AdminPass {
-		session := sessions.Default(c)
-		session.Set("authenticated", true)
-		session.Set("username", loginData.Username)
-		session.Save()
+		// 生成JWT token
+		token, err := utils.GenerateJWT(loginData.Username, cfg.JWTSecret)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "生成token失败",
+			})
+			return
+		}
 
 		c.JSON(http.StatusOK, gin.H{
 			"message": "登录成功",
 			"user":    loginData.Username,
+			"token":   token,
 		})
 	} else {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -44,11 +49,8 @@ func LoginHandler(c *gin.Context) {
 
 // LogoutHandler 登出处理
 func LogoutHandler(c *gin.Context) {
-	session := sessions.Default(c)
-	session.Delete("authenticated")
-	session.Delete("username")
-	session.Save()
-
+	// JWT是无状态的，客户端需要删除本地存储的token
+	// 服务端只需要返回成功响应
 	c.JSON(http.StatusOK, gin.H{
 		"message": "登出成功",
 	})
@@ -56,8 +58,14 @@ func LogoutHandler(c *gin.Context) {
 
 // CurrentUserHandler 获取当前用户信息
 func CurrentUserHandler(c *gin.Context) {
-	session := sessions.Default(c)
-	username := session.Get("username")
+	// 从context中获取用户信息（由认证中间件设置）
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "无法获取用户信息",
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"user":          username,
