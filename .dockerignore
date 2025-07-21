@@ -1,0 +1,76 @@
+# Git related
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docs/
+
+# Build artifacts
+backend/build/
+backend/dist/
+backend/bin/
+backend/*.exe
+
+# Database files
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
+
+# Log files
+backend/*.log
+backend/logs/
+
+# Test coverage
+backend/coverage.out
+backend/coverage.html
+backend/coverage.xml
+
+# IDE configuration files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Operating system files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+
+# Environment variable files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Node.js related (if frontend exists)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker related
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Development tools configuration
+air.toml
+.air.toml
+
+# Others
+*.tar.gz
+*.zip 

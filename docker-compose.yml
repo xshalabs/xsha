@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # Backend application service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sleep0-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SLEEP0_PORT=8080
+      - SLEEP0_ENVIRONMENT=development
+      - SLEEP0_DATABASE_TYPE=mysql
+      - SLEEP0_MYSQL_DSN=root:password@tcp(mysql:3306)/sleep0?charset=utf8mb4&parseTime=True&loc=Local
+      - SLEEP0_ADMIN_USER=admin
+      - SLEEP0_ADMIN_PASS=admin123
+      - SLEEP0_JWT_SECRET=your-jwt-secret-key-change-this-in-production
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - sleep0-network
+    restart: unless-stopped
+    volumes:
+      # Mount code directory for development
+      - ./backend:/app:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # MySQL database service
+  mysql:
+    image: mysql:8.0
+    container_name: sleep0-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=sleep0
+      - MYSQL_USER=sleep0
+      - MYSQL_PASSWORD=sleep0pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - sleep0-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # phpMyAdmin (optional, for database management)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: sleep0-phpmyadmin
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=password
+    ports:
+      - "8081:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - sleep0-network
+    restart: unless-stopped
+    profiles:
+      - tools
+
+# Network configuration
+networks:
+  sleep0-network:
+    driver: bridge
+
+# Data volumes
+volumes:
+  mysql_data:
+    driver: local 

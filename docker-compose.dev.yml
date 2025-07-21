@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # Backend application service (development mode)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: sleep0-backend-dev
+    ports:
+      - "8080:8080"
+    environment:
+      - SLEEP0_PORT=8080
+      - SLEEP0_ENVIRONMENT=development
+      - SLEEP0_DATABASE_TYPE=sqlite
+      - SLEEP0_SQLITE_PATH=/app/data/app.db
+      - SLEEP0_ADMIN_USER=admin
+      - SLEEP0_ADMIN_PASS=admin123
+      - SLEEP0_JWT_SECRET=dev-jwt-secret
+    volumes:
+      # Mount source code for hot reload
+      - ./backend:/app:cached
+      - app_data:/app/data
+    networks:
+      - sleep0-dev-network
+    restart: unless-stopped
+    command: ["air", "-c", ".air.toml"]
+    depends_on:
+      - redis
+
+  # Redis service (for development environment caching)
+  redis:
+    image: redis:7-alpine
+    container_name: sleep0-redis-dev
+    ports:
+      - "6379:6379"
+    networks:
+      - sleep0-dev-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+  # Optional: MySQL service (if MySQL testing is needed)
+  mysql:
+    image: mysql:8.0
+    container_name: sleep0-mysql-dev
+    environment:
+      - MYSQL_ROOT_PASSWORD=devpassword
+      - MYSQL_DATABASE=sleep0_dev
+      - MYSQL_USER=sleep0_dev
+      - MYSQL_PASSWORD=devpass
+    ports:
+      - "3307:3306"  # Use different port to avoid conflicts
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+    networks:
+      - sleep0-dev-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pdevpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - mysql
+
+# Network configuration
+networks:
+  sleep0-dev-network:
+    driver: bridge
+
+# Data volumes
+volumes:
+  app_data:
+    driver: local
+  redis_data:
+    driver: local
+  mysql_dev_data:
+    driver: local 
