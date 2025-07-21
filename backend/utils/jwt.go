@@ -62,6 +62,20 @@ func ValidateJWT(tokenString, secret string) (*Claims, error) {
 	return nil, fmt.Errorf("无效的token")
 }
 
+// GetTokenExpiration 获取token的过期时间
+func GetTokenExpiration(tokenString, secret string) (time.Time, error) {
+	claims, err := ValidateJWT(tokenString, secret)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	if claims.ExpiresAt == nil {
+		return time.Time{}, fmt.Errorf("token没有过期时间")
+	}
+
+	return claims.ExpiresAt.Time, nil
+}
+
 // ExtractTokenFromAuthHeader 从Authorization header中提取token
 func ExtractTokenFromAuthHeader(authHeader string) (string, error) {
 	if authHeader == "" {
