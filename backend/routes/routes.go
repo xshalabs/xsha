@@ -9,7 +9,7 @@ import (
 )
 
 // SetupRoutes sets up routes
-func SetupRoutes(r *gin.Engine, authService services.AuthService) {
+func SetupRoutes(r *gin.Engine, authService services.AuthService, gitCredHandlers *handlers.GitCredentialHandlers) {
 	// Apply global middleware
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
@@ -46,6 +46,18 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService) {
 		admin := api.Group("/admin")
 		{
 			admin.GET("/login-logs", handlers.GetLoginLogsHandler)
+		}
+
+		// Git凭据管理 - 直接使用处理器实例方法
+		gitCreds := api.Group("/git-credentials")
+		{
+			gitCreds.POST("", gitCredHandlers.CreateCredential)            // 创建凭据
+			gitCreds.GET("", gitCredHandlers.ListCredentials)              // 获取凭据列表
+			gitCreds.GET("/:id", gitCredHandlers.GetCredential)            // 获取单个凭据
+			gitCreds.PUT("/:id", gitCredHandlers.UpdateCredential)         // 更新凭据
+			gitCreds.DELETE("/:id", gitCredHandlers.DeleteCredential)      // 删除凭据
+			gitCreds.POST("/:id/toggle", gitCredHandlers.ToggleCredential) // 切换激活状态
+			gitCreds.POST("/:id/use", gitCredHandlers.UseCredential)       // 使用凭据
 		}
 
 		// Additional authenticated routes can be added here

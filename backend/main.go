@@ -33,15 +33,18 @@ func main() {
 	// Initialize repositories
 	tokenRepo := repository.NewTokenBlacklistRepository(dbManager.GetDB())
 	loginLogRepo := repository.NewLoginLogRepository(dbManager.GetDB())
+	gitCredRepo := repository.NewGitCredentialRepository(dbManager.GetDB())
 
 	// Initialize services
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, cfg)
 	loginLogService := services.NewLoginLogService(loginLogRepo)
+	gitCredService := services.NewGitCredentialService(gitCredRepo, cfg)
 
 	// Initialize handlers
 	authHandlers := handlers.NewAuthHandlers(authService, loginLogService)
+	gitCredHandlers := handlers.NewGitCredentialHandlers(gitCredService)
 
-	// Set global handlers for backward compatibility
+	// Set global handlers for backward compatibility (只保留auth相关)
 	handlers.SetAuthHandlers(authHandlers)
 
 	// Set gin mode
@@ -52,8 +55,8 @@ func main() {
 	// Create gin engine
 	r := gin.Default()
 
-	// Setup routes
-	routes.SetupRoutes(r, authService)
+	// Setup routes - 直接传递处理器实例
+	routes.SetupRoutes(r, authService, gitCredHandlers)
 
 	// Start server
 	log.Print(i18nInstance.GetMessage("zh-CN", "server.starting"))

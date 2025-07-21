@@ -27,3 +27,23 @@ type LoginLogService interface {
 	// CleanOldLogs 清理旧日志
 	CleanOldLogs(days int) error
 }
+
+// GitCredentialService 定义Git凭据服务接口
+type GitCredentialService interface {
+	// 凭据管理
+	CreateCredential(name, description, credType, username, createdBy string, secretData map[string]string) (*database.GitCredential, error)
+	GetCredential(id uint, createdBy string) (*database.GitCredential, error)
+	GetCredentialByName(name, createdBy string) (*database.GitCredential, error)
+	ListCredentials(createdBy string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
+	UpdateCredential(id uint, createdBy string, updates map[string]interface{}, secretData map[string]string) error
+	DeleteCredential(id uint, createdBy string) error
+
+	// 凭据操作
+	UseCredential(id uint, createdBy string) (*database.GitCredential, error)
+	ToggleCredential(id uint, createdBy string, isActive bool) error
+	ListActiveCredentials(createdBy string, credType *database.GitCredentialType) ([]database.GitCredential, error)
+
+	// 凭据验证和解密
+	DecryptCredentialSecret(credential *database.GitCredential, secretType string) (string, error)
+	ValidateCredentialData(credType string, data map[string]string) error
+}

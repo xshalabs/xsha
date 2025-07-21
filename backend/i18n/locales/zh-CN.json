@@ -33,5 +33,17 @@
   "admin.login_logs_title": "登录日志",
   "admin.access_denied": "需要管理员权限",
   "logs.fetch_success": "获取日志成功",
-  "logs.fetch_failed": "获取日志失败"
+  "logs.fetch_failed": "获取日志失败",
+  "git_credential.create_success": "Git凭据创建成功",
+  "git_credential.create_failed": "Git凭据创建失败",
+  "git_credential.update_success": "Git凭据更新成功", 
+  "git_credential.update_failed": "Git凭据更新失败",
+  "git_credential.delete_success": "Git凭据删除成功",
+  "git_credential.delete_failed": "Git凭据删除失败",
+  "git_credential.toggle_success": "凭据状态切换成功",
+  "git_credential.toggle_failed": "凭据状态切换失败",
+  "git_credential.use_failed": "凭据使用失败",
+  "git_credential.not_found": "凭据不存在",
+  "git_credential.name_exists": "凭据名称已存在",
+  "git_credential.invalid_type": "无效的凭据类型"
 } 
