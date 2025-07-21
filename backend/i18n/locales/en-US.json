@@ -28,5 +28,10 @@
   "server.started": "Server started successfully",
   "server.start_failed": "Failed to start server",
   "database.connection_failed": "Database connection failed",
-  "database.migration_failed": "Database migration failed"
+  "database.migration_failed": "Database migration failed",
+  "login.password_decryption_error": "Password decryption failed",
+  "admin.login_logs_title": "Login Logs",
+  "admin.access_denied": "Admin permission required",
+  "logs.fetch_success": "Logs fetched successfully",
+  "logs.fetch_failed": "Failed to fetch logs"
 } 

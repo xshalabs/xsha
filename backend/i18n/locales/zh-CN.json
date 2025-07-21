@@ -28,5 +28,10 @@
   "server.started": "服务器启动成功",
   "server.start_failed": "服务器启动失败",
   "database.connection_failed": "数据库连接失败",
-  "database.migration_failed": "数据库迁移失败"
+  "database.migration_failed": "数据库迁移失败",
+  "login.password_decryption_error": "密码解密失败",
+  "admin.login_logs_title": "登录日志",
+  "admin.access_denied": "需要管理员权限",
+  "logs.fetch_success": "获取日志成功",
+  "logs.fetch_failed": "获取日志失败"
 } 

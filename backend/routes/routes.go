@@ -41,6 +41,12 @@ func SetupRoutes(r *gin.Engine) {
 		// Logout (requires token)
 		api.POST("/auth/logout", handlers.LogoutHandler)
 
+		// 新增：管理员功能
+		admin := api.Group("/admin")
+		{
+			admin.GET("/login-logs", handlers.GetLoginLogsHandler)
+		}
+
 		// Additional authenticated routes can be added here
 	}
 }

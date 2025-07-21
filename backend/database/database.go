@@ -39,7 +39,7 @@ func InitDatabase() {
 	}
 
 	// Auto-migrate database tables
-	if err := DB.AutoMigrate(&TokenBlacklist{}); err != nil {
+	if err := DB.AutoMigrate(&TokenBlacklist{}, &LoginLog{}); err != nil {
 		log.Fatalf("Database migration failed: %v", err)
 	}
 	log.Println("Database table migration completed")
@@ -76,4 +76,50 @@ func IsTokenBlacklisted(token string) bool {
 // CleanExpiredTokens cleans expired blacklist tokens (can be called by scheduled tasks)
 func CleanExpiredTokens() error {
 	return DB.Where("expires_at < ?", time.Now()).Delete(&TokenBlacklist{}).Error
+}
+
+// AddLoginLog 添加登录日志
+func AddLoginLog(username, ip, userAgent, reason string, success bool) error {
+	loginLog := LoginLog{
+		Username:  username,
+		Success:   success,
+		IP:        ip,
+		UserAgent: userAgent,
+		Reason:    reason,
+		LoginTime: time.Now(),
+	}
+
+	return DB.Create(&loginLog).Error
+}
+
+// GetLoginLogs 获取登录日志（支持分页和筛选）
+func GetLoginLogs(username string, page, pageSize int) ([]LoginLog, int64, error) {
+	var logs []LoginLog
+	var total int64
+
+	query := DB.Model(&LoginLog{})
+
+	// 按用户名筛选（可选）
+	if username != "" {
+		query = query.Where("username = ?", username)
+	}
+
+	// 获取总数
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 分页查询
+	offset := (page - 1) * pageSize
+	if err := query.Order("login_time DESC").Offset(offset).Limit(pageSize).Find(&logs).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return logs, total, nil
+}
+
+// CleanOldLoginLogs 清理旧的登录日志（保留最近N天）
+func CleanOldLoginLogs(days int) error {
+	cutoffTime := time.Now().AddDate(0, 0, -days)
+	return DB.Where("login_time < ?", cutoffTime).Delete(&LoginLog{}).Error
 }
