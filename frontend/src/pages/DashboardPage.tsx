@@ -148,6 +148,32 @@ export const DashboardPage: React.FC = () => {
               </CardContent>
             </Card>
 
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow" 
+              onClick={() => navigate(ROUTES.adminLogs)}
+            >
+              <CardHeader>
+                <CardTitle>{t('dashboard.adminLogs.title')}</CardTitle>
+                <CardDescription>
+                  {t('dashboard.adminLogs.description')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600">
+                  {t('dashboard.adminLogs.content')}
+                </p>
+                <Button 
+                  className="mt-4" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(ROUTES.adminLogs);
+                  }}
+                >
+                  {t('dashboard.adminLogs.manage')}
+                </Button>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>{t('dashboard.systemStatus.title')}</CardTitle>

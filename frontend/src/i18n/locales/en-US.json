@@ -82,6 +82,12 @@
       "content": "Add and configure access credentials for Git repositories.",
       "manage": "Manage Credentials"
     },
+    "adminLogs": {
+      "title": "System Logs",
+      "description": "View system operation and login logs",
+      "content": "Monitor system activities, operation records and login status.",
+      "manage": "View Logs"
+    },
     "systemStatus": {
       "title": "System Status",
       "description": "View system running status",
@@ -237,6 +243,103 @@
       "showing": "Showing",
       "to": "to",
       "of": "of",
+      "items": "items"
+    }
+  },
+  "adminLogs": {
+    "title": "System Logs",
+    "description": "View system operation logs, login records and statistics",
+    "operationLogs": {
+      "title": "Operation Logs",
+      "description": "View system operation records",
+      "columns": {
+        "id": "ID",
+        "username": "User",
+        "operation": "Operation",
+        "resource": "Resource",
+        "description": "Description",
+        "success": "Status",
+        "time": "Time",
+        "ip": "IP Address",
+        "userAgent": "User Agent"
+      },
+      "operations": {
+        "create": "Create",
+        "read": "Read",
+        "update": "Update",
+        "delete": "Delete",
+        "login": "Login",
+        "logout": "Logout"
+      },
+      "status": {
+        "success": "Success",
+        "failed": "Failed"
+      },
+      "filters": {
+        "all": "All",
+        "username": "Username",
+        "resource": "Resource Type",
+        "operation": "Operation Type",
+        "success": "Status",
+        "dateRange": "Date Range",
+        "startDate": "Start Date",
+        "endDate": "End Date"
+      },
+      "messages": {
+        "loadFailed": "Failed to load operation logs",
+        "noLogs": "No operation records"
+      }
+    },
+    "loginLogs": {
+      "title": "Login Logs",
+      "description": "View user login records",
+      "columns": {
+        "id": "ID",
+        "username": "Username",
+        "success": "Status",
+        "ip": "IP Address",
+        "time": "Login Time",
+        "reason": "Failure Reason",
+        "userAgent": "User Agent"
+      },
+      "status": {
+        "success": "Success",
+        "failed": "Failed"
+      },
+      "reasons": {
+        "invalid_username": "Invalid Username",
+        "invalid_password": "Invalid Password",
+        "token_generation_failed": "Token Generation Failed"
+      },
+      "filters": {
+        "all": "All",
+        "username": "Username",
+        "success": "Status"
+      },
+      "messages": {
+        "loadFailed": "Failed to load login logs",
+        "noLogs": "No login records"
+      }
+    },
+    "stats": {
+      "title": "Operation Statistics",
+      "description": "View operation statistics",
+      "operationStats": "Operation Type Statistics",
+      "resourceStats": "Resource Type Statistics",
+      "timeRange": "Time Range",
+      "total": "Total",
+      "noStatsAvailable": "No statistics available"
+    },
+    "common": {
+      "refresh": "Refresh",
+      "export": "Export",
+      "detail": "Detail",
+      "search": "Search",
+      "reset": "Reset",
+      "apply": "Apply",
+      "page": "Page",
+      "pageSize": "Page Size",
+      "total": "Total",
       "items": "items"
     }
   }

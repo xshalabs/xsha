@@ -6,6 +6,7 @@ import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ProjectsPage } from '@/pages/ProjectsPage';
 import { GitCredentialsPage } from '@/pages/GitCredentialsPage';
+import { AdminLogsPage } from '@/pages/AdminLogsPage';
 import './App.css';
 
 function NotFoundPage() {
@@ -58,6 +59,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <GitCredentialsPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* 系统日志管理页面 */}
+          <Route 
+            path="/admin/logs" 
+            element={
+              <ProtectedRoute>
+                <AdminLogsPage />
               </ProtectedRoute>
             } 
           />

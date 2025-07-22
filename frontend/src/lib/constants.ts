@@ -26,6 +26,7 @@ export const ROUTES = {
   dashboard: '/dashboard',
   projects: '/projects',
   gitCredentials: '/git-credentials',
+  adminLogs: '/admin/logs',
   settings: '/settings',
   profile: '/profile',
 } as const;
