@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +20,7 @@ import {
   X,
   MessageSquare
 } from 'lucide-react';
-import type { Task, TaskStatus, TaskListParams } from '@/types/task';
+import type { Task, TaskStatus } from '@/types/task';
 import type { Project } from '@/types/project';
 
 interface TaskListProps {
@@ -38,8 +38,6 @@ interface TaskListProps {
   onProjectFilterChange: (projectId: number | undefined) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
-  onUpdateStatus: (id: number, status: TaskStatus) => void;
-  onTogglePR: (id: number, hasPR: boolean) => void;
   onViewConversation?: (task: Task) => void;
   onRefresh: () => void;
   onCreateNew: () => void;
@@ -60,8 +58,6 @@ export function TaskList({
   onProjectFilterChange,
   onEdit,
   onDelete,
-  onUpdateStatus,
-  onTogglePR,
   onViewConversation,
   onRefresh,
   onCreateNew
@@ -102,13 +98,7 @@ export function TaskList({
     return new Date(dateString).toLocaleString();
   };
 
-  const handleStatusChange = (taskId: number, newStatus: TaskStatus) => {
-    onUpdateStatus(taskId, newStatus);
-  };
 
-  const handlePRToggle = (taskId: number, currentPRStatus: boolean) => {
-    onTogglePR(taskId, !currentPRStatus);
-  };
 
   const handleDeleteClick = (task: Task) => {
     if (confirm(t('tasks.messages.deleteConfirm', { title: task.title }))) {
@@ -282,31 +272,24 @@ export function TaskList({
                 {/* 操作按钮 */}
                 <div className="flex items-center justify-between pt-2 border-t">
                   <div className="flex items-center space-x-1">
-                    {/* 状态更新按钮 */}
-                    <Select
-                      value={task.status}
-                      onValueChange={(value) => handleStatusChange(task.id, value as TaskStatus)}
+                    {/* 显示状态 - 只读 */}
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs ${getStatusColor(task.status)}`}
                     >
-                      <SelectTrigger className="h-8 w-auto text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todo">{t('tasks.status.todo')}</SelectItem>
-                        <SelectItem value="in_progress">{t('tasks.status.in_progress')}</SelectItem>
-                        <SelectItem value="done">{t('tasks.status.done')}</SelectItem>
-                        <SelectItem value="cancelled">{t('tasks.status.cancelled')}</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      {getStatusIcon(task.status)}
+                      <span className="ml-1">
+                        {t(`tasks.status.${task.status}`)}
+                      </span>
+                    </Badge>
 
-                    {/* PR开关 */}
-                    <Button
-                      variant={task.has_pull_request ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handlePRToggle(task.id, task.has_pull_request)}
-                      className="h-8 px-2"
-                    >
-                      <GitPullRequest className="w-3 h-3" />
-                    </Button>
+                    {/* 显示PR状态 - 只读 */}
+                    {task.has_pull_request && (
+                      <Badge variant="secondary" className="text-xs">
+                        <GitPullRequest className="w-3 h-3 mr-1" />
+                        PR
+                      </Badge>
+                    )}
                   </div>
 
                   <div className="flex items-center space-x-1">

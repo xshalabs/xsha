@@ -89,26 +89,23 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *
 		// 任务管理
 		tasks := api.Group("/tasks")
 		{
-			tasks.POST("", taskHandlers.CreateTask)                           // 创建任务
-			tasks.GET("", taskHandlers.ListTasks)                             // 获取任务列表
-			tasks.GET("/stats", taskHandlers.GetTaskStats)                    // 获取任务统计
-			tasks.GET("/:id", taskHandlers.GetTask)                           // 获取单个任务
-			tasks.PUT("/:id", taskHandlers.UpdateTask)                        // 更新任务
-			tasks.DELETE("/:id", taskHandlers.DeleteTask)                     // 删除任务
-			tasks.PUT("/:id/status", taskHandlers.UpdateTaskStatus)           // 更新任务状态
-			tasks.PUT("/:id/pr-status", taskHandlers.UpdatePullRequestStatus) // 更新PR状态
+			tasks.POST("", taskHandlers.CreateTask)        // 创建任务
+			tasks.GET("", taskHandlers.ListTasks)          // 获取任务列表
+			tasks.GET("/stats", taskHandlers.GetTaskStats) // 获取任务统计
+			tasks.GET("/:id", taskHandlers.GetTask)        // 获取单个任务
+			tasks.PUT("/:id", taskHandlers.UpdateTask)     // 更新任务
+			tasks.DELETE("/:id", taskHandlers.DeleteTask)  // 删除任务
 		}
 
 		// 任务对话管理
 		conversations := api.Group("/conversations")
 		{
-			conversations.POST("", taskConvHandlers.CreateConversation)                 // 创建对话
-			conversations.GET("", taskConvHandlers.ListConversations)                   // 获取对话列表
-			conversations.GET("/latest", taskConvHandlers.GetLatestConversation)        // 获取最新对话
-			conversations.GET("/:id", taskConvHandlers.GetConversation)                 // 获取单个对话
-			conversations.PUT("/:id", taskConvHandlers.UpdateConversation)              // 更新对话
-			conversations.DELETE("/:id", taskConvHandlers.DeleteConversation)           // 删除对话
-			conversations.PUT("/:id/status", taskConvHandlers.UpdateConversationStatus) // 更新对话状态
+			conversations.POST("", taskConvHandlers.CreateConversation)          // 创建对话
+			conversations.GET("", taskConvHandlers.ListConversations)            // 获取对话列表
+			conversations.GET("/latest", taskConvHandlers.GetLatestConversation) // 获取最新对话
+			conversations.GET("/:id", taskConvHandlers.GetConversation)          // 获取单个对话
+			conversations.PUT("/:id", taskConvHandlers.UpdateConversation)       // 更新对话
+			conversations.DELETE("/:id", taskConvHandlers.DeleteConversation)    // 删除对话
 		}
 
 		// 开发环境管理

@@ -3,7 +3,6 @@ import type {
   CreateConversationRequest,
   CreateConversationResponse,
   UpdateConversationRequest,
-  UpdateConversationStatusRequest,
   ConversationListResponse,
   ConversationDetailResponse,
   LatestConversationResponse,
@@ -50,13 +49,7 @@ export const taskConversationsApi = {
     });
   },
 
-  // 更新对话状态
-  updateStatus: async (id: number, data: UpdateConversationStatusRequest): Promise<{ message: string }> => {
-    return request<{ message: string }>(`/conversations/${id}/status`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  },
+
 
   // 获取最新对话
   getLatest: async (taskId: number): Promise<LatestConversationResponse> => {

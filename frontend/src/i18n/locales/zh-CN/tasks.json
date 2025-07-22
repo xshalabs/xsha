@@ -58,8 +58,6 @@
     "createFailed": "任务创建失败",
     "updateFailed": "任务更新失败",
     "deleteFailed": "任务删除失败",
-    "updateStatusFailed": "状态更新失败",
-    "updatePRFailed": "PR状态更新失败",
     "deleteConfirm": "确定要删除任务 \"{{title}}\" 吗？此操作不可撤销。"
   },
   "tabs": {

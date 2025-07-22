@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { usePageTitle } from '@/hooks/usePageTitle';
@@ -20,8 +20,7 @@ import type {
 } from '@/types/task';
 import type { 
   TaskConversation as TaskConversationInterface, 
-  ConversationFormData, 
-  ConversationStatus 
+  ConversationFormData
 } from '@/types/task-conversation';
 import type { Project } from '@/types/project';
 
@@ -168,27 +167,7 @@ export function TasksPage() {
     }
   };
 
-  // 处理任务状态更新
-  const handleTaskStatusUpdate = async (id: number, status: TaskStatus) => {
-    try {
-      await apiService.tasks.updateStatus(id, { status });
-      loadTasks(currentPage, statusFilter, projectId ? parseInt(projectId, 10) : undefined);
-    } catch (error) {
-      logError(error as Error, 'Failed to update task status');
-      alert(error instanceof Error ? error.message : t('tasks.messages.updateStatusFailed'));
-    }
-  };
 
-  // 处理PR状态切换
-  const handlePRToggle = async (id: number, hasPR: boolean) => {
-    try {
-      await apiService.tasks.updatePullRequestStatus(id, { has_pull_request: hasPR });
-      loadTasks(currentPage, statusFilter, projectId ? parseInt(projectId, 10) : undefined);
-    } catch (error) {
-      logError(error as Error, 'Failed to update PR status');
-      alert(error instanceof Error ? error.message : t('tasks.messages.updatePRFailed'));
-    }
-  };
 
   // 处理表单提交
   const handleFormSubmit = async (data: TaskFormData) => {
@@ -242,20 +221,7 @@ export function TasksPage() {
     }
   };
 
-  // 处理对话状态更新
-  const handleConversationStatusUpdate = async (conversationId: number, status: ConversationStatus) => {
-    try {
-      await apiService.taskConversations.updateStatus(conversationId, { status });
-      
-      // 重新加载对话列表
-      if (selectedTask) {
-        loadConversations(selectedTask.id);
-      }
-    } catch (error) {
-      logError(error as Error, 'Failed to update conversation status');
-      throw error;
-    }
-  };
+
 
   // 处理返回列表
   const handleBackToList = () => {
@@ -274,7 +240,7 @@ export function TasksPage() {
     loadTasks(1, status, projectId ? parseInt(projectId, 10) : undefined);
   };
 
-  const handleProjectFilterChange = (projectId: number | undefined) => {
+  const handleProjectFilterChange = (_projectId: number | undefined) => {
     // This function is no longer needed as project filtering is handled by URL param
     // Keeping it for now, but it will not be called from the TaskList component
     // as the project filter is now a URL param.
@@ -366,12 +332,10 @@ export function TasksPage() {
             </div>
             {selectedTask && (
               <TaskConversation
-                taskId={selectedTask.id}
                 taskTitle={selectedTask.title}
                 conversations={conversations}
                 loading={conversationsLoading}
                 onSendMessage={handleSendMessage}
-                onUpdateStatus={handleConversationStatusUpdate}
                 onRefresh={handleConversationRefresh}
               />
             )}
@@ -397,8 +361,6 @@ export function TasksPage() {
                onProjectFilterChange={handleProjectFilterChange}
                onEdit={handleTaskEdit}
                onDelete={handleTaskDelete}
-               onUpdateStatus={handleTaskStatusUpdate}
-               onTogglePR={handlePRToggle}
                onViewConversation={handleViewConversation}
                onRefresh={handleRefresh}
                onCreateNew={handleTaskCreate}
@@ -450,12 +412,10 @@ export function TasksPage() {
         <TabsContent value="conversations" className="mt-6">
           {selectedTask ? (
             <TaskConversation
-              taskId={selectedTask.id}
               taskTitle={selectedTask.title}
               conversations={conversations}
               loading={conversationsLoading}
               onSendMessage={handleSendMessage}
-              onUpdateStatus={handleConversationStatusUpdate}
               onRefresh={handleConversationRefresh}
             />
           ) : (

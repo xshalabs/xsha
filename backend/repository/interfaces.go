@@ -94,8 +94,6 @@ type TaskRepository interface {
 	Delete(id uint, createdBy string) error
 
 	// 业务操作
-	UpdateStatus(id uint, createdBy string, status database.TaskStatus) error
-	UpdatePullRequestStatus(id uint, createdBy string, hasPullRequest bool) error
 	ListByProject(projectID uint, createdBy string) ([]database.Task, error)
 	CountByStatus(projectID uint, createdBy string) (map[database.TaskStatus]int64, error)
 }
@@ -110,7 +108,6 @@ type TaskConversationRepository interface {
 	Delete(id uint, createdBy string) error
 
 	// 业务操作
-	UpdateStatus(id uint, createdBy string, status database.ConversationStatus) error
 	ListByTask(taskID uint, createdBy string) ([]database.TaskConversation, error)
 	GetLatestByTask(taskID uint, createdBy string) (*database.TaskConversation, error)
 }

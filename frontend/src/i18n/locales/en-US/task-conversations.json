@@ -23,10 +23,8 @@
     "failed": "Failed",
     "cancelled": "Cancelled"
   },
-  "messages": {
+    "messages": {
     "createSuccess": "Message sent successfully",
-    "createFailed": "Failed to send message",
-    "updateStatusSuccess": "Status updated successfully",
-    "updateStatusFailed": "Failed to update status"
+    "createFailed": "Failed to send message"
   }
 } 

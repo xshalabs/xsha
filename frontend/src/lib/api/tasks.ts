@@ -3,8 +3,6 @@ import type {
   CreateTaskRequest,
   CreateTaskResponse,
   UpdateTaskRequest,
-  UpdateTaskStatusRequest,
-  UpdatePullRequestStatusRequest,
   TaskListResponse,
   TaskDetailResponse,
   TaskStatsResponse,
@@ -54,21 +52,7 @@ export const tasksApi = {
     });
   },
 
-  // 更新任务状态
-  updateStatus: async (id: number, data: UpdateTaskStatusRequest): Promise<{ message: string }> => {
-    return request<{ message: string }>(`/tasks/${id}/status`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  },
 
-  // 更新PR状态
-  updatePullRequestStatus: async (id: number, data: UpdatePullRequestStatusRequest): Promise<{ message: string }> => {
-    return request<{ message: string }>(`/tasks/${id}/pr-status`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  },
 
   // 获取任务统计
   getStats: async (projectId: number): Promise<TaskStatsResponse> => {

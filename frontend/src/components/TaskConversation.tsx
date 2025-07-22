@@ -24,22 +24,18 @@ import type {
 } from '@/types/task-conversation';
 
 interface TaskConversationProps {
-  taskId: number;
   taskTitle: string;
   conversations: TaskConversationInterface[];
   loading: boolean;
   onSendMessage: (data: ConversationFormData) => Promise<void>;
-  onUpdateStatus: (conversationId: number, status: ConversationStatus) => Promise<void>;
   onRefresh: () => void;
 }
 
 export function TaskConversation({
-  taskId,
   taskTitle,
   conversations,
   loading,
   onSendMessage,
-  onUpdateStatus,
   onRefresh
 }: TaskConversationProps) {
   const { t } = useTranslation();
@@ -123,14 +119,7 @@ export function TaskConversation({
     }
   };
 
-  // 处理状态更新
-  const handleStatusUpdate = async (conversationId: number, status: ConversationStatus) => {
-    try {
-      await onUpdateStatus(conversationId, status);
-    } catch (error) {
-      console.error('Failed to update status:', error);
-    }
-  };
+
 
   // 格式化时间
   const formatTime = (dateString: string) => {
@@ -205,42 +194,16 @@ export function TaskConversation({
                     </div>
                     
                     <div className="flex items-center space-x-2">
-                      {/* 状态选择器 */}
-                      <Select
-                        value={conversation.status}
-                        onValueChange={(value) => 
-                          handleStatusUpdate(conversation.id, value as ConversationStatus)
-                        }
+                      {/* 显示状态 - 只读 */}
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs ${getStatusColor(conversation.status)}`}
                       >
-                        <SelectTrigger className="h-6 w-auto text-xs">
-                          <Badge 
-                            variant="outline" 
-                            className={`text-xs ${getStatusColor(conversation.status)}`}
-                          >
-                            {getStatusIcon(conversation.status)}
-                            <span className="ml-1">
-                              {t(`taskConversation.status.${conversation.status}`)}
-                            </span>
-                          </Badge>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">
-                            {t('taskConversation.status.pending')}
-                          </SelectItem>
-                          <SelectItem value="running">
-                            {t('taskConversation.status.running')}
-                          </SelectItem>
-                          <SelectItem value="success">
-                            {t('taskConversation.status.success')}
-                          </SelectItem>
-                          <SelectItem value="failed">
-                            {t('taskConversation.status.failed')}
-                          </SelectItem>
-                          <SelectItem value="cancelled">
-                            {t('taskConversation.status.cancelled')}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                        {getStatusIcon(conversation.status)}
+                        <span className="ml-1">
+                          {t(`taskConversation.status.${conversation.status}`)}
+                        </span>
+                      </Badge>
                     </div>
                   </div>
 

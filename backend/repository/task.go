@@ -70,20 +70,6 @@ func (r *taskRepository) Delete(id uint, createdBy string) error {
 	return r.db.Where("id = ? AND created_by = ?", id, createdBy).Delete(&database.Task{}).Error
 }
 
-// UpdateStatus 更新任务状态
-func (r *taskRepository) UpdateStatus(id uint, createdBy string, status database.TaskStatus) error {
-	return r.db.Model(&database.Task{}).
-		Where("id = ? AND created_by = ?", id, createdBy).
-		Update("status", status).Error
-}
-
-// UpdatePullRequestStatus 更新PR状态
-func (r *taskRepository) UpdatePullRequestStatus(id uint, createdBy string, hasPullRequest bool) error {
-	return r.db.Model(&database.Task{}).
-		Where("id = ? AND created_by = ?", id, createdBy).
-		Update("has_pull_request", hasPullRequest).Error
-}
-
 // ListByProject 根据项目ID获取任务列表
 func (r *taskRepository) ListByProject(projectID uint, createdBy string) ([]database.Task, error) {
 	var tasks []database.Task

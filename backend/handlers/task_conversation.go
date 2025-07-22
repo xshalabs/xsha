@@ -33,11 +33,6 @@ type UpdateConversationRequest struct {
 	Content string `json:"content"`
 }
 
-// UpdateConversationStatusRequest 更新对话状态请求结构
-type UpdateConversationStatusRequest struct {
-	Status string `json:"status" binding:"required,oneof=pending running success failed cancelled"`
-}
-
 // CreateConversation 创建对话
 func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 	var req CreateConversationRequest
@@ -199,38 +194,6 @@ func (h *TaskConversationHandlers) DeleteConversation(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Conversation deleted successfully"})
-}
-
-// UpdateConversationStatus 更新对话状态
-func (h *TaskConversationHandlers) UpdateConversationStatus(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid conversation ID"})
-		return
-	}
-
-	var req UpdateConversationStatusRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// 获取当前用户
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	// 更新对话状态
-	status := database.ConversationStatus(req.Status)
-	if err := h.conversationService.UpdateConversationStatus(uint(id), username.(string), status); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Conversation status updated successfully"})
 }
 
 // GetLatestConversation 获取最新对话

@@ -36,16 +36,6 @@ type UpdateTaskRequest struct {
 	StartBranch string `json:"start_branch"`
 }
 
-// UpdateTaskStatusRequest 更新任务状态请求结构
-type UpdateTaskStatusRequest struct {
-	Status string `json:"status" binding:"required,oneof=todo in_progress done cancelled"`
-}
-
-// UpdatePullRequestStatusRequest 更新PR状态请求结构
-type UpdatePullRequestStatusRequest struct {
-	HasPullRequest bool `json:"has_pull_request"`
-}
-
 // CreateTask 创建任务
 func (h *TaskHandlers) CreateTask(c *gin.Context) {
 	var req CreateTaskRequest
@@ -214,69 +204,6 @@ func (h *TaskHandlers) DeleteTask(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Task deleted successfully"})
-}
-
-// UpdateTaskStatus 更新任务状态
-func (h *TaskHandlers) UpdateTaskStatus(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
-		return
-	}
-
-	var req UpdateTaskStatusRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// 获取当前用户
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	// 更新任务状态
-	status := database.TaskStatus(req.Status)
-	if err := h.taskService.UpdateTaskStatus(uint(id), username.(string), status); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Task status updated successfully"})
-}
-
-// UpdatePullRequestStatus 更新PR状态
-func (h *TaskHandlers) UpdatePullRequestStatus(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
-		return
-	}
-
-	var req UpdatePullRequestStatusRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// 获取当前用户
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	// 更新PR状态
-	if err := h.taskService.UpdatePullRequestStatus(uint(id), username.(string), req.HasPullRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Pull request status updated successfully"})
 }
 
 // GetTaskStats 获取任务统计

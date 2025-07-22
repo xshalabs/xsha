@@ -113,24 +113,6 @@ func (s *taskConversationService) DeleteConversation(id uint, createdBy string) 
 	return s.repo.Delete(id, createdBy)
 }
 
-// UpdateConversationStatus 更新对话状态
-func (s *taskConversationService) UpdateConversationStatus(id uint, createdBy string, status database.ConversationStatus) error {
-	// 验证状态值
-	validStatuses := map[database.ConversationStatus]bool{
-		database.ConversationStatusPending:   true,
-		database.ConversationStatusRunning:   true,
-		database.ConversationStatusSuccess:   true,
-		database.ConversationStatusFailed:    true,
-		database.ConversationStatusCancelled: true,
-	}
-
-	if !validStatuses[status] {
-		return errors.New("invalid conversation status")
-	}
-
-	return s.repo.UpdateStatus(id, createdBy, status)
-}
-
 // ListConversationsByTask 根据任务获取对话列表
 func (s *taskConversationService) ListConversationsByTask(taskID uint, createdBy string) ([]database.TaskConversation, error) {
 	return s.repo.ListByTask(taskID, createdBy)

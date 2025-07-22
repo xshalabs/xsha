@@ -58,8 +58,7 @@
     "createFailed": "Failed to create task",
     "updateFailed": "Failed to update task",
     "deleteFailed": "Failed to delete task",
-    "updateStatusFailed": "Failed to update status",
-    "updatePRFailed": "Failed to update PR status",
+
     "deleteConfirm": "Are you sure you want to delete task \"{{title}}\"? This action cannot be undone."
   },
   "tabs": {

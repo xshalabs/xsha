@@ -34,15 +34,7 @@ export interface UpdateTaskRequest {
   start_branch?: string;
 }
 
-// 更新任务状态请求
-export interface UpdateTaskStatusRequest {
-  status: TaskStatus;
-}
 
-// 更新PR状态请求
-export interface UpdatePullRequestStatusRequest {
-  has_pull_request: boolean;
-}
 
 // 任务列表查询参数
 export interface TaskListParams {

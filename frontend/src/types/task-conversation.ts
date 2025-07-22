@@ -32,10 +32,7 @@ export interface UpdateConversationRequest {
   content?: string;
 }
 
-// 更新对话状态请求
-export interface UpdateConversationStatusRequest {
-  status: ConversationStatus;
-}
+
 
 // 对话列表查询参数
 export interface ConversationListParams {

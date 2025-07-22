@@ -130,10 +130,6 @@ type TaskService interface {
 	UpdateTask(id uint, createdBy string, updates map[string]interface{}) error
 	DeleteTask(id uint, createdBy string) error
 
-	// 任务状态管理
-	UpdateTaskStatus(id uint, createdBy string, status database.TaskStatus) error
-	UpdatePullRequestStatus(id uint, createdBy string, hasPullRequest bool) error
-
 	// 任务统计
 	GetTaskStats(projectID uint, createdBy string) (map[database.TaskStatus]int64, error)
 	ListTasksByProject(projectID uint, createdBy string) ([]database.Task, error)
@@ -150,9 +146,6 @@ type TaskConversationService interface {
 	ListConversations(taskID uint, createdBy string, page, pageSize int) ([]database.TaskConversation, int64, error)
 	UpdateConversation(id uint, createdBy string, updates map[string]interface{}) error
 	DeleteConversation(id uint, createdBy string) error
-
-	// 对话状态管理
-	UpdateConversationStatus(id uint, createdBy string, status database.ConversationStatus) error
 
 	// 对话业务操作
 	ListConversationsByTask(taskID uint, createdBy string) ([]database.TaskConversation, error)

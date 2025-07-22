@@ -62,13 +62,6 @@ func (r *taskConversationRepository) Delete(id uint, createdBy string) error {
 	return r.db.Where("id = ? AND created_by = ?", id, createdBy).Delete(&database.TaskConversation{}).Error
 }
 
-// UpdateStatus 更新对话状态
-func (r *taskConversationRepository) UpdateStatus(id uint, createdBy string, status database.ConversationStatus) error {
-	return r.db.Model(&database.TaskConversation{}).
-		Where("id = ? AND created_by = ?", id, createdBy).
-		Update("status", status).Error
-}
-
 // ListByTask 根据任务ID获取对话列表
 func (r *taskConversationRepository) ListByTask(taskID uint, createdBy string) ([]database.TaskConversation, error) {
 	var conversations []database.TaskConversation

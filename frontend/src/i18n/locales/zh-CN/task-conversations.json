@@ -23,10 +23,8 @@
     "failed": "失败",
     "cancelled": "已取消"
   },
-  "messages": {
+    "messages": {
     "createSuccess": "消息发送成功",
-    "createFailed": "消息发送失败",
-    "updateStatusSuccess": "状态更新成功",
-    "updateStatusFailed": "状态更新失败"
+    "createFailed": "消息发送失败"
   }
 } 

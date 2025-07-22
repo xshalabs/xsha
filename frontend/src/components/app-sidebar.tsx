@@ -7,7 +7,6 @@ import {
   IconFileText,
   IconInnerShadowTop,
   IconContainer,
-  IconListCheck,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";

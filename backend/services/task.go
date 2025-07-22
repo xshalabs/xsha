@@ -123,28 +123,6 @@ func (s *taskService) DeleteTask(id uint, createdBy string) error {
 	return s.repo.Delete(id, createdBy)
 }
 
-// UpdateTaskStatus 更新任务状态
-func (s *taskService) UpdateTaskStatus(id uint, createdBy string, status database.TaskStatus) error {
-	// 验证状态值
-	validStatuses := map[database.TaskStatus]bool{
-		database.TaskStatusTodo:       true,
-		database.TaskStatusInProgress: true,
-		database.TaskStatusDone:       true,
-		database.TaskStatusCancelled:  true,
-	}
-
-	if !validStatuses[status] {
-		return errors.New("invalid task status")
-	}
-
-	return s.repo.UpdateStatus(id, createdBy, status)
-}
-
-// UpdatePullRequestStatus 更新PR状态
-func (s *taskService) UpdatePullRequestStatus(id uint, createdBy string, hasPullRequest bool) error {
-	return s.repo.UpdatePullRequestStatus(id, createdBy, hasPullRequest)
-}
-
 // GetTaskStats 获取任务统计
 func (s *taskService) GetTaskStats(projectID uint, createdBy string) (map[database.TaskStatus]int64, error) {
 	return s.repo.CountByStatus(projectID, createdBy)
