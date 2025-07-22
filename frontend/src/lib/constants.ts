@@ -6,7 +6,9 @@ export const APP_CONFIG = {
 
 // API配置常量
 export const API_CONFIG = {
-  baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1',
+  // 开发环境使用相对路径，生产环境使用完整 URL
+  baseUrl: import.meta.env.VITE_API_BASE_URL || 
+    (import.meta.env.DEV ? '/api/v1' : 'http://localhost:8080/api/v1'),
   timeout: 10000, // 10秒超时
 } as const;
 
