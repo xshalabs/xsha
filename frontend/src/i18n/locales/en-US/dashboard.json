@@ -1,0 +1,26 @@
+{
+  "welcome": "Welcome",
+  "title": "Sleep0 Dashboard",
+  "projectManagement": {
+    "title": "Project Management",
+    "description": "Manage your projects and Git credentials",
+    "content": "Create, edit and manage your project configurations."
+  },
+  "gitCredentials": {
+    "title": "Git Credentials",
+    "description": "Manage your Git access credentials",
+    "content": "Add and configure access credentials for Git repositories.",
+    "manage": "Manage Credentials"
+  },
+  "adminLogs": {
+    "title": "System Logs",
+    "description": "View system operation and login logs",
+    "content": "Monitor system activities, operation records and login status.",
+    "manage": "View Logs"
+  },
+  "systemStatus": {
+    "title": "System Status",
+    "description": "View system running status",
+    "content": "Monitor system health and performance metrics."
+  }
+} 

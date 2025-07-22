@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
+// import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminOperationLogList } from '@/components/AdminOperationLogList';
 import { LoginLogList } from '@/components/LoginLogList';
@@ -9,7 +9,7 @@ import { logError } from '@/lib/errors';
 import { 
   FileText, 
   Shield, 
-  Activity,
+  // Activity,
   TrendingUp
 } from 'lucide-react';
 import type { 
@@ -147,19 +147,19 @@ export const AdminLogsPage: React.FC = () => {
   };
 
   // 刷新当前标签页数据
-  const handleRefresh = () => {
-    switch (activeTab) {
-      case 'operationLogs':
-        loadOperationLogs();
-        break;
-      case 'loginLogs':
-        loadLoginLogs();
-        break;
-      case 'stats':
-        loadStats();
-        break;
-    }
-  };
+  // const handleRefresh = () => {
+  //   switch (activeTab) {
+  //     case 'operationLogs':
+  //       loadOperationLogs();
+  //       break;
+  //     case 'loginLogs':
+  //       loadLoginLogs();
+  //       break;
+  //     case 'stats':
+  //       loadStats();
+  //       break;
+  //   }
+  // };
 
   // 初始加载数据
   useEffect(() => {

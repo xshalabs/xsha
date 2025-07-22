@@ -1,0 +1,10 @@
+{
+  "pageNotFound": "Page Not Found",
+  "serverError": "Server Error",
+  "networkError": "Network Error",
+  "unknownError": "Unknown Error",
+  "validation_required": "This field is required",
+  "validation_invalid_format": "Invalid format",
+  "validation_too_short": "Content is too short",
+  "validation_too_long": "Content is too long"
+} 

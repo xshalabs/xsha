@@ -1,0 +1,6 @@
+{
+  "not_found": "Requested resource not found",
+  "method_not_allowed": "Method not allowed",
+  "rate_limit": "Too many requests, please try again later",
+  "health_status_ok": "Service is running normally"
+} 

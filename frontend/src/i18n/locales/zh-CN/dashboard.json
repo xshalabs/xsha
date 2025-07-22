@@ -1,0 +1,26 @@
+{
+  "welcome": "欢迎",
+  "title": "Sleep0 仪表板",
+  "projectManagement": {
+    "title": "项目管理",
+    "description": "管理您的项目和Git凭据",
+    "content": "创建、编辑和管理您的项目配置。"
+  },
+  "gitCredentials": {
+    "title": "Git 凭据",
+    "description": "管理您的Git访问凭据",
+    "content": "添加和配置Git仓库的访问凭据。",
+    "manage": "管理凭据"
+  },
+  "adminLogs": {
+    "title": "系统日志",
+    "description": "查看系统操作和登录日志",
+    "content": "监控系统活动、操作记录和登录情况。",
+    "manage": "查看日志"
+  },
+  "systemStatus": {
+    "title": "系统状态",
+    "description": "查看系统运行状态",
+    "content": "监控系统健康状态和性能指标。"
+  }
+} 
