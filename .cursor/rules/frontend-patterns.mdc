@@ -1,0 +1,72 @@
+# Frontend Development Patterns
+
+## React Component Structure
+Follow the established patterns in [ProjectsPage.tsx](mdc:frontend/src/pages/ProjectsPage.tsx) and [ProjectForm.tsx](mdc:frontend/src/components/ProjectForm.tsx):
+
+```typescript
+// Component interface pattern
+interface ComponentProps {
+  onEdit?: (item: Type) => void;
+  onDelete?: (id: number) => void;
+  onSubmit?: (data: Type) => void;
+}
+
+// State management pattern
+const [data, setData] = useState<Type[]>([]);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string | null>(null);
+```
+
+## API Integration Pattern
+Follow the centralized API service pattern from [api.ts](mdc:frontend/src/lib/api.ts):
+
+```typescript
+// Use apiService for all API calls
+try {
+  setLoading(true);
+  setError(null);
+  const response = await apiService.resource.action(params);
+  // Handle success
+} catch (error) {
+  const errorMessage = error instanceof Error ? error.message : t('fallback.message');
+  setError(errorMessage);
+  logError(error as Error, 'Operation context');
+} finally {
+  setLoading(false);
+}
+```
+
+## Internationalization
+Always use react-i18next for all user-facing text following [login-form.tsx](mdc:frontend/src/components/login-form.tsx):
+
+```typescript
+const { t } = useTranslation();
+// Use translation keys, never hardcode strings
+<Label>{t('auth.username')}</Label>
+```
+
+## Error Handling
+- Use the centralized error handling from [errors.ts](mdc:frontend/src/lib/errors.ts)
+- Always log errors with `logError(error, context)`
+- Prioritize backend internationalized error messages
+- Provide fallback translations
+
+## Form Patterns
+- Use controlled components with useState
+- Implement proper validation before submission
+- Handle loading states during form submission
+- Reset forms appropriately after actions
+
+## State Updates
+Use functional updates for arrays and refresh patterns:
+```typescript
+// Trigger list refresh
+setRefreshTrigger(prev => prev + 1);
+
+// Add to array
+setItems(prev => [...prev, newItem]);
+```
+description:
+globs:
+alwaysApply: false
+---

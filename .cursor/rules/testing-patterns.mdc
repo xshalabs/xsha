@@ -1,0 +1,255 @@
+# Testing Patterns
+
+## Frontend Testing (React/TypeScript)
+Test files should be co-located with components or in `__tests__` directories.
+
+### Component Testing
+```typescript
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { vi } from 'vitest';
+import { ComponentName } from './ComponentName';
+
+describe('ComponentName', () => {
+  const mockProps = {
+    onSubmit: vi.fn(),
+    onCancel: vi.fn(),
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should render correctly', () => {
+    render(<ComponentName {...mockProps} />);
+    expect(screen.getByRole('button')).toBeInTheDocument();
+  });
+
+  it('should handle form submission', async () => {
+    render(<ComponentName {...mockProps} />);
+    
+    fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+    
+    await waitFor(() => {
+      expect(mockProps.onSubmit).toHaveBeenCalled();
+    });
+  });
+});
+```
+
+### API Service Testing
+```typescript
+import { vi } from 'vitest';
+import { apiService } from './api';
+
+// Mock fetch globally
+global.fetch = vi.fn();
+
+describe('apiService', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should handle successful API calls', async () => {
+    const mockResponse = { data: 'test' };
+    (fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(mockResponse),
+    });
+
+    const result = await apiService.resource.get(1);
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('should handle API errors', async () => {
+    (fetch as any).mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      json: () => Promise.resolve({ error: 'Bad request' }),
+    });
+
+    await expect(apiService.resource.get(1)).rejects.toThrow();
+  });
+});
+```
+
+## Backend Testing (Go)
+Use table-driven tests and proper test isolation.
+
+### Handler Testing
+```go
+func TestResourceHandler_Create(t *testing.T) {
+    tests := []struct {
+        name           string
+        requestBody    interface{}
+        setupMock      func(*mocks.MockResourceService)
+        expectedStatus int
+        expectedError  string
+    }{
+        {
+            name: "successful creation",
+            requestBody: CreateResourceRequest{
+                Name: "test-resource",
+            },
+            setupMock: func(m *mocks.MockResourceService) {
+                m.EXPECT().CreateResource(gomock.Any()).Return(&database.Resource{}, nil)
+            },
+            expectedStatus: http.StatusCreated,
+        },
+        {
+            name:           "invalid request body",
+            requestBody:    "invalid",
+            setupMock:      func(m *mocks.MockResourceService) {},
+            expectedStatus: http.StatusBadRequest,
+        },
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            ctrl := gomock.NewController(t)
+            defer ctrl.Finish()
+
+            mockService := mocks.NewMockResourceService(ctrl)
+            tt.setupMock(mockService)
+
+            handler := NewResourceHandlers(mockService)
+            
+            body, _ := json.Marshal(tt.requestBody)
+            req := httptest.NewRequest("POST", "/resources", bytes.NewBuffer(body))
+            w := httptest.NewRecorder()
+            
+            c, _ := gin.CreateTestContext(w)
+            c.Request = req
+            c.Set("username", "testuser")
+            
+            handler.CreateResource(c)
+            
+            assert.Equal(t, tt.expectedStatus, w.Code)
+        })
+    }
+}
+```
+
+### Service Testing
+```go
+func TestResourceService_CreateResource(t *testing.T) {
+    ctrl := gomock.NewController(t)
+    defer ctrl.Finish()
+
+    mockRepo := mocks.NewMockResourceRepository(ctrl)
+    mockConfig := &config.Config{}
+    
+    service := NewResourceService(mockRepo, mockConfig)
+
+    tests := []struct {
+        name      string
+        input     CreateResourceInput
+        setupMock func()
+        wantErr   bool
+    }{
+        {
+            name: "successful creation",
+            input: CreateResourceInput{
+                Name: "test-resource",
+            },
+            setupMock: func() {
+                mockRepo.EXPECT().GetByName("test-resource", "user").Return(nil, gorm.ErrRecordNotFound)
+                mockRepo.EXPECT().Create(gomock.Any()).Return(nil)
+            },
+            wantErr: false,
+        },
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            tt.setupMock()
+            
+            _, err := service.CreateResource(tt.input.Name, "user")
+            
+            if tt.wantErr {
+                assert.Error(t, err)
+            } else {
+                assert.NoError(t, err)
+            }
+        })
+    }
+}
+```
+
+### Repository Testing
+Use test database or in-memory database:
+```go
+func setupTestDB(t *testing.T) *gorm.DB {
+    db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+    require.NoError(t, err)
+    
+    err = db.AutoMigrate(&database.Resource{})
+    require.NoError(t, err)
+    
+    return db
+}
+
+func TestResourceRepository_Create(t *testing.T) {
+    db := setupTestDB(t)
+    repo := NewResourceRepository(db)
+
+    resource := &database.Resource{
+        Name:      "test-resource",
+        CreatedBy: "testuser",
+    }
+
+    err := repo.Create(resource)
+    assert.NoError(t, err)
+    assert.NotZero(t, resource.ID)
+}
+```
+
+## Test Organization
+
+### Test File Structure
+```
+backend/
+  handlers/
+    resource.go
+    resource_test.go
+  services/
+    resource.go  
+    resource_test.go
+  repository/
+    resource.go
+    resource_test.go
+
+frontend/src/
+  components/
+    ResourceForm.tsx
+    ResourceForm.test.tsx
+  lib/
+    api.ts
+    api.test.ts
+```
+
+### Mock Generation
+Use mockgen for Go interfaces:
+```bash
+//go:generate mockgen -source=interfaces.go -destination=mocks/mock_interfaces.go
+```
+
+### Test Helpers
+Create reusable test helpers:
+```go
+// testhelpers/setup.go
+func SetupTestContext() (*gin.Context, *httptest.ResponseRecorder) {
+    w := httptest.NewRecorder()
+    c, _ := gin.CreateTestContext(w)
+    return c, w
+}
+
+func SetupAuthenticatedContext(username string) (*gin.Context, *httptest.ResponseRecorder) {
+    c, w := SetupTestContext()
+    c.Set("username", username)
+    return c, w
+}
+```
+description:
+globs:
+alwaysApply: false
+---

@@ -1,0 +1,123 @@
+# Error Handling Patterns
+
+## Frontend Error Handling
+Follow the pattern from [errors.ts](mdc:frontend/src/lib/errors.ts) and components:
+
+### API Error Handling
+```typescript
+try {
+  setLoading(true);
+  setError(null);
+  const result = await apiService.action(data);
+  // Handle success
+} catch (error) {
+  // Prioritize backend internationalized error messages
+  const errorMessage = error instanceof Error 
+    ? error.message 
+    : t('fallback.error.message');
+  setError(errorMessage);
+  logError(error as Error, 'Action context');
+} finally {
+  setLoading(false);
+}
+```
+
+### Error Logging
+```typescript
+import { logError } from '@/lib/errors';
+
+// Always provide context for errors
+logError(error as Error, 'Failed to load projects');
+logError(error as Error, 'User authentication failed');
+```
+
+### Error Display
+- Use state-based error display: `const [error, setError] = useState<string | null>(null)`
+- Clear errors before new operations: `setError(null)`
+- Show user-friendly error messages with internationalization
+- Provide fallback messages when backend errors are unavailable
+
+## Backend Error Handling
+Follow patterns from [error.go](mdc:backend/middleware/error.go) and handlers:
+
+### Error Response Pattern
+```go
+// Standard error response
+c.JSON(http.StatusBadRequest, gin.H{
+    "error": i18n.T(lang, "operation.failed") + ": " + err.Error(),
+})
+
+// Error with technical details
+c.JSON(http.StatusBadRequest, gin.H{
+    "error": i18n.T(lang, "validation.invalid_format"),
+    "details": err.Error(),
+})
+```
+
+### Validation Errors
+```go
+if err := c.ShouldBindJSON(&req); err != nil {
+    c.JSON(http.StatusBadRequest, gin.H{
+        "error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
+    })
+    return
+}
+```
+
+### Service Layer Errors
+```go
+// Return descriptive errors from services
+if err := s.validateInput(data); err != nil {
+    return nil, errors.New("validation failed: " + err.Error())
+}
+
+// Check business logic constraints
+if existing != nil {
+    return nil, errors.New("resource already exists")
+}
+```
+
+## Error Categories & HTTP Status Codes
+
+### 400 Bad Request
+- Invalid request format/JSON
+- Validation failures
+- Business logic violations
+- Missing required fields
+
+### 401 Unauthorized  
+- Invalid or missing JWT token
+- Token blacklisted
+- Authentication failures
+
+### 404 Not Found
+- Resource doesn't exist
+- Resource not owned by user
+- Invalid resource ID
+
+### 429 Too Many Requests
+- Rate limiting triggered
+- Login attempt limits exceeded
+
+### 500 Internal Server Error
+- Database connection failures
+- Unexpected system errors
+- Service unavailable
+
+## Error Internationalization
+Maintain error message translations in:
+- Backend: [backend/i18n/locales/](mdc:backend/i18n/locales/)
+- Frontend: [frontend/src/i18n/locales/](mdc:frontend/src/i18n/locales/)
+
+Use descriptive error keys:
+```json
+{
+  "auth.invalid_credentials": "Invalid username or password",
+  "project.create_failed": "Failed to create project",
+  "validation.required": "This field is required"
+}
+```
+description:
+globs:
+alwaysApply: false
+---

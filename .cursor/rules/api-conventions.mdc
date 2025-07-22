@@ -1,0 +1,76 @@
+# API Design Conventions
+
+## RESTful Endpoints
+Follow the established patterns from [routes.go](mdc:backend/routes/routes.go):
+
+- `GET /api/v1/resources` - List with pagination
+- `POST /api/v1/resources` - Create new resource  
+- `GET /api/v1/resources/{id}` - Get single resource
+- `PUT /api/v1/resources/{id}` - Update resource
+- `DELETE /api/v1/resources/{id}` - Delete resource
+- `POST /api/v1/resources/{id}/action` - Special actions
+
+## Response Format
+Maintain consistent response structure as seen in handlers:
+
+**Success Response:**
+```json
+{
+  "message": "internationalized_success_message",
+  "data": { /* resource data */ },
+  "total": 100,          // for lists
+  "page": 1,             // for pagination
+  "page_size": 20,       // for pagination  
+  "total_pages": 5       // for pagination
+}
+```
+
+**Error Response:**
+```json
+{
+  "error": "internationalized_error_message",
+  "details": "optional_technical_details"
+}
+```
+
+## Pagination Pattern
+Support pagination on all list endpoints:
+- `page` query parameter (default: 1)
+- `page_size` query parameter (default: 20, max: 100)
+- Return `total`, `page`, `page_size`, `total_pages` in response
+
+## Authentication & Authorization
+- All API endpoints except `/auth/login` require Bearer token
+- Extract username from JWT context: `username, _ := c.Get("username")`
+- Use user-scoped data access (resources belong to users)
+
+## Internationalization in APIs
+- Accept `Accept-Language` header
+- Use `middleware.GetLangFromContext(c)` to get user language
+- Return internationalized messages using `i18n.T(lang, "key")`
+- Provide English (`en-US`) and Chinese (`zh-CN`) translations
+
+## Validation & Error Handling
+- Use Gin binding tags: `binding:"required"`, `binding:"oneof=value1 value2"`
+- Return appropriate HTTP status codes
+- Include validation details in error responses
+- Log errors for debugging while returning user-friendly messages
+
+## Swagger Documentation
+Include comprehensive Swagger annotations:
+```go
+// @Summary Brief description
+// @Description Detailed description
+// @Tags CategoryName
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param param_name path/query/body type required "description"
+// @Success 200 {object} ResponseType "Success description"
+// @Failure 400 {object} object{error=string} "Error description"
+// @Router /endpoint [method]
+```
+description:
+globs:
+alwaysApply: false
+---

@@ -1,0 +1,146 @@
+# Database & Repository Patterns
+
+## Model Structure
+Follow the patterns from [models.go](mdc:backend/database/models.go):
+
+```go
+type ResourceModel struct {
+    ID        uint           `gorm:"primarykey" json:"id"`
+    CreatedAt time.Time      `json:"created_at"`
+    UpdatedAt time.Time      `json:"updated_at"`
+    DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+    
+    // Business fields
+    Name        string `gorm:"not null;index" json:"name"`
+    Description string `gorm:"type:text" json:"description"`
+    
+    // Foreign keys
+    CreatedBy    string `gorm:"not null;index" json:"created_by"`
+    CredentialID *uint  `gorm:"index" json:"credential_id,omitempty"`
+    
+    // Status fields
+    IsActive bool `gorm:"default:true" json:"is_active"`
+}
+```
+
+## Repository Interface Pattern
+Follow the pattern from [interfaces.go](mdc:backend/repository/interfaces.go):
+
+```go
+type ResourceRepository interface {
+    Create(resource *database.ResourceModel) error
+    GetByID(id uint, createdBy string) (*database.ResourceModel, error)
+    GetByName(name, createdBy string) (*database.ResourceModel, error)
+    List(createdBy string, filters *Filters, page, pageSize int) ([]database.ResourceModel, int64, error)
+    Update(id uint, createdBy string, updates map[string]interface{}) error
+    Delete(id uint, createdBy string) error
+}
+```
+
+## Repository Implementation
+```go
+type resourceRepository struct {
+    db *gorm.DB
+}
+
+func NewResourceRepository(db *gorm.DB) ResourceRepository {
+    return &resourceRepository{db: db}
+}
+
+func (r *resourceRepository) Create(resource *database.ResourceModel) error {
+    return r.db.Create(resource).Error
+}
+
+func (r *resourceRepository) GetByID(id uint, createdBy string) (*database.ResourceModel, error) {
+    var resource database.ResourceModel
+    err := r.db.Where("id = ? AND created_by = ?", id, createdBy).First(&resource).Error
+    if err != nil {
+        return nil, err
+    }
+    return &resource, nil
+}
+
+func (r *resourceRepository) List(createdBy string, filters *Filters, page, pageSize int) ([]database.ResourceModel, int64, error) {
+    var resources []database.ResourceModel
+    var total int64
+    
+    query := r.db.Where("created_by = ?", createdBy)
+    
+    // Apply filters
+    if filters != nil {
+        // Add filter conditions
+    }
+    
+    // Count total
+    if err := query.Model(&database.ResourceModel{}).Count(&total).Error; err != nil {
+        return nil, 0, err
+    }
+    
+    // Apply pagination
+    offset := (page - 1) * pageSize
+    err := query.Offset(offset).Limit(pageSize).Find(&resources).Error
+    
+    return resources, total, err
+}
+```
+
+## Database Connection
+Follow the pattern from [database.go](mdc:backend/database/database.go):
+- Use DatabaseManager for connection management
+- Support both SQLite and MySQL
+- Auto-migrate models on startup
+- Proper connection lifecycle management
+
+## Query Patterns
+
+### User-Scoped Queries
+Always scope queries by user ownership:
+```go
+query := r.db.Where("created_by = ?", createdBy)
+```
+
+### Soft Deletes
+GORM automatically handles soft deletes with `gorm.DeletedAt` field
+
+### Pagination
+```go
+offset := (page - 1) * pageSize
+query.Offset(offset).Limit(pageSize)
+```
+
+### Filtering
+Build dynamic queries based on optional filters:
+```go
+if filters.Type != nil {
+    query = query.Where("type = ?", *filters.Type)
+}
+if filters.Status != nil {
+    query = query.Where("is_active = ?", *filters.Status)
+}
+```
+
+## Relationships
+Use proper foreign key constraints and preloading:
+```go
+// Define relationships
+type Project struct {
+    CredentialID *uint         `gorm:"index"`
+    Credential   *GitCredential `gorm:"foreignKey:CredentialID"`
+}
+
+// Preload relationships
+r.db.Preload("Credential").Find(&projects)
+```
+
+## Transactions
+For complex operations involving multiple models:
+```go
+err := r.db.Transaction(func(tx *gorm.DB) error {
+    // Multiple operations
+    return nil
+})
+```
+description:
+globs:
+alwaysApply: false
+---
