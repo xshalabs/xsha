@@ -72,9 +72,6 @@ func main() {
 	gitCredHandlers := handlers.NewGitCredentialHandlers(gitCredService)
 	projectHandlers := handlers.NewProjectHandlers(projectService)
 
-	// Set global handlers for backward compatibility
-	handlers.SetAuthHandlers(authHandlers)
-
 	// Set gin mode
 	if cfg.Environment == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -84,7 +81,7 @@ func main() {
 	r := gin.Default()
 
 	// Setup routes - 传递所有处理器实例
-	routes.SetupRoutes(r, authService, gitCredHandlers, projectHandlers, adminOperationLogHandlers)
+	routes.SetupRoutes(r, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers)
 
 	// Start server
 	log.Print(i18nInstance.GetMessage("zh-CN", "server.starting"))

@@ -11,7 +11,7 @@ import (
 )
 
 // SetupRoutes sets up routes
-func SetupRoutes(r *gin.Engine, authService services.AuthService, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers) {
+func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers) {
 	// Apply global middleware
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
@@ -34,7 +34,7 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, gitCredHandler
 	auth := r.Group("/api/v1/auth")
 	{
 		// Login route applies rate limiting middleware
-		auth.POST("/login", middleware.LoginRateLimitMiddleware(), handlers.LoginHandler)
+		auth.POST("/login", middleware.LoginRateLimitMiddleware(), authHandlers.LoginHandler)
 	}
 
 	// API route group (authentication required)
@@ -46,15 +46,15 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, gitCredHandler
 
 	{
 		// User information
-		api.GET("/user/current", handlers.CurrentUserHandler)
+		api.GET("/user/current", authHandlers.CurrentUserHandler)
 
 		// Logout (requires token)
-		api.POST("/auth/logout", handlers.LogoutHandler)
+		api.POST("/auth/logout", authHandlers.LogoutHandler)
 
 		// 管理员功能
 		admin := api.Group("/admin")
 		{
-			admin.GET("/login-logs", handlers.GetLoginLogsHandler)
+			admin.GET("/login-logs", authHandlers.GetLoginLogsHandler)
 
 			// 新增：操作日志相关路由
 			admin.GET("/operation-logs", operationLogHandlers.GetOperationLogs)    // 获取操作日志列表

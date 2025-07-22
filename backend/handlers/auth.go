@@ -208,31 +208,3 @@ func (h *AuthHandlers) GetLoginLogsHandler(c *gin.Context) {
 		"total_pages": totalPages,
 	})
 }
-
-// 保持向后兼容的全局函数
-var globalAuthHandlers *AuthHandlers
-
-// SetAuthHandlers 设置全局认证处理器实例
-func SetAuthHandlers(handlers *AuthHandlers) {
-	globalAuthHandlers = handlers
-}
-
-// LoginHandler 全局登录处理器（向后兼容）
-func LoginHandler(c *gin.Context) {
-	globalAuthHandlers.LoginHandler(c)
-}
-
-// LogoutHandler 全局登出处理器（向后兼容）
-func LogoutHandler(c *gin.Context) {
-	globalAuthHandlers.LogoutHandler(c)
-}
-
-// CurrentUserHandler 全局当前用户处理器（向后兼容）
-func CurrentUserHandler(c *gin.Context) {
-	globalAuthHandlers.CurrentUserHandler(c)
-}
-
-// GetLoginLogsHandler 全局登录日志处理器（向后兼容）
-func GetLoginLogsHandler(c *gin.Context) {
-	globalAuthHandlers.GetLoginLogsHandler(c)
-}
