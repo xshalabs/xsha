@@ -6,6 +6,7 @@ import {
   IconKey,
   IconFileText,
   IconInnerShadowTop,
+  IconContainer,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -40,6 +41,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: t("navigation.gitCredentials"),
         url: "/git-credentials",
         icon: IconKey,
+      },
+      {
+        title: t("navigation.dev_environments"),
+        url: "/dev-environments",
+        icon: IconContainer,
       },
       {
         title: t("navigation.adminLogs"),

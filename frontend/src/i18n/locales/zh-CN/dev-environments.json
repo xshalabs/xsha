@@ -1,0 +1,96 @@
+{
+  "create": "创建开发环境",
+  "edit": "编辑开发环境",
+  "list": "环境列表",
+  "page_description": "管理您的开发环境，支持多种环境类型和资源配置",
+  "create_description": "创建一个新的开发环境，配置环境类型和资源限制",
+  "edit_description": "修改开发环境的配置信息",
+  
+  "fetch_failed": "获取环境列表失败",
+  "create_success": "环境创建成功",
+  "create_failed": "环境创建失败",
+  "update_success": "环境更新成功",
+  "update_failed": "环境更新失败",
+  "delete_success": "环境删除成功",
+  "delete_failed": "环境删除失败",
+  "delete_confirm": "确定要删除这个环境吗？",
+  "start_success": "环境启动成功",
+  "start_failed": "环境启动失败",
+  "stop_success": "环境停止成功",
+  "stop_failed": "环境停止失败",
+  "restart_success": "环境重启成功",
+  "restart_failed": "环境重启失败",
+  "use_success": "环境使用成功",
+  "use_failed": "环境使用失败",
+  
+  "status": {
+    "stopped": "已停止",
+    "starting": "启动中",
+    "running": "运行中",
+    "stopping": "停止中",
+    "error": "错误"
+  },
+  
+  "actions": {
+    "start": "启动",
+    "stop": "停止",
+    "restart": "重启",
+    "use": "使用",
+    "edit": "编辑",
+    "delete": "删除"
+  },
+  
+  "stats": {
+    "total": "总环境数",
+    "running": "运行中",
+    "cpu_total": "总CPU",
+    "memory_total": "总内存",
+    "cores": "核"
+  },
+  
+  "table": {
+    "name": "环境名称",
+    "type": "环境类型",
+    "status": "状态",
+    "resources": "资源配置",
+    "last_used": "最后使用"
+  },
+  
+  "filter": {
+    "type": "环境类型",
+    "status": "状态"
+  },
+  
+  "empty": {
+    "title": "暂无开发环境",
+    "description": "您还没有创建任何开发环境，点击上方按钮创建一个"
+  },
+  
+  "form": {
+    "name": "环境名称",
+    "name_placeholder": "请输入环境名称",
+    "description": "环境描述",
+    "description_placeholder": "请输入环境描述（可选）",
+    "type": "环境类型",
+    "resources": "资源配置",
+    "cpu_limit": "CPU限制",
+    "memory_limit": "内存限制",
+    "env_vars": "环境变量"
+  },
+  
+  "validation": {
+    "name_required": "环境名称不能为空",
+    "cpu_limit_invalid": "CPU限制必须在0.1-16核之间",
+    "memory_limit_invalid": "内存限制必须在128-32768MB之间"
+  },
+  
+  "env_vars": {
+    "add_new": "添加环境变量",
+    "current": "当前环境变量",
+    "key": "变量名",
+    "value": "变量值",
+    "add": "添加",
+    "key_required": "变量名不能为空",
+    "key_exists": "变量名已存在"
+  }
+} 

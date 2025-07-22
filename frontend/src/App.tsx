@@ -9,6 +9,7 @@ import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ProjectsPage } from '@/pages/ProjectsPage';
 import { GitCredentialsPage } from '@/pages/GitCredentialsPage';
+import DevEnvironmentsPage from '@/pages/DevEnvironmentsPage';
 import { AdminLogsPage } from '@/pages/AdminLogsPage';
 import './App.css';
 
@@ -71,6 +72,18 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <GitCredentialsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* 开发环境管理页面 */}
+          <Route 
+            path="/dev-environments" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <DevEnvironmentsPage />
                 </Layout>
               </ProtectedRoute>
             } 

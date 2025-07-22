@@ -2,6 +2,7 @@
   "dashboard": "Dashboard",
   "projects": "Projects",
   "gitCredentials": "Git Credentials",
+  "dev_environments": "Dev Environments",
   "adminLogs": "Admin Logs",
   "settings": "Settings", 
   "profile": "Profile",

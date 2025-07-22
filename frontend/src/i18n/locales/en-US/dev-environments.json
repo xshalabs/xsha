@@ -1,0 +1,96 @@
+{
+  "create": "Create Environment",
+  "edit": "Edit Environment",
+  "list": "Environment List",
+  "page_description": "Manage your development environments with support for multiple environment types and resource configurations",
+  "create_description": "Create a new development environment with environment type and resource limit configurations",
+  "edit_description": "Modify the configuration information of the development environment",
+  
+  "fetch_failed": "Failed to fetch environment list",
+  "create_success": "Environment created successfully",
+  "create_failed": "Failed to create environment",
+  "update_success": "Environment updated successfully",
+  "update_failed": "Failed to update environment",
+  "delete_success": "Environment deleted successfully",
+  "delete_failed": "Failed to delete environment",
+  "delete_confirm": "Are you sure you want to delete this environment?",
+  "start_success": "Environment started successfully",
+  "start_failed": "Failed to start environment",
+  "stop_success": "Environment stopped successfully",
+  "stop_failed": "Failed to stop environment",
+  "restart_success": "Environment restarted successfully",
+  "restart_failed": "Failed to restart environment",
+  "use_success": "Environment used successfully",
+  "use_failed": "Failed to use environment",
+  
+  "status": {
+    "stopped": "Stopped",
+    "starting": "Starting",
+    "running": "Running",
+    "stopping": "Stopping",
+    "error": "Error"
+  },
+  
+  "actions": {
+    "start": "Start",
+    "stop": "Stop",
+    "restart": "Restart",
+    "use": "Use",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  
+  "stats": {
+    "total": "Total Environments",
+    "running": "Running",
+    "cpu_total": "Total CPU",
+    "memory_total": "Total Memory",
+    "cores": "cores"
+  },
+  
+  "table": {
+    "name": "Environment Name",
+    "type": "Environment Type",
+    "status": "Status",
+    "resources": "Resource Config",
+    "last_used": "Last Used"
+  },
+  
+  "filter": {
+    "type": "Environment Type",
+    "status": "Status"
+  },
+  
+  "empty": {
+    "title": "No Development Environments",
+    "description": "You haven't created any development environments yet, click the button above to create one"
+  },
+  
+  "form": {
+    "name": "Environment Name",
+    "name_placeholder": "Enter environment name",
+    "description": "Environment Description",
+    "description_placeholder": "Enter environment description (optional)",
+    "type": "Environment Type",
+    "resources": "Resource Configuration",
+    "cpu_limit": "CPU Limit",
+    "memory_limit": "Memory Limit",
+    "env_vars": "Environment Variables"
+  },
+  
+  "validation": {
+    "name_required": "Environment name is required",
+    "cpu_limit_invalid": "CPU limit must be between 0.1-16 cores",
+    "memory_limit_invalid": "Memory limit must be between 128-32768MB"
+  },
+  
+  "env_vars": {
+    "add_new": "Add Environment Variable",
+    "current": "Current Environment Variables",
+    "key": "Variable Name",
+    "value": "Variable Value",
+    "add": "Add",
+    "key_required": "Variable name cannot be empty",
+    "key_exists": "Variable name already exists"
+  }
+} 
