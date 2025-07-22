@@ -25,5 +25,11 @@
     "gitCredentials": "Git Credentials",
     "adminLogs": "System Logs",
     "notFound": "Page Not Found"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   }
 } 

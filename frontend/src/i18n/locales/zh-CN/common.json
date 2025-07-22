@@ -25,5 +25,11 @@
     "gitCredentials": "Git 凭据",
     "adminLogs": "系统日志",
     "notFound": "页面未找到"
+  },
+  "theme": {
+    "toggle": "切换主题",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统"
   }
 } 

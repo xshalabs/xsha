@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useTranslation } from 'react-i18next';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/components/theme-provider';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Layout } from '@/components/Layout';
 import { LoginPage } from '@/pages/LoginPage';
@@ -29,8 +30,9 @@ function NotFoundPage() {
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
+    <ThemeProvider defaultTheme="system" storageKey="sleep0-ui-theme">
+      <Router>
+        <AuthProvider>
         <Routes>
           {/* 根路径重定向到仪表板 */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -89,8 +91,9 @@ function App() {
           {/* 404页面 */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
-      </AuthProvider>
-    </Router>
+        </AuthProvider>
+      </Router>
+    </ThemeProvider>
   );
 }
 
