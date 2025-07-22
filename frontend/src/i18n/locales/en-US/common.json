@@ -13,6 +13,11 @@
   "submit": "Submit",
   "reset": "Reset",
   "saving": "Saving...",
+  "send": "Send",
+  "sending": "Sending...",
+  "inactive": "Inactive",
+  "createdAt": "Created",
+  "updatedAt": "Updated",
   "internal_error": "Internal server error",
   "list": "List",
   "filter": "Filter",
@@ -24,6 +29,11 @@
   "page_size": "Page Size",
   "open_menu": "Open menu",
   "page": "Page",
+  "pagination": {
+    "info": "Showing {{start}} - {{end}} of {{total}} items",
+    "previous": "Previous",
+    "next": "Next"
+  },
   "app": {
     "name": "Sleep0",
     "description": "Development Environment Management Platform"
@@ -34,6 +44,7 @@
     "projects": "Projects Management",
     "gitCredentials": "Git Credentials",
     "adminLogs": "System Logs",
+    "tasks": "Task Management",
     "notFound": "Page Not Found"
   },
   "theme": {

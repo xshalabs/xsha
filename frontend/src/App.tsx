@@ -8,6 +8,7 @@ import { Layout } from '@/components/Layout';
 import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ProjectsPage } from '@/pages/ProjectsPage';
+import { TasksPage } from '@/pages/TasksPage';
 import { GitCredentialsPage } from '@/pages/GitCredentialsPage';
 import DevEnvironmentsPage from '@/pages/DevEnvironmentsPage';
 import { AdminLogsPage } from '@/pages/AdminLogsPage';
@@ -60,6 +61,18 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <ProjectsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* 任务管理页面 */}
+          <Route 
+            path="/tasks" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TasksPage />
                 </Layout>
               </ProtectedRoute>
             } 

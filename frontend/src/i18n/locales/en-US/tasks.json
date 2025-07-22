@@ -1,0 +1,69 @@
+{
+  "title": "Task Management",
+  "totalCount": "{{count}} tasks total",
+  "empty": {
+    "title": "No tasks yet",
+    "description": "Create your first task to get started"
+  },
+  "actions": {
+    "create": "Create Task",
+    "edit": "Edit Task",
+    "delete": "Delete Task",
+    "view": "View Task",
+    "viewConversation": "View Conversation"
+  },
+  "status": {
+    "todo": "To Do",
+    "in_progress": "In Progress",
+    "done": "Done",
+    "cancelled": "Cancelled"
+  },
+  "stats": {
+    "total": "Total",
+    "todo": "To Do",
+    "in_progress": "In Progress",
+    "done": "Done",
+    "cancelled": "Cancelled"
+  },
+  "fields": {
+    "title": "Task Title",
+    "description": "Description",
+    "project": "Project",
+    "startBranch": "Start Branch",
+    "status": "Status",
+    "hasPullRequest": "Has PR"
+  },
+  "form": {
+    "createDescription": "Create a new development task",
+    "editDescription": "Edit task information",
+    "titlePlaceholder": "Enter task title",
+    "descriptionPlaceholder": "Describe the task requirements and details",
+    "selectProject": "Select a project",
+    "branchPlaceholder": "e.g. main, develop",
+    "branchHint": "Specify the Git branch to start development from"
+  },
+  "validation": {
+    "titleRequired": "Task title is required",
+    "branchRequired": "Start branch is required",
+    "projectRequired": "Please select a project"
+  },
+  "filters": {
+    "project": "Project",
+    "status": "Status"
+  },
+  "messages": {
+    "createSuccess": "Task created successfully",
+    "updateSuccess": "Task updated successfully",
+    "deleteSuccess": "Task deleted successfully",
+    "createFailed": "Failed to create task",
+    "updateFailed": "Failed to update task",
+    "deleteFailed": "Failed to delete task",
+    "updateStatusFailed": "Failed to update status",
+    "updatePRFailed": "Failed to update PR status",
+    "deleteConfirm": "Are you sure you want to delete task \"{{title}}\"? This action cannot be undone."
+  },
+  "tabs": {
+    "management": "Task Management",
+    "conversations": "Task Conversations"
+  }
+} 

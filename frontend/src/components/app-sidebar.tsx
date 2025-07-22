@@ -7,6 +7,7 @@ import {
   IconFileText,
   IconInnerShadowTop,
   IconContainer,
+  IconListCheck,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -36,6 +37,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: t("navigation.projects"),
         url: "/projects",
         icon: IconFolder,
+      },
+      {
+        title: t("navigation.tasks"),
+        url: "/tasks",
+        icon: IconListCheck,
       },
       {
         title: t("navigation.gitCredentials"),

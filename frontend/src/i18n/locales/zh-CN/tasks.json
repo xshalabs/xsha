@@ -1,0 +1,69 @@
+{
+  "title": "任务管理",
+  "totalCount": "共 {{count}} 个任务",
+  "empty": {
+    "title": "暂无任务",
+    "description": "开始创建您的第一个任务吧"
+  },
+  "actions": {
+    "create": "创建任务",
+    "edit": "编辑任务",
+    "delete": "删除任务",
+    "view": "查看任务",
+    "viewConversation": "查看对话"
+  },
+  "status": {
+    "todo": "待处理",
+    "in_progress": "进行中",
+    "done": "已完成",
+    "cancelled": "已取消"
+  },
+  "stats": {
+    "total": "总计",
+    "todo": "待处理",
+    "in_progress": "进行中",
+    "done": "已完成",
+    "cancelled": "已取消"
+  },
+  "fields": {
+    "title": "任务标题",
+    "description": "任务描述",
+    "project": "所属项目",
+    "startBranch": "起始分支",
+    "status": "状态",
+    "hasPullRequest": "是否有PR"
+  },
+  "form": {
+    "createDescription": "创建一个新的开发任务",
+    "editDescription": "修改任务信息",
+    "titlePlaceholder": "请输入任务标题",
+    "descriptionPlaceholder": "请描述任务的具体内容和要求",
+    "selectProject": "请选择项目",
+    "branchPlaceholder": "例如：main, develop",
+    "branchHint": "指定开始开发的Git分支名称"
+  },
+  "validation": {
+    "titleRequired": "任务标题不能为空",
+    "branchRequired": "起始分支不能为空",
+    "projectRequired": "请选择一个项目"
+  },
+  "filters": {
+    "project": "项目",
+    "status": "状态"
+  },
+  "messages": {
+    "createSuccess": "任务创建成功",
+    "updateSuccess": "任务更新成功",
+    "deleteSuccess": "任务删除成功",
+    "createFailed": "任务创建失败",
+    "updateFailed": "任务更新失败",
+    "deleteFailed": "任务删除失败",
+    "updateStatusFailed": "状态更新失败",
+    "updatePRFailed": "PR状态更新失败",
+    "deleteConfirm": "确定要删除任务 \"{{title}}\" 吗？此操作不可撤销。"
+  },
+  "tabs": {
+    "management": "任务管理",
+    "conversations": "任务对话"
+  }
+} 

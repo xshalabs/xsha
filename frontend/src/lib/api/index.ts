@@ -18,9 +18,11 @@ import { gitCredentialsApi } from './git-credentials';
 import { adminLogsApi } from './admin-logs';
 import { projectsApi } from './projects';
 import { devEnvironmentsApi } from './dev-environments';
+import { tasksApi } from './tasks';
+import { taskConversationsApi } from './task-conversations';
 
 // API 模块导出
-export { authApi, gitCredentialsApi, adminLogsApi, projectsApi, devEnvironmentsApi };
+export { authApi, gitCredentialsApi, adminLogsApi, projectsApi, devEnvironmentsApi, tasksApi, taskConversationsApi };
 
 // 兼容性导出 - 保持原有的 apiService 结构
 export const apiService = {
@@ -43,4 +45,10 @@ export const apiService = {
 
   // 开发环境
   devEnvironments: devEnvironmentsApi,
+
+  // 任务管理
+  tasks: tasksApi,
+
+  // 任务对话
+  taskConversations: taskConversationsApi,
 }; 

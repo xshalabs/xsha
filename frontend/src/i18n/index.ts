@@ -16,7 +16,9 @@ const loadModularTranslations = async (locale: string) => {
       gitCredentials,
       projects,
       adminLogs,
-      devEnvironments
+      devEnvironments,
+      tasks,
+      taskConversations
     ] = await Promise.all([
       import(`./locales/${locale}/common.json`),
       import(`./locales/${locale}/auth.json`),
@@ -27,7 +29,9 @@ const loadModularTranslations = async (locale: string) => {
       import(`./locales/${locale}/git-credentials.json`),
       import(`./locales/${locale}/projects.json`),
       import(`./locales/${locale}/admin-logs.json`),
-      import(`./locales/${locale}/dev-environments.json`)
+      import(`./locales/${locale}/dev-environments.json`),
+      import(`./locales/${locale}/tasks.json`),
+      import(`./locales/${locale}/task-conversations.json`)
     ]);
 
     // 合并所有模块的翻译内容
@@ -63,7 +67,9 @@ const loadModularTranslations = async (locale: string) => {
       gitCredentials: gitCredentials.default,
       projects: projects.default,
       adminLogs: adminLogs.default,
-      dev_environments: devEnvironments.default
+      dev_environments: devEnvironments.default,
+      tasks: tasks.default,
+      taskConversation: taskConversations.default
     };
   } catch (error) {
     console.error(`Failed to load translations for locale: ${locale}`, error);

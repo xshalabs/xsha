@@ -1,0 +1,32 @@
+{
+  "title": "Task Conversations",
+  "subtitle": "Task: {{taskTitle}}",
+  "history": "Conversation History",
+  "newMessage": "New Message",
+  "messageCount": "{{count}} messages",
+  "messageRole": "Role",
+  "messagePlaceholder": "Enter your message...",
+  "sendHint": "Press Cmd/Ctrl + Enter to send quickly",
+  "selectTask": "Please select a task to view conversations",
+  "empty": {
+    "title": "No conversations yet",
+    "description": "Start your first conversation"
+  },
+  "role": {
+    "user": "User",
+    "assistant": "Assistant"
+  },
+  "status": {
+    "pending": "Pending",
+    "running": "Running",
+    "success": "Success",
+    "failed": "Failed",
+    "cancelled": "Cancelled"
+  },
+  "messages": {
+    "createSuccess": "Message sent successfully",
+    "createFailed": "Failed to send message",
+    "updateStatusSuccess": "Status updated successfully",
+    "updateStatusFailed": "Failed to update status"
+  }
+} 
