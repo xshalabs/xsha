@@ -45,7 +45,8 @@
     "running": "Running",
     "cpu_total": "Total CPU",
     "memory_total": "Total Memory",
-    "cores": "cores"
+    "cores": "cores",
+    "memory": "Memory"
   },
   
   "table": {

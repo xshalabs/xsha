@@ -278,7 +278,7 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
                     <TableCell>
                       <div className="text-sm">
                         <div>CPU: {environment.cpu_limit} {t('dev_environments.stats.cores')}</div>
-                        <div>内存: {formatMemory(environment.memory_limit)}</div>
+                        <div>{t('dev_environments.stats.memory')}: {formatMemory(environment.memory_limit)}</div>
                       </div>
                     </TableCell>
                     <TableCell>

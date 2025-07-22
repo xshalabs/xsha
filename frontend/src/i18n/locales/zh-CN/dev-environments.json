@@ -45,7 +45,8 @@
     "running": "运行中",
     "cpu_total": "总CPU",
     "memory_total": "总内存",
-    "cores": "核"
+    "cores": "核",
+    "memory": "内存"
   },
   
   "table": {
