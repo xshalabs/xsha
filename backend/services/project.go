@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"sleep0-backend/config"
 	"sleep0-backend/database"
 	"sleep0-backend/repository"
+	"sleep0-backend/utils"
 	"strings"
 )
 
@@ -13,14 +15,16 @@ type projectService struct {
 	repo           repository.ProjectRepository
 	gitCredRepo    repository.GitCredentialRepository
 	gitCredService GitCredentialService
+	config         *config.Config
 }
 
 // NewProjectService 创建项目服务实例
-func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository.GitCredentialRepository, gitCredService GitCredentialService) ProjectService {
+func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository.GitCredentialRepository, gitCredService GitCredentialService, cfg *config.Config) ProjectService {
 	return &projectService{
 		repo:           repo,
 		gitCredRepo:    gitCredRepo,
 		gitCredService: gitCredService,
+		config:         cfg,
 	}
 }
 
@@ -223,6 +227,85 @@ func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolT
 	default:
 		return nil, errors.New("unsupported protocol type")
 	}
+}
+
+// FetchRepositoryBranches 获取仓库分支列表
+func (s *projectService) FetchRepositoryBranches(repoURL string, credentialID *uint, createdBy string) (*utils.GitAccessResult, error) {
+	// 验证仓库URL格式
+	if err := utils.ValidateGitURL(repoURL); err != nil {
+		return &utils.GitAccessResult{
+			CanAccess:    false,
+			ErrorMessage: fmt.Sprintf("仓库URL格式无效: %v", err),
+		}, nil
+	}
+
+	// 获取凭据信息（如果提供了凭据ID）
+	var credentialInfo *utils.GitCredentialInfo
+	if credentialID != nil {
+		credential, err := s.gitCredRepo.GetByID(*credentialID, createdBy)
+		if err != nil {
+			return &utils.GitAccessResult{
+				CanAccess:    false,
+				ErrorMessage: fmt.Sprintf("获取凭据失败: %v", err),
+			}, nil
+		}
+
+		if !credential.IsActive {
+			return &utils.GitAccessResult{
+				CanAccess:    false,
+				ErrorMessage: "凭据未激活",
+			}, nil
+		}
+
+		// 解密凭据信息
+		credentialInfo = &utils.GitCredentialInfo{
+			Type:     utils.GitCredentialType(credential.Type),
+			Username: credential.Username,
+		}
+
+		switch credential.Type {
+		case database.GitCredentialTypePassword, database.GitCredentialTypeToken:
+			if credential.PasswordHash != "" {
+				password, err := utils.DecryptAES(credential.PasswordHash, s.config.AESKey)
+				if err != nil {
+					return &utils.GitAccessResult{
+						CanAccess:    false,
+						ErrorMessage: fmt.Sprintf("解密凭据失败: %v", err),
+					}, nil
+				}
+				credentialInfo.Password = password
+			}
+		case database.GitCredentialTypeSSHKey:
+			if credential.PrivateKey != "" {
+				privateKey, err := utils.DecryptAES(credential.PrivateKey, s.config.AESKey)
+				if err != nil {
+					return &utils.GitAccessResult{
+						CanAccess:    false,
+						ErrorMessage: fmt.Sprintf("解密SSH私钥失败: %v", err),
+					}, nil
+				}
+				credentialInfo.PrivateKey = privateKey
+				credentialInfo.PublicKey = credential.PublicKey
+			}
+		}
+	}
+
+	// 使用Git工具获取分支信息
+	return utils.FetchRepositoryBranches(repoURL, credentialInfo)
+}
+
+// ValidateRepositoryAccess 验证仓库访问权限
+func (s *projectService) ValidateRepositoryAccess(repoURL string, credentialID *uint, createdBy string) error {
+	result, err := s.FetchRepositoryBranches(repoURL, credentialID, createdBy)
+	if err != nil {
+		return err
+	}
+
+	if !result.CanAccess {
+		return fmt.Errorf(result.ErrorMessage)
+	}
+
+	return nil
 }
 
 // validateProjectData 验证项目数据

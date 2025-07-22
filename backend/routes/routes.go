@@ -77,15 +77,17 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *
 		// 项目管理
 		projects := api.Group("/projects")
 		{
-			projects.POST("", projectHandlers.CreateProject)                       // 创建项目
-			projects.GET("", projectHandlers.ListProjects)                         // 获取项目列表
-			projects.POST("/parse-url", projectHandlers.ParseRepositoryURL)        // 解析仓库URL
-			projects.GET("/credentials", projectHandlers.GetCompatibleCredentials) // 获取兼容的凭据列表
-			projects.GET("/:id", projectHandlers.GetProject)                       // 获取单个项目
-			projects.PUT("/:id", projectHandlers.UpdateProject)                    // 更新项目
-			projects.DELETE("/:id", projectHandlers.DeleteProject)                 // 删除项目
-			projects.POST("/:id/toggle", projectHandlers.ToggleProject)            // 切换激活状态
-			projects.POST("/:id/use", projectHandlers.UseProject)                  // 使用项目
+			projects.POST("", projectHandlers.CreateProject)                            // 创建项目
+			projects.GET("", projectHandlers.ListProjects)                              // 获取项目列表
+			projects.POST("/parse-url", projectHandlers.ParseRepositoryURL)             // 解析仓库URL
+			projects.POST("/branches", projectHandlers.FetchRepositoryBranches)         // 获取仓库分支列表
+			projects.POST("/validate-access", projectHandlers.ValidateRepositoryAccess) // 验证仓库访问权限
+			projects.GET("/credentials", projectHandlers.GetCompatibleCredentials)      // 获取兼容的凭据列表
+			projects.GET("/:id", projectHandlers.GetProject)                            // 获取单个项目
+			projects.PUT("/:id", projectHandlers.UpdateProject)                         // 更新项目
+			projects.DELETE("/:id", projectHandlers.DeleteProject)                      // 删除项目
+			projects.POST("/:id/toggle", projectHandlers.ToggleProject)                 // 切换激活状态
+			projects.POST("/:id/use", projectHandlers.UseProject)                       // 使用项目
 		}
 	}
 }

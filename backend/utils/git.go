@@ -1,10 +1,16 @@
 package utils
 
 import (
+	"context"
 	"fmt"
+	"io/ioutil"
 	"net/url"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // GitProtocolType 定义Git协议类型
@@ -15,6 +21,15 @@ const (
 	GitProtocolSSH   GitProtocolType = "ssh"   // SSH协议
 )
 
+// GitCredentialType 定义Git凭据类型
+type GitCredentialType string
+
+const (
+	GitCredentialTypePassword GitCredentialType = "password" // 用户名密码
+	GitCredentialTypeToken    GitCredentialType = "token"    // 访问令牌
+	GitCredentialTypeSSHKey   GitCredentialType = "ssh_key"  // SSH密钥
+)
+
 // GitURLInfo Git URL 信息
 type GitURLInfo struct {
 	Protocol GitProtocolType `json:"protocol"`
@@ -22,6 +37,29 @@ type GitURLInfo struct {
 	Owner    string          `json:"owner"`
 	Repo     string          `json:"repo"`
 	IsValid  bool            `json:"is_valid"`
+}
+
+// GitBranch 分支信息
+type GitBranch struct {
+	Name      string `json:"name"`
+	IsDefault bool   `json:"is_default"`
+	CommitID  string `json:"commit_id"`
+}
+
+// GitAccessResult 访问验证结果
+type GitAccessResult struct {
+	CanAccess    bool     `json:"can_access"`
+	ErrorMessage string   `json:"error_message"`
+	Branches     []string `json:"branches"`
+}
+
+// GitCredentialInfo 凭据信息（用于传递给Git操作函数）
+type GitCredentialInfo struct {
+	Type       GitCredentialType `json:"type"`
+	Username   string            `json:"username"`
+	Password   string            `json:"password"`    // 明文密码或token
+	PrivateKey string            `json:"private_key"` // 明文SSH私钥
+	PublicKey  string            `json:"public_key"`  // SSH公钥
 }
 
 // DetectGitProtocol 根据 Git URL 自动检测协议类型
@@ -193,4 +231,166 @@ func IsGitURL(str string) bool {
 	// 检查 SSH 简化格式 user@host:path
 	sshPattern := regexp.MustCompile(`^[a-zA-Z0-9_.-]+@[a-zA-Z0-9.-]+:[a-zA-Z0-9/._-]+`)
 	return sshPattern.MatchString(str)
+}
+
+// FetchRepositoryBranches 获取仓库分支列表
+func FetchRepositoryBranches(repoURL string, credential *GitCredentialInfo) (*GitAccessResult, error) {
+	// 创建临时目录
+	tempDir, err := ioutil.TempDir("", "git-repo-*")
+	if err != nil {
+		return &GitAccessResult{
+			CanAccess:    false,
+			ErrorMessage: fmt.Sprintf("创建临时目录失败: %v", err),
+		}, nil
+	}
+	defer os.RemoveAll(tempDir)
+
+	// 设置超时上下文
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	var cmd *exec.Cmd
+	var envVars []string
+
+	// 根据协议类型和凭据类型设置认证
+	if credential != nil {
+		switch credential.Type {
+		case GitCredentialTypePassword:
+			// HTTPS 用户名密码认证
+			if credential.Password == "" {
+				return &GitAccessResult{
+					CanAccess:    false,
+					ErrorMessage: "密码不能为空",
+				}, nil
+			}
+
+			// 构建带认证信息的URL
+			parsedURL, err := url.Parse(repoURL)
+			if err != nil {
+				return &GitAccessResult{
+					CanAccess:    false,
+					ErrorMessage: fmt.Sprintf("解析URL失败: %v", err),
+				}, nil
+			}
+
+			parsedURL.User = url.UserPassword(credential.Username, credential.Password)
+			authenticatedURL := parsedURL.String()
+
+			cmd = exec.CommandContext(ctx, "git", "ls-remote", "--heads", authenticatedURL)
+
+		case GitCredentialTypeToken:
+			// HTTPS Token认证
+			if credential.Password == "" {
+				return &GitAccessResult{
+					CanAccess:    false,
+					ErrorMessage: "Token不能为空",
+				}, nil
+			}
+
+			// 构建带Token的URL (GitHub风格)
+			parsedURL, err := url.Parse(repoURL)
+			if err != nil {
+				return &GitAccessResult{
+					CanAccess:    false,
+					ErrorMessage: fmt.Sprintf("解析URL失败: %v", err),
+				}, nil
+			}
+
+			parsedURL.User = url.UserPassword(credential.Password, "x-oauth-basic")
+			authenticatedURL := parsedURL.String()
+
+			cmd = exec.CommandContext(ctx, "git", "ls-remote", "--heads", authenticatedURL)
+
+		case GitCredentialTypeSSHKey:
+			// SSH密钥认证
+			if credential.PrivateKey == "" {
+				return &GitAccessResult{
+					CanAccess:    false,
+					ErrorMessage: "SSH私钥不能为空",
+				}, nil
+			}
+
+			// 创建临时SSH密钥文件
+			keyFile := filepath.Join(tempDir, "ssh_key")
+			if err := ioutil.WriteFile(keyFile, []byte(credential.PrivateKey), 0600); err != nil {
+				return &GitAccessResult{
+					CanAccess:    false,
+					ErrorMessage: fmt.Sprintf("创建SSH密钥文件失败: %v", err),
+				}, nil
+			}
+
+			// 设置SSH环境变量
+			envVars = append(os.Environ(),
+				fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no", keyFile),
+			)
+
+			cmd = exec.CommandContext(ctx, "git", "ls-remote", "--heads", repoURL)
+			cmd.Env = envVars
+
+		default:
+			return &GitAccessResult{
+				CanAccess:    false,
+				ErrorMessage: "不支持的凭据类型",
+			}, nil
+		}
+	} else {
+		// 无凭据，尝试匿名访问
+		cmd = exec.CommandContext(ctx, "git", "ls-remote", "--heads", repoURL)
+	}
+
+	// 执行Git命令
+	output, err := cmd.Output()
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			return &GitAccessResult{
+				CanAccess:    false,
+				ErrorMessage: fmt.Sprintf("访问仓库失败: %s", string(exitError.Stderr)),
+			}, nil
+		}
+		return &GitAccessResult{
+			CanAccess:    false,
+			ErrorMessage: fmt.Sprintf("执行Git命令失败: %v", err),
+		}, nil
+	}
+
+	// 解析分支信息
+	branches := parseBranchesFromLsRemote(string(output))
+
+	return &GitAccessResult{
+		CanAccess: true,
+		Branches:  branches,
+	}, nil
+}
+
+// parseBranchesFromLsRemote 从git ls-remote输出解析分支名称
+func parseBranchesFromLsRemote(output string) []string {
+	var branches []string
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+
+	for _, line := range lines {
+		// git ls-remote --heads 输出格式: <commit_hash>\trefs/heads/<branch_name>
+		parts := strings.Split(line, "\t")
+		if len(parts) == 2 && strings.HasPrefix(parts[1], "refs/heads/") {
+			branchName := strings.TrimPrefix(parts[1], "refs/heads/")
+			if branchName != "" {
+				branches = append(branches, branchName)
+			}
+		}
+	}
+
+	return branches
+}
+
+// ValidateRepositoryAccess 验证仓库访问权限（不获取分支列表，仅验证访问）
+func ValidateRepositoryAccess(repoURL string, credential *GitCredentialInfo) error {
+	result, err := FetchRepositoryBranches(repoURL, credential)
+	if err != nil {
+		return err
+	}
+
+	if !result.CanAccess {
+		return fmt.Errorf(result.ErrorMessage)
+	}
+
+	return nil
 }

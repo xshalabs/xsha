@@ -42,6 +42,7 @@ export interface UpdateProjectRequest {
   name?: string;
   description?: string;
   repo_url?: string;
+  protocol?: GitProtocolType;
   default_branch?: string;
   credential_id?: number;
 }
@@ -119,4 +120,33 @@ export interface ParseRepositoryURLResponse {
     repo: string;
     is_valid: boolean;
   };
+}
+
+// 获取仓库分支请求
+export interface FetchRepositoryBranchesRequest {
+  repo_url: string;
+  credential_id?: number;
+}
+
+// 获取仓库分支响应
+export interface FetchRepositoryBranchesResponse {
+  message: string;
+  result: {
+    can_access: boolean;
+    error_message: string;
+    branches: string[];
+  };
+}
+
+// 验证仓库访问请求
+export interface ValidateRepositoryAccessRequest {
+  repo_url: string;
+  credential_id?: number;
+}
+
+// 验证仓库访问响应
+export interface ValidateRepositoryAccessResponse {
+  message: string;
+  can_access: boolean;
+  error?: string;
 } 

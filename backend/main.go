@@ -64,7 +64,7 @@ func main() {
 	loginLogService := services.NewLoginLogService(loginLogRepo)
 	adminOperationLogService := services.NewAdminOperationLogService(adminOperationLogRepo)
 	gitCredService := services.NewGitCredentialService(gitCredRepo, cfg)
-	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService)
+	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, cfg)
 
 	// Initialize handlers
 	authHandlers := handlers.NewAuthHandlers(authService, loginLogService)

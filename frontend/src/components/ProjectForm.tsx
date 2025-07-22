@@ -43,12 +43,17 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
   });
   
   const [credentials, setCredentials] = useState<CredentialOption[]>([]);
+  const [branches, setBranches] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [credentialsLoading, setCredentialsLoading] = useState(false);
+  const [branchesLoading, setBranchesLoading] = useState(false);
   const [urlParsing, setUrlParsing] = useState(false);
+  const [credentialValidating, setCredentialValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [urlParseTimeout, setUrlParseTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [accessValidated, setAccessValidated] = useState(false);
+  const [accessError, setAccessError] = useState<string | null>(null);
 
   // 加载兼容的凭据
   const loadCredentials = async (protocol: GitProtocolType) => {
@@ -61,6 +66,72 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
       setCredentials([]);
     } finally {
       setCredentialsLoading(false);
+    }
+  };
+
+  // 验证仓库访问权限并获取分支列表
+  const validateAccessAndFetchBranches = async (repoUrl: string, credentialId?: number) => {
+    if (!repoUrl.trim()) {
+      setBranches([]);
+      setAccessValidated(false);
+      setAccessError(null);
+      return;
+    }
+
+    try {
+      setCredentialValidating(true);
+      setBranchesLoading(true);
+      setAccessError(null);
+      setAccessValidated(false);
+
+      // 首先验证访问权限
+      const validateResponse = await apiService.projects.validateAccess({
+        repo_url: repoUrl,
+        credential_id: credentialId
+      });
+
+      if (!validateResponse.can_access) {
+        setAccessError(validateResponse.error || '无法访问仓库');
+        setBranches([]);
+        return;
+      }
+
+      // 如果验证成功，获取分支列表
+      const branchesResponse = await apiService.projects.fetchBranches({
+        repo_url: repoUrl,
+        credential_id: credentialId
+      });
+
+      if (branchesResponse.result.can_access) {
+        setBranches(branchesResponse.result.branches);
+        setAccessValidated(true);
+        
+        // 如果当前默认分支不在分支列表中，且分支列表不为空，设置第一个分支为默认
+        if (branchesResponse.result.branches.length > 0 && 
+            !branchesResponse.result.branches.includes(formData.default_branch)) {
+          // 优先选择 main、master、develop 等常见分支
+          const commonBranches = ['main', 'master', 'develop', 'dev'];
+          const suggestedBranch = commonBranches.find(branch => 
+            branchesResponse.result.branches.includes(branch)
+          ) || branchesResponse.result.branches[0];
+          
+          setFormData(prev => ({
+            ...prev,
+            default_branch: suggestedBranch
+          }));
+        }
+      } else {
+        setAccessError(branchesResponse.result.error_message || '获取分支列表失败');
+        setBranches([]);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '验证仓库访问失败';
+      setAccessError(errorMessage);
+      setBranches([]);
+      logError(error as Error, 'Failed to validate repository access');
+    } finally {
+      setCredentialValidating(false);
+      setBranchesLoading(false);
     }
   };
 
@@ -105,6 +176,20 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
       loadCredentials(formData.protocol);
     }
   }, [formData.protocol]);
+
+  // 监听credential变化，自动验证访问权限
+  useEffect(() => {
+    if (formData.repo_url && formData.credential_id) {
+      validateAccessAndFetchBranches(formData.repo_url, formData.credential_id);
+    } else if (formData.repo_url && !formData.credential_id) {
+      // 尝试无credential访问（适用于公开仓库）
+      validateAccessAndFetchBranches(formData.repo_url);
+    } else {
+      setBranches([]);
+      setAccessValidated(false);
+      setAccessError(null);
+    }
+  }, [formData.repo_url, formData.credential_id]);
 
   // 组件卸载时清理定时器
   useEffect(() => {
@@ -164,6 +249,13 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
 
       setUrlParseTimeout(timeoutId);
     }
+
+    // 如果是credential字段变化，清除之前的验证状态
+    if (field === 'credential_id') {
+      setAccessValidated(false);
+      setAccessError(null);
+      setBranches([]);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -180,13 +272,13 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
       let result: Project;
 
       if (isEdit && project) {
-        // 更新项目
         const updateData: UpdateProjectRequest = {
-          name: formData.name !== project.name ? formData.name : undefined,
-          description: formData.description !== project.description ? formData.description : undefined,
-          repo_url: formData.repo_url !== project.repo_url ? formData.repo_url : undefined,
-          default_branch: formData.default_branch !== project.default_branch ? formData.default_branch : undefined,
-          credential_id: formData.credential_id !== project.credential_id ? formData.credential_id : undefined
+          name: formData.name,
+          description: formData.description,
+          repo_url: formData.repo_url,
+          protocol: formData.protocol,
+          default_branch: formData.default_branch,
+          credential_id: formData.credential_id
         };
 
         await apiService.projects.update(project.id, updateData);
@@ -195,7 +287,6 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         const response = await apiService.projects.get(project.id);
         result = response.project;
       } else {
-        // 创建项目
         const createData: CreateProjectRequest = {
           name: formData.name,
           description: formData.description,
@@ -244,6 +335,9 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
     }
     setErrors({});
     setError(null);
+    setBranches([]);
+    setAccessValidated(false);
+    setAccessError(null);
   };
 
   return (
@@ -316,18 +410,6 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
               )}
             </div>
 
-            {/* 默认分支 */}
-            <div className="space-y-2">
-              <Label htmlFor="default_branch">{t('projects.defaultBranch')}</Label>
-              <Input
-                id="default_branch"
-                type="text"
-                value={formData.default_branch}
-                onChange={(e) => handleInputChange('default_branch', e.target.value)}
-                placeholder={t('projects.placeholders.defaultBranch')}
-              />
-            </div>
-
             {/* 凭据选择 */}
             <div className="space-y-2">
               <Label htmlFor="credential_id">{t('projects.credential')}</Label>
@@ -350,6 +432,63 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                 </select>
               )}
               <p className="text-sm text-gray-500">{t('projects.credentialHelp')}</p>
+              
+              {/* 凭据验证状态 */}
+              {credentialValidating && (
+                <div className="flex items-center space-x-2 text-sm text-blue-600">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                  <span>{t('projects.repository.validatingAccess')}</span>
+                </div>
+              )}
+              
+              {accessValidated && !credentialValidating && (
+                <div className="text-sm text-green-600">
+                  ✓ {t('projects.repository.accessValidated')}
+                </div>
+              )}
+              
+              {accessError && !credentialValidating && (
+                <div className="text-sm text-red-600">
+                  ✗ {accessError}
+                </div>
+              )}
+            </div>
+
+            {/* 默认分支 */}
+            <div className="space-y-2">
+              <Label htmlFor="default_branch">{t('projects.defaultBranch')}</Label>
+              {branchesLoading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                  <span className="text-sm text-gray-500">{t('projects.repository.fetchingBranches')}</span>
+                </div>
+              ) : branches.length > 0 ? (
+                <select
+                  id="default_branch"
+                  value={formData.default_branch}
+                  onChange={(e) => handleInputChange('default_branch', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {branches.map((branch) => (
+                    <option key={branch} value={branch}>
+                      {branch}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <Input
+                  id="default_branch"
+                  type="text"
+                  value={formData.default_branch}
+                  onChange={(e) => handleInputChange('default_branch', e.target.value)}
+                  placeholder={t('projects.placeholders.defaultBranch')}
+                />
+              )}
+              {branches.length > 0 && (
+                <p className="text-sm text-gray-500">
+                  {t('projects.repository.branchesDetected', { count: branches.length })}
+                </p>
+              )}
             </div>
           </div>
 

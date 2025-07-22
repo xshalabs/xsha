@@ -18,8 +18,11 @@ import type {
   UseProjectResponse,
   CompatibleCredentialsResponse,
   ProjectListParams,
-  ParseRepositoryURLRequest,
-  ParseRepositoryURLResponse
+  ParseRepositoryURLResponse,
+  FetchRepositoryBranchesRequest,
+  FetchRepositoryBranchesResponse,
+  ValidateRepositoryAccessRequest,
+  ValidateRepositoryAccessResponse
 } from '@/types/project';
 
 // 环境变量配置
@@ -310,6 +313,22 @@ export const apiService = {
       return request<ParseRepositoryURLResponse>('/projects/parse-url', {
         method: 'POST',
         body: JSON.stringify({ repo_url: repoUrl }),
+      });
+    },
+
+    // 获取仓库分支列表
+    fetchBranches: async (data: FetchRepositoryBranchesRequest): Promise<FetchRepositoryBranchesResponse> => {
+      return request<FetchRepositoryBranchesResponse>('/projects/branches', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+
+    // 验证仓库访问权限
+    validateAccess: async (data: ValidateRepositoryAccessRequest): Promise<ValidateRepositoryAccessResponse> => {
+      return request<ValidateRepositoryAccessResponse>('/projects/validate-access', {
+        method: 'POST',
+        body: JSON.stringify(data),
       });
     },
   },

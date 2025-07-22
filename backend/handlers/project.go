@@ -463,3 +463,110 @@ func (h *ProjectHandlers) ParseRepositoryURL(c *gin.Context) {
 		"result":  response,
 	})
 }
+
+// FetchRepositoryBranchesRequest 获取仓库分支请求结构
+// @Description 获取Git仓库分支列表的请求参数
+type FetchRepositoryBranchesRequest struct {
+	RepoURL      string `json:"repo_url" binding:"required" example:"https://github.com/user/repo.git"`
+	CredentialID *uint  `json:"credential_id" example:"1"`
+}
+
+// FetchRepositoryBranchesResponse 获取仓库分支响应结构
+// @Description 获取Git仓库分支列表的响应
+type FetchRepositoryBranchesResponse struct {
+	CanAccess    bool     `json:"can_access" example:"true"`
+	ErrorMessage string   `json:"error_message" example:""`
+	Branches     []string `json:"branches" example:"[\"main\",\"develop\",\"feature-1\"]"`
+}
+
+// FetchRepositoryBranches 获取仓库分支列表
+// @Summary 获取Git仓库分支列表
+// @Description 使用提供的凭据获取Git仓库的分支列表，同时验证访问权限
+// @Tags 项目
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body FetchRepositoryBranchesRequest true "仓库信息"
+// @Success 200 {object} object{message=string,result=FetchRepositoryBranchesResponse} "获取分支列表成功"
+// @Failure 400 {object} object{error=string} "请求参数错误"
+// @Failure 500 {object} object{error=string} "获取分支列表失败"
+// @Router /projects/branches [post]
+func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+	username, _ := c.Get("username")
+
+	var req FetchRepositoryBranchesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
+		})
+		return
+	}
+
+	// 获取分支列表
+	result, err := h.projectService.FetchRepositoryBranches(req.RepoURL, req.CredentialID, username.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "project.fetch_branches_failed") + ": " + err.Error(),
+		})
+		return
+	}
+
+	// 构建响应
+	response := FetchRepositoryBranchesResponse{
+		CanAccess:    result.CanAccess,
+		ErrorMessage: result.ErrorMessage,
+		Branches:     result.Branches,
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "common.success"),
+		"result":  response,
+	})
+}
+
+// ValidateRepositoryAccessRequest 验证仓库访问请求结构
+// @Description 验证Git仓库访问权限的请求参数
+type ValidateRepositoryAccessRequest struct {
+	RepoURL      string `json:"repo_url" binding:"required" example:"https://github.com/user/repo.git"`
+	CredentialID *uint  `json:"credential_id" example:"1"`
+}
+
+// ValidateRepositoryAccess 验证仓库访问权限
+// @Summary 验证Git仓库访问权限
+// @Description 使用提供的凭据验证是否能够访问指定的Git仓库
+// @Tags 项目
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body ValidateRepositoryAccessRequest true "仓库信息"
+// @Success 200 {object} object{message=string,can_access=bool} "验证成功"
+// @Failure 400 {object} object{error=string} "请求参数错误或验证失败"
+// @Router /projects/validate-access [post]
+func (h *ProjectHandlers) ValidateRepositoryAccess(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+	username, _ := c.Get("username")
+
+	var req ValidateRepositoryAccessRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
+		})
+		return
+	}
+
+	// 验证仓库访问权限
+	err := h.projectService.ValidateRepositoryAccess(req.RepoURL, req.CredentialID, username.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":      i18n.T(lang, "project.access_validation_failed") + ": " + err.Error(),
+			"can_access": false,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":    i18n.T(lang, "project.access_validation_success"),
+		"can_access": true,
+	})
+}

@@ -218,6 +218,15 @@
       "repoUrlRequired": "请输入仓库地址",
       "invalidRepoUrl": "请输入有效的仓库地址"
     },
+    "repository": {
+      "validatingAccess": "验证仓库访问权限...",
+      "accessValidated": "仓库访问验证成功",
+      "accessFailed": "仓库访问验证失败",
+      "cannotAccess": "无法访问仓库",
+      "fetchingBranches": "获取分支列表...",
+      "branchesDetected": "已检测到 {{count}} 个分支",
+      "noBranches": "未检测到分支"
+    },
     "statistics": {
       "total": "总项目数"
     },

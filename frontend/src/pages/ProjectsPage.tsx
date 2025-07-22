@@ -54,7 +54,7 @@ export function ProjectsPage() {
     }
   };
 
-  const handleFormSubmit = (project: Project) => {
+  const handleFormSubmit = (_project: Project) => {
     // 回到列表视图并触发刷新
     setViewMode('list');
     setEditingProject(undefined);

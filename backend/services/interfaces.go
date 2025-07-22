@@ -2,6 +2,7 @@ package services
 
 import (
 	"sleep0-backend/database"
+	"sleep0-backend/utils"
 	"time"
 )
 
@@ -64,9 +65,13 @@ type ProjectService interface {
 	ToggleProject(id uint, createdBy string, isActive bool) error
 	ListActiveProjects(createdBy string, protocol *database.GitProtocolType) ([]database.Project, error)
 
-	// 协议和凭据验证
+	// 凭据相关
 	ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint, createdBy string) error
 	GetCompatibleCredentials(protocol database.GitProtocolType, createdBy string) ([]database.GitCredential, error)
+
+	// Git操作
+	FetchRepositoryBranches(repoURL string, credentialID *uint, createdBy string) (*utils.GitAccessResult, error)
+	ValidateRepositoryAccess(repoURL string, credentialID *uint, createdBy string) error
 }
 
 // AdminOperationLogService 定义管理员操作日志服务接口

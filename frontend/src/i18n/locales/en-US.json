@@ -218,6 +218,15 @@
       "repoUrlRequired": "Please enter repository URL",
       "invalidRepoUrl": "Please enter a valid repository URL"
     },
+    "repository": {
+      "validatingAccess": "Validating repository access...",
+      "accessValidated": "Repository access validation successful",
+      "accessFailed": "Repository access validation failed",
+      "cannotAccess": "Cannot access repository",
+      "fetchingBranches": "Fetching branch list...",
+      "branchesDetected": "{{count}} branches detected",
+      "noBranches": "No branches detected"
+    },
     "statistics": {
       "total": "Total Projects"
     },
