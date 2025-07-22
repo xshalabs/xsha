@@ -19,25 +19,22 @@ export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // 设置页面标题
   usePageTitle("common.pageTitle.dashboard");
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                {t("dashboard.title")}
-              </h1>
-              <p className="mt-2 text-sm text-gray-600">
-                {t("dashboard.welcome")}, {user}!
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <LanguageSwitcher />
-            </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center py-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {t("dashboard.title")}
+            </h1>
+            <p className="mt-2 text-sm text-gray-600">
+              {t("dashboard.welcome")}, {user}!
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <LanguageSwitcher />
           </div>
         </div>
       </div>
