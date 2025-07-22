@@ -188,6 +188,7 @@
     "lastUsed": "Last Used",
     "createdBy": "Created By",
     "credentialHelp": "Select a credential to access this repository (optional)",
+    "protocolAutoDetected": "Auto-detected protocol",
 
     "messages": {
       "createSuccess": "Project created successfully",

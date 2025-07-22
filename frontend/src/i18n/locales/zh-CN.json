@@ -188,6 +188,7 @@
     "lastUsed": "上次使用",
     "createdBy": "创建者",
     "credentialHelp": "选择用于访问此仓库的凭据（可选）",
+    "protocolAutoDetected": "自动检测协议",
 
     "messages": {
       "createSuccess": "项目创建成功",

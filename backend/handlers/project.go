@@ -8,6 +8,8 @@ import (
 	"sleep0-backend/services"
 	"strconv"
 
+	"sleep0-backend/utils"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -403,5 +405,61 @@ func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message":     i18n.T(lang, "common.success"),
 		"credentials": credentials,
+	})
+}
+
+// ParseRepositoryURLRequest 解析仓库URL请求结构
+// @Description 解析Git仓库URL的请求参数
+type ParseRepositoryURLRequest struct {
+	RepoURL string `json:"repo_url" binding:"required" example:"https://github.com/user/repo.git"`
+}
+
+// ParseRepositoryURLResponse 解析仓库URL响应结构
+// @Description 解析Git仓库URL的响应
+type ParseRepositoryURLResponse struct {
+	Protocol string `json:"protocol" example:"https"`
+	Host     string `json:"host" example:"github.com"`
+	Owner    string `json:"owner" example:"user"`
+	Repo     string `json:"repo" example:"repo"`
+	IsValid  bool   `json:"is_valid" example:"true"`
+}
+
+// ParseRepositoryURL 解析仓库URL
+// @Summary 解析Git仓库URL
+// @Description 根据输入的Git仓库URL自动检测协议类型并解析URL信息
+// @Tags 项目
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body ParseRepositoryURLRequest true "仓库URL"
+// @Success 200 {object} object{message=string,result=ParseRepositoryURLResponse} "解析成功"
+// @Failure 400 {object} object{error=string} "请求参数错误"
+// @Router /projects/parse-url [post]
+func (h *ProjectHandlers) ParseRepositoryURL(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	var req ParseRepositoryURLRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
+		})
+		return
+	}
+
+	// 使用工具函数解析URL
+	urlInfo := utils.ParseGitURL(req.RepoURL)
+
+	// 构建响应
+	response := ParseRepositoryURLResponse{
+		Protocol: string(urlInfo.Protocol),
+		Host:     urlInfo.Host,
+		Owner:    urlInfo.Owner,
+		Repo:     urlInfo.Repo,
+		IsValid:  urlInfo.IsValid,
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "common.success"),
+		"result":  response,
 	})
 }

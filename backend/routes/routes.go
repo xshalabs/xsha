@@ -79,6 +79,7 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *
 		{
 			projects.POST("", projectHandlers.CreateProject)                       // 创建项目
 			projects.GET("", projectHandlers.ListProjects)                         // 获取项目列表
+			projects.POST("/parse-url", projectHandlers.ParseRepositoryURL)        // 解析仓库URL
 			projects.GET("/credentials", projectHandlers.GetCompatibleCredentials) // 获取兼容的凭据列表
 			projects.GET("/:id", projectHandlers.GetProject)                       // 获取单个项目
 			projects.PUT("/:id", projectHandlers.UpdateProject)                    // 更新项目

@@ -102,4 +102,21 @@ export interface ProjectFormData {
   protocol: GitProtocolType;
   default_branch: string;
   credential_id?: number;
+}
+
+// 解析仓库URL请求
+export interface ParseRepositoryURLRequest {
+  repo_url: string;
+}
+
+// 解析仓库URL响应
+export interface ParseRepositoryURLResponse {
+  message: string;
+  result: {
+    protocol: string;
+    host: string;
+    owner: string;
+    repo: string;
+    is_valid: boolean;
+  };
 } 

@@ -17,7 +17,9 @@ import type {
   ProjectDetailResponse,
   UseProjectResponse,
   CompatibleCredentialsResponse,
-  ProjectListParams
+  ProjectListParams,
+  ParseRepositoryURLRequest,
+  ParseRepositoryURLResponse
 } from '@/types/project';
 
 // 环境变量配置
@@ -301,6 +303,14 @@ export const apiService = {
     // 获取与协议兼容的凭据列表
     getCompatibleCredentials: async (protocol: string): Promise<CompatibleCredentialsResponse> => {
       return request<CompatibleCredentialsResponse>(`/projects/credentials?protocol=${protocol}`);
+    },
+
+    // 解析仓库URL
+    parseUrl: async (repoUrl: string): Promise<ParseRepositoryURLResponse> => {
+      return request<ParseRepositoryURLResponse>('/projects/parse-url', {
+        method: 'POST',
+        body: JSON.stringify({ repo_url: repoUrl }),
+      });
     },
   },
 }; 

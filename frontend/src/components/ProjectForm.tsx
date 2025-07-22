@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -45,8 +45,10 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
   const [credentials, setCredentials] = useState<CredentialOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [credentialsLoading, setCredentialsLoading] = useState(false);
+  const [urlParsing, setUrlParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [urlParseTimeout, setUrlParseTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // 加载兼容的凭据
   const loadCredentials = async (protocol: GitProtocolType) => {
@@ -62,11 +64,56 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
     }
   };
 
+  // 解析仓库 URL 并自动设置协议类型
+  const parseRepositoryUrl = useCallback(async (url: string) => {
+    if (!url.trim()) {
+      return;
+    }
+
+    // 简单检查是否是 Git URL 格式
+    const gitUrlPattern = /^(https?:\/\/|git@|ssh:\/\/)/;
+    if (!gitUrlPattern.test(url)) {
+      return;
+    }
+
+    try {
+      setUrlParsing(true);
+      const response = await apiService.projects.parseUrl(url);
+      
+      if (response.result.is_valid) {
+        const detectedProtocol = response.result.protocol as GitProtocolType;
+        
+        // 只有当检测到的协议与当前不同时才更新
+        if (detectedProtocol !== formData.protocol) {
+          setFormData(prev => ({
+            ...prev,
+            protocol: detectedProtocol,
+            credential_id: undefined // 清除之前选择的凭据
+          }));
+        }
+      }
+    } catch (error) {
+      // 静默处理错误，不影响用户体验
+      logError(error as Error, 'Failed to parse repository URL');
+    } finally {
+      setUrlParsing(false);
+    }
+  }, [formData.protocol]);
+
   useEffect(() => {
     if (formData.protocol) {
       loadCredentials(formData.protocol);
     }
   }, [formData.protocol]);
+
+  // 组件卸载时清理定时器
+  useEffect(() => {
+    return () => {
+      if (urlParseTimeout) {
+        clearTimeout(urlParseTimeout);
+      }
+    };
+  }, [urlParseTimeout]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -105,6 +152,21 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         ...prev,
         [field]: ''
       }));
+    }
+
+    // 如果是仓库 URL 字段，延时解析协议类型
+    if (field === 'repo_url' && typeof value === 'string') {
+      // 清除之前的定时器
+      if (urlParseTimeout) {
+        clearTimeout(urlParseTimeout);
+      }
+
+      // 设置新的定时器
+      const timeoutId = setTimeout(() => {
+        parseRepositoryUrl(value);
+      }, 500); // 500ms 延时
+
+      setUrlParseTimeout(timeoutId);
     }
   };
 
@@ -243,15 +305,27 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
             {/* 仓库 URL */}
             <div className="space-y-2">
               <Label htmlFor="repo_url">{t('projects.repoUrl')} *</Label>
-              <Input
-                id="repo_url"
-                type="text"
-                value={formData.repo_url}
-                onChange={(e) => handleInputChange('repo_url', e.target.value)}
-                placeholder={t('projects.placeholders.repoUrl')}
-                className={errors.repo_url ? 'border-red-500' : ''}
-              />
+              <div className="relative">
+                <Input
+                  id="repo_url"
+                  type="text"
+                  value={formData.repo_url}
+                  onChange={(e) => handleInputChange('repo_url', e.target.value)}
+                  placeholder={t('projects.placeholders.repoUrl')}
+                  className={errors.repo_url ? 'border-red-500' : ''}
+                />
+                {urlParsing && (
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                  </div>
+                )}
+              </div>
               {errors.repo_url && <p className="text-sm text-red-500">{errors.repo_url}</p>}
+              {!errors.repo_url && formData.repo_url && (
+                <p className="text-sm text-gray-500">
+                  {t('projects.protocolAutoDetected')}: {formData.protocol.toUpperCase()}
+                </p>
+              )}
             </div>
 
             {/* 协议选择 */}
