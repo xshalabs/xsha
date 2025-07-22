@@ -24,6 +24,7 @@ export const ROUTES = {
   home: '/',
   login: '/login',
   dashboard: '/dashboard',
+  gitCredentials: '/git-credentials',
   settings: '/settings',
   profile: '/profile',
 } as const;

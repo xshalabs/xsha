@@ -4,6 +4,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
+import { GitCredentialsPage } from '@/pages/GitCredentialsPage';
 import './App.css';
 
 function NotFoundPage() {
@@ -36,6 +37,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Git 凭据管理页面 */}
+          <Route 
+            path="/git-credentials" 
+            element={
+              <ProtectedRoute>
+                <GitCredentialsPage />
               </ProtectedRoute>
             } 
           />

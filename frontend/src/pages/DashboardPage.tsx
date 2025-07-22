@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { apiService } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { ROUTES } from '@/lib/constants';
 import {
   Card,
   CardContent,
@@ -109,7 +110,10 @@ export const DashboardPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow" 
+              onClick={() => navigate(ROUTES.gitCredentials)}
+            >
               <CardHeader>
                 <CardTitle>{t('dashboard.gitCredentials.title')}</CardTitle>
                 <CardDescription>
@@ -120,6 +124,15 @@ export const DashboardPage: React.FC = () => {
                 <p className="text-sm text-gray-600">
                   {t('dashboard.gitCredentials.content')}
                 </p>
+                <Button 
+                  className="mt-4" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(ROUTES.gitCredentials);
+                  }}
+                >
+                  {t('dashboard.gitCredentials.manage')}
+                </Button>
               </CardContent>
             </Card>
 
