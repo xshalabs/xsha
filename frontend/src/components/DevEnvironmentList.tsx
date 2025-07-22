@@ -176,14 +176,14 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
             <div className="space-y-2">
               <Label>{t('dev_environments.filter.type')}</Label>
               <Select
-                value={params.type || ''}
-                onValueChange={(value) => onFiltersChange({ type: value as DevEnvironmentType || undefined })}
+                value={params.type || 'all'}
+                onValueChange={(value) => onFiltersChange({ type: value === 'all' ? undefined : value as DevEnvironmentType })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={t('common.all')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('common.all')}</SelectItem>
+                  <SelectItem value="all">{t('common.all')}</SelectItem>
                   <SelectItem value="claude_code">Claude Code</SelectItem>
                   <SelectItem value="gemini_cli">Gemini CLI</SelectItem>
                   <SelectItem value="opencode">OpenCode</SelectItem>
@@ -194,14 +194,14 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
             <div className="space-y-2">
               <Label>{t('dev_environments.filter.status')}</Label>
               <Select
-                value={params.status || ''}
-                onValueChange={(value) => onFiltersChange({ status: value as DevEnvironmentStatus || undefined })}
+                value={params.status || 'all'}
+                onValueChange={(value) => onFiltersChange({ status: value === 'all' ? undefined : value as DevEnvironmentStatus })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={t('common.all')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('common.all')}</SelectItem>
+                  <SelectItem value="all">{t('common.all')}</SelectItem>
                   <SelectItem value="stopped">{t('dev_environments.status.stopped')}</SelectItem>
                   <SelectItem value="starting">{t('dev_environments.status.starting')}</SelectItem>
                   <SelectItem value="running">{t('dev_environments.status.running')}</SelectItem>
