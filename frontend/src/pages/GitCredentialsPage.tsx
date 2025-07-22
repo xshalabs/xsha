@@ -84,16 +84,6 @@ export const GitCredentialsPage: React.FC = () => {
     }
   };
 
-  // 切换凭据状态
-  const handleToggle = async (id: number, isActive: boolean) => {
-    try {
-      await apiService.gitCredentials.toggle(id, isActive);
-      loadCredentials();
-    } catch (err: any) {
-      setError(err.message || t('gitCredentials.messages.toggleFailed'));
-    }
-  };
-
   // 页面变更
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -234,7 +224,6 @@ export const GitCredentialsPage: React.FC = () => {
           onTypeFilterChange={handleTypeFilterChange}
           onEdit={setEditingCredential}
           onDelete={handleDelete}
-          onToggle={handleToggle}
           onRefresh={handleRefresh}
         />
       </div>

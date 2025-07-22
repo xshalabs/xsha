@@ -65,13 +65,11 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *
 		// Git凭据管理
 		gitCreds := api.Group("/git-credentials")
 		{
-			gitCreds.POST("", gitCredHandlers.CreateCredential)            // 创建凭据
-			gitCreds.GET("", gitCredHandlers.ListCredentials)              // 获取凭据列表
-			gitCreds.GET("/:id", gitCredHandlers.GetCredential)            // 获取单个凭据
-			gitCreds.PUT("/:id", gitCredHandlers.UpdateCredential)         // 更新凭据
-			gitCreds.DELETE("/:id", gitCredHandlers.DeleteCredential)      // 删除凭据
-			gitCreds.POST("/:id/toggle", gitCredHandlers.ToggleCredential) // 切换激活状态
-			gitCreds.POST("/:id/use", gitCredHandlers.UseCredential)       // 使用凭据
+			gitCreds.POST("", gitCredHandlers.CreateCredential)       // 创建凭据
+			gitCreds.GET("", gitCredHandlers.ListCredentials)         // 获取凭据列表
+			gitCreds.GET("/:id", gitCredHandlers.GetCredential)       // 获取单个凭据
+			gitCreds.PUT("/:id", gitCredHandlers.UpdateCredential)    // 更新凭据
+			gitCreds.DELETE("/:id", gitCredHandlers.DeleteCredential) // 删除凭据
 		}
 
 		// 项目管理

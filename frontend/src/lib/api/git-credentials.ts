@@ -5,7 +5,6 @@ import type {
   UpdateGitCredentialRequest,
   GitCredentialListResponse,
   GitCredentialDetailResponse,
-  UseGitCredentialResponse,
   GitCredentialListParams
 } from '@/types/git-credentials';
 
@@ -48,21 +47,6 @@ export const gitCredentialsApi = {
   delete: async (id: number): Promise<{ message: string }> => {
     return request<{ message: string }>(`/git-credentials/${id}`, {
       method: 'DELETE',
-    });
-  },
-
-  // 切换凭据激活状态
-  toggle: async (id: number, isActive: boolean): Promise<{ message: string }> => {
-    return request<{ message: string }>(`/git-credentials/${id}/toggle`, {
-      method: 'PATCH',
-      body: JSON.stringify({ is_active: isActive }),
-    });
-  },
-
-  // 使用凭据（获取解密后的凭据信息）
-  use: async (id: number): Promise<UseGitCredentialResponse> => {
-    return request<UseGitCredentialResponse>(`/git-credentials/${id}/use`, {
-      method: 'POST',
     });
   },
 }; 

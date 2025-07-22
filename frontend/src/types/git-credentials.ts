@@ -60,20 +60,7 @@ export interface CreateGitCredentialResponse {
   credential: GitCredential;
 }
 
-// 使用凭据响应
-export interface UseGitCredentialResponse {
-  credential: GitCredential;
-  type: GitCredentialType;
-  username: string;
-  secret?: string;
-  private_key?: string;
-  public_key?: string;
-}
 
-// 切换状态请求
-export interface ToggleGitCredentialRequest {
-  is_active: boolean;
-}
 
 // 列表查询参数
 export interface GitCredentialListParams {

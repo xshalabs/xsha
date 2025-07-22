@@ -142,30 +142,6 @@ func (s *gitCredentialService) DeleteCredential(id uint, createdBy string) error
 	return s.repo.Delete(id, createdBy)
 }
 
-// UseCredential 使用凭据（更新最后使用时间）
-func (s *gitCredentialService) UseCredential(id uint, createdBy string) (*database.GitCredential, error) {
-	credential, err := s.repo.GetByID(id, createdBy)
-	if err != nil {
-		return nil, err
-	}
-
-	if !credential.IsActive {
-		return nil, errors.New("credential is not active")
-	}
-
-	// 更新最后使用时间
-	if err := s.repo.UpdateLastUsed(id, createdBy); err != nil {
-		return nil, err
-	}
-
-	return credential, nil
-}
-
-// ToggleCredential 切换凭据激活状态
-func (s *gitCredentialService) ToggleCredential(id uint, createdBy string, isActive bool) error {
-	return s.repo.SetActive(id, createdBy, isActive)
-}
-
 // ListActiveCredentials 获取激活的凭据列表
 func (s *gitCredentialService) ListActiveCredentials(createdBy string, credType *database.GitCredentialType) ([]database.GitCredential, error) {
 	return s.repo.ListActive(createdBy, credType)

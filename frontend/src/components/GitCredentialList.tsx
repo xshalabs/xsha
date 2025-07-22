@@ -30,7 +30,6 @@ interface GitCredentialListProps {
   onTypeFilterChange: (type: GitCredentialType | undefined) => void;
   onEdit: (credential: GitCredential) => void;
   onDelete: (id: number) => void;
-  onToggle: (id: number, isActive: boolean) => void;
   onRefresh: () => void;
 }
 
@@ -45,7 +44,6 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
   onTypeFilterChange,
   onEdit,
   onDelete,
-  onToggle,
   onRefresh: _onRefresh,
 }) => {
   const { t } = useTranslation();
@@ -237,18 +235,6 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onToggle(credential.id, !credential.is_active)}
-                      title={credential.is_active ? t('gitCredentials.deactivateTooltip', 'Deactivate credential') : t('gitCredentials.activateTooltip', 'Activate credential')}
-                    >
-                      {credential.is_active ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </Button>
                     <Button
                       variant="outline"
                       size="sm"

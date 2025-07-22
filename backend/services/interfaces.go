@@ -41,8 +41,6 @@ type GitCredentialService interface {
 	DeleteCredential(id uint, createdBy string) error
 
 	// 凭据操作
-	UseCredential(id uint, createdBy string) (*database.GitCredential, error)
-	ToggleCredential(id uint, createdBy string, isActive bool) error
 	ListActiveCredentials(createdBy string, credType *database.GitCredentialType) ([]database.GitCredential, error)
 
 	// 凭据验证和解密
