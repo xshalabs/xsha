@@ -74,7 +74,6 @@ func main() {
 
 	// Set global handlers for backward compatibility
 	handlers.SetAuthHandlers(authHandlers)
-	handlers.SetAdminOperationLogHandlers(adminOperationLogHandlers)
 
 	// Set gin mode
 	if cfg.Environment == "production" {

@@ -224,26 +224,3 @@ func (h *AdminOperationLogHandlers) GetOperationStats(c *gin.Context) {
 		"end_time":        endTime.Format("2006-01-02"),
 	})
 }
-
-// 全局实例用于向后兼容
-var globalAdminOperationLogHandlers *AdminOperationLogHandlers
-
-// SetAdminOperationLogHandlers 设置全局管理员操作日志处理器实例
-func SetAdminOperationLogHandlers(handlers *AdminOperationLogHandlers) {
-	globalAdminOperationLogHandlers = handlers
-}
-
-// GetOperationLogsHandler 全局操作日志处理器（向后兼容）
-func GetOperationLogsHandler(c *gin.Context) {
-	globalAdminOperationLogHandlers.GetOperationLogs(c)
-}
-
-// GetOperationLogHandler 全局单个操作日志处理器（向后兼容）
-func GetOperationLogHandler(c *gin.Context) {
-	globalAdminOperationLogHandlers.GetOperationLog(c)
-}
-
-// GetOperationStatsHandler 全局操作统计处理器（向后兼容）
-func GetOperationStatsHandler(c *gin.Context) {
-	globalAdminOperationLogHandlers.GetOperationStats(c)
-}

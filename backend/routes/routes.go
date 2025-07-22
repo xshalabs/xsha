@@ -57,9 +57,9 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, gitCredHandler
 			admin.GET("/login-logs", handlers.GetLoginLogsHandler)
 
 			// 新增：操作日志相关路由
-			admin.GET("/operation-logs", handlers.GetOperationLogsHandler)    // 获取操作日志列表
-			admin.GET("/operation-logs/:id", handlers.GetOperationLogHandler) // 获取单个操作日志
-			admin.GET("/operation-stats", handlers.GetOperationStatsHandler)  // 获取操作统计
+			admin.GET("/operation-logs", operationLogHandlers.GetOperationLogs)    // 获取操作日志列表
+			admin.GET("/operation-logs/:id", operationLogHandlers.GetOperationLog) // 获取单个操作日志
+			admin.GET("/operation-stats", operationLogHandlers.GetOperationStats)  // 获取操作统计
 		}
 
 		// Git凭据管理
