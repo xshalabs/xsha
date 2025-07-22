@@ -11,7 +11,7 @@ import (
 )
 
 // SetupRoutes sets up routes
-func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers) {
+func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers) {
 	// Apply global middleware
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
@@ -88,6 +88,20 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *
 			projects.DELETE("/:id", projectHandlers.DeleteProject)                      // 删除项目
 			projects.POST("/:id/toggle", projectHandlers.ToggleProject)                 // 切换激活状态
 			projects.POST("/:id/use", projectHandlers.UseProject)                       // 使用项目
+		}
+
+		// 开发环境管理
+		devEnvs := api.Group("/dev-environments")
+		{
+			devEnvs.POST("", devEnvHandlers.CreateEnvironment)                 // 创建环境
+			devEnvs.GET("", devEnvHandlers.ListEnvironments)                   // 获取环境列表
+			devEnvs.GET("/:id", devEnvHandlers.GetEnvironment)                 // 获取单个环境
+			devEnvs.PUT("/:id", devEnvHandlers.UpdateEnvironment)              // 更新环境
+			devEnvs.DELETE("/:id", devEnvHandlers.DeleteEnvironment)           // 删除环境
+			devEnvs.POST("/:id/control", devEnvHandlers.ControlEnvironment)    // 控制环境（启动/停止/重启）
+			devEnvs.POST("/:id/use", devEnvHandlers.UseEnvironment)            // 使用环境
+			devEnvs.GET("/:id/env-vars", devEnvHandlers.GetEnvironmentVars)    // 获取环境变量
+			devEnvs.PUT("/:id/env-vars", devEnvHandlers.UpdateEnvironmentVars) // 更新环境变量
 		}
 	}
 }

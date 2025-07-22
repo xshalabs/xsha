@@ -69,3 +69,19 @@ type AdminOperationLogRepository interface {
 	// 清理操作
 	CleanOld(days int) error
 }
+
+// DevEnvironmentRepository 定义开发环境仓库接口
+type DevEnvironmentRepository interface {
+	// 基本CRUD操作
+	Create(env *database.DevEnvironment) error
+	GetByID(id uint, createdBy string) (*database.DevEnvironment, error)
+	GetByName(name, createdBy string) (*database.DevEnvironment, error)
+	List(createdBy string, envType *database.DevEnvironmentType, status *database.DevEnvironmentStatus, page, pageSize int) ([]database.DevEnvironment, int64, error)
+	Update(env *database.DevEnvironment) error
+	Delete(id uint, createdBy string) error
+
+	// 业务操作
+	UpdateLastUsed(id uint, createdBy string) error
+	UpdateStatus(id uint, createdBy string, status database.DevEnvironmentStatus) error
+	ListByStatus(createdBy string, status database.DevEnvironmentStatus) ([]database.DevEnvironment, error)
+}
