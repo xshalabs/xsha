@@ -69,7 +69,7 @@ func main() {
 	gitCredService := services.NewGitCredentialService(gitCredRepo, cfg)
 	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, cfg)
 	devEnvService := services.NewDevEnvironmentService(devEnvRepo)
-	taskService := services.NewTaskService(taskRepo, projectRepo)
+	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo)
 
 	// Initialize handlers

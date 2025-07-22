@@ -31,7 +31,8 @@
     "project": "所属项目",
     "startBranch": "起始分支",
     "status": "状态",
-    "hasPullRequest": "是否有PR"
+    "hasPullRequest": "是否有PR",
+    "devEnvironment": "开发环境"
   },
   "form": {
     "createDescription": "创建一个新的开发任务",
@@ -39,8 +40,11 @@
     "titlePlaceholder": "请输入任务标题",
     "descriptionPlaceholder": "请描述任务的具体内容和要求",
     "selectProject": "请选择项目",
+    "selectDevEnvironment": "请选择开发环境",
+    "noDevEnvironment": "不绑定开发环境",
     "branchPlaceholder": "例如：main, develop",
-    "branchHint": "指定开始开发的Git分支名称"
+    "branchHint": "指定开始开发的Git分支名称",
+    "devEnvironmentHint": "可选择一个开发环境来执行此任务"
   },
   "validation": {
     "titleRequired": "任务标题不能为空",

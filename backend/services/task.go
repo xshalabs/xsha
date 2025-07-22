@@ -10,18 +10,20 @@ import (
 type taskService struct {
 	repo        repository.TaskRepository
 	projectRepo repository.ProjectRepository
+	devEnvRepo  repository.DevEnvironmentRepository
 }
 
 // NewTaskService 创建任务服务实例
-func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository) TaskService {
+func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository) TaskService {
 	return &taskService{
 		repo:        repo,
 		projectRepo: projectRepo,
+		devEnvRepo:  devEnvRepo,
 	}
 }
 
 // CreateTask 创建任务
-func (s *taskService) CreateTask(title, description, startBranch, createdBy string, projectID uint) (*database.Task, error) {
+func (s *taskService) CreateTask(title, description, startBranch, createdBy string, projectID uint, devEnvironmentID *uint) (*database.Task, error) {
 	// 验证输入数据
 	if err := s.ValidateTaskData(title, startBranch, projectID, createdBy); err != nil {
 		return nil, err
@@ -33,14 +35,24 @@ func (s *taskService) CreateTask(title, description, startBranch, createdBy stri
 		return nil, errors.New("project not found or access denied")
 	}
 
+	// 如果指定了开发环境，验证其存在性和权限
+	var devEnv *database.DevEnvironment
+	if devEnvironmentID != nil {
+		devEnv, err = s.devEnvRepo.GetByID(*devEnvironmentID, createdBy)
+		if err != nil {
+			return nil, errors.New("development environment not found or access denied")
+		}
+	}
+
 	// 创建任务
 	task := &database.Task{
-		Title:       strings.TrimSpace(title),
-		Description: strings.TrimSpace(description),
-		StartBranch: strings.TrimSpace(startBranch),
-		Status:      database.TaskStatusTodo,
-		ProjectID:   projectID,
-		CreatedBy:   createdBy,
+		Title:            strings.TrimSpace(title),
+		Description:      strings.TrimSpace(description),
+		StartBranch:      strings.TrimSpace(startBranch),
+		Status:           database.TaskStatusTodo,
+		ProjectID:        projectID,
+		DevEnvironmentID: devEnvironmentID,
+		CreatedBy:        createdBy,
 	}
 
 	if err := s.repo.Create(task); err != nil {
@@ -49,6 +61,7 @@ func (s *taskService) CreateTask(title, description, startBranch, createdBy stri
 
 	// 预加载关联数据
 	task.Project = project
+	task.DevEnvironment = devEnv
 	return task, nil
 }
 
@@ -91,6 +104,18 @@ func (s *taskService) UpdateTask(id uint, createdBy string, updates map[string]i
 		}
 	}
 
+	// 验证开发环境
+	if devEnvID, ok := updates["dev_environment_id"]; ok {
+		if devEnvID != nil {
+			if devEnvIDUint, ok := devEnvID.(uint); ok {
+				_, err := s.devEnvRepo.GetByID(devEnvIDUint, createdBy)
+				if err != nil {
+					return errors.New("development environment not found or access denied")
+				}
+			}
+		}
+	}
+
 	// 更新字段
 	for key, value := range updates {
 		switch key {
@@ -105,6 +130,12 @@ func (s *taskService) UpdateTask(id uint, createdBy string, updates map[string]i
 		case "start_branch":
 			if v, ok := value.(string); ok {
 				task.StartBranch = strings.TrimSpace(v)
+			}
+		case "dev_environment_id":
+			if v, ok := value.(uint); ok {
+				task.DevEnvironmentID = &v
+			} else if value == nil {
+				task.DevEnvironmentID = nil
 			}
 		}
 	}

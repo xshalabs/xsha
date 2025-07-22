@@ -23,17 +23,19 @@ func NewTaskHandlers(taskService services.TaskService) *TaskHandlers {
 
 // CreateTaskRequest 创建任务请求结构
 type CreateTaskRequest struct {
-	Title       string `json:"title" binding:"required"`
-	Description string `json:"description"`
-	StartBranch string `json:"start_branch" binding:"required"`
-	ProjectID   uint   `json:"project_id" binding:"required"`
+	Title            string `json:"title" binding:"required"`
+	Description      string `json:"description"`
+	StartBranch      string `json:"start_branch" binding:"required"`
+	ProjectID        uint   `json:"project_id" binding:"required"`
+	DevEnvironmentID *uint  `json:"dev_environment_id"`
 }
 
 // UpdateTaskRequest 更新任务请求结构
 type UpdateTaskRequest struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	StartBranch string `json:"start_branch"`
+	Title            string `json:"title"`
+	Description      string `json:"description"`
+	StartBranch      string `json:"start_branch"`
+	DevEnvironmentID *uint  `json:"dev_environment_id"`
 }
 
 // CreateTask 创建任务
@@ -52,7 +54,7 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 	}
 
 	// 创建任务
-	task, err := h.taskService.CreateTask(req.Title, req.Description, req.StartBranch, username.(string), req.ProjectID)
+	task, err := h.taskService.CreateTask(req.Title, req.Description, req.StartBranch, username.(string), req.ProjectID, req.DevEnvironmentID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -170,6 +172,9 @@ func (h *TaskHandlers) UpdateTask(c *gin.Context) {
 	}
 	if req.StartBranch != "" {
 		updates["start_branch"] = req.StartBranch
+	}
+	if req.DevEnvironmentID != nil {
+		updates["dev_environment_id"] = *req.DevEnvironmentID
 	}
 
 	// 更新任务

@@ -23,7 +23,7 @@ func (r *taskRepository) Create(task *database.Task) error {
 // GetByID 根据ID获取任务
 func (r *taskRepository) GetByID(id uint, createdBy string) (*database.Task, error) {
 	var task database.Task
-	err := r.db.Preload("Project").Preload("Conversations").
+	err := r.db.Preload("Project").Preload("DevEnvironment").Preload("Conversations").
 		Where("id = ? AND created_by = ?", id, createdBy).First(&task).Error
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (r *taskRepository) List(projectID *uint, createdBy string, status *databas
 
 	// 分页查询
 	offset := (page - 1) * pageSize
-	if err := query.Preload("Project").Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&tasks).Error; err != nil {
+	if err := query.Preload("Project").Preload("DevEnvironment").Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&tasks).Error; err != nil {
 		return nil, 0, err
 	}
 

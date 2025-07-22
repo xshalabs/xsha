@@ -263,6 +263,27 @@ export function TaskList({
                   )}
                 </div>
 
+                {/* 开发环境信息 */}
+                {task.dev_environment && (
+                  <div className="flex items-center text-sm text-gray-500">
+                    <div className="w-4 h-4 mr-1 rounded-full bg-blue-500 flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                    <span>{task.dev_environment.name}</span>
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs ml-2 ${
+                        task.dev_environment.status === 'running' ? 'bg-green-100 text-green-800 border-green-300' :
+                        task.dev_environment.status === 'stopped' ? 'bg-gray-100 text-gray-800 border-gray-300' :
+                        task.dev_environment.status === 'error' ? 'bg-red-100 text-red-800 border-red-300' :
+                        'bg-yellow-100 text-yellow-800 border-yellow-300'
+                      }`}
+                    >
+                      {task.dev_environment.status}
+                    </Badge>
+                  </div>
+                )}
+
                 {/* 时间信息 */}
                 <div className="text-xs text-gray-500">
                   <div>{t('common.createdAt')}: {formatDate(task.created_at)}</div>

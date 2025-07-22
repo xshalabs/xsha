@@ -10,12 +10,19 @@ export interface Task {
   status: TaskStatus;
   has_pull_request: boolean;
   project_id: number;
+  dev_environment_id?: number;
   created_by: string;
   created_at: string;
   updated_at: string;
   project?: {
     id: number;
     name: string;
+  };
+  dev_environment?: {
+    id: number;
+    name: string;
+    type: string;
+    status: string;
   };
 }
 
@@ -25,6 +32,7 @@ export interface CreateTaskRequest {
   description?: string;
   start_branch: string;
   project_id: number;
+  dev_environment_id?: number;
 }
 
 // 更新任务请求
@@ -32,6 +40,7 @@ export interface UpdateTaskRequest {
   title?: string;
   description?: string;
   start_branch?: string;
+  dev_environment_id?: number;
 }
 
 
@@ -85,4 +94,5 @@ export interface TaskFormData {
   description: string;
   start_branch: string;
   project_id: number;
+  dev_environment_id?: number;
 } 

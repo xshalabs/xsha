@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { Save, X } from 'lucide-react';
 import type { Task, TaskFormData } from '@/types/task';
 import type { Project } from '@/types/project';
+import type { DevEnvironment } from '@/types/dev-environment';
+import { devEnvironmentsApi } from '@/lib/api/dev-environments';
 
 interface TaskFormProps {
   task?: Task;
@@ -32,10 +34,31 @@ export function TaskForm({
     description: task?.description || '',
     start_branch: task?.start_branch || 'main',
     project_id: task?.project_id || (projects[0]?.id || 0),
+    dev_environment_id: task?.dev_environment_id || undefined,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [devEnvironments, setDevEnvironments] = useState<DevEnvironment[]>([]);
+  const [loadingDevEnvs, setLoadingDevEnvs] = useState(false);
+
+  // 加载开发环境列表
+  useEffect(() => {
+    const loadDevEnvironments = async () => {
+      try {
+        setLoadingDevEnvs(true);
+        const response = await devEnvironmentsApi.list();
+        setDevEnvironments(response.environments || []);
+      } catch (error) {
+        console.error('Failed to load dev environments:', error);
+        setDevEnvironments([]);
+      } finally {
+        setLoadingDevEnvs(false);
+      }
+    };
+
+    loadDevEnvironments();
+  }, []);
 
   // 表单验证
   const validateForm = (): boolean => {
@@ -78,7 +101,7 @@ export function TaskForm({
   };
 
   // 处理表单字段变化
-  const handleChange = (field: keyof TaskFormData, value: string | number) => {
+  const handleChange = (field: keyof TaskFormData, value: string | number | undefined) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -171,6 +194,51 @@ export function TaskForm({
               {errors.project_id && (
                 <p className="text-sm text-red-500">{errors.project_id}</p>
               )}
+            </div>
+
+            {/* 开发环境选择 */}
+            <div className="space-y-2">
+              <Label htmlFor="dev_environment">
+                {t('tasks.fields.devEnvironment')}
+              </Label>
+              <Select
+                value={formData.dev_environment_id?.toString() || 'none'}
+                onValueChange={(value) => handleChange('dev_environment_id', value === 'none' ? undefined : parseInt(value))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('tasks.form.selectDevEnvironment')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">
+                    {t('tasks.form.noDevEnvironment')}
+                  </SelectItem>
+                  {loadingDevEnvs ? (
+                    <SelectItem value="loading" disabled>
+                      {t('common.loading')}...
+                    </SelectItem>
+                  ) : (
+                    devEnvironments.map((env) => (
+                      <SelectItem key={env.id} value={env.id.toString()}>
+                        <div className="flex items-center space-x-2">
+                          <span>{env.name}</span>
+                          <span className="text-xs text-gray-500">({env.type})</span>
+                          <span className={`text-xs px-2 py-1 rounded ${
+                            env.status === 'running' ? 'bg-green-100 text-green-800' :
+                            env.status === 'stopped' ? 'bg-gray-100 text-gray-800' :
+                            env.status === 'error' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {env.status}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-gray-500">
+                {t('tasks.form.devEnvironmentHint')}
+              </p>
             </div>
 
             {/* 起始分支 */}

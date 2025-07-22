@@ -243,8 +243,10 @@ type Task struct {
 	HasPullRequest bool       `gorm:"default:false" json:"has_pull_request"` // 是否提交PR
 
 	// 关联信息
-	ProjectID uint     `gorm:"not null;index" json:"project_id"`    // 所属项目ID
-	Project   *Project `gorm:"foreignKey:ProjectID" json:"project"` // 关联项目
+	ProjectID        uint            `gorm:"not null;index" json:"project_id"`                   // 所属项目ID
+	Project          *Project        `gorm:"foreignKey:ProjectID" json:"project"`                // 关联项目
+	DevEnvironmentID *uint           `gorm:"index" json:"dev_environment_id"`                    // 绑定的开发环境ID
+	DevEnvironment   *DevEnvironment `gorm:"foreignKey:DevEnvironmentID" json:"dev_environment"` // 关联开发环境
 
 	// 元数据
 	CreatedBy string `gorm:"not null;index" json:"created_by"` // 创建者

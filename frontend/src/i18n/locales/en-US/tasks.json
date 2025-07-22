@@ -27,20 +27,24 @@
   },
   "fields": {
     "title": "Task Title",
-    "description": "Description",
+    "description": "Task Description",
     "project": "Project",
     "startBranch": "Start Branch",
     "status": "Status",
-    "hasPullRequest": "Has PR"
+    "hasPullRequest": "Has PR",
+    "devEnvironment": "Development Environment"
   },
   "form": {
     "createDescription": "Create a new development task",
     "editDescription": "Edit task information",
     "titlePlaceholder": "Enter task title",
-    "descriptionPlaceholder": "Describe the task requirements and details",
+    "descriptionPlaceholder": "Describe the specific content and requirements of the task",
     "selectProject": "Select a project",
-    "branchPlaceholder": "e.g. main, develop",
-    "branchHint": "Specify the Git branch to start development from"
+    "selectDevEnvironment": "Select development environment",
+    "noDevEnvironment": "No environment binding",
+    "branchPlaceholder": "e.g.: main, develop",
+    "branchHint": "Specify the Git branch name to start development",
+    "devEnvironmentHint": "Optionally select a development environment to execute this task"
   },
   "validation": {
     "titleRequired": "Task title is required",
