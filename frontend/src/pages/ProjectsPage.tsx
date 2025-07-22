@@ -17,7 +17,7 @@ export function ProjectsPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // 设置页面标题
-  usePageTitle('pageTitle.projects');
+  usePageTitle('common.pageTitle.projects');
 
   const handleCreateNew = () => {
     setEditingProject(undefined);

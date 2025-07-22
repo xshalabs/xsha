@@ -28,7 +28,7 @@ export const AdminLogsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('operationLogs');
   
   // 设置页面标题
-  usePageTitle('pageTitle.adminLogs');
+  usePageTitle('common.pageTitle.adminLogs');
 
   // 操作日志状态
   const [operationLogs, setOperationLogs] = useState<AdminOperationLog[]>([]);

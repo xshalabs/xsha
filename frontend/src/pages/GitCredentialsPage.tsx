@@ -23,7 +23,7 @@ export const GitCredentialsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // 设置页面标题
-  usePageTitle('pageTitle.gitCredentials');
+  usePageTitle('common.pageTitle.gitCredentials');
 
   const pageSize = 10;
 
