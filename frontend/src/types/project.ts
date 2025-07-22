@@ -68,12 +68,6 @@ export interface CreateProjectResponse {
   project: Project;
 }
 
-// 使用项目响应
-export interface UseProjectResponse {
-  message: string;
-  project: Project;
-}
-
 // 兼容凭据响应
 export interface CompatibleCredentialsResponse {
   message: string;

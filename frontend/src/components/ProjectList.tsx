@@ -11,11 +11,10 @@ import type { Project, ProjectListParams, GitProtocolType } from '@/types/projec
 interface ProjectListProps {
   onEdit?: (project: Project) => void;
   onDelete?: (id: number) => void;
-  onUse?: (id: number) => void;
   onCreateNew?: () => void;
 }
 
-export function ProjectList({ onEdit, onDelete, onUse, onCreateNew }: ProjectListProps) {
+export function ProjectList({ onEdit, onDelete, onCreateNew }: ProjectListProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -215,11 +214,6 @@ export function ProjectList({ onEdit, onDelete, onUse, onCreateNew }: ProjectLis
                     <CardDescription>{project.description}</CardDescription>
                   </div>
                   <div className="flex gap-2">
-                    {onUse && (
-                      <Button size="sm" variant="outline" onClick={() => onUse(project.id)}>
-                        {t('projects.use')}
-                      </Button>
-                    )}
                     <Button size="sm" variant="outline" onClick={() => handleTasksManagement(project.id)}>
                       {t('projects.tasksManagement')}
                     </Button>

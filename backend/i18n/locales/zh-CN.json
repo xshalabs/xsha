@@ -54,8 +54,6 @@
   "project.delete_failed": "项目删除失败",
   "project.toggle_success": "项目状态切换成功",
   "project.toggle_failed": "项目状态切换失败",
-  "project.use_success": "项目使用成功",
-  "project.use_failed": "项目使用失败",
   "project.not_found": "项目不存在",
   "project.name_exists": "项目名称已存在",
   "project.invalid_protocol": "无效的协议类型",

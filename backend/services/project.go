@@ -136,25 +136,6 @@ func (s *projectService) DeleteProject(id uint, createdBy string) error {
 	return s.repo.Delete(id, createdBy)
 }
 
-// UseProject 使用项目（更新最后使用时间）
-func (s *projectService) UseProject(id uint, createdBy string) (*database.Project, error) {
-	project, err := s.repo.GetByID(id, createdBy)
-	if err != nil {
-		return nil, err
-	}
-
-	if !project.IsActive {
-		return nil, errors.New("project is not active")
-	}
-
-	// 更新最后使用时间
-	if err := s.repo.UpdateLastUsed(id, createdBy); err != nil {
-		return nil, err
-	}
-
-	return project, nil
-}
-
 // ToggleProject 切换项目激活状态
 func (s *projectService) ToggleProject(id uint, createdBy string, isActive bool) error {
 	return s.repo.SetActive(id, createdBy, isActive)

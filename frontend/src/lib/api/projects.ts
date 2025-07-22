@@ -5,7 +5,6 @@ import type {
   UpdateProjectRequest,
   ProjectListResponse,
   ProjectDetailResponse,
-  UseProjectResponse,
   CompatibleCredentialsResponse,
   ProjectListParams,
   ParseRepositoryURLResponse,
@@ -54,13 +53,6 @@ export const projectsApi = {
   delete: async (id: number): Promise<{ message: string }> => {
     return request<{ message: string }>(`/projects/${id}`, {
       method: 'DELETE',
-    });
-  },
-
-  // 使用项目（获取项目详细信息用于使用）
-  use: async (id: number): Promise<UseProjectResponse> => {
-    return request<UseProjectResponse>(`/projects/${id}/use`, {
-      method: 'POST',
     });
   },
 

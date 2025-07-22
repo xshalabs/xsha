@@ -61,7 +61,6 @@ type ProjectService interface {
 	DeleteProject(id uint, createdBy string) error
 
 	// 项目操作
-	UseProject(id uint, createdBy string) (*database.Project, error)
 	ToggleProject(id uint, createdBy string, isActive bool) error
 	ListActiveProjects(createdBy string, protocol *database.GitProtocolType) ([]database.Project, error)
 

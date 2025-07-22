@@ -331,45 +331,6 @@ func (h *ProjectHandlers) ToggleProject(c *gin.Context) {
 	})
 }
 
-// UseProject 使用项目
-// @Summary 使用项目
-// @Description 获取项目的详细信息用于使用
-// @Tags 项目
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "项目ID"
-// @Success 200 {object} object{message=string,project=object} "项目使用成功"
-// @Failure 400 {object} object{error=string} "无效的项目ID"
-// @Failure 404 {object} object{error=string} "项目不存在"
-// @Router /projects/{id}/use [post]
-func (h *ProjectHandlers) UseProject(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
-
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format"),
-		})
-		return
-	}
-
-	project, err := h.projectService.UseProject(uint(id), username.(string))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": i18n.T(lang, "project.use_failed") + ": " + err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "project.use_success"),
-		"project": project,
-	})
-}
-
 // GetCompatibleCredentials 获取与协议兼容的凭据列表
 // @Summary 获取兼容凭据
 // @Description 根据协议类型获取兼容的Git凭据列表

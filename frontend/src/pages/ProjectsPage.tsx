@@ -44,20 +44,6 @@ export function ProjectsPage() {
     }
   };
 
-
-
-  const handleUse = async (id: number) => {
-    try {
-      const response = await apiService.projects.use(id);
-      // 可以在这里处理使用项目的逻辑，比如显示项目详情或跳转到其他页面
-      console.log('Using project:', response.project);
-      alert(t('projects.messages.useSuccess'));
-    } catch (error) {
-      logError(error as Error, 'Failed to use project');
-      alert(error instanceof Error ? error.message : t('projects.messages.useFailed'));
-    }
-  };
-
   const handleFormSubmit = (_project: Project) => {
     // 回到列表视图并触发刷新
     setViewMode('list');
@@ -90,7 +76,6 @@ export function ProjectsPage() {
           key={refreshTrigger} // 强制重新渲染以刷新数据
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onUse={handleUse}
           onCreateNew={handleCreateNew}
         />
       ) : (
