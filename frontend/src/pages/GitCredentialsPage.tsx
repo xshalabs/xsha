@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { GitCredentialList } from '@/components/GitCredentialList';
@@ -9,6 +10,7 @@ import { GitCredentialType } from '@/types/git-credentials';
 import { Plus, RefreshCw } from 'lucide-react';
 
 export const GitCredentialsPage: React.FC = () => {
+  const { t } = useTranslation();
   const [credentials, setCredentials] = useState<GitCredential[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -37,7 +39,7 @@ export const GitCredentialsPage: React.FC = () => {
       setTotal(response.total);
       setTotalPages(response.total_pages);
     } catch (err: any) {
-      setError(err.message || '加载凭据列表失败');
+      setError(err.message || t('gitCredentials.messages.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -68,13 +70,13 @@ export const GitCredentialsPage: React.FC = () => {
 
   // 删除凭据
   const handleDelete = async (id: number) => {
-    if (!confirm('确定要删除这个凭据吗？')) return;
+    if (!confirm(t('gitCredentials.messages.deleteConfirm'))) return;
     
     try {
       await apiService.gitCredentials.delete(id);
       loadCredentials();
     } catch (err: any) {
-      setError(err.message || '删除失败');
+      setError(err.message || t('gitCredentials.messages.deleteFailed'));
     }
   };
 
@@ -84,7 +86,7 @@ export const GitCredentialsPage: React.FC = () => {
       await apiService.gitCredentials.toggle(id, isActive);
       loadCredentials();
     } catch (err: any) {
-      setError(err.message || '切换状态失败');
+      setError(err.message || t('gitCredentials.messages.toggleFailed'));
     }
   };
 
@@ -109,9 +111,9 @@ export const GitCredentialsPage: React.FC = () => {
               onClick={() => setShowCreateForm(false)}
               className="mb-4"
             >
-              ← 返回列表
+              ← {t('gitCredentials.backToList')}
             </Button>
-            <h1 className="text-2xl font-bold">创建 Git 凭据</h1>
+            <h1 className="text-2xl font-bold">{t('gitCredentials.create')}</h1>
           </div>
           <GitCredentialForm
             onSuccess={handleCreateSuccess}
@@ -132,9 +134,9 @@ export const GitCredentialsPage: React.FC = () => {
               onClick={() => setEditingCredential(null)}
               className="mb-4"
             >
-              ← 返回列表
+              ← {t('gitCredentials.backToList')}
             </Button>
-            <h1 className="text-2xl font-bold">编辑 Git 凭据</h1>
+            <h1 className="text-2xl font-bold">{t('gitCredentials.edit')}</h1>
           </div>
           <GitCredentialForm
             credential={editingCredential}
@@ -153,8 +155,8 @@ export const GitCredentialsPage: React.FC = () => {
         <div className="mb-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold">Git 凭据管理</h1>
-              <p className="text-gray-600 mt-1">管理您的 Git 仓库访问凭据</p>
+              <h1 className="text-2xl font-bold">{t('gitCredentials.title')}</h1>
+              <p className="text-gray-600 mt-1">{t('gitCredentials.subtitle', 'Manage your Git repository access credentials')}</p>
             </div>
             <div className="flex gap-2">
               <Button
@@ -163,11 +165,11 @@ export const GitCredentialsPage: React.FC = () => {
                 disabled={loading}
               >
                 <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                刷新
+                {t('gitCredentials.refresh')}
               </Button>
               <Button onClick={() => setShowCreateForm(true)}>
                 <Plus className="w-4 h-4 mr-2" />
-                创建凭据
+                {t('gitCredentials.create')}
               </Button>
             </div>
           </div>
@@ -185,32 +187,32 @@ export const GitCredentialsPage: React.FC = () => {
         {/* 统计信息 */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>统计信息</CardTitle>
-            <CardDescription>凭据使用情况概览</CardDescription>
+            <CardTitle>{t('gitCredentials.statistics.title', 'Statistics')}</CardTitle>
+            <CardDescription>{t('gitCredentials.statistics.description', 'Overview of credential usage')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">{total}</div>
-                <div className="text-sm text-gray-600">总凭据数</div>
+                <div className="text-sm text-gray-600">{t('gitCredentials.statistics.total')}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
                   {credentials.filter(c => c.is_active).length}
                 </div>
-                <div className="text-sm text-gray-600">激活的凭据</div>
+                <div className="text-sm text-gray-600">{t('gitCredentials.statistics.active')}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-orange-600">
                   {credentials.filter(c => c.type === GitCredentialType.SSH_KEY).length}
                 </div>
-                <div className="text-sm text-gray-600">SSH 密钥</div>
+                <div className="text-sm text-gray-600">{t('gitCredentials.statistics.sshKeys')}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600">
                   {credentials.filter(c => c.type === GitCredentialType.TOKEN).length}
                 </div>
-                <div className="text-sm text-gray-600">访问令牌</div>
+                <div className="text-sm text-gray-600">{t('gitCredentials.statistics.tokens')}</div>
               </div>
             </div>
           </CardContent>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { GitCredential, GitCredentialType } from '@/types/git-credentials';
@@ -47,6 +48,8 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
   onToggle,
   onRefresh: _onRefresh,
 }) => {
+  const { t } = useTranslation();
+
   // 获取凭据类型图标
   const getTypeIcon = (type: GitCredentialType) => {
     switch (type) {
@@ -65,19 +68,19 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
   const getTypeName = (type: GitCredentialType) => {
     switch (type) {
       case CredentialTypes.PASSWORD:
-        return '密码';
+        return t('gitCredentials.filter.password');
       case CredentialTypes.TOKEN:
-        return '令牌';
+        return t('gitCredentials.filter.token');
       case CredentialTypes.SSH_KEY:
-        return 'SSH密钥';
+        return t('gitCredentials.filter.sshKey');
       default:
-        return '未知';
+        return t('gitCredentials.unknown', 'Unknown');
     }
   };
 
   // 格式化时间
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('zh-CN');
+    return new Date(dateString).toLocaleString();
   };
 
   // 计算分页信息
@@ -92,7 +95,7 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4" />
-              <span className="text-sm font-medium">筛选:</span>
+              <span className="text-sm font-medium">{t('gitCredentials.filterTitle', 'Filter')}:</span>
             </div>
             <div className="flex gap-2">
               <Button
@@ -100,28 +103,28 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                 size="sm"
                 onClick={() => onTypeFilterChange(undefined)}
               >
-                全部
+                {t('gitCredentials.filter.all')}
               </Button>
               <Button
                 variant={typeFilter === CredentialTypes.PASSWORD ? "default" : "outline"}
                 size="sm"
                 onClick={() => onTypeFilterChange(CredentialTypes.PASSWORD)}
               >
-                密码
+                {t('gitCredentials.filter.password')}
               </Button>
               <Button
                 variant={typeFilter === CredentialTypes.TOKEN ? "default" : "outline"}
                 size="sm"
                 onClick={() => onTypeFilterChange(CredentialTypes.TOKEN)}
               >
-                令牌
+                {t('gitCredentials.filter.token')}
               </Button>
               <Button
                 variant={typeFilter === CredentialTypes.SSH_KEY ? "default" : "outline"}
                 size="sm"
                 onClick={() => onTypeFilterChange(CredentialTypes.SSH_KEY)}
               >
-                SSH密钥
+                {t('gitCredentials.filter.sshKey')}
               </Button>
             </div>
             {typeFilter && (
@@ -165,12 +168,12 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
             <div className="text-center py-8">
               <Key className="w-12 h-12 mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {typeFilter ? '没有找到匹配的凭据' : '还没有 Git 凭据'}
+                {typeFilter ? t('gitCredentials.messages.noMatchingCredentials') : t('gitCredentials.messages.noCredentials')}
               </h3>
               <p className="text-gray-600 mb-4">
                 {typeFilter 
-                  ? `当前筛选条件下没有 ${getTypeName(typeFilter)} 类型的凭据`
-                  : '创建您的第一个 Git 凭据来开始使用'
+                  ? t('gitCredentials.noMatchingType', `No ${getTypeName(typeFilter)} credentials found`, { type: getTypeName(typeFilter) })
+                  : t('gitCredentials.messages.noCredentialsDesc')
                 }
               </p>
               {typeFilter && (
@@ -178,7 +181,7 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                   variant="outline" 
                   onClick={() => onTypeFilterChange(undefined)}
                 >
-                  清除筛选
+                  {t('gitCredentials.messages.clearFilter')}
                 </Button>
               )}
             </div>
@@ -206,7 +209,7 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                           <EyeOff className="w-4 h-4 text-gray-400" />
                         )}
                         <span className={`text-xs ${credential.is_active ? 'text-green-600' : 'text-gray-500'}`}>
-                          {credential.is_active ? '激活' : '停用'}
+                          {credential.is_active ? t('gitCredentials.active') : t('gitCredentials.inactive')}
                         </span>
                       </div>
                     </div>
@@ -222,12 +225,12 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        <span>创建于 {formatDate(credential.created_at)}</span>
+                        <span>{t('gitCredentials.createdAt')}: {formatDate(credential.created_at)}</span>
                       </div>
                       {credential.last_used && (
                         <div className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          <span>上次使用 {formatDate(credential.last_used)}</span>
+                          <span>{t('gitCredentials.lastUsed')}: {formatDate(credential.last_used)}</span>
                         </div>
                       )}
                     </div>
@@ -238,7 +241,7 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => onToggle(credential.id, !credential.is_active)}
-                      title={credential.is_active ? '停用凭据' : '激活凭据'}
+                      title={credential.is_active ? t('gitCredentials.deactivateTooltip', 'Deactivate credential') : t('gitCredentials.activateTooltip', 'Activate credential')}
                     >
                       {credential.is_active ? (
                         <EyeOff className="w-4 h-4" />
@@ -250,7 +253,7 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => onEdit(credential)}
-                      title="编辑凭据"
+                      title={t('gitCredentials.edit')}
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -259,7 +262,7 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                       size="sm"
                       onClick={() => onDelete(credential.id)}
                       className="text-red-600 hover:text-red-700 hover:border-red-300"
-                      title="删除凭据"
+                      title={t('gitCredentials.delete')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -277,7 +280,7 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">
-                显示第 {startItem} - {endItem} 项，共 {total} 项
+                {t('gitCredentials.pagination.showing')} {startItem} {t('gitCredentials.pagination.to')} {endItem} {t('gitCredentials.pagination.of')} {total} {t('gitCredentials.pagination.items')}
               </div>
               
               {totalPages > 1 && (
