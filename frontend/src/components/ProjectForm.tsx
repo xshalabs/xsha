@@ -132,10 +132,6 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
       }
     }
 
-    if (!formData.protocol) {
-      newErrors.protocol = t('projects.validation.protocolRequired');
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -168,14 +164,6 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
 
       setUrlParseTimeout(timeoutId);
     }
-  };
-
-  const handleProtocolChange = (protocol: GitProtocolType) => {
-    setFormData(prev => ({
-      ...prev,
-      protocol,
-      credential_id: undefined // 清除之前选择的凭据
-    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -326,36 +314,6 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                   {t('projects.protocolAutoDetected')}: {formData.protocol.toUpperCase()}
                 </p>
               )}
-            </div>
-
-            {/* 协议选择 */}
-            <div className="space-y-2">
-              <Label>{t('projects.protocol')} *</Label>
-              <div className="flex gap-4">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    name="protocol"
-                    value="https"
-                    checked={formData.protocol === 'https'}
-                    onChange={(e) => handleProtocolChange(e.target.value as GitProtocolType)}
-                    className="radio"
-                  />
-                  <span>HTTPS</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    name="protocol"
-                    value="ssh"
-                    checked={formData.protocol === 'ssh'}
-                    onChange={(e) => handleProtocolChange(e.target.value as GitProtocolType)}
-                    className="radio"
-                  />
-                  <span>SSH</span>
-                </label>
-              </div>
-              {errors.protocol && <p className="text-sm text-red-500">{errors.protocol}</p>}
             </div>
 
             {/* 默认分支 */}

@@ -216,8 +216,7 @@
     "validation": {
       "nameRequired": "Please enter project name",
       "repoUrlRequired": "Please enter repository URL",
-      "invalidRepoUrl": "Please enter a valid repository URL",
-      "protocolRequired": "Please select protocol type"
+      "invalidRepoUrl": "Please enter a valid repository URL"
     },
     "statistics": {
       "total": "Total Projects"

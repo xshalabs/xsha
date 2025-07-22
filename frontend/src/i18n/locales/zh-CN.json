@@ -216,8 +216,7 @@
     "validation": {
       "nameRequired": "请输入项目名称",
       "repoUrlRequired": "请输入仓库地址",
-      "invalidRepoUrl": "请输入有效的仓库地址",
-      "protocolRequired": "请选择协议类型"
+      "invalidRepoUrl": "请输入有效的仓库地址"
     },
     "statistics": {
       "total": "总项目数"
