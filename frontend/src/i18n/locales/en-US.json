@@ -1,0 +1,90 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "reset": "Reset",
+    "internal_error": "Internal server error"
+  },
+  "auth": {
+    "login": "Login to your account",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "loginButton": "Login",
+    "loginSuccess": "Login successful",
+    "loginFailed": "Invalid username or password",
+    "logoutSuccess": "Logout successful",
+    "pleaseLogin": "Please enter your username and password to login",
+    "invalidCredentials": "Invalid username or password",
+    "unauthorized": "Unauthorized access",
+    "invalid_token": "Invalid token",
+    "token_blacklisted": "Token has been invalidated, please login again"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "profile": "Profile"
+  },
+  "errors": {
+    "pageNotFound": "Page Not Found",
+    "serverError": "Server Error",
+    "networkError": "Network Error",
+    "unknownError": "Unknown Error"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalid_format": "Invalid format",
+    "too_short": "Content is too short",
+    "too_long": "Content is too long"
+  },
+  "api": {
+    "not_found": "Requested resource not found",
+    "method_not_allowed": "Method not allowed",
+    "rate_limit": "Too many requests, please try again later"
+  },
+  "health": {
+    "status_ok": "Service is running normally"
+  },
+  "login": {
+    "success": "Login successful",
+    "failed": "Invalid username or password",
+    "invalid_request": "Invalid request data format",
+    "token_generate_error": "Failed to generate token",
+    "rate_limit": "Too many login attempts, please try again later"
+  },
+  "logout": {
+    "success": "Logout successful",
+    "failed": "Logout failed",
+    "invalid_token": "Invalid token",
+    "token_expired": "Token has expired, please login again"
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "title": "Sleep0 Dashboard",
+    "projectManagement": {
+      "title": "Project Management",
+      "description": "Manage your projects and Git credentials",
+      "content": "Create, edit and manage your project configurations."
+    },
+    "gitCredentials": {
+      "title": "Git Credentials",
+      "description": "Manage your Git access credentials",
+      "content": "Add and configure access credentials for Git repositories."
+    },
+    "systemStatus": {
+      "title": "System Status",
+      "description": "View system running status",
+      "content": "Monitor system health and performance metrics."
+    }
+  }
+} 
