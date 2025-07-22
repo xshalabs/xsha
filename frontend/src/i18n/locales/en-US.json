@@ -90,7 +90,6 @@
   },
   "gitCredentials": {
     "title": "Git Credentials Management",
-    "description": "Manage your Git repository access credentials",
     "create": "Create Credential",
     "edit": "Edit Credential",
     "delete": "Delete Credential",
@@ -161,6 +160,79 @@
       "password": "Password",
       "token": "Token",
       "sshKey": "SSH Key"
+    },
+    "pagination": {
+      "showing": "Showing",
+      "to": "to",
+      "of": "of",
+      "items": "items"
+    }
+  },
+  "projects": {
+    "title": "Projects Management",
+    "description": "Manage your Git project configurations",
+    "create": "Create Project",
+    "edit": "Edit Project",
+    "delete": "Delete Project",
+    "toggle": "Toggle Status",
+    "use": "Use Project",
+    "enable": "Enable",
+    "disable": "Disable",
+    "refresh": "Refresh",
+    "backToList": "Back to List",
+    "createDescription": "Create a new project configuration",
+    "editDescription": "Edit project configuration information",
+    "name": "Project Name",
+    "description": "Project Description",
+    "repoUrl": "Repository URL",
+    "protocol": "Protocol Type",
+    "defaultBranch": "Default Branch",
+    "credential": "Access Credential",
+    "createdAt": "Created At",
+    "lastUsed": "Last Used",
+    "createdBy": "Created By",
+    "credentialHelp": "Select a credential to access this repository (optional)",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "messages": {
+      "createSuccess": "Project created successfully",
+      "updateSuccess": "Project updated successfully",
+      "deleteSuccess": "Project deleted successfully",
+      "deleteConfirm": "Are you sure you want to delete this project?",
+      "toggleSuccess": "Project status toggled successfully",
+      "useSuccess": "Project used successfully",
+      "loadFailed": "Failed to load projects list",
+      "createFailed": "Failed to create project",
+      "updateFailed": "Failed to update project",
+      "deleteFailed": "Failed to delete project",
+      "toggleFailed": "Failed to toggle status",
+      "useFailed": "Failed to use project",
+      "noProjects": "No projects yet",
+      "noProjectsDesc": "Create your first project to get started",
+      "noMatchingProjects": "No matching projects found",
+      "clearFilter": "Clear Filter"
+    },
+    "placeholders": {
+      "name": "Enter project name",
+      "description": "Enter project description (optional)",
+      "repoUrl": "https://github.com/user/repo.git or git@github.com:user/repo.git",
+      "defaultBranch": "main",
+      "selectCredential": "Select access credential (optional)"
+    },
+    "validation": {
+      "nameRequired": "Please enter project name",
+      "repoUrlRequired": "Please enter repository URL",
+      "invalidRepoUrl": "Please enter a valid repository URL",
+      "protocolRequired": "Please select protocol type"
+    },
+    "statistics": {
+      "total": "Total Projects",
+      "active": "Active Projects"
+    },
+    "filter": {
+      "all": "All"
     },
     "pagination": {
       "showing": "Showing",

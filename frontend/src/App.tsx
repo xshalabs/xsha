@@ -4,6 +4,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
+import { ProjectsPage } from '@/pages/ProjectsPage';
 import { GitCredentialsPage } from '@/pages/GitCredentialsPage';
 import './App.css';
 
@@ -37,6 +38,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* 项目管理页面 */}
+          <Route 
+            path="/projects" 
+            element={
+              <ProtectedRoute>
+                <ProjectsPage />
               </ProtectedRoute>
             } 
           />
