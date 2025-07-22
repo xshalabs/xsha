@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { apiService } from '@/lib/api';
+import { apiService } from '@/lib/api/index';
 import type {
   DevEnvironmentDisplay,
   CreateDevEnvironmentRequest,

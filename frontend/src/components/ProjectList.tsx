@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { apiService } from '@/lib/api';
+import { apiService } from '@/lib/api/index';
 import { logError } from '@/lib/errors';
 import { useTranslation } from 'react-i18next';
 import type { Project, ProjectListParams, GitProtocolType } from '@/types/project';

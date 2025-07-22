@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { apiService } from '@/lib/api';
+import { apiService } from '@/lib/api/index';
 import { logError } from '@/lib/errors';
 import { useTranslation } from 'react-i18next';
 import type { 

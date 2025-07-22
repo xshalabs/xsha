@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { SUPPORTED_LANGUAGES } from "@/lib/constants";
-import { apiService } from "@/lib/api";
+import { apiService } from "@/lib/api/index";
 
 export function NavUser() {
   const { isMobile } = useSidebar();

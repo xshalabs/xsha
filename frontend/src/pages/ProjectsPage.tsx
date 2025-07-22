@@ -4,7 +4,7 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { ProjectList } from '@/components/ProjectList';
 import { ProjectForm } from '@/components/ProjectForm';
 import { Button } from '@/components/ui/button';
-import { apiService } from '@/lib/api';
+import { apiService } from '@/lib/api/index';
 import { logError } from '@/lib/errors';
 import type { Project } from '@/types/project';
 

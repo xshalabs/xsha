@@ -5,7 +5,7 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminOperationLogList } from '@/components/AdminOperationLogList';
 import { LoginLogList } from '@/components/LoginLogList';
-import { apiService } from '@/lib/api';
+import { apiService } from '@/lib/api/index';
 import { logError } from '@/lib/errors';
 import { 
   FileText, 

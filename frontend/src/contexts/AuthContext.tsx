@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { apiService, tokenManager } from '@/lib/api';
-import type { UserResponse } from '@/lib/api';
+import { apiService, tokenManager } from '@/lib/api/index';
+import type { UserResponse } from '@/lib/api/index';
 import { handleApiError } from '@/lib/errors';
 
 interface AuthContextType {

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { GitCredentialList } from '@/components/GitCredentialList';
 import { GitCredentialForm } from '@/components/GitCredentialForm';
-import { apiService } from '@/lib/api';
+import { apiService } from '@/lib/api/index';
 import type { GitCredential, GitCredentialListParams } from '@/types/git-credentials';
 import { GitCredentialType } from '@/types/git-credentials';
 import { Plus, RefreshCw } from 'lucide-react';

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { apiService } from '@/lib/api';
+import { apiService } from '@/lib/api/index';
 import type { GitCredential, GitCredentialType, GitCredentialFormData } from '@/types/git-credentials';
 import { GitCredentialType as CredentialTypes } from '@/types/git-credentials';
 

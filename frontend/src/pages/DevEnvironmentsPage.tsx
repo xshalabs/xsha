@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw, Play, Settings, Monitor } from 'lucide-react';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { apiService } from '@/lib/api';
+import { apiService } from '@/lib/api/index';
 import { toast } from 'sonner';
 import type { 
   DevEnvironment, 

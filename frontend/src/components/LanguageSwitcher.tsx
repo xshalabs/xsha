@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { SUPPORTED_LANGUAGES } from '@/lib/constants';
-import { apiService } from '@/lib/api';
+import { apiService } from '@/lib/api/index';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function LanguageSwitcher() {
