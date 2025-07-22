@@ -1,3 +1,23 @@
+// @title Sleep0 Backend API
+// @version 1.0
+// @description Sleep0 Backend API服务，提供用户认证、项目管理、Git凭据管理等功能
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8080
+// @BasePath /api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
+
 package main
 
 import (
@@ -9,6 +29,8 @@ import (
 	"sleep0-backend/repository"
 	"sleep0-backend/routes"
 	"sleep0-backend/services"
+
+	_ "sleep0-backend/docs" // 自动生成的swagger docs
 
 	"github.com/gin-gonic/gin"
 )

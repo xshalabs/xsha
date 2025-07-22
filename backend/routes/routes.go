@@ -6,6 +6,8 @@ import (
 	"sleep0-backend/services"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // SetupRoutes sets up routes
@@ -17,6 +19,9 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, gitCredHandler
 	// Set 404 and 405 error handlers
 	r.NoRoute(middleware.NotFoundHandler())
 	r.NoMethod(middleware.MethodNotAllowedHandler())
+
+	// Swagger documentation route
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Health check route
 	r.GET("/health", handlers.HealthHandler)

@@ -34,15 +34,27 @@ type CreateProjectRequest struct {
 }
 
 // UpdateProjectRequest 更新项目请求结构
+// @Description 更新项目的请求参数
 type UpdateProjectRequest struct {
-	Name          string `json:"name"`
-	Description   string `json:"description"`
-	RepoURL       string `json:"repo_url"`
-	DefaultBranch string `json:"default_branch"`
-	CredentialID  *uint  `json:"credential_id"`
+	Name          string `json:"name" example:"更新的项目名称"`
+	Description   string `json:"description" example:"更新的项目描述"`
+	RepoURL       string `json:"repo_url" example:"https://github.com/user/repo.git"`
+	DefaultBranch string `json:"default_branch" example:"main"`
+	CredentialID  *uint  `json:"credential_id" example:"1"`
 }
 
 // CreateProject 创建项目
+// @Summary 创建项目
+// @Description 创建一个新的项目
+// @Tags 项目
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param project body CreateProjectRequest true "项目信息"
+// @Success 201 {object} object{id=number,message=string} "项目创建成功"
+// @Failure 400 {object} object{error=string} "请求参数错误"
+// @Failure 500 {object} object{error=string} "创建项目失败"
+// @Router /projects [post]
 func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
@@ -73,6 +85,17 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 }
 
 // GetProject 获取单个项目
+// @Summary 获取项目详情
+// @Description 根据项目ID获取项目详细信息
+// @Tags 项目
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "项目ID"
+// @Success 200 {object} object{project=object} "项目详情"
+// @Failure 400 {object} object{error=string} "无效的项目ID"
+// @Failure 404 {object} object{error=string} "项目不存在"
+// @Router /projects/{id} [get]
 func (h *ProjectHandlers) GetProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
@@ -100,6 +123,17 @@ func (h *ProjectHandlers) GetProject(c *gin.Context) {
 }
 
 // ListProjects 获取项目列表
+// @Summary 获取项目列表
+// @Description 获取当前用户的项目列表，支持分页
+// @Tags 项目
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "页码，默认为1"
+// @Param page_size query int false "每页数量，默认为20"
+// @Success 200 {object} object{projects=[]object,total=number,page=number,page_size=number} "项目列表"
+// @Failure 500 {object} object{error=string} "获取项目列表失败"
+// @Router /projects [get]
 func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
@@ -145,6 +179,18 @@ func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 }
 
 // UpdateProject 更新项目
+// @Summary 更新项目
+// @Description 更新指定项目的信息
+// @Tags 项目
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "项目ID"
+// @Param project body UpdateProjectRequest true "项目更新信息"
+// @Success 200 {object} object{message=string} "项目更新成功"
+// @Failure 400 {object} object{error=string} "请求参数错误"
+// @Failure 404 {object} object{error=string} "项目不存在"
+// @Router /projects/{id} [put]
 func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
@@ -197,6 +243,17 @@ func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 }
 
 // DeleteProject 删除项目
+// @Summary 删除项目
+// @Description 删除指定的项目
+// @Tags 项目
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "项目ID"
+// @Success 200 {object} object{message=string} "项目删除成功"
+// @Failure 400 {object} object{error=string} "无效的项目ID"
+// @Failure 404 {object} object{error=string} "项目不存在"
+// @Router /projects/{id} [delete]
 func (h *ProjectHandlers) DeleteProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
@@ -224,6 +281,18 @@ func (h *ProjectHandlers) DeleteProject(c *gin.Context) {
 }
 
 // ToggleProject 切换项目激活状态
+// @Summary 切换项目状态
+// @Description 切换项目的激活/停用状态
+// @Tags 项目
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "项目ID"
+// @Param toggleData body object{is_active=bool} true "切换状态信息"
+// @Success 200 {object} object{message=string} "项目状态切换成功"
+// @Failure 400 {object} object{error=string} "请求参数错误"
+// @Failure 404 {object} object{error=string} "项目不存在"
+// @Router /projects/{id}/toggle [patch]
 func (h *ProjectHandlers) ToggleProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
@@ -261,6 +330,17 @@ func (h *ProjectHandlers) ToggleProject(c *gin.Context) {
 }
 
 // UseProject 使用项目
+// @Summary 使用项目
+// @Description 获取项目的详细信息用于使用
+// @Tags 项目
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "项目ID"
+// @Success 200 {object} object{message=string,project=object} "项目使用成功"
+// @Failure 400 {object} object{error=string} "无效的项目ID"
+// @Failure 404 {object} object{error=string} "项目不存在"
+// @Router /projects/{id}/use [post]
 func (h *ProjectHandlers) UseProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
@@ -289,6 +369,16 @@ func (h *ProjectHandlers) UseProject(c *gin.Context) {
 }
 
 // GetCompatibleCredentials 获取与协议兼容的凭据列表
+// @Summary 获取兼容凭据
+// @Description 根据协议类型获取兼容的Git凭据列表
+// @Tags 项目
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param protocol query string true "协议类型 (https/ssh)"
+// @Success 200 {object} object{message=string,credentials=[]object} "获取凭据列表成功"
+// @Failure 400 {object} object{error=string} "请求参数错误"
+// @Router /projects/credentials [get]
 func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")

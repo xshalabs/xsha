@@ -25,6 +25,23 @@ func NewAdminOperationLogHandlers(operationLogService services.AdminOperationLog
 }
 
 // GetOperationLogs 获取操作日志列表
+// @Summary 获取操作日志列表
+// @Description 获取管理员操作日志列表，支持多条件筛选和分页
+// @Tags 管理员日志
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param username query string false "用户名筛选"
+// @Param resource query string false "资源类型筛选"
+// @Param operation query string false "操作类型筛选"
+// @Param success query bool false "操作成功状态筛选"
+// @Param start_time query string false "开始时间筛选 (YYYY-MM-DD)"
+// @Param end_time query string false "结束时间筛选 (YYYY-MM-DD)"
+// @Param page query int false "页码，默认为1"
+// @Param page_size query int false "每页数量，默认为20，最大100"
+// @Success 200 {object} object{message=string,logs=[]object,total=number,page=number,page_size=number,total_pages=number} "操作日志列表"
+// @Failure 500 {object} object{error=string} "获取操作日志失败"
+// @Router /admin/operation-logs [get]
 func (h *AdminOperationLogHandlers) GetOperationLogs(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -105,6 +122,17 @@ func (h *AdminOperationLogHandlers) GetOperationLogs(c *gin.Context) {
 }
 
 // GetOperationLog 获取单个操作日志
+// @Summary 获取操作日志详情
+// @Description 根据ID获取单个操作日志的详细信息
+// @Tags 管理员日志
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "日志ID"
+// @Success 200 {object} object{message=string,log=object} "操作日志详情"
+// @Failure 400 {object} object{error=string} "无效的日志ID"
+// @Failure 404 {object} object{error=string} "日志不存在"
+// @Router /admin/operation-logs/{id} [get]
 func (h *AdminOperationLogHandlers) GetOperationLog(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -134,6 +162,18 @@ func (h *AdminOperationLogHandlers) GetOperationLog(c *gin.Context) {
 }
 
 // GetOperationStats 获取操作统计
+// @Summary 获取操作统计
+// @Description 获取指定时间范围内的操作统计信息
+// @Tags 管理员日志
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param username query string false "用户名筛选"
+// @Param start_time query string false "开始时间 (YYYY-MM-DD)，默认30天前"
+// @Param end_time query string false "结束时间 (YYYY-MM-DD)，默认今天"
+// @Success 200 {object} object{message=string,operation_stats=object,resource_stats=object,start_time=string,end_time=string} "操作统计信息"
+// @Failure 500 {object} object{error=string} "获取操作统计失败"
+// @Router /admin/operation-stats [get]
 func (h *AdminOperationLogHandlers) GetOperationStats(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 

@@ -24,23 +24,36 @@ func NewGitCredentialHandlers(gitCredService services.GitCredentialService) *Git
 }
 
 // CreateCredentialRequest 创建凭据请求结构
+// @Description 创建Git凭据的请求参数
 type CreateCredentialRequest struct {
-	Name        string            `json:"name" binding:"required"`
-	Description string            `json:"description"`
-	Type        string            `json:"type" binding:"required,oneof=password token ssh_key"`
-	Username    string            `json:"username"`
-	SecretData  map[string]string `json:"secret_data" binding:"required"`
+	Name        string            `json:"name" binding:"required" example:"我的GitHub凭据"`
+	Description string            `json:"description" example:"用于GitHub项目的凭据"`
+	Type        string            `json:"type" binding:"required,oneof=password token ssh_key" example:"password"`
+	Username    string            `json:"username" example:"myusername"`
+	SecretData  map[string]string `json:"secret_data" binding:"required" example:"{\"password\":\"mypassword\"}"`
 }
 
 // UpdateCredentialRequest 更新凭据请求结构
+// @Description 更新Git凭据的请求参数
 type UpdateCredentialRequest struct {
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	Username    string            `json:"username"`
-	SecretData  map[string]string `json:"secret_data"`
+	Name        string            `json:"name" example:"更新的凭据名称"`
+	Description string            `json:"description" example:"更新的描述"`
+	Username    string            `json:"username" example:"newusername"`
+	SecretData  map[string]string `json:"secret_data" example:"{\"password\":\"newpassword\"}"`
 }
 
 // CreateCredential 创建Git凭据
+// @Summary 创建Git凭据
+// @Description 创建新的Git凭据，支持密码、令牌、SSH密钥类型
+// @Tags Git凭据
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param credential body CreateCredentialRequest true "凭据信息"
+// @Success 201 {object} object{message=string,credential=object} "凭据创建成功"
+// @Failure 400 {object} object{error=string} "请求参数错误"
+// @Failure 500 {object} object{error=string} "创建凭据失败"
+// @Router /git-credentials [post]
 func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
@@ -71,6 +84,17 @@ func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 }
 
 // GetCredential 获取单个Git凭据
+// @Summary 获取Git凭据详情
+// @Description 根据ID获取指定Git凭据的详细信息
+// @Tags Git凭据
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "凭据ID"
+// @Success 200 {object} object{credential=object} "凭据详情"
+// @Failure 400 {object} object{error=string} "无效的凭据ID"
+// @Failure 404 {object} object{error=string} "凭据不存在"
+// @Router /git-credentials/{id} [get]
 func (h *GitCredentialHandlers) GetCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
@@ -98,6 +122,18 @@ func (h *GitCredentialHandlers) GetCredential(c *gin.Context) {
 }
 
 // ListCredentials 获取Git凭据列表
+// @Summary 获取Git凭据列表
+// @Description 获取当前用户的Git凭据列表，支持按类型筛选和分页
+// @Tags Git凭据
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param type query string false "凭据类型筛选 (password/token/ssh_key)"
+// @Param page query int false "页码，默认为1"
+// @Param page_size query int false "每页数量，默认为20，最大100"
+// @Success 200 {object} object{message=string,credentials=[]object,total=number,page=number,page_size=number,total_pages=number} "凭据列表"
+// @Failure 500 {object} object{error=string} "获取凭据列表失败"
+// @Router /git-credentials [get]
 func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
@@ -143,6 +179,18 @@ func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 }
 
 // UpdateCredential 更新Git凭据
+// @Summary 更新Git凭据
+// @Description 更新指定Git凭据的信息
+// @Tags Git凭据
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "凭据ID"
+// @Param credential body UpdateCredentialRequest true "凭据更新信息"
+// @Success 200 {object} object{message=string} "凭据更新成功"
+// @Failure 400 {object} object{error=string} "请求参数错误"
+// @Failure 404 {object} object{error=string} "凭据不存在"
+// @Router /git-credentials/{id} [put]
 func (h *GitCredentialHandlers) UpdateCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
@@ -190,6 +238,17 @@ func (h *GitCredentialHandlers) UpdateCredential(c *gin.Context) {
 }
 
 // DeleteCredential 删除Git凭据
+// @Summary 删除Git凭据
+// @Description 删除指定的Git凭据
+// @Tags Git凭据
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "凭据ID"
+// @Success 200 {object} object{message=string} "凭据删除成功"
+// @Failure 400 {object} object{error=string} "无效的凭据ID"
+// @Failure 404 {object} object{error=string} "凭据不存在"
+// @Router /git-credentials/{id} [delete]
 func (h *GitCredentialHandlers) DeleteCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
@@ -217,6 +276,18 @@ func (h *GitCredentialHandlers) DeleteCredential(c *gin.Context) {
 }
 
 // ToggleCredential 切换凭据激活状态
+// @Summary 切换凭据状态
+// @Description 切换Git凭据的激活/停用状态
+// @Tags Git凭据
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "凭据ID"
+// @Param toggleData body object{is_active=bool} true "切换状态信息"
+// @Success 200 {object} object{message=string} "凭据状态切换成功"
+// @Failure 400 {object} object{error=string} "请求参数错误"
+// @Failure 404 {object} object{error=string} "凭据不存在"
+// @Router /git-credentials/{id}/toggle [patch]
 func (h *GitCredentialHandlers) ToggleCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
@@ -254,6 +325,17 @@ func (h *GitCredentialHandlers) ToggleCredential(c *gin.Context) {
 }
 
 // UseCredential 使用凭据（获取解密后的凭据信息）
+// @Summary 使用Git凭据
+// @Description 获取解密后的Git凭据信息用于认证
+// @Tags Git凭据
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "凭据ID"
+// @Success 200 {object} object{credential=object,type=string,username=string,secret=string,private_key=string,public_key=string} "凭据使用成功"
+// @Failure 400 {object} object{error=string} "无效的凭据ID"
+// @Failure 404 {object} object{error=string} "凭据不存在"
+// @Router /git-credentials/{id}/use [post]
 func (h *GitCredentialHandlers) UseCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
