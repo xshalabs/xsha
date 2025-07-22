@@ -1,5 +1,11 @@
 {
   "dashboard": "Dashboard",
-  "settings": "Settings",
-  "profile": "Profile"
+  "projects": "Projects",
+  "gitCredentials": "Git Credentials",
+  "adminLogs": "Admin Logs",
+  "settings": "Settings", 
+  "profile": "Profile",
+  "language": "Language",
+  "help": "Help",
+  "search": "Search"
 } 

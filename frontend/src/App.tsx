@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useTranslation } from 'react-i18next';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { Layout } from '@/components/Layout';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ProjectsPage } from '@/pages/ProjectsPage';
@@ -38,7 +40,9 @@ function App() {
             path="/dashboard" 
             element={
               <ProtectedRoute>
-                <DashboardPage />
+                <Layout>
+                  <DashboardPage />
+                </Layout>
               </ProtectedRoute>
             } 
           />
@@ -48,7 +52,9 @@ function App() {
             path="/projects" 
             element={
               <ProtectedRoute>
-                <ProjectsPage />
+                <Layout>
+                  <ProjectsPage />
+                </Layout>
               </ProtectedRoute>
             } 
           />
@@ -58,7 +64,9 @@ function App() {
             path="/git-credentials" 
             element={
               <ProtectedRoute>
-                <GitCredentialsPage />
+                <Layout>
+                  <GitCredentialsPage />
+                </Layout>
               </ProtectedRoute>
             } 
           />
@@ -68,7 +76,9 @@ function App() {
             path="/admin/logs" 
             element={
               <ProtectedRoute>
-                <AdminLogsPage />
+                <Layout>
+                  <AdminLogsPage />
+                </Layout>
               </ProtectedRoute>
             } 
           />

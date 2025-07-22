@@ -1,5 +1,11 @@
 {
   "dashboard": "仪表板",
+  "projects": "项目管理",
+  "gitCredentials": "Git凭据",
+  "adminLogs": "管理员日志",
   "settings": "设置",
-  "profile": "个人资料"
+  "profile": "个人资料",
+  "language": "语言",
+  "help": "帮助",
+  "search": "搜索"
 } 
