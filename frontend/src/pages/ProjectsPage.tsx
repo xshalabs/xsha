@@ -40,15 +40,7 @@ export function ProjectsPage() {
     }
   };
 
-  const handleToggle = async (id: number, isActive: boolean) => {
-    try {
-      await apiService.projects.toggle(id, isActive);
-      // 状态已在 ProjectList 组件中更新
-    } catch (error) {
-      logError(error as Error, 'Failed to toggle project');
-      alert(error instanceof Error ? error.message : t('projects.messages.toggleFailed'));
-    }
-  };
+
 
   const handleUse = async (id: number) => {
     try {
@@ -94,7 +86,6 @@ export function ProjectsPage() {
           key={refreshTrigger} // 强制重新渲染以刷新数据
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onToggle={handleToggle}
           onUse={handleUse}
           onCreateNew={handleCreateNew}
         />

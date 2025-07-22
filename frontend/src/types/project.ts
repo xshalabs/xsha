@@ -85,10 +85,7 @@ export interface CompatibleCredentialsResponse {
   }>;
 }
 
-// 切换状态请求
-export interface ToggleProjectRequest {
-  is_active: boolean;
-}
+
 
 // 列表查询参数
 export interface ProjectListParams {

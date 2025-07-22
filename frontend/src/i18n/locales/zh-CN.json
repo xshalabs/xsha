@@ -170,14 +170,10 @@
   },
   "projects": {
     "title": "项目管理",
-    "description": "管理您的 Git 项目配置",
     "create": "创建项目",
     "edit": "编辑项目",
     "delete": "删除项目",
-    "toggle": "切换状态",
     "use": "使用项目",
-    "enable": "启用",
-    "disable": "停用",
     "refresh": "刷新",
     "backToList": "返回列表",
     "createDescription": "创建一个新的项目配置",
@@ -192,22 +188,17 @@
     "lastUsed": "上次使用",
     "createdBy": "创建者",
     "credentialHelp": "选择用于访问此仓库的凭据（可选）",
-    "status": {
-      "active": "激活",
-      "inactive": "停用"
-    },
+
     "messages": {
       "createSuccess": "项目创建成功",
       "updateSuccess": "项目更新成功",
       "deleteSuccess": "项目删除成功",
       "deleteConfirm": "确定要删除这个项目吗？",
-      "toggleSuccess": "项目状态切换成功",
       "useSuccess": "项目使用成功",
       "loadFailed": "加载项目列表失败",
       "createFailed": "创建项目失败",
       "updateFailed": "更新项目失败",
       "deleteFailed": "删除项目失败",
-      "toggleFailed": "切换状态失败",
       "useFailed": "使用项目失败",
       "noProjects": "还没有项目",
       "noProjectsDesc": "创建您的第一个项目来开始使用",
@@ -228,8 +219,7 @@
       "protocolRequired": "请选择协议类型"
     },
     "statistics": {
-      "total": "总项目数",
-      "active": "激活的项目"
+      "total": "总项目数"
     },
     "filter": {
       "all": "全部"

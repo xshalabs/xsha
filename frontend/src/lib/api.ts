@@ -289,13 +289,7 @@ export const apiService = {
       });
     },
 
-    // 切换项目激活状态
-    toggle: async (id: number, isActive: boolean): Promise<{ message: string }> => {
-      return request<{ message: string }>(`/projects/${id}/toggle`, {
-        method: 'PATCH',
-        body: JSON.stringify({ is_active: isActive }),
-      });
-    },
+
 
     // 使用项目（获取项目详细信息用于使用）
     use: async (id: number): Promise<UseProjectResponse> => {

@@ -9,12 +9,11 @@ import type { Project, ProjectListParams, GitProtocolType } from '@/types/projec
 interface ProjectListProps {
   onEdit?: (project: Project) => void;
   onDelete?: (id: number) => void;
-  onToggle?: (id: number, isActive: boolean) => void;
   onUse?: (id: number) => void;
   onCreateNew?: () => void;
 }
 
-export function ProjectList({ onEdit, onDelete, onToggle, onUse, onCreateNew }: ProjectListProps) {
+export function ProjectList({ onEdit, onDelete, onUse, onCreateNew }: ProjectListProps) {
   const { t } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
@@ -68,24 +67,7 @@ export function ProjectList({ onEdit, onDelete, onToggle, onUse, onCreateNew }: 
     setCurrentPage(1);
   };
 
-  const handleToggleProject = async (project: Project) => {
-    try {
-      const newStatus = !project.is_active;
-      await apiService.projects.toggle(project.id, newStatus);
-      
-      // 更新本地状态
-      setProjects(prev => prev.map(p => 
-        p.id === project.id ? { ...p, is_active: newStatus } : p
-      ));
-      
-      if (onToggle) {
-        onToggle(project.id, newStatus);
-      }
-    } catch (error) {
-      logError(error as Error, 'Failed to toggle project');
-      setError(error instanceof Error ? error.message : t('projects.messages.toggleFailed'));
-    }
-  };
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
@@ -149,7 +131,7 @@ export function ProjectList({ onEdit, onDelete, onToggle, onUse, onCreateNew }: 
       </div>
 
       {/* 统计信息 */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">{t('projects.statistics.total')}</CardTitle>
@@ -158,16 +140,7 @@ export function ProjectList({ onEdit, onDelete, onToggle, onUse, onCreateNew }: 
             <div className="text-2xl font-bold">{total}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">{t('projects.statistics.active')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {projects.filter(p => p.is_active).length}
-            </div>
-          </CardContent>
-        </Card>
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">HTTPS</CardTitle>
@@ -223,7 +196,7 @@ export function ProjectList({ onEdit, onDelete, onToggle, onUse, onCreateNew }: 
       ) : (
         <div className="grid gap-4">
           {projects.map((project) => (
-            <Card key={project.id} className={`transition-all ${!project.is_active ? 'opacity-60' : ''}`}>
+            <Card key={project.id}>
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
@@ -232,18 +205,11 @@ export function ProjectList({ onEdit, onDelete, onToggle, onUse, onCreateNew }: 
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getProtocolBadgeColor(project.protocol)}`}>
                         {project.protocol.toUpperCase()}
                       </span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        project.is_active 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {project.is_active ? t('projects.status.active') : t('projects.status.inactive')}
-                      </span>
                     </CardTitle>
                     <CardDescription>{project.description}</CardDescription>
                   </div>
                   <div className="flex gap-2">
-                    {onUse && project.is_active && (
+                    {onUse && (
                       <Button size="sm" variant="outline" onClick={() => onUse(project.id)}>
                         {t('projects.use')}
                       </Button>
@@ -253,13 +219,6 @@ export function ProjectList({ onEdit, onDelete, onToggle, onUse, onCreateNew }: 
                         {t('common.edit')}
                       </Button>
                     )}
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleToggleProject(project)}
-                    >
-                      {project.is_active ? t('projects.disable') : t('projects.enable')}
-                    </Button>
                     {onDelete && (
                       <Button 
                         size="sm" 
