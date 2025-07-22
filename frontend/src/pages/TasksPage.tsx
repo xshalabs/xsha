@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,8 +29,13 @@ type ViewMode = 'list' | 'create' | 'edit' | 'conversation';
 
 export function TasksPage() {
   const { t } = useTranslation();
+  const { projectId } = useParams<{ projectId: string }>();
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedTask, setSelectedTask] = useState<Task | undefined>();
+  
+  // 当前项目信息
+  const [currentProject, setCurrentProject] = useState<Project | null>(null);
   
   // 任务相关状态
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -38,9 +44,8 @@ export function TasksPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [total, setTotal] = useState(0);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | undefined>();
-  const [projectFilter, setProjectFilter] = useState<number | undefined>();
   
-  // 项目列表
+  // 项目列表（用于任务创建/编辑时的下拉选择）
   const [projects, setProjects] = useState<Project[]>([]);
   
   // 对话相关状态
@@ -51,7 +56,7 @@ export function TasksPage() {
   const [stats, setStats] = useState<TaskStats | null>(null);
 
   // 设置页面标题
-  usePageTitle('common.pageTitle.tasks');
+  usePageTitle(currentProject ? `${currentProject.name} - 任务管理` : '任务管理');
 
   const pageSize = 20;
 
@@ -120,17 +125,25 @@ export function TasksPage() {
   // 初始化数据
   useEffect(() => {
     loadProjects();
-    loadTasks(1, statusFilter, projectFilter);
-  }, []);
+    loadTasks(1, statusFilter, projectId ? parseInt(projectId, 10) : undefined);
+    if (projectId) {
+      apiService.projects.get(parseInt(projectId, 10)).then(response => {
+        setCurrentProject(response.project);
+      }).catch(error => {
+        logError(error as Error, 'Failed to load project');
+        navigate('/projects'); // Redirect to projects list if project not found
+      });
+    }
+  }, [projectId]);
 
   // 当项目筛选改变时重新加载统计
   useEffect(() => {
-    if (projectFilter) {
-      loadStats(projectFilter);
+    if (projectId) {
+      loadStats(parseInt(projectId, 10));
     } else {
       setStats(null);
     }
-  }, [projectFilter]);
+  }, [projectId]);
 
   // 处理任务创建
   const handleTaskCreate = () => {
@@ -148,7 +161,7 @@ export function TasksPage() {
   const handleTaskDelete = async (id: number) => {
     try {
       await apiService.tasks.delete(id);
-      loadTasks(currentPage, statusFilter, projectFilter);
+      loadTasks(currentPage, statusFilter, projectId ? parseInt(projectId, 10) : undefined);
     } catch (error) {
       logError(error as Error, 'Failed to delete task');
       alert(error instanceof Error ? error.message : t('tasks.messages.deleteFailed'));
@@ -159,7 +172,7 @@ export function TasksPage() {
   const handleTaskStatusUpdate = async (id: number, status: TaskStatus) => {
     try {
       await apiService.tasks.updateStatus(id, { status });
-      loadTasks(currentPage, statusFilter, projectFilter);
+      loadTasks(currentPage, statusFilter, projectId ? parseInt(projectId, 10) : undefined);
     } catch (error) {
       logError(error as Error, 'Failed to update task status');
       alert(error instanceof Error ? error.message : t('tasks.messages.updateStatusFailed'));
@@ -170,7 +183,7 @@ export function TasksPage() {
   const handlePRToggle = async (id: number, hasPR: boolean) => {
     try {
       await apiService.tasks.updatePullRequestStatus(id, { has_pull_request: hasPR });
-      loadTasks(currentPage, statusFilter, projectFilter);
+      loadTasks(currentPage, statusFilter, projectId ? parseInt(projectId, 10) : undefined);
     } catch (error) {
       logError(error as Error, 'Failed to update PR status');
       alert(error instanceof Error ? error.message : t('tasks.messages.updatePRFailed'));
@@ -186,13 +199,17 @@ export function TasksPage() {
         alert(t('tasks.messages.updateSuccess'));
       } else {
         // 创建任务
-        await apiService.tasks.create(data);
+        const projectIdNum = projectId ? parseInt(projectId, 10) : undefined;
+        if (!projectIdNum) {
+          throw new Error('项目ID不能为空');
+        }
+        await apiService.tasks.create({ ...data, project_id: projectIdNum });
         alert(t('tasks.messages.createSuccess'));
       }
       
       setViewMode('list');
       setSelectedTask(undefined);
-      loadTasks(currentPage, statusFilter, projectFilter);
+      loadTasks(currentPage, statusFilter, projectId ? parseInt(projectId, 10) : undefined);
     } catch (error) {
       logError(error as Error, 'Failed to submit task');
       throw error; // 让表单组件处理错误显示
@@ -248,23 +265,25 @@ export function TasksPage() {
 
   // 处理页面变化
   const handlePageChange = (page: number) => {
-    loadTasks(page, statusFilter, projectFilter);
+    loadTasks(page, statusFilter, projectId ? parseInt(projectId, 10) : undefined);
   };
 
   // 处理筛选变化
   const handleStatusFilterChange = (status: TaskStatus | undefined) => {
     setStatusFilter(status);
-    loadTasks(1, status, projectFilter);
+    loadTasks(1, status, projectId ? parseInt(projectId, 10) : undefined);
   };
 
   const handleProjectFilterChange = (projectId: number | undefined) => {
-    setProjectFilter(projectId);
-    loadTasks(1, statusFilter, projectId);
+    // This function is no longer needed as project filtering is handled by URL param
+    // Keeping it for now, but it will not be called from the TaskList component
+    // as the project filter is now a URL param.
+    // If project filtering is re-introduced, this function will need to be updated.
   };
 
   // 刷新数据
   const handleRefresh = () => {
-    loadTasks(currentPage, statusFilter, projectFilter);
+    loadTasks(currentPage, statusFilter, projectId ? parseInt(projectId, 10) : undefined);
   };
 
   const handleConversationRefresh = () => {
@@ -371,7 +390,8 @@ export function TasksPage() {
                totalPages={totalPages}
                total={total}
                statusFilter={statusFilter}
-               projectFilter={projectFilter}
+               projectFilter={projectId ? parseInt(projectId, 10) : undefined}
+               hideProjectFilter={true}
                onPageChange={handlePageChange}
                onStatusFilterChange={handleStatusFilterChange}
                onProjectFilterChange={handleProjectFilterChange}
@@ -390,6 +410,22 @@ export function TasksPage() {
 
   return (
     <div className="container mx-auto p-6">
+      {/* 页面头部 */}
+      <div className="mb-6">
+        <div className="flex items-center gap-4 mb-4">
+          <Button variant="outline" onClick={() => navigate('/projects')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            返回项目列表
+          </Button>
+          {currentProject && (
+            <div>
+              <h1 className="text-2xl font-bold">{currentProject.name}</h1>
+              <p className="text-gray-600">任务管理</p>
+            </div>
+          )}
+        </div>
+      </div>
+
       <Tabs defaultValue="tasks" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="tasks">{t('tasks.tabs.management')}</TabsTrigger>

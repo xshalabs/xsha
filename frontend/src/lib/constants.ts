@@ -25,6 +25,7 @@ export const ROUTES = {
   login: '/login',
   dashboard: '/dashboard',
   projects: '/projects',
+  projectTasks: (projectId: number) => `/projects/${projectId}/tasks`,
   gitCredentials: '/git-credentials',
   devEnvironments: '/dev-environments',
   adminLogs: '/admin/logs',

@@ -11,6 +11,12 @@ export function SiteHeader() {
 
   // 路径到页面标题的映射
   const getPageTitle = (pathname: string): string => {
+    // 处理项目任务页面
+    const projectTasksMatch = pathname.match(/^\/projects\/(\d+)\/tasks$/);
+    if (projectTasksMatch) {
+      return t("common.pageTitle.projectTasks");
+    }
+    
     switch (pathname) {
       case "/dashboard":
         return t("common.pageTitle.dashboard");

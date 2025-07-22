@@ -32,6 +32,7 @@ interface TaskListProps {
   total: number;
   statusFilter?: TaskStatus;
   projectFilter?: number;
+  hideProjectFilter?: boolean; // 新增：是否隐藏项目过滤器
   onPageChange: (page: number) => void;
   onStatusFilterChange: (status: TaskStatus | undefined) => void;
   onProjectFilterChange: (projectId: number | undefined) => void;
@@ -53,6 +54,7 @@ export function TaskList({
   total,
   statusFilter,
   projectFilter,
+  hideProjectFilter = false,
   onPageChange,
   onStatusFilterChange,
   onProjectFilterChange,
@@ -157,29 +159,31 @@ export function TaskList({
         <Filter className="w-4 h-4 text-gray-600" />
         
         {/* 项目筛选 */}
-        <div className="flex items-center space-x-2">
-          <label className="text-sm font-medium text-gray-700">
-            {t('tasks.filters.project')}:
-          </label>
-          <Select
-            value={projectFilter?.toString() || 'all'}
-            onValueChange={(value) => 
-              onProjectFilterChange(value === 'all' ? undefined : parseInt(value))
-            }
-          >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('common.all')}</SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id.toString()}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!hideProjectFilter && (
+          <div className="flex items-center space-x-2">
+            <label className="text-sm font-medium text-gray-700">
+              {t('tasks.filters.project')}:
+            </label>
+            <Select
+              value={projectFilter?.toString() || 'all'}
+              onValueChange={(value) => 
+                onProjectFilterChange(value === 'all' ? undefined : parseInt(value))
+              }
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('common.all')}</SelectItem>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id.toString()}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {/* 状态筛选 */}
         <div className="flex items-center space-x-2">

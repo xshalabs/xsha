@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { apiService } from '@/lib/api/index';
 import { logError } from '@/lib/errors';
-import { useTranslation } from 'react-i18next';
+import { ROUTES } from '@/lib/constants';
 import type { Project, ProjectListParams, GitProtocolType } from '@/types/project';
 
 interface ProjectListProps {
@@ -15,6 +17,7 @@ interface ProjectListProps {
 
 export function ProjectList({ onEdit, onDelete, onUse, onCreateNew }: ProjectListProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +70,9 @@ export function ProjectList({ onEdit, onDelete, onUse, onCreateNew }: ProjectLis
     setCurrentPage(1);
   };
 
+  const handleTasksManagement = (projectId: number) => {
+    navigate(`${ROUTES.projects}/${projectId}/tasks`);
+  };
 
 
   const formatDate = (dateString: string) => {
@@ -214,6 +220,9 @@ export function ProjectList({ onEdit, onDelete, onUse, onCreateNew }: ProjectLis
                         {t('projects.use')}
                       </Button>
                     )}
+                    <Button size="sm" variant="outline" onClick={() => handleTasksManagement(project.id)}>
+                      {t('projects.tasksManagement')}
+                    </Button>
                     {onEdit && (
                       <Button size="sm" variant="outline" onClick={() => onEdit(project)}>
                         {t('common.edit')}

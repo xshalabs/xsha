@@ -42,9 +42,9 @@
     "dashboard": "Dashboard",
     "login": "Login",
     "projects": "Projects Management",
+    "projectTasks": "Tasks Management",
     "gitCredentials": "Git Credentials",
     "adminLogs": "System Logs",
-    "tasks": "Task Management",
     "notFound": "Page Not Found"
   },
   "theme": {

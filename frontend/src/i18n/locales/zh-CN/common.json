@@ -42,9 +42,9 @@
     "dashboard": "仪表板",
     "login": "登录",
     "projects": "项目管理",
+    "projectTasks": "任务管理",
     "gitCredentials": "Git 凭据",
     "adminLogs": "系统日志",
-    "tasks": "任务管理",
     "notFound": "页面未找到"
   },
   "theme": {

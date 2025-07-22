@@ -39,11 +39,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: IconFolder,
       },
       {
-        title: t("navigation.tasks"),
-        url: "/tasks",
-        icon: IconListCheck,
-      },
-      {
         title: t("navigation.gitCredentials"),
         url: "/git-credentials",
         icon: IconKey,

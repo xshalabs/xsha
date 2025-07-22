@@ -66,9 +66,9 @@ function App() {
             } 
           />
           
-          {/* 任务管理页面 */}
+          {/* 项目任务管理页面 */}
           <Route 
-            path="/tasks" 
+            path="/projects/:projectId/tasks" 
             element={
               <ProtectedRoute>
                 <Layout>
