@@ -14,6 +14,16 @@
   "reset": "Reset",
   "saving": "Saving...",
   "internal_error": "Internal server error",
+  "list": "List",
+  "filter": "Filter",
+  "never": "Never",
+  "actions": "Actions",
+  "refresh": "Refresh",
+  "refresh_success": "Refresh successful",
+  "all": "All",
+  "page_size": "Page Size",
+  "open_menu": "Open menu",
+  "page": "Page",
   "app": {
     "name": "Sleep0",
     "description": "Development Environment Management Platform"
