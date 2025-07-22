@@ -61,8 +61,6 @@ type ProjectService interface {
 	DeleteProject(id uint, createdBy string) error
 
 	// 项目操作
-	ToggleProject(id uint, createdBy string, isActive bool) error
-	ListActiveProjects(createdBy string, protocol *database.GitProtocolType) ([]database.Project, error)
 
 	// 凭据相关
 	ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint, createdBy string) error

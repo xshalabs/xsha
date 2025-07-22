@@ -136,16 +136,6 @@ func (s *projectService) DeleteProject(id uint, createdBy string) error {
 	return s.repo.Delete(id, createdBy)
 }
 
-// ToggleProject 切换项目激活状态
-func (s *projectService) ToggleProject(id uint, createdBy string, isActive bool) error {
-	return s.repo.SetActive(id, createdBy, isActive)
-}
-
-// ListActiveProjects 获取激活的项目列表
-func (s *projectService) ListActiveProjects(createdBy string, protocol *database.GitProtocolType) ([]database.Project, error) {
-	return s.repo.ListActive(createdBy, protocol)
-}
-
 // ValidateProtocolCredential 验证协议和凭据的兼容性
 func (s *projectService) ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint, createdBy string) error {
 	// 如果没有绑定凭据，则跳过验证

@@ -282,55 +282,6 @@ func (h *ProjectHandlers) DeleteProject(c *gin.Context) {
 	})
 }
 
-// ToggleProject 切换项目激活状态
-// @Summary 切换项目状态
-// @Description 切换项目的激活/停用状态
-// @Tags 项目
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "项目ID"
-// @Param toggleData body object{is_active=bool} true "切换状态信息"
-// @Success 200 {object} object{message=string} "项目状态切换成功"
-// @Failure 400 {object} object{error=string} "请求参数错误"
-// @Failure 404 {object} object{error=string} "项目不存在"
-// @Router /projects/{id}/toggle [patch]
-func (h *ProjectHandlers) ToggleProject(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
-
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format"),
-		})
-		return
-	}
-
-	var req struct {
-		IsActive bool `json:"is_active"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
-		})
-		return
-	}
-
-	err = h.projectService.ToggleProject(uint(id), username.(string), req.IsActive)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "project.toggle_failed") + ": " + err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "project.toggle_success"),
-	})
-}
-
 // GetCompatibleCredentials 获取与协议兼容的凭据列表
 // @Summary 获取兼容凭据
 // @Description 根据协议类型获取兼容的Git凭据列表

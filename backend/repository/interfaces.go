@@ -47,8 +47,6 @@ type ProjectRepository interface {
 
 	// 业务操作
 	UpdateLastUsed(id uint, createdBy string) error
-	SetActive(id uint, createdBy string, isActive bool) error
-	ListActive(createdBy string, protocol *database.GitProtocolType) ([]database.Project, error)
 	GetByCredentialID(credentialID uint, createdBy string) ([]database.Project, error)
 }
 

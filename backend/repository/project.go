@@ -84,26 +84,6 @@ func (r *projectRepository) UpdateLastUsed(id uint, createdBy string) error {
 		Update("last_used", now).Error
 }
 
-// SetActive 设置激活状态
-func (r *projectRepository) SetActive(id uint, createdBy string, isActive bool) error {
-	return r.db.Model(&database.Project{}).
-		Where("id = ? AND created_by = ?", id, createdBy).
-		Update("is_active", isActive).Error
-}
-
-// ListActive 获取激活的项目列表
-func (r *projectRepository) ListActive(createdBy string, protocol *database.GitProtocolType) ([]database.Project, error) {
-	var projects []database.Project
-
-	query := r.db.Preload("Credential").Where("created_by = ? AND is_active = ?", createdBy, true)
-	if protocol != nil {
-		query = query.Where("protocol = ?", *protocol)
-	}
-
-	err := query.Order("created_at DESC").Find(&projects).Error
-	return projects, err
-}
-
 // GetByCredentialID 根据凭据ID获取关联的项目
 func (r *projectRepository) GetByCredentialID(credentialID uint, createdBy string) ([]database.Project, error) {
 	var projects []database.Project

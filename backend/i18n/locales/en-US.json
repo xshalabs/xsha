@@ -52,8 +52,6 @@
   "project.update_failed": "Failed to update project",
   "project.delete_success": "Project deleted successfully",
   "project.delete_failed": "Failed to delete project",
-  "project.toggle_success": "Project status toggled successfully",
-  "project.toggle_failed": "Failed to toggle project status",
   "project.not_found": "Project not found",
   "project.name_exists": "Project name already exists",
   "project.invalid_protocol": "Invalid protocol type",

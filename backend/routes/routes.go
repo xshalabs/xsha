@@ -86,7 +86,6 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *
 			projects.GET("/:id", projectHandlers.GetProject)                            // 获取单个项目
 			projects.PUT("/:id", projectHandlers.UpdateProject)                         // 更新项目
 			projects.DELETE("/:id", projectHandlers.DeleteProject)                      // 删除项目
-			projects.POST("/:id/toggle", projectHandlers.ToggleProject)                 // 切换激活状态
 		}
 
 		// 任务管理
