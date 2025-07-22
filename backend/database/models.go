@@ -196,3 +196,79 @@ type DevEnvironment struct {
 	// 元数据
 	LastUsed *time.Time `json:"last_used"` // 最后使用时间
 }
+
+// TaskStatus 任务状态
+type TaskStatus string
+
+const (
+	TaskStatusTodo       TaskStatus = "todo"        // 待处理
+	TaskStatusInProgress TaskStatus = "in_progress" // 进行中
+	TaskStatusDone       TaskStatus = "done"        // 已完成
+	TaskStatusCancelled  TaskStatus = "cancelled"   // 已取消
+)
+
+// ConversationRole 对话角色
+type ConversationRole string
+
+const (
+	ConversationRoleUser      ConversationRole = "user"      // 用户
+	ConversationRoleAssistant ConversationRole = "assistant" // AI助手
+)
+
+// ConversationStatus 对话状态
+type ConversationStatus string
+
+const (
+	ConversationStatusPending   ConversationStatus = "pending"   // 待处理
+	ConversationStatusRunning   ConversationStatus = "running"   // 进行中
+	ConversationStatusSuccess   ConversationStatus = "success"   // 执行成功
+	ConversationStatusFailed    ConversationStatus = "failed"    // 执行失败
+	ConversationStatusCancelled ConversationStatus = "cancelled" // 已撤销
+)
+
+// Task 任务模型
+type Task struct {
+	ID        uint           `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	// 基本信息
+	Title       string `gorm:"not null" json:"title"`              // 任务标题
+	Description string `gorm:"type:text" json:"description"`       // 任务描述
+	StartBranch string `gorm:"default:'main'" json:"start_branch"` // 开始开发的分支
+
+	// 状态信息
+	Status         TaskStatus `gorm:"not null;index" json:"status"`          // 任务状态
+	HasPullRequest bool       `gorm:"default:false" json:"has_pull_request"` // 是否提交PR
+
+	// 关联信息
+	ProjectID uint     `gorm:"not null;index" json:"project_id"`    // 所属项目ID
+	Project   *Project `gorm:"foreignKey:ProjectID" json:"project"` // 关联项目
+
+	// 元数据
+	CreatedBy string `gorm:"not null;index" json:"created_by"` // 创建者
+
+	// 关联对话
+	Conversations []TaskConversation `gorm:"foreignKey:TaskID" json:"conversations"`
+}
+
+// TaskConversation 任务对话模型
+type TaskConversation struct {
+	ID        uint           `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	// 关联信息
+	TaskID uint  `gorm:"not null;index" json:"task_id"` // 所属任务ID
+	Task   *Task `gorm:"foreignKey:TaskID" json:"task"` // 关联任务
+
+	// 对话信息
+	Content string             `gorm:"type:text;not null" json:"content"` // 对话内容
+	Role    ConversationRole   `gorm:"not null;index" json:"role"`        // 对话角色
+	Status  ConversationStatus `gorm:"not null;index" json:"status"`      // 对话状态
+
+	// 元数据
+	CreatedBy string `gorm:"not null;index" json:"created_by"` // 创建者
+}

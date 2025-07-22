@@ -85,3 +85,34 @@ type DevEnvironmentRepository interface {
 	UpdateStatus(id uint, createdBy string, status database.DevEnvironmentStatus) error
 	ListByStatus(createdBy string, status database.DevEnvironmentStatus) ([]database.DevEnvironment, error)
 }
+
+// TaskRepository 定义任务仓库接口
+type TaskRepository interface {
+	// 基本CRUD操作
+	Create(task *database.Task) error
+	GetByID(id uint, createdBy string) (*database.Task, error)
+	List(projectID *uint, createdBy string, status *database.TaskStatus, page, pageSize int) ([]database.Task, int64, error)
+	Update(task *database.Task) error
+	Delete(id uint, createdBy string) error
+
+	// 业务操作
+	UpdateStatus(id uint, createdBy string, status database.TaskStatus) error
+	UpdatePullRequestStatus(id uint, createdBy string, hasPullRequest bool) error
+	ListByProject(projectID uint, createdBy string) ([]database.Task, error)
+	CountByStatus(projectID uint, createdBy string) (map[database.TaskStatus]int64, error)
+}
+
+// TaskConversationRepository 定义任务对话仓库接口
+type TaskConversationRepository interface {
+	// 基本CRUD操作
+	Create(conversation *database.TaskConversation) error
+	GetByID(id uint, createdBy string) (*database.TaskConversation, error)
+	List(taskID uint, createdBy string, page, pageSize int) ([]database.TaskConversation, int64, error)
+	Update(conversation *database.TaskConversation) error
+	Delete(id uint, createdBy string) error
+
+	// 业务操作
+	UpdateStatus(id uint, createdBy string, status database.ConversationStatus) error
+	ListByTask(taskID uint, createdBy string) ([]database.TaskConversation, error)
+	GetLatestByTask(taskID uint, createdBy string) (*database.TaskConversation, error)
+}

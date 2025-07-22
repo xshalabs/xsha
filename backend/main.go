@@ -59,6 +59,8 @@ func main() {
 	gitCredRepo := repository.NewGitCredentialRepository(dbManager.GetDB())
 	projectRepo := repository.NewProjectRepository(dbManager.GetDB())
 	devEnvRepo := repository.NewDevEnvironmentRepository(dbManager.GetDB())
+	taskRepo := repository.NewTaskRepository(dbManager.GetDB())
+	taskConvRepo := repository.NewTaskConversationRepository(dbManager.GetDB())
 
 	// Initialize services
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, cfg)
@@ -67,6 +69,8 @@ func main() {
 	gitCredService := services.NewGitCredentialService(gitCredRepo, cfg)
 	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, cfg)
 	devEnvService := services.NewDevEnvironmentService(devEnvRepo)
+	taskService := services.NewTaskService(taskRepo, projectRepo)
+	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo)
 
 	// Initialize handlers
 	authHandlers := handlers.NewAuthHandlers(authService, loginLogService)
@@ -74,6 +78,8 @@ func main() {
 	gitCredHandlers := handlers.NewGitCredentialHandlers(gitCredService)
 	projectHandlers := handlers.NewProjectHandlers(projectService)
 	devEnvHandlers := handlers.NewDevEnvironmentHandlers(devEnvService)
+	taskHandlers := handlers.NewTaskHandlers(taskService)
+	taskConvHandlers := handlers.NewTaskConversationHandlers(taskConvService)
 
 	// Set gin mode
 	if cfg.Environment == "production" {
@@ -84,7 +90,7 @@ func main() {
 	r := gin.Default()
 
 	// Setup routes - 传递所有处理器实例
-	routes.SetupRoutes(r, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers)
+	routes.SetupRoutes(r, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers)
 
 	// Start server
 	log.Print(i18nInstance.GetMessage("zh-CN", "server.starting"))

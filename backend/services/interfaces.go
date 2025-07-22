@@ -125,3 +125,44 @@ type DevEnvironmentService interface {
 	// 资源限制验证
 	ValidateResourceLimits(cpuLimit float64, memoryLimit int64) error
 }
+
+// TaskService 定义任务服务接口
+type TaskService interface {
+	// 任务管理
+	CreateTask(title, description, startBranch, createdBy string, projectID uint) (*database.Task, error)
+	GetTask(id uint, createdBy string) (*database.Task, error)
+	ListTasks(projectID *uint, createdBy string, status *database.TaskStatus, page, pageSize int) ([]database.Task, int64, error)
+	UpdateTask(id uint, createdBy string, updates map[string]interface{}) error
+	DeleteTask(id uint, createdBy string) error
+
+	// 任务状态管理
+	UpdateTaskStatus(id uint, createdBy string, status database.TaskStatus) error
+	UpdatePullRequestStatus(id uint, createdBy string, hasPullRequest bool) error
+
+	// 任务统计
+	GetTaskStats(projectID uint, createdBy string) (map[database.TaskStatus]int64, error)
+	ListTasksByProject(projectID uint, createdBy string) ([]database.Task, error)
+
+	// 验证操作
+	ValidateTaskData(title, startBranch string, projectID uint, createdBy string) error
+}
+
+// TaskConversationService 定义任务对话服务接口
+type TaskConversationService interface {
+	// 对话管理
+	CreateConversation(taskID uint, content, createdBy string, role database.ConversationRole) (*database.TaskConversation, error)
+	GetConversation(id uint, createdBy string) (*database.TaskConversation, error)
+	ListConversations(taskID uint, createdBy string, page, pageSize int) ([]database.TaskConversation, int64, error)
+	UpdateConversation(id uint, createdBy string, updates map[string]interface{}) error
+	DeleteConversation(id uint, createdBy string) error
+
+	// 对话状态管理
+	UpdateConversationStatus(id uint, createdBy string, status database.ConversationStatus) error
+
+	// 对话业务操作
+	ListConversationsByTask(taskID uint, createdBy string) ([]database.TaskConversation, error)
+	GetLatestConversation(taskID uint, createdBy string) (*database.TaskConversation, error)
+
+	// 验证操作
+	ValidateConversationData(taskID uint, content string, createdBy string) error
+}

@@ -1,0 +1,314 @@
+package handlers
+
+import (
+	"net/http"
+	"sleep0-backend/database"
+	"sleep0-backend/services"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+)
+
+// TaskHandlers 任务处理器结构体
+type TaskHandlers struct {
+	taskService services.TaskService
+}
+
+// NewTaskHandlers 创建任务处理器实例
+func NewTaskHandlers(taskService services.TaskService) *TaskHandlers {
+	return &TaskHandlers{
+		taskService: taskService,
+	}
+}
+
+// CreateTaskRequest 创建任务请求结构
+type CreateTaskRequest struct {
+	Title       string `json:"title" binding:"required"`
+	Description string `json:"description"`
+	StartBranch string `json:"start_branch" binding:"required"`
+	ProjectID   uint   `json:"project_id" binding:"required"`
+}
+
+// UpdateTaskRequest 更新任务请求结构
+type UpdateTaskRequest struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	StartBranch string `json:"start_branch"`
+}
+
+// UpdateTaskStatusRequest 更新任务状态请求结构
+type UpdateTaskStatusRequest struct {
+	Status string `json:"status" binding:"required,oneof=todo in_progress done cancelled"`
+}
+
+// UpdatePullRequestStatusRequest 更新PR状态请求结构
+type UpdatePullRequestStatusRequest struct {
+	HasPullRequest bool `json:"has_pull_request"`
+}
+
+// CreateTask 创建任务
+func (h *TaskHandlers) CreateTask(c *gin.Context) {
+	var req CreateTaskRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// 创建任务
+	task, err := h.taskService.CreateTask(req.Title, req.Description, req.StartBranch, username.(string), req.ProjectID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Task created successfully",
+		"data":    task,
+	})
+}
+
+// GetTask 获取任务详情
+func (h *TaskHandlers) GetTask(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
+		return
+	}
+
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// 获取任务
+	task, err := h.taskService.GetTask(uint(id), username.(string))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Task retrieved successfully",
+		"data":    task,
+	})
+}
+
+// ListTasks 获取任务列表
+func (h *TaskHandlers) ListTasks(c *gin.Context) {
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// 解析查询参数
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+
+	var projectID *uint
+	if pid := c.Query("project_id"); pid != "" {
+		if id, err := strconv.ParseUint(pid, 10, 32); err == nil {
+			pidUint := uint(id)
+			projectID = &pidUint
+		}
+	}
+
+	var status *database.TaskStatus
+	if s := c.Query("status"); s != "" {
+		taskStatus := database.TaskStatus(s)
+		status = &taskStatus
+	}
+
+	// 获取任务列表
+	tasks, total, err := h.taskService.ListTasks(projectID, username.(string), status, page, pageSize)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Tasks retrieved successfully",
+		"data": gin.H{
+			"tasks":     tasks,
+			"total":     total,
+			"page":      page,
+			"page_size": pageSize,
+		},
+	})
+}
+
+// UpdateTask 更新任务
+func (h *TaskHandlers) UpdateTask(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
+		return
+	}
+
+	var req UpdateTaskRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// 构建更新数据
+	updates := make(map[string]interface{})
+	if req.Title != "" {
+		updates["title"] = req.Title
+	}
+	if req.Description != "" {
+		updates["description"] = req.Description
+	}
+	if req.StartBranch != "" {
+		updates["start_branch"] = req.StartBranch
+	}
+
+	// 更新任务
+	if err := h.taskService.UpdateTask(uint(id), username.(string), updates); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Task updated successfully"})
+}
+
+// DeleteTask 删除任务
+func (h *TaskHandlers) DeleteTask(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
+		return
+	}
+
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// 删除任务
+	if err := h.taskService.DeleteTask(uint(id), username.(string)); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Task deleted successfully"})
+}
+
+// UpdateTaskStatus 更新任务状态
+func (h *TaskHandlers) UpdateTaskStatus(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
+		return
+	}
+
+	var req UpdateTaskStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// 更新任务状态
+	status := database.TaskStatus(req.Status)
+	if err := h.taskService.UpdateTaskStatus(uint(id), username.(string), status); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Task status updated successfully"})
+}
+
+// UpdatePullRequestStatus 更新PR状态
+func (h *TaskHandlers) UpdatePullRequestStatus(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
+		return
+	}
+
+	var req UpdatePullRequestStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// 更新PR状态
+	if err := h.taskService.UpdatePullRequestStatus(uint(id), username.(string), req.HasPullRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Pull request status updated successfully"})
+}
+
+// GetTaskStats 获取任务统计
+func (h *TaskHandlers) GetTaskStats(c *gin.Context) {
+	projectIDStr := c.Query("project_id")
+	if projectIDStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Project ID is required"})
+		return
+	}
+
+	projectID, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
+		return
+	}
+
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// 获取任务统计
+	stats, err := h.taskService.GetTaskStats(uint(projectID), username.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Task statistics retrieved successfully",
+		"data":    stats,
+	})
+}
