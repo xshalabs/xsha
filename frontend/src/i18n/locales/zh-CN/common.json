@@ -13,5 +13,17 @@
   "submit": "提交",
   "reset": "重置",
   "saving": "保存中...",
-  "internal_error": "内部服务器错误"
+  "internal_error": "内部服务器错误",
+  "app": {
+    "name": "Sleep0",
+    "description": "开发环境管理平台"
+  },
+  "pageTitle": {
+    "dashboard": "仪表板",
+    "login": "登录",
+    "projects": "项目管理",
+    "gitCredentials": "Git 凭据",
+    "adminLogs": "系统日志",
+    "notFound": "页面未找到"
+  }
 } 

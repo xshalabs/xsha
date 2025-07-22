@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePageTitle } from '@/hooks/usePageTitle';
 // import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminOperationLogList } from '@/components/AdminOperationLogList';
@@ -26,6 +27,9 @@ export const AdminLogsPage: React.FC = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabType>('operationLogs');
   
+  // 设置页面标题
+  usePageTitle('pageTitle.adminLogs');
+
   // 操作日志状态
   const [operationLogs, setOperationLogs] = useState<AdminOperationLog[]>([]);
   const [operationLoading, setOperationLoading] = useState(false);

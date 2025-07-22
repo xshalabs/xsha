@@ -13,5 +13,17 @@
   "submit": "Submit",
   "reset": "Reset",
   "saving": "Saving...",
-  "internal_error": "Internal server error"
+  "internal_error": "Internal server error",
+  "app": {
+    "name": "Sleep0",
+    "description": "Development Environment Management Platform"
+  },
+  "pageTitle": {
+    "dashboard": "Dashboard",
+    "login": "Login",
+    "projects": "Projects Management",
+    "gitCredentials": "Git Credentials",
+    "adminLogs": "System Logs",
+    "notFound": "Page Not Found"
+  }
 } 

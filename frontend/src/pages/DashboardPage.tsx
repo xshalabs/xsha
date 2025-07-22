@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { apiService } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -19,6 +20,9 @@ export const DashboardPage: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [healthStatus, setHealthStatus] = useState<{ status: string; message?: string; lang?: string } | null>(null);
+  
+  // 设置页面标题
+  usePageTitle('pageTitle.dashboard');
 
   useEffect(() => {
     // 获取后端健康状态，测试国际化对接

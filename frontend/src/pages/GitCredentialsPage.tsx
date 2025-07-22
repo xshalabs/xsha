@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { GitCredentialList } from '@/components/GitCredentialList';
@@ -20,6 +21,9 @@ export const GitCredentialsPage: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [typeFilter, setTypeFilter] = useState<GitCredentialType | undefined>();
   const [error, setError] = useState<string | null>(null);
+
+  // 设置页面标题
+  usePageTitle('pageTitle.gitCredentials');
 
   const pageSize = 10;
 

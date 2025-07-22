@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Layout } from '@/components/Layout';
-import { DashboardLayout } from '@/components/DashboardLayout';
 import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ProjectsPage } from '@/pages/ProjectsPage';
@@ -13,6 +13,9 @@ import './App.css';
 
 function NotFoundPage() {
   const { t } = useTranslation();
+  
+  // 设置页面标题
+  usePageTitle('pageTitle.notFound');
   
   return (
     <div className="min-h-screen flex items-center justify-center">

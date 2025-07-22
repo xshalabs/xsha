@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { ProjectList } from '@/components/ProjectList';
 import { ProjectForm } from '@/components/ProjectForm';
 import { Button } from '@/components/ui/button';
 import { apiService } from '@/lib/api';
 import { logError } from '@/lib/errors';
-import { useTranslation } from 'react-i18next';
 import type { Project } from '@/types/project';
 
 type ViewMode = 'list' | 'create' | 'edit';
@@ -14,6 +15,9 @@ export function ProjectsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [editingProject, setEditingProject] = useState<Project | undefined>();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // 设置页面标题
+  usePageTitle('pageTitle.projects');
 
   const handleCreateNew = () => {
     setEditingProject(undefined);
