@@ -68,6 +68,10 @@ func main() {
 	taskConvRepo := repository.NewTaskConversationRepository(dbManager.GetDB())
 	execLogRepo := repository.NewTaskExecutionLogRepository(dbManager.GetDB())
 
+	// Initialize log broadcaster
+	logBroadcaster := services.NewLogBroadcaster()
+	logBroadcaster.Start()
+
 	// Initialize services
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, cfg)
 	loginLogService := services.NewLoginLogService(loginLogRepo)
@@ -77,7 +81,7 @@ func main() {
 	devEnvService := services.NewDevEnvironmentService(devEnvRepo)
 	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo)
-	aiTaskExecutor := services.NewAITaskExecutorService(taskConvRepo, execLogRepo, gitCredService, cfg)
+	aiTaskExecutor := services.NewAITaskExecutorService(taskConvRepo, execLogRepo, gitCredService, cfg, logBroadcaster)
 
 	// Initialize scheduler
 	taskProcessor := scheduler.NewTaskProcessor(aiTaskExecutor)
@@ -100,6 +104,7 @@ func main() {
 	taskHandlers := handlers.NewTaskHandlers(taskService)
 	taskConvHandlers := handlers.NewTaskConversationHandlers(taskConvService)
 	taskExecLogHandlers := handlers.NewTaskExecutionLogHandlers(aiTaskExecutor)
+	sseLogHandlers := handlers.NewSSELogHandlers(logBroadcaster)
 
 	// Set gin mode
 	if cfg.Environment == "production" {
@@ -110,7 +115,7 @@ func main() {
 	r := gin.Default()
 
 	// Setup routes - 传递所有处理器实例
-	routes.SetupRoutes(r, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskExecLogHandlers)
+	routes.SetupRoutes(r, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskExecLogHandlers, sseLogHandlers)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

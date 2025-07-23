@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { TaskConversation } from '@/components/TaskConversation';
+import { RealTimeLogViewer } from '@/components/RealTimeLogViewer';
 import { apiService } from '@/lib/api/index';
 import { logError } from '@/lib/errors';
 import type { Task } from '@/types/task';
@@ -144,6 +145,17 @@ const TaskConversationPage: React.FC = () => {
           onSendMessage={handleSendMessage}
           onRefresh={handleConversationRefresh}
         />
+
+        {/* 实时日志查看器 */}
+        <div className="mt-8">
+          <RealTimeLogViewer
+            conversationId={conversations.length > 0 ? conversations[conversations.length - 1]?.id : undefined}
+            autoConnect={true}
+            height="500px"
+            showControls={true}
+            title="任务执行日志"
+          />
+        </div>
       </div>
     </div>
   );

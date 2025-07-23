@@ -206,6 +206,11 @@ go run main.go
 - `GET /api/v1/task-conversations/:conversationId/execution-log` - 获取执行日志
 - `POST /api/v1/task-conversations/:conversationId/execution/cancel` - 取消任务执行
 
+### SSE 实时日志 🆕
+- `GET /api/v1/logs/stream` - SSE实时日志流
+- `GET /api/v1/logs/stats` - 获取连接统计信息
+- `POST /api/v1/logs/test/:conversationId` - 发送测试消息
+
 ### 管理功能
 - `GET /api/v1/admin/operation-logs` - 获取操作日志
 - `GET /api/v1/admin/login-logs` - 获取登录日志
@@ -221,9 +226,23 @@ go run main.go
 
 ### 定时器系统
 - **自动扫描**: 每 30 秒扫描待处理的任务对话
-- **异步执行**: 任务在后台协程中执行，不阻塞主服务
-- **实时日志**: 执行过程实时记录到数据库
+- **并发执行**: 支持多个任务同时执行，默认最大并发数为5
+- **智能调度**: 自动管理并发数量，避免资源过载
+- **实时日志**: 执行过程实时记录到数据库并通过SSE推送
 - **优雅关闭**: 支持优雅停止，确保任务完成
+
+### 并发执行管理 🆕
+- **执行管理器**: 统一管理所有并发任务的生命周期
+- **资源控制**: 通过配置限制最大并发数（`SLEEP0_MAX_CONCURRENT_TASKS`）
+- **状态跟踪**: 实时跟踪每个任务的执行状态和进度
+- **强制取消**: 支持强制取消正在运行的任务
+
+### 实时日志系统 🆕
+- **SSE推送**: 使用Server-Sent Events技术实时推送执行日志
+- **日志广播**: 支持多客户端同时接收实时日志
+- **自动重连**: 客户端断线后自动重连
+- **消息过滤**: 支持按对话ID过滤特定任务的日志
+- **连接管理**: 自动清理非活跃连接，优化资源使用
 
 ### 任务执行流程
 1. **扫描**: 定时器扫描 `pending` 状态的 TaskConversation
@@ -254,6 +273,7 @@ go run main.go
 | `SLEEP0_SCHEDULER_INTERVAL` | 定时器间隔 🆕 | 30s | duration |
 | `SLEEP0_WORKSPACE_BASE_DIR` | 工作目录基础路径 🆕 | /tmp/sleep0-workspaces | string |
 | `SLEEP0_DOCKER_TIMEOUT` | Docker 执行超时时间 🆕 | 30m | duration |
+| `SLEEP0_MAX_CONCURRENT_TASKS` | 最大并发任务数 🆕 | 5 | int |
 
 ## 🏗️ 架构设计
 

@@ -11,7 +11,7 @@ import (
 )
 
 // SetupRoutes sets up routes
-func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers) {
+func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, sseLogHandlers *handlers.SSELogHandlers) {
 	// Apply global middleware
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
@@ -111,6 +111,14 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *
 		// 任务执行日志管理
 		api.GET("/task-conversations/:conversationId/execution-log", taskExecLogHandlers.GetExecutionLog)
 		api.POST("/task-conversations/:conversationId/execution/cancel", taskExecLogHandlers.CancelExecution)
+
+		// SSE实时日志管理
+		logs := api.Group("/logs")
+		{
+			logs.GET("/stream", sseLogHandlers.StreamLogs)                     // SSE实时日志流
+			logs.GET("/stats", sseLogHandlers.GetLogStats)                     // 获取连接统计
+			logs.POST("/test/:conversationId", sseLogHandlers.SendTestMessage) // 发送测试消息
+		}
 
 		// 开发环境管理
 		devEnvs := api.Group("/dev-environments")

@@ -12,8 +12,89 @@ import (
 	"sleep0-backend/repository"
 	"sleep0-backend/utils"
 	"strings"
+	"sync"
 	"time"
 )
+
+// ExecutionManager 执行管理器
+type ExecutionManager struct {
+	runningConversations map[uint]context.CancelFunc // 正在运行的对话及其取消函数
+	maxConcurrency       int                         // 最大并发数
+	currentCount         int                         // 当前执行数量
+	mu                   sync.RWMutex                // 读写锁
+}
+
+// NewExecutionManager 创建执行管理器
+func NewExecutionManager(maxConcurrency int) *ExecutionManager {
+	if maxConcurrency <= 0 {
+		maxConcurrency = 5 // 默认最大并发数为5
+	}
+	return &ExecutionManager{
+		runningConversations: make(map[uint]context.CancelFunc),
+		maxConcurrency:       maxConcurrency,
+	}
+}
+
+// CanExecute 检查是否可以执行新任务
+func (em *ExecutionManager) CanExecute() bool {
+	em.mu.RLock()
+	defer em.mu.RUnlock()
+	return em.currentCount < em.maxConcurrency
+}
+
+// AddExecution 添加执行任务
+func (em *ExecutionManager) AddExecution(conversationID uint, cancelFunc context.CancelFunc) bool {
+	em.mu.Lock()
+	defer em.mu.Unlock()
+
+	if em.currentCount >= em.maxConcurrency {
+		return false
+	}
+
+	em.runningConversations[conversationID] = cancelFunc
+	em.currentCount++
+	return true
+}
+
+// RemoveExecution 移除执行任务
+func (em *ExecutionManager) RemoveExecution(conversationID uint) {
+	em.mu.Lock()
+	defer em.mu.Unlock()
+
+	if _, exists := em.runningConversations[conversationID]; exists {
+		delete(em.runningConversations, conversationID)
+		em.currentCount--
+	}
+}
+
+// CancelExecution 取消特定执行
+func (em *ExecutionManager) CancelExecution(conversationID uint) bool {
+	em.mu.Lock()
+	defer em.mu.Unlock()
+
+	if cancelFunc, exists := em.runningConversations[conversationID]; exists {
+		cancelFunc()
+		delete(em.runningConversations, conversationID)
+		em.currentCount--
+		return true
+	}
+	return false
+}
+
+// GetRunningCount 获取当前运行数量
+func (em *ExecutionManager) GetRunningCount() int {
+	em.mu.RLock()
+	defer em.mu.RUnlock()
+	return em.currentCount
+}
+
+// IsRunning 检查特定对话是否在运行
+func (em *ExecutionManager) IsRunning(conversationID uint) bool {
+	em.mu.RLock()
+	defer em.mu.RUnlock()
+	_, exists := em.runningConversations[conversationID]
+	return exists
+}
 
 type aiTaskExecutorService struct {
 	taskConvRepo     repository.TaskConversationRepository
@@ -21,6 +102,8 @@ type aiTaskExecutorService struct {
 	workspaceManager *utils.WorkspaceManager
 	gitCredService   GitCredentialService
 	config           *config.Config
+	executionManager *ExecutionManager
+	logBroadcaster   *LogBroadcaster
 }
 
 // NewAITaskExecutorService 创建AI任务执行服务
@@ -29,31 +112,71 @@ func NewAITaskExecutorService(
 	execLogRepo repository.TaskExecutionLogRepository,
 	gitCredService GitCredentialService,
 	cfg *config.Config,
+	logBroadcaster *LogBroadcaster,
 ) AITaskExecutorService {
+	// 从配置读取最大并发数，默认为5
+	maxConcurrency := 5
+	if cfg.MaxConcurrentTasks > 0 {
+		maxConcurrency = cfg.MaxConcurrentTasks
+	}
+
 	return &aiTaskExecutorService{
 		taskConvRepo:     taskConvRepo,
 		execLogRepo:      execLogRepo,
 		workspaceManager: utils.NewWorkspaceManager(cfg.WorkspaceBaseDir),
 		gitCredService:   gitCredService,
 		config:           cfg,
+		executionManager: NewExecutionManager(maxConcurrency),
+		logBroadcaster:   logBroadcaster,
 	}
 }
 
-// ProcessPendingConversations 处理待处理的对话
+// ProcessPendingConversations 处理待处理的对话 - 支持并发执行
 func (s *aiTaskExecutorService) ProcessPendingConversations() error {
 	conversations, err := s.taskConvRepo.GetPendingConversationsWithDetails()
 	if err != nil {
 		return fmt.Errorf("获取待处理对话失败: %v", err)
 	}
 
-	log.Printf("发现 %d 个待处理的对话", len(conversations))
+	log.Printf("发现 %d 个待处理的对话，当前运行数量: %d，最大并发数: %d",
+		len(conversations), s.executionManager.GetRunningCount(), s.executionManager.maxConcurrency)
+
+	// 并发处理对话
+	var wg sync.WaitGroup
+	processedCount := 0
+	skippedCount := 0
 
 	for _, conv := range conversations {
-		if err := s.processConversation(&conv); err != nil {
-			log.Printf("处理对话 %d 失败: %v", conv.ID, err)
+		// 检查是否可以执行新任务
+		if !s.executionManager.CanExecute() {
+			skippedCount++
+			log.Printf("达到最大并发数限制，跳过对话 %d", conv.ID)
+			continue
 		}
+
+		// 检查是否已经在运行
+		if s.executionManager.IsRunning(conv.ID) {
+			skippedCount++
+			log.Printf("对话 %d 已在运行中，跳过", conv.ID)
+			continue
+		}
+
+		wg.Add(1)
+		processedCount++
+
+		// 并发处理对话
+		go func(conversation database.TaskConversation) {
+			defer wg.Done()
+			if err := s.processConversation(&conversation); err != nil {
+				log.Printf("处理对话 %d 失败: %v", conversation.ID, err)
+			}
+		}(conv)
 	}
 
+	// 等待所有当前批次的对话开始处理（不等待完成）
+	wg.Wait()
+
+	log.Printf("本批次处理了 %d 个对话，跳过 %d 个对话", processedCount, skippedCount)
 	return nil
 }
 
@@ -62,22 +185,36 @@ func (s *aiTaskExecutorService) GetExecutionLog(conversationID uint) (*database.
 	return s.execLogRepo.GetByConversationID(conversationID)
 }
 
-// CancelExecution 取消执行
+// CancelExecution 取消执行 - 支持强制取消正在运行的任务
 func (s *aiTaskExecutorService) CancelExecution(conversationID uint) error {
-	log, err := s.execLogRepo.GetByConversationID(conversationID)
+	execLog, err := s.execLogRepo.GetByConversationID(conversationID)
 	if err != nil {
 		return fmt.Errorf("获取执行日志失败: %v", err)
 	}
 
-	if log.Status != database.TaskExecStatusPending && log.Status != database.TaskExecStatusRunning {
+	if execLog.Status != database.TaskExecStatusPending && execLog.Status != database.TaskExecStatusRunning {
 		return fmt.Errorf("只能取消待处理或执行中的任务")
 	}
 
+	// 如果任务正在运行，先取消执行
+	if s.executionManager.CancelExecution(conversationID) {
+		log.Printf("强制取消正在运行的对话 %d", conversationID)
+	}
+
 	// 更新执行状态为已取消
-	return s.execLogRepo.UpdateStatus(log.ID, database.TaskExecStatusCancelled)
+	return s.execLogRepo.UpdateStatus(execLog.ID, database.TaskExecStatusCancelled)
 }
 
-// processConversation 处理单个对话
+// GetExecutionStatus 获取执行状态信息
+func (s *aiTaskExecutorService) GetExecutionStatus() map[string]interface{} {
+	return map[string]interface{}{
+		"running_count":   s.executionManager.GetRunningCount(),
+		"max_concurrency": s.executionManager.maxConcurrency,
+		"can_execute":     s.executionManager.CanExecute(),
+	}
+}
+
+// processConversation 处理单个对话 - 添加上下文控制
 func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversation) error {
 	// 验证关联数据
 	if conv.Task == nil || conv.Task.Project == nil || conv.Task.DevEnvironment == nil {
@@ -100,20 +237,37 @@ func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversat
 		return fmt.Errorf("创建执行日志失败: %v", err)
 	}
 
+	// 创建上下文和取消函数
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// 注册到执行管理器
+	if !s.executionManager.AddExecution(conv.ID, cancel) {
+		// 如果无法添加到执行管理器，回滚状态
+		conv.Status = database.ConversationStatusPending
+		s.taskConvRepo.Update(conv)
+		execLog.Status = database.TaskExecStatusCancelled
+		execLog.ErrorMessage = "超过最大并发数限制"
+		s.execLogRepo.Update(execLog)
+		return fmt.Errorf("超过最大并发数限制")
+	}
+
 	// 在协程中执行任务
-	go s.executeTask(conv, execLog)
+	go s.executeTask(ctx, conv, execLog)
 
 	return nil
 }
 
-// executeTask 在协程中执行任务
-func (s *aiTaskExecutorService) executeTask(conv *database.TaskConversation, execLog *database.TaskExecutionLog) {
+// executeTask 在协程中执行任务 - 添加上下文控制
+func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.TaskConversation, execLog *database.TaskExecutionLog) {
 	var finalStatus database.ConversationStatus
 	var execStatus database.TaskExecutionStatus
 	var errorMsg string
 	var commitHash string
 
+	// 确保从执行管理器中移除
 	defer func() {
+		s.executionManager.RemoveExecution(conv.ID)
+
 		// 更新对话状态
 		conv.Status = finalStatus
 		if err := s.taskConvRepo.Update(conv); err != nil {
@@ -127,7 +281,27 @@ func (s *aiTaskExecutorService) executeTask(conv *database.TaskConversation, exe
 		if err := s.execLogRepo.Update(execLog); err != nil {
 			log.Printf("更新执行日志最终状态失败: %v", err)
 		}
+
+		// 广播状态变化
+		statusMessage := fmt.Sprintf("执行完成: %s", string(execStatus))
+		if errorMsg != "" {
+			statusMessage += fmt.Sprintf(" - %s", errorMsg)
+		}
+		s.logBroadcaster.BroadcastStatusChange(conv.ID, string(execStatus), statusMessage)
+
+		log.Printf("对话 %d 执行完成，状态: %s", conv.ID, string(execStatus))
 	}()
+
+	// 检查是否被取消
+	select {
+	case <-ctx.Done():
+		finalStatus = database.ConversationStatusCancelled
+		execStatus = database.TaskExecStatusCancelled
+		errorMsg = "任务被取消"
+		s.appendLog(execLog.ID, "❌ 任务被用户取消\n")
+		return
+	default:
+	}
 
 	// 1. 创建临时工作目录
 	workspacePath, err := s.workspaceManager.CreateTempWorkspace(conv.ID)
@@ -142,6 +316,17 @@ func (s *aiTaskExecutorService) executeTask(conv *database.TaskConversation, exe
 	execLog.WorkspacePath = workspacePath
 	execLog.Status = database.TaskExecStatusRunning
 	s.execLogRepo.Update(execLog)
+
+	// 检查是否被取消
+	select {
+	case <-ctx.Done():
+		finalStatus = database.ConversationStatusCancelled
+		execStatus = database.TaskExecStatusCancelled
+		errorMsg = "任务被取消"
+		s.appendLog(execLog.ID, "❌ 任务在准备阶段被取消\n")
+		return
+	default:
+	}
 
 	// 2. 克隆代码
 	credential, err := s.prepareGitCredential(conv.Task.Project)
@@ -173,10 +358,20 @@ func (s *aiTaskExecutorService) executeTask(conv *database.TaskConversation, exe
 
 	s.appendLog(execLog.ID, fmt.Sprintf("🚀 开始执行命令: %s\n", dockerCmd))
 
-	if err := s.executeDockerCommand(dockerCmd, execLog.ID); err != nil {
-		finalStatus = database.ConversationStatusFailed
-		execStatus = database.TaskExecStatusFailed
-		errorMsg = fmt.Sprintf("执行Docker命令失败: %v", err)
+	// 使用上下文控制的Docker执行
+	if err := s.executeDockerCommandWithContext(ctx, dockerCmd, execLog.ID); err != nil {
+		// 检查是否是由于取消导致的错误
+		select {
+		case <-ctx.Done():
+			finalStatus = database.ConversationStatusCancelled
+			execStatus = database.TaskExecStatusCancelled
+			errorMsg = "任务被取消"
+			s.appendLog(execLog.ID, "❌ 任务在执行过程中被取消\n")
+		default:
+			finalStatus = database.ConversationStatusFailed
+			execStatus = database.TaskExecStatusFailed
+			errorMsg = fmt.Sprintf("执行Docker命令失败: %v", err)
+		}
 		return
 	}
 
@@ -282,8 +477,13 @@ func (s *aiTaskExecutorService) buildDockerCommand(conv *database.TaskConversati
 	return strings.Join(cmd, " ")
 }
 
-// executeDockerCommand 执行Docker命令
+// executeDockerCommand 执行Docker命令（向后兼容）
 func (s *aiTaskExecutorService) executeDockerCommand(dockerCmd string, execLogID uint) error {
+	return s.executeDockerCommandWithContext(context.Background(), dockerCmd, execLogID)
+}
+
+// executeDockerCommandWithContext 执行Docker命令，添加上下文控制
+func (s *aiTaskExecutorService) executeDockerCommandWithContext(ctx context.Context, dockerCmd string, execLogID uint) error {
 	// 首先检查 Docker 是否可用
 	if err := s.checkDockerAvailability(); err != nil {
 		s.appendLog(execLogID, fmt.Sprintf("❌ Docker 不可用: %v\n", err))
@@ -299,7 +499,7 @@ func (s *aiTaskExecutorService) executeDockerCommand(dockerCmd string, execLogID
 		timeout = 30 * time.Minute
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(ctx, timeout) // 使用传入的上下文
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, "sh", "-c", dockerCmd)
@@ -351,9 +551,16 @@ func (s *aiTaskExecutorService) readPipe(pipe interface{}, execLogID uint, prefi
 	}
 }
 
-// appendLog 追加日志
+// appendLog 追加日志并广播
 func (s *aiTaskExecutorService) appendLog(execLogID uint, content string) {
+	// 追加到数据库
 	if err := s.execLogRepo.AppendLog(execLogID, content); err != nil {
 		log.Printf("追加日志失败: %v", err)
+		return
+	}
+
+	// 获取对话ID进行广播
+	if execLog, err := s.execLogRepo.GetByID(execLogID); err == nil {
+		s.logBroadcaster.BroadcastLog(execLog.ConversationID, content, "log")
 	}
 }
