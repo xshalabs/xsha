@@ -110,4 +110,20 @@ type TaskConversationRepository interface {
 	// 业务操作
 	ListByTask(taskID uint, createdBy string) ([]database.TaskConversation, error)
 	GetLatestByTask(taskID uint, createdBy string) (*database.TaskConversation, error)
+
+	// 新增方法：根据状态查询对话
+	ListByStatus(status database.ConversationStatus) ([]database.TaskConversation, error)
+	// 获取待处理的对话（带完整关联信息）
+	GetPendingConversationsWithDetails() ([]database.TaskConversation, error)
+}
+
+// TaskExecutionLogRepository 定义任务执行日志仓库接口
+type TaskExecutionLogRepository interface {
+	Create(log *database.TaskExecutionLog) error
+	GetByID(id uint) (*database.TaskExecutionLog, error)
+	GetByConversationID(conversationID uint) (*database.TaskExecutionLog, error)
+	Update(log *database.TaskExecutionLog) error
+	UpdateStatus(id uint, status database.TaskExecutionStatus) error
+	AppendLog(id uint, logContent string) error
+	ListByStatus(status database.TaskExecutionStatus, limit int) ([]database.TaskExecutionLog, error)
 }

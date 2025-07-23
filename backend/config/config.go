@@ -16,6 +16,11 @@ type Config struct {
 	AdminPass    string // 解密后的明文密码
 	JWTSecret    string
 	AESKey       string // 新增：AES密钥
+
+	// 定时器配置
+	SchedulerInterval      string // 定时器间隔
+	WorkspaceBaseDir       string // 工作目录基础路径
+	DockerExecutionTimeout string // Docker执行超时时间
 }
 
 func Load() *Config {
@@ -31,6 +36,11 @@ func Load() *Config {
 		AdminUser:    getEnv("SLEEP0_ADMIN_USER", "admin"),
 		JWTSecret:    getEnv("SLEEP0_JWT_SECRET", "your-jwt-secret-key-change-this-in-production"),
 		AESKey:       aesKey,
+
+		// 定时器配置
+		SchedulerInterval:      getEnv("SLEEP0_SCHEDULER_INTERVAL", "30s"),
+		WorkspaceBaseDir:       getEnv("SLEEP0_WORKSPACE_BASE_DIR", "/tmp/sleep0-workspaces"),
+		DockerExecutionTimeout: getEnv("SLEEP0_DOCKER_TIMEOUT", "30m"),
 	}
 
 	// 处理管理员密码：尝试解密，失败则当作明文（向后兼容）

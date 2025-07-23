@@ -80,3 +80,24 @@ func (r *taskConversationRepository) GetLatestByTask(taskID uint, createdBy stri
 	}
 	return &conversation, nil
 }
+
+// ListByStatus 根据状态获取对话列表
+func (r *taskConversationRepository) ListByStatus(status database.ConversationStatus) ([]database.TaskConversation, error) {
+	var conversations []database.TaskConversation
+	err := r.db.Where("status = ?", status).
+		Order("created_at ASC").Find(&conversations).Error
+	return conversations, err
+}
+
+// GetPendingConversationsWithDetails 获取待处理的对话（带完整关联信息）
+func (r *taskConversationRepository) GetPendingConversationsWithDetails() ([]database.TaskConversation, error) {
+	var conversations []database.TaskConversation
+	err := r.db.Preload("Task").
+		Preload("Task.Project").
+		Preload("Task.Project.Credential").
+		Preload("Task.DevEnvironment").
+		Where("status = ?", database.ConversationStatusPending).
+		Order("created_at ASC").
+		Find(&conversations).Error
+	return conversations, err
+}

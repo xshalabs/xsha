@@ -22,13 +22,18 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
 	"sleep0-backend/config"
 	"sleep0-backend/database"
 	"sleep0-backend/handlers"
 	"sleep0-backend/i18n"
 	"sleep0-backend/repository"
 	"sleep0-backend/routes"
+	"sleep0-backend/scheduler"
 	"sleep0-backend/services"
+	"syscall"
+	"time"
 
 	_ "sleep0-backend/docs" // 自动生成的swagger docs
 
@@ -61,6 +66,7 @@ func main() {
 	devEnvRepo := repository.NewDevEnvironmentRepository(dbManager.GetDB())
 	taskRepo := repository.NewTaskRepository(dbManager.GetDB())
 	taskConvRepo := repository.NewTaskConversationRepository(dbManager.GetDB())
+	execLogRepo := repository.NewTaskExecutionLogRepository(dbManager.GetDB())
 
 	// Initialize services
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, cfg)
@@ -71,6 +77,19 @@ func main() {
 	devEnvService := services.NewDevEnvironmentService(devEnvRepo)
 	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo)
+	aiTaskExecutor := services.NewAITaskExecutorService(taskConvRepo, execLogRepo, gitCredService, cfg)
+
+	// Initialize scheduler
+	taskProcessor := scheduler.NewTaskProcessor(aiTaskExecutor)
+
+	// 解析定时器间隔
+	schedulerInterval, err := time.ParseDuration(cfg.SchedulerInterval)
+	if err != nil {
+		log.Printf("解析定时器间隔失败，使用默认值30秒: %v", err)
+		schedulerInterval = 30 * time.Second
+	}
+
+	schedulerManager := scheduler.NewSchedulerManager(taskProcessor, schedulerInterval)
 
 	// Initialize handlers
 	authHandlers := handlers.NewAuthHandlers(authService, loginLogService)
@@ -80,6 +99,7 @@ func main() {
 	devEnvHandlers := handlers.NewDevEnvironmentHandlers(devEnvService)
 	taskHandlers := handlers.NewTaskHandlers(taskService)
 	taskConvHandlers := handlers.NewTaskConversationHandlers(taskConvService)
+	taskExecLogHandlers := handlers.NewTaskExecutionLogHandlers(aiTaskExecutor)
 
 	// Set gin mode
 	if cfg.Environment == "production" {
@@ -90,7 +110,28 @@ func main() {
 	r := gin.Default()
 
 	// Setup routes - 传递所有处理器实例
-	routes.SetupRoutes(r, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers)
+	routes.SetupRoutes(r, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskExecLogHandlers)
+
+	// Start scheduler
+	if err := schedulerManager.Start(); err != nil {
+		log.Fatalf("启动定时器失败: %v", err)
+	}
+
+	// 设置优雅关闭
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigChan
+		log.Println("收到关闭信号，正在停止服务...")
+
+		// 停止定时器
+		if err := schedulerManager.Stop(); err != nil {
+			log.Printf("停止定时器失败: %v", err)
+		}
+
+		os.Exit(0)
+	}()
 
 	// Start server
 	log.Print(i18nInstance.GetMessage("zh-CN", "server.starting"))

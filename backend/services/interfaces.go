@@ -154,3 +154,15 @@ type TaskConversationService interface {
 	// 验证操作
 	ValidateConversationData(taskID uint, content string, createdBy string) error
 }
+
+// AITaskExecutorService 定义AI任务执行服务接口
+type AITaskExecutorService interface {
+	// 处理待处理的对话
+	ProcessPendingConversations() error
+
+	// 获取执行日志
+	GetExecutionLog(conversationID uint) (*database.TaskExecutionLog, error)
+
+	// 取消执行
+	CancelExecution(conversationID uint) error
+}

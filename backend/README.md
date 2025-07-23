@@ -1,39 +1,143 @@
 # Sleep0 Backend
 
-基于 Golang + Gin 框架的后端项目，支持 SQLite 和 MySQL 数据库，使用 JWT 进行用户认证。
+基于 Golang + Gin 框架的后端项目，采用清洁架构设计，支持 SQLite 和 MySQL 数据库，使用 JWT 进行用户认证。项目实现了完整的项目管理、Git 凭据管理、开发环境管理、任务管理，以及基于定时器的 AI 自动化编程任务执行系统。
 
-## 项目结构
+## 🚀 主要功能特性
+
+- **用户认证**: JWT token 认证，支持登录日志记录和 token 黑名单
+- **项目管理**: Git 仓库项目管理，支持多种协议和认证方式
+- **凭据管理**: 支持密码、Token、SSH Key 等多种 Git 认证方式，敏感信息 AES 加密存储
+- **开发环境**: Docker 容器化开发环境管理，支持资源限制和环境变量配置
+- **任务系统**: 项目任务管理和对话式交互
+- **AI 自动化**: 定时器驱动的 AI 任务执行系统，支持代码自动生成和提交
+- **国际化**: 多语言支持（中文/英文）
+- **操作日志**: 完整的管理员操作审计日志
+- **API 文档**: 完整的 Swagger API 文档
+
+## 📁 项目架构
 
 ```
 backend/
-├── main.go              # 主程序入口
-├── config/              # 配置管理
-│   └── config.go
-├── database/            # 数据库连接
-│   └── database.go
-├── handlers/            # 请求处理器
-│   ├── auth.go          # 认证相关处理器
-│   └── health.go        # 健康检查处理器
-├── middleware/          # 中间件
-│   └── auth.go          # JWT 认证中间件
-├── routes/              # 路由配置
-│   └── routes.go
-├── utils/               # 工具函数
-│   └── jwt.go           # JWT 工具函数
-├── go.mod               # Go 模块文件
-├── go.sum               # 依赖版本锁定
-└── README.md            # 项目说明
+├── main.go                    # 主程序入口
+├── config/                    # 配置管理
+│   └── config.go             # 应用配置和环境变量
+├── database/                  # 数据库层
+│   ├── database.go           # 数据库连接管理
+│   └── models.go             # 数据模型定义
+├── repository/                # 数据访问层（Repository Pattern）
+│   ├── interfaces.go         # 仓储接口定义
+│   ├── admin_operation_log.go # 管理员操作日志仓储
+│   ├── dev_environment.go    # 开发环境仓储
+│   ├── git_credential.go     # Git凭据仓储
+│   ├── login_log.go          # 登录日志仓储
+│   ├── project.go            # 项目仓储
+│   ├── task.go               # 任务仓储
+│   ├── task_conversation.go  # 任务对话仓储
+│   ├── task_execution_log.go # 任务执行日志仓储
+│   └── token_blacklist.go    # Token黑名单仓储
+├── services/                  # 业务逻辑层（Service Layer）
+│   ├── interfaces.go         # 服务接口定义
+│   ├── admin_operation_log.go # 操作日志服务
+│   ├── ai_task_executor.go   # AI任务执行服务
+│   ├── auth.go               # 认证服务
+│   ├── dev_environment.go    # 开发环境服务
+│   ├── git_credential.go     # Git凭据服务
+│   ├── login_log.go          # 登录日志服务
+│   ├── project.go            # 项目服务
+│   ├── task.go               # 任务服务
+│   └── task_conversation.go  # 任务对话服务
+├── handlers/                  # HTTP 请求处理层
+│   ├── admin_operation_log.go # 操作日志处理器
+│   ├── auth.go               # 认证处理器
+│   ├── dev_environment.go    # 开发环境处理器
+│   ├── git_credential.go     # Git凭据处理器
+│   ├── health.go             # 健康检查处理器
+│   ├── i18n.go               # 国际化处理器
+│   ├── project.go            # 项目处理器
+│   ├── task.go               # 任务处理器
+│   ├── task_conversation.go  # 任务对话处理器
+│   └── task_execution_log.go # 任务执行日志处理器
+├── middleware/                # 中间件
+│   ├── auth.go               # JWT 认证中间件
+│   ├── error.go              # 错误处理中间件
+│   ├── i18n.go               # 国际化中间件
+│   ├── logger.go             # 日志中间件
+│   ├── operation_log.go      # 操作日志中间件
+│   └── ratelimit.go          # 速率限制中间件
+├── routes/                    # 路由配置
+│   └── routes.go             # 路由注册和分组
+├── scheduler/                 # 定时器模块 🆕
+│   ├── interfaces.go         # 定时器接口定义
+│   ├── manager.go            # 定时器管理器
+│   └── task_processor.go     # 任务处理器
+├── utils/                     # 工具函数
+│   ├── crypto.go             # AES 加密工具
+│   ├── git.go                # Git 操作工具
+│   ├── jwt.go                # JWT 工具
+│   └── workspace.go          # 工作目录管理工具 🆕
+├── i18n/                      # 国际化模块
+│   ├── helper.go             # 国际化助手
+│   ├── i18n.go               # 国际化核心
+│   └── locales/              # 语言文件
+│       ├── en-US.json        # 英文语言包
+│       └── zh-CN.json        # 中文语言包
+├── cmd/                       # 命令行工具
+│   ├── cleanup/              # 清理工具
+│   └── encrypt-password/     # 密码加密工具
+├── docs/                      # API 文档（自动生成）
+├── go.mod                     # Go 模块文件
+├── go.sum                     # 依赖版本锁定
+└── README.md                  # 项目说明
 ```
 
-## 快速开始
+## 🗃️ 数据库模型
+
+### 核心实体
+- **TokenBlacklist**: JWT token 黑名单
+- **LoginLog**: 用户登录日志
+- **AdminOperationLog**: 管理员操作审计日志
+- **GitCredential**: Git 认证凭据（加密存储）
+- **Project**: Git 项目配置
+- **DevEnvironment**: 开发环境配置
+- **Task**: 项目任务
+- **TaskConversation**: 任务对话记录
+- **TaskExecutionLog**: 任务执行日志 🆕
+
+### 关键关系
+```
+Project 1:N Task
+Task 1:N TaskConversation
+TaskConversation 1:1 TaskExecutionLog
+Project N:1 GitCredential
+Task N:1 DevEnvironment
+```
+
+## 🚀 快速开始
 
 ### 1. 环境配置
 
 设置环境变量（可选，如不设置将使用默认值）：
+
 ```bash
-export SLEEP0_JWT_SECRET="your-strong-jwt-secret-key-here"
+# 基础配置
+export SLEEP0_PORT="8080"
+export SLEEP0_ENVIRONMENT="development"
+
+# 数据库配置
+export SLEEP0_DATABASE_TYPE="sqlite"  # sqlite 或 mysql
+export SLEEP0_SQLITE_PATH="app.db"
+export SLEEP0_MYSQL_DSN="user:password@tcp(localhost:3306)/sleep0?charset=utf8mb4&parseTime=True&loc=Local"
+
+# 认证配置
 export SLEEP0_ADMIN_USER="admin"
-export SLEEP0_ADMIN_PASS="your-secure-password"
+export SLEEP0_ADMIN_PASS="admin123"
+export SLEEP0_JWT_SECRET="your-strong-jwt-secret-key-here"
+export SLEEP0_AES_KEY="your-32-byte-aes-encryption-key-here"
+
+# 定时器配置 🆕
+export SLEEP0_SCHEDULER_INTERVAL="30s"              # 定时器扫描间隔
+export SLEEP0_WORKSPACE_BASE_DIR="/tmp/sleep0-workspaces"  # AI任务工作目录
+export SLEEP0_DOCKER_TIMEOUT="30m"                  # Docker执行超时时间
 ```
 
 ### 2. 安装依赖
@@ -48,123 +152,222 @@ go mod tidy
 go run main.go
 ```
 
-服务器将在 `http://localhost:8080` 启动。
+服务器将在 `http://localhost:8080` 启动，并自动启动定时器服务。
 
-## API 接口
+### 4. API 文档
 
-### 健康检查
-- **GET** `/health` - 服务健康检查
+启动后访问 Swagger API 文档：
+- **Swagger UI**: http://localhost:8080/swagger/index.html
+
+## 📚 API 接口
 
 ### 认证管理
-- **POST** `/api/v1/auth/login` - 用户登录
-- **POST** `/api/v1/auth/logout` - 用户登出
+- `POST /api/v1/auth/login` - 用户登录
+- `GET /api/v1/user/current` - 获取当前用户信息
 
-### 用户信息（需要认证）
-- **GET** `/api/v1/user/current` - 获取当前用户信息
+### Git 凭据管理
+- `POST /api/v1/git-credentials` - 创建 Git 凭据
+- `GET /api/v1/git-credentials` - 获取凭据列表
+- `GET /api/v1/git-credentials/:id` - 获取单个凭据
+- `PUT /api/v1/git-credentials/:id` - 更新凭据
+- `DELETE /api/v1/git-credentials/:id` - 删除凭据
 
-### 请求示例
+### 项目管理
+- `POST /api/v1/projects` - 创建项目
+- `GET /api/v1/projects` - 获取项目列表
+- `GET /api/v1/projects/:id` - 获取单个项目
+- `PUT /api/v1/projects/:id` - 更新项目
+- `DELETE /api/v1/projects/:id` - 删除项目
+- `GET /api/v1/projects/:id/branches` - 获取项目分支列表
 
-#### 用户登录
-```bash
-curl -X POST http://localhost:8080/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "admin",
-    "password": "admin123"
-  }'
+### 开发环境管理
+- `POST /api/v1/dev-environments` - 创建开发环境
+- `GET /api/v1/dev-environments` - 获取环境列表
+- `GET /api/v1/dev-environments/:id` - 获取单个环境
+- `PUT /api/v1/dev-environments/:id` - 更新环境
+- `DELETE /api/v1/dev-environments/:id` - 删除环境
+- `POST /api/v1/dev-environments/:id/control` - 控制环境（启动/停止/重启）
+
+### 任务管理
+- `POST /api/v1/tasks` - 创建任务
+- `GET /api/v1/tasks` - 获取任务列表
+- `GET /api/v1/tasks/:id` - 获取单个任务
+- `PUT /api/v1/tasks/:id` - 更新任务
+- `DELETE /api/v1/tasks/:id` - 删除任务
+
+### 任务对话管理
+- `POST /api/v1/conversations` - 创建对话
+- `GET /api/v1/conversations` - 获取对话列表
+- `GET /api/v1/conversations/:id` - 获取单个对话
+- `PUT /api/v1/conversations/:id` - 更新对话
+- `DELETE /api/v1/conversations/:id` - 删除对话
+
+### AI 任务执行 🆕
+- `GET /api/v1/task-conversations/:conversationId/execution-log` - 获取执行日志
+- `POST /api/v1/task-conversations/:conversationId/execution/cancel` - 取消任务执行
+
+### 管理功能
+- `GET /api/v1/admin/operation-logs` - 获取操作日志
+- `GET /api/v1/admin/login-logs` - 获取登录日志
+
+### 国际化
+- `GET /api/v1/languages` - 获取支持的语言列表
+- `POST /api/v1/language` - 设置语言
+
+### 健康检查
+- `GET /health` - 服务健康检查
+
+## 🤖 AI 自动化功能
+
+### 定时器系统
+- **自动扫描**: 每 30 秒扫描待处理的任务对话
+- **异步执行**: 任务在后台协程中执行，不阻塞主服务
+- **实时日志**: 执行过程实时记录到数据库
+- **优雅关闭**: 支持优雅停止，确保任务完成
+
+### 任务执行流程
+1. **扫描**: 定时器扫描 `pending` 状态的 TaskConversation
+2. **准备**: 创建临时工作目录，克隆代码仓库
+3. **执行**: 根据开发环境配置构建并执行 Docker 命令
+4. **记录**: 实时记录执行日志和状态变化
+5. **提交**: 成功执行后自动提交代码更改
+6. **清理**: 清理临时工作目录和资源
+
+### 支持的开发环境
+- **Claude Code**: Claude AI 编程环境
+- **Gemini CLI**: Google Gemini 命令行工具
+- **OpenCode**: 开源代码生成工具
+
+## 🔧 环境变量完整列表
+
+| 变量名 | 描述 | 默认值 | 类型 |
+|--------|------|--------|------|
+| `SLEEP0_PORT` | 服务器端口 | 8080 | string |
+| `SLEEP0_ENVIRONMENT` | 运行环境 | development | string |
+| `SLEEP0_DATABASE_TYPE` | 数据库类型 | sqlite | string |
+| `SLEEP0_SQLITE_PATH` | SQLite 数据库文件路径 | app.db | string |
+| `SLEEP0_MYSQL_DSN` | MySQL 数据库连接字符串 | - | string |
+| `SLEEP0_ADMIN_USER` | 管理员用户名 | admin | string |
+| `SLEEP0_ADMIN_PASS` | 管理员密码 | admin123 | string |
+| `SLEEP0_JWT_SECRET` | JWT 密钥 | your-jwt-secret-key-change-this-in-production | string |
+| `SLEEP0_AES_KEY` | AES 加密密钥 | default-aes-key-change-in-production | string |
+| `SLEEP0_SCHEDULER_INTERVAL` | 定时器间隔 🆕 | 30s | duration |
+| `SLEEP0_WORKSPACE_BASE_DIR` | 工作目录基础路径 🆕 | /tmp/sleep0-workspaces | string |
+| `SLEEP0_DOCKER_TIMEOUT` | Docker 执行超时时间 🆕 | 30m | duration |
+
+## 🏗️ 架构设计
+
+### 清洁架构分层
+```
+┌─────────────────────────────────────────┐
+│             Handlers Layer              │  HTTP 请求处理
+├─────────────────────────────────────────┤
+│             Services Layer              │  业务逻辑处理
+├─────────────────────────────────────────┤
+│            Repository Layer             │  数据访问抽象
+├─────────────────────────────────────────┤
+│             Database Layer              │  数据持久化
+└─────────────────────────────────────────┘
+
+           ┌─────────────────┐
+           │  Scheduler      │  定时器模块
+           │  - Manager      │
+           │  - Processor    │
+           └─────────────────┘
 ```
 
-登录成功后会返回JWT token：
-```json
-{
-  "message": "登录成功",
-  "user": "admin",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
+### 设计原则
+- **依赖注入**: 通过接口解耦各层依赖
+- **单一职责**: 每个模块职责明确
+- **开闭原则**: 对扩展开放，对修改关闭
+- **接口隔离**: 最小化接口依赖
+- **配置外部化**: 所有配置通过环境变量管理
 
-#### 获取当前用户信息
-```bash
-curl http://localhost:8080/api/v1/user/current \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
+## 🔒 安全特性
 
-#### 用户登出
-```bash
-curl -X POST http://localhost:8080/api/v1/auth/logout \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
+- **JWT 认证**: 无状态 token 认证
+- **Token 黑名单**: 支持 token 撤销
+- **AES 加密**: 敏感信息加密存储
+- **速率限制**: 登录接口防暴力破解
+- **操作审计**: 完整的操作日志记录
+- **输入验证**: 所有输入参数验证
+- **错误隐藏**: 生产环境隐藏敏感错误信息
 
-## 数据库支持
+## 📦 主要依赖
 
-项目同时支持 SQLite 和 MySQL 数据库：
-
-- **SQLite**: 适用于开发环境，数据存储在本地文件
-- **MySQL**: 适用于生产环境，需要配置数据库连接
-
-默认使用 SQLite 数据库，如需切换到 MySQL，请：
-1. 修改 `.env` 文件中的 MySQL 连接配置
-2. 在代码中将 `database.GetSQLiteDB()` 改为 `database.GetMySQLDB()`
-
-## 环境变量
-
-| 变量名 | 描述 | 默认值 |
-|--------|------|--------|
-| SLEEP0_PORT | 服务器端口 | 8080 |
-| SLEEP0_ENVIRONMENT | 运行环境 (development/production) | development |
-| SLEEP0_DATABASE_TYPE | 数据库类型 (sqlite/mysql) | sqlite |
-| SLEEP0_SQLITE_PATH | SQLite 数据库文件路径 | database/app.db |
-| SLEEP0_MYSQL_DSN | MySQL 数据库连接字符串 | - |
-| SLEEP0_ADMIN_USER | 管理员用户名 | admin |
-| SLEEP0_ADMIN_PASS | 管理员密码 | admin123 |
-| SLEEP0_JWT_SECRET | JWT 密钥 | your-jwt-secret-key-change-this-in-production |
-
-## 主要依赖
-
+### 核心框架
 - [Gin](https://github.com/gin-gonic/gin) - HTTP Web 框架
 - [GORM](https://gorm.io/) - ORM 库
 - [golang-jwt/jwt](https://github.com/golang-jwt/jwt) - JWT 认证
 
-## 开发说明
+### 数据库驱动
+- [go-sqlite3](https://github.com/mattn/go-sqlite3) - SQLite 驱动
+- [mysql](https://github.com/go-sql-driver/mysql) - MySQL 驱动
 
-### 项目架构遵循 Golang + Gin 最佳实践：
+### 工具库
+- [gin-swagger](https://github.com/swaggo/gin-swagger) - API 文档生成
+- [validator](https://github.com/go-playground/validator) - 数据验证
+- [testify](https://github.com/stretchr/testify) - 测试框架
 
-1. **handlers/**: 处理 HTTP 请求的处理器函数
-   - `auth.go` - 认证相关的处理器（登录、登出、获取用户信息）
-   - `health.go` - 健康检查处理器
+## 🚀 部署指南
 
-2. **middleware/**: 中间件函数
-   - `auth.go` - JWT 认证中间件，用于验证和保护需要认证的路由
+### Docker 部署
+```bash
+# 构建镜像
+docker build -t sleep0-backend .
 
-6. **utils/**: 工具函数
-   - `jwt.go` - JWT token 生成、验证和解析工具
+# 运行容器
+docker run -d \
+  --name sleep0-backend \
+  -p 8080:8080 \
+  -e SLEEP0_ENVIRONMENT=production \
+  -e SLEEP0_JWT_SECRET=your-production-secret \
+  -e SLEEP0_AES_KEY=your-production-aes-key \
+  -v /data/sleep0:/data \
+  sleep0-backend
+```
 
-3. **routes/**: 路由配置
-   - `routes.go` - 路由注册和分组
+### 生产环境建议
+1. **使用 MySQL**: 生产环境建议使用 MySQL 数据库
+2. **强密钥**: 使用强随机密钥作为 JWT 和 AES 密钥
+3. **HTTPS**: 配置 HTTPS 传输加密
+4. **反向代理**: 使用 Nginx 作为反向代理
+5. **监控**: 配置应用监控和日志收集
+6. **备份**: 定期备份数据库
 
-4. **config/**: 配置管理
-   - `config.go` - 应用配置加载和管理
+## 🧪 测试
 
-5. **database/**: 数据库连接
-   - `database.go` - 数据库初始化和连接管理
+```bash
+# 运行所有测试
+go test ./...
 
-### 添加新功能
+# 运行特定包测试
+go test ./services/...
 
-1. **添加新的处理器**：
-   - 在 `handlers/` 目录下创建新文件
-   - 实现处理器函数
-   - 在 `routes/routes.go` 中注册路由
+# 生成测试覆盖率报告
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out
+```
 
-2. **添加新的中间件**：
-   - 在 `middleware/` 目录下创建新文件
-   - 实现中间件函数
-   - 在路由中使用中间件
+## 🤝 贡献指南
 
-## 下一步计划
+1. Fork 项目
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
 
-- [ ] 添加数据模型 (models/)
-- [ ] 添加业务逻辑层 (services/)
-- [ ] 添加 API 文档 (Swagger)
-- [ ] 添加单元测试
-- [ ] 添加 Docker 支持
-- [ ] 添加日志中间件 
+## 📄 许可证
+
+该项目采用 MIT 许可证。详情请查看 [LICENSE](LICENSE) 文件。
+
+## 🔗 相关链接
+
+- [API 文档](http://localhost:8080/swagger/index.html)
+- [Gin 框架文档](https://gin-gonic.com/)
+- [GORM 文档](https://gorm.io/docs/)
+- [Docker 部署指南](./docs/DOCKER.md)
+
+---
+
+**Sleep0 Backend** - 构建智能化的开发工作流 🚀 
