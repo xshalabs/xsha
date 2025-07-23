@@ -201,6 +201,17 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint) error {
 		log.Printf("强制取消正在运行的对话 %d", conversationID)
 	}
 
+	// 获取对话信息并更新状态为已取消
+	conv, err := s.taskConvRepo.GetByID(conversationID, execLog.CreatedBy)
+	if err != nil {
+		log.Printf("获取对话信息失败，仅更新执行日志状态: %v", err)
+	} else {
+		conv.Status = database.ConversationStatusCancelled
+		if updateErr := s.taskConvRepo.Update(conv); updateErr != nil {
+			log.Printf("更新对话状态为已取消时出错: %v", updateErr)
+		}
+	}
+
 	// 更新执行状态为已取消
 	return s.execLogRepo.UpdateStatus(execLog.ID, database.TaskExecStatusCancelled)
 }
@@ -218,12 +229,14 @@ func (s *aiTaskExecutorService) GetExecutionStatus() map[string]interface{} {
 func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversation) error {
 	// 验证关联数据
 	if conv.Task == nil || conv.Task.Project == nil || conv.Task.DevEnvironment == nil {
+		s.setConversationFailed(conv, "对话关联数据不完整")
 		return fmt.Errorf("对话关联数据不完整")
 	}
 
 	// 更新对话状态为 running
 	conv.Status = database.ConversationStatusRunning
 	if err := s.taskConvRepo.Update(conv); err != nil {
+		s.rollbackConversationState(conv, fmt.Sprintf("更新对话状态失败: %v", err))
 		return fmt.Errorf("更新对话状态失败: %v", err)
 	}
 
@@ -234,6 +247,7 @@ func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversat
 		CreatedBy:      conv.CreatedBy,
 	}
 	if err := s.execLogRepo.Create(execLog); err != nil {
+		s.rollbackConversationState(conv, fmt.Sprintf("创建执行日志失败: %v", err))
 		return fmt.Errorf("创建执行日志失败: %v", err)
 	}
 
@@ -243,11 +257,10 @@ func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversat
 	// 注册到执行管理器
 	if !s.executionManager.AddExecution(conv.ID, cancel) {
 		// 如果无法添加到执行管理器，回滚状态
-		conv.Status = database.ConversationStatusPending
-		s.taskConvRepo.Update(conv)
-		execLog.Status = database.TaskExecStatusCancelled
-		execLog.ErrorMessage = "超过最大并发数限制"
-		s.execLogRepo.Update(execLog)
+		s.rollbackToState(conv, execLog,
+			database.ConversationStatusPending,
+			database.TaskExecStatusCancelled,
+			"超过最大并发数限制")
 		return fmt.Errorf("超过最大并发数限制")
 	}
 
@@ -548,6 +561,67 @@ func (s *aiTaskExecutorService) readPipe(pipe interface{}, execLogID uint, prefi
 		line := scanner.Text()
 		logLine := fmt.Sprintf("[%s] %s: %s\n", time.Now().Format("15:04:05"), prefix, line)
 		s.appendLog(execLogID, logLine)
+	}
+}
+
+// setConversationFailed 设置对话状态为失败并创建执行日志
+func (s *aiTaskExecutorService) setConversationFailed(conv *database.TaskConversation, errorMessage string) {
+	// 更新对话状态为失败
+	conv.Status = database.ConversationStatusFailed
+	if updateErr := s.taskConvRepo.Update(conv); updateErr != nil {
+		log.Printf("更新对话状态为失败时出错: %v", updateErr)
+	}
+
+	// 创建执行日志记录失败原因
+	execLog := &database.TaskExecutionLog{
+		ConversationID: conv.ID,
+		Status:         database.TaskExecStatusFailed,
+		ErrorMessage:   errorMessage,
+		CreatedBy:      conv.CreatedBy,
+	}
+	if logErr := s.execLogRepo.Create(execLog); logErr != nil {
+		log.Printf("创建执行日志失败: %v", logErr)
+	}
+}
+
+// rollbackConversationState 回滚对话状态为失败
+func (s *aiTaskExecutorService) rollbackConversationState(conv *database.TaskConversation, errorMessage string) {
+	conv.Status = database.ConversationStatusFailed
+	if updateErr := s.taskConvRepo.Update(conv); updateErr != nil {
+		log.Printf("回滚对话状态为失败时出错: %v", updateErr)
+	}
+
+	// 尝试创建或更新执行日志记录失败原因
+	failedExecLog := &database.TaskExecutionLog{
+		ConversationID: conv.ID,
+		Status:         database.TaskExecStatusFailed,
+		ErrorMessage:   errorMessage,
+		CreatedBy:      conv.CreatedBy,
+	}
+	if logErr := s.execLogRepo.Create(failedExecLog); logErr != nil {
+		log.Printf("创建失败执行日志失败: %v", logErr)
+	}
+}
+
+// rollbackToState 回滚对话和执行日志到指定状态
+func (s *aiTaskExecutorService) rollbackToState(
+	conv *database.TaskConversation,
+	execLog *database.TaskExecutionLog,
+	convStatus database.ConversationStatus,
+	execStatus database.TaskExecutionStatus,
+	errorMessage string,
+) {
+	// 回滚对话状态
+	conv.Status = convStatus
+	if updateErr := s.taskConvRepo.Update(conv); updateErr != nil {
+		log.Printf("回滚对话状态为%s时出错: %v", convStatus, updateErr)
+	}
+
+	// 更新执行日志状态
+	execLog.Status = execStatus
+	execLog.ErrorMessage = errorMessage
+	if updateErr := s.execLogRepo.Update(execLog); updateErr != nil {
+		log.Printf("更新执行日志状态时出错: %v", updateErr)
 	}
 }
 
