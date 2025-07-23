@@ -18,10 +18,15 @@ services:
       - SLEEP0_ADMIN_USER=admin
       - SLEEP0_ADMIN_PASS=admin123
       - SLEEP0_JWT_SECRET=dev-jwt-secret
+      - SLEEP0_WORKSPACE_BASE_DIR=/app/workspaces
     volumes:
       # Mount source code for hot reload
       - ./backend:/app:cached
       - app_data:/app/data
+      # Mount Docker socket for Docker-in-Docker functionality
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount workspace directory for AI task execution
+      - ./workspaces:/app/workspaces
     networks:
       - sleep0-dev-network
     restart: unless-stopped

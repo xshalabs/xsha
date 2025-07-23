@@ -74,6 +74,10 @@ docker-build: ## Build Docker image
 	@echo "Building Docker image..."
 	docker build -t $(DOCKER_IMAGE) .
 
+docker-build-ai: ## Build AI tool Docker images
+	@echo "Building AI tool Docker images..."
+	./scripts/build-ai-images.sh
+
 docker-run: ## Run Docker container
 	@echo "Starting Docker container..."
 	docker run --rm -p 8080:8080 --name $(APP_NAME) $(DOCKER_IMAGE)
@@ -86,6 +90,10 @@ docker-compose-up: ## Start docker-compose services
 	@echo "Starting docker-compose services..."
 	docker-compose up -d
 
+docker-compose-up-dev: ## Start development docker-compose services
+	@echo "Starting development docker-compose services..."
+	docker-compose -f docker-compose.dev.yml up -d
+
 docker-compose-down: ## Stop docker-compose services
 	@echo "Stopping docker-compose services..."
 	docker-compose down
@@ -97,6 +105,10 @@ docker-clean: ## Clean Docker resources
 	@echo "Cleaning Docker resources..."
 	docker rmi $(DOCKER_IMAGE) 2>/dev/null || true
 	docker system prune -f
+
+docker-clean-ai: ## Clean AI tool Docker images
+	@echo "Cleaning AI tool Docker images..."
+	docker rmi claude-code:latest opencode:latest gemini-cli:latest 2>/dev/null || true
 
 # Database related
 db-reset: ## Reset database (delete SQLite file)

@@ -26,16 +26,17 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o main .
 # Stage 2: Runtime environment
 FROM alpine:latest
 
-# Install necessary packages
-RUN apk --no-cache add ca-certificates tzdata curl
+# Install necessary packages including Docker CLI
+RUN apk --no-cache add ca-certificates tzdata curl docker-cli
 
 # Set timezone
 ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# Create non-root user
+# Create non-root user and add to docker group
 RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
+    adduser -u 1001 -S appuser -G appgroup && \
+    addgroup appuser docker
 
 # Set working directory
 WORKDIR /app

@@ -253,18 +253,45 @@ func (s *aiTaskExecutorService) buildDockerCommand(conv *database.TaskConversati
 		cmd = append(cmd, fmt.Sprintf("-e %s=%s", key, value))
 	}
 
-	// 添加镜像和命令
-	cmd = append(cmd,
-		fmt.Sprintf("%s:latest", devEnv.Type),
-		"claude",
-		fmt.Sprintf(`"%s"`, conv.Content),
-	)
+	// 根据开发环境类型选择镜像和命令
+	var imageName string
+	var aiCommand []string
+
+	switch devEnv.Type {
+	case "claude-code":
+		imageName = "claude-code:latest"
+		aiCommand = []string{conv.Content}
+	case "opencode":
+		imageName = "opencode:latest"
+		aiCommand = []string{conv.Content}
+	case "gemini-cli":
+		imageName = "gemini-cli:latest"
+		aiCommand = []string{conv.Content}
+	default:
+		// 默认使用 claude-code
+		imageName = "claude-code:latest"
+		aiCommand = []string{conv.Content}
+	}
+
+	// 添加镜像名称
+	cmd = append(cmd, imageName)
+
+	// 添加 AI 命令参数
+	cmd = append(cmd, aiCommand...)
 
 	return strings.Join(cmd, " ")
 }
 
 // executeDockerCommand 执行Docker命令
 func (s *aiTaskExecutorService) executeDockerCommand(dockerCmd string, execLogID uint) error {
+	// 首先检查 Docker 是否可用
+	if err := s.checkDockerAvailability(); err != nil {
+		s.appendLog(execLogID, fmt.Sprintf("❌ Docker 不可用: %v\n", err))
+		return fmt.Errorf("Docker 不可用: %v", err)
+	}
+
+	s.appendLog(execLogID, "✅ Docker 可用性检查通过\n")
+
 	// 解析超时时间
 	timeout, err := time.ParseDuration(s.config.DockerExecutionTimeout)
 	if err != nil {
@@ -298,6 +325,20 @@ func (s *aiTaskExecutorService) executeDockerCommand(dockerCmd string, execLogID
 
 	// 等待命令完成
 	return cmd.Wait()
+}
+
+// checkDockerAvailability 检查 Docker 是否可用
+func (s *aiTaskExecutorService) checkDockerAvailability() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// 检查 Docker 守护进程是否可用
+	cmd := exec.CommandContext(ctx, "docker", "version")
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("Docker 命令不可用或 Docker 守护进程未运行: %v", err)
+	}
+
+	return nil
 }
 
 // readPipe 读取管道输出
