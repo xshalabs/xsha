@@ -414,13 +414,14 @@ func (s *aiTaskExecutorService) prepareGitCredential(project *database.Project) 
 	}
 
 	// 解密敏感信息
-	if project.Credential.Type == database.GitCredentialTypePassword || project.Credential.Type == database.GitCredentialTypeToken {
+	switch project.Credential.Type {
+	case database.GitCredentialTypePassword, database.GitCredentialTypeToken:
 		password, err := s.gitCredService.DecryptCredentialSecret(project.Credential, "password")
 		if err != nil {
 			return nil, err
 		}
 		credential.Password = password
-	} else if project.Credential.Type == database.GitCredentialTypeSSHKey {
+	case database.GitCredentialTypeSSHKey:
 		privateKey, err := s.gitCredService.DecryptCredentialSecret(project.Credential, "private_key")
 		if err != nil {
 			return nil, err
@@ -490,17 +491,12 @@ func (s *aiTaskExecutorService) buildDockerCommand(conv *database.TaskConversati
 	return strings.Join(cmd, " ")
 }
 
-// executeDockerCommand 执行Docker命令（向后兼容）
-func (s *aiTaskExecutorService) executeDockerCommand(dockerCmd string, execLogID uint) error {
-	return s.executeDockerCommandWithContext(context.Background(), dockerCmd, execLogID)
-}
-
 // executeDockerCommandWithContext 执行Docker命令，添加上下文控制
 func (s *aiTaskExecutorService) executeDockerCommandWithContext(ctx context.Context, dockerCmd string, execLogID uint) error {
 	// 首先检查 Docker 是否可用
 	if err := s.checkDockerAvailability(); err != nil {
 		s.appendLog(execLogID, fmt.Sprintf("❌ Docker 不可用: %v\n", err))
-		return fmt.Errorf("Docker 不可用: %v", err)
+		return fmt.Errorf("docker 不可用: %v", err)
 	}
 
 	s.appendLog(execLogID, "✅ Docker 可用性检查通过\n")
@@ -548,7 +544,7 @@ func (s *aiTaskExecutorService) checkDockerAvailability() error {
 	// 检查 Docker 守护进程是否可用
 	cmd := exec.CommandContext(ctx, "docker", "version")
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("Docker 命令不可用或 Docker 守护进程未运行: %v", err)
+		return fmt.Errorf("docker 命令不可用或 docker 守护进程未运行: %v", err)
 	}
 
 	return nil
