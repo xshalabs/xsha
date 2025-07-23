@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -32,7 +24,6 @@ import type {
 } from '@/types/dev-environment';
 
 interface DevEnvironmentFormProps {
-  open: boolean;
   onClose: () => void;
   onSuccess: () => void;
   initialData?: DevEnvironmentDisplay | null;
@@ -66,7 +57,6 @@ const defaultResources = {
 };
 
 const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
-  open,
   onClose,
   onSuccess,
   initialData,
@@ -94,32 +84,30 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 
   // 初始化表单数据
   useEffect(() => {
-    if (open) {
-      if (initialData && mode === 'edit') {
-        setFormData({
-          name: initialData.name,
-          description: initialData.description,
-          type: initialData.type,
-          cpu_limit: initialData.cpu_limit,
-          memory_limit: initialData.memory_limit,
-        });
-        setEnvVars(initialData.env_vars_map || {});
-      } else {
-        // 重置为默认值
-        setFormData({
-          name: '',
-          description: '',
-          type: 'claude_code',
-          cpu_limit: 2.0,
-          memory_limit: 4096,
-        });
-        setEnvVars({});
-      }
-      setValidationErrors({});
-      setNewEnvKey('');
-      setNewEnvValue('');
+    if (initialData && mode === 'edit') {
+      setFormData({
+        name: initialData.name,
+        description: initialData.description,
+        type: initialData.type,
+        cpu_limit: initialData.cpu_limit,
+        memory_limit: initialData.memory_limit,
+      });
+      setEnvVars(initialData.env_vars_map || {});
+    } else {
+      // 重置为默认值
+      setFormData({
+        name: '',
+        description: '',
+        type: 'claude_code',
+        cpu_limit: 2.0,
+        memory_limit: 4096,
+      });
+      setEnvVars({});
     }
-  }, [open, initialData, mode]);
+    setValidationErrors({});
+    setNewEnvKey('');
+    setNewEnvValue('');
+  }, [initialData, mode]);
 
   // 表单验证
   const validateForm = () => {
@@ -244,21 +232,20 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="max-w-2xl w-full sm:max-w-2xl overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>
-            {mode === 'create' 
-              ? t('dev_environments.create') 
-              : t('dev_environments.edit')}
-          </SheetTitle>
-          <SheetDescription>
-            {mode === 'create'
-              ? t('dev_environments.create_description')
-              : t('dev_environments.edit_description')}
-          </SheetDescription>
-        </SheetHeader>
-
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          {mode === 'create' 
+            ? t('dev_environments.create') 
+            : t('dev_environments.edit')}
+        </CardTitle>
+        <p className="text-muted-foreground">
+          {mode === 'create'
+            ? t('dev_environments.create_description')
+            : t('dev_environments.edit_description')}
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-6">
         <div className="space-y-6">
           {/* 基本信息 */}
           <div className="space-y-4">
@@ -436,7 +423,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
           </div>
         </div>
 
-        <SheetFooter className="mt-6">
+        <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={onClose} disabled={loading}>
             <X className="h-4 w-4 mr-2" />
             {t('common.cancel')}
@@ -445,9 +432,9 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
             <Save className="h-4 w-4 mr-2" />
             {loading ? t('common.saving') : t('common.save')}
           </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

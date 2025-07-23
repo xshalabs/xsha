@@ -1,31 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { GitCredentialList } from '@/components/GitCredentialList';
-import { GitCredentialForm } from '@/components/GitCredentialForm';
 import { apiService } from '@/lib/api/index';
 import type { GitCredential, GitCredentialListParams } from '@/types/git-credentials';
 import { GitCredentialType } from '@/types/git-credentials';
 import { Plus, RefreshCw } from 'lucide-react';
 
-export const GitCredentialsPage: React.FC = () => {
+const GitCredentialListPage: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  
   const [credentials, setCredentials] = useState<GitCredential[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingCredential, setEditingCredential] = useState<GitCredential | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [typeFilter, setTypeFilter] = useState<GitCredentialType | undefined>();
   const [error, setError] = useState<string | null>(null);
 
-  // 设置页面标题
-  usePageTitle('common.pageTitle.gitCredentials');
-
   const pageSize = 10;
+
+  usePageTitle(t('common.pageTitle.gitCredentials'));
 
   // 加载凭据列表
   const loadCredentials = async (params?: GitCredentialListParams) => {
@@ -60,16 +59,9 @@ export const GitCredentialsPage: React.FC = () => {
     loadCredentials({ page: 1 });
   };
 
-  // 创建凭据成功
-  const handleCreateSuccess = () => {
-    setShowCreateForm(false);
-    handleRefresh();
-  };
-
-  // 编辑凭据成功
-  const handleEditSuccess = () => {
-    setEditingCredential(null);
-    loadCredentials();
+  // 编辑凭据
+  const handleEdit = (credential: GitCredential) => {
+    navigate(`/git-credentials/${credential.id}/edit`);
   };
 
   // 删除凭据
@@ -95,52 +87,9 @@ export const GitCredentialsPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  if (showCreateForm) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-6">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowCreateForm(false)}
-              className="mb-4"
-            >
-              ← {t('gitCredentials.backToList')}
-            </Button>
-            <h1 className="text-2xl font-bold">{t('gitCredentials.create')}</h1>
-          </div>
-          <GitCredentialForm
-            onSuccess={handleCreateSuccess}
-            onCancel={() => setShowCreateForm(false)}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  if (editingCredential) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-6">
-            <Button 
-              variant="outline" 
-              onClick={() => setEditingCredential(null)}
-              className="mb-4"
-            >
-              ← {t('gitCredentials.backToList')}
-            </Button>
-            <h1 className="text-2xl font-bold">{t('gitCredentials.edit')}</h1>
-          </div>
-          <GitCredentialForm
-            credential={editingCredential}
-            onSuccess={handleEditSuccess}
-            onCancel={() => setEditingCredential(null)}
-          />
-        </div>
-      </div>
-    );
-  }
+  const handleCreateNew = () => {
+    navigate('/git-credentials/create');
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -161,7 +110,7 @@ export const GitCredentialsPage: React.FC = () => {
                 <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                 {t('gitCredentials.refresh')}
               </Button>
-              <Button onClick={() => setShowCreateForm(true)}>
+              <Button onClick={handleCreateNew}>
                 <Plus className="w-4 h-4 mr-2" />
                 {t('gitCredentials.create')}
               </Button>
@@ -222,7 +171,7 @@ export const GitCredentialsPage: React.FC = () => {
           typeFilter={typeFilter}
           onPageChange={handlePageChange}
           onTypeFilterChange={handleTypeFilterChange}
-          onEdit={setEditingCredential}
+          onEdit={handleEdit}
           onDelete={handleDelete}
           onRefresh={handleRefresh}
         />
@@ -231,4 +180,4 @@ export const GitCredentialsPage: React.FC = () => {
   );
 };
 
-export default GitCredentialsPage; 
+export default GitCredentialListPage; 

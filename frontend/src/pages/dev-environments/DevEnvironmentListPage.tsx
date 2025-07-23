@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw, Play, Settings, Monitor } from 'lucide-react';
@@ -13,19 +13,15 @@ import type {
   DevEnvironmentListParams
 } from '@/types/dev-environment';
 import DevEnvironmentList from '@/components/DevEnvironmentList';
-import DevEnvironmentForm from '@/components/DevEnvironmentForm';
 
-// 以下注释保留用于展示 - 环境状态和类型配置在DevEnvironmentList组件中使用
-
-const DevEnvironmentsPage: React.FC = () => {
+const DevEnvironmentListPage: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   usePageTitle(t('navigation.dev_environments'));
 
   const [environments, setEnvironments] = useState<DevEnvironmentDisplay[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingEnvironment, setEditingEnvironment] = useState<DevEnvironmentDisplay | null>(null);
   const [listParams, setListParams] = useState<DevEnvironmentListParams>({
     page: 1,
     page_size: 20,
@@ -117,6 +113,11 @@ const DevEnvironmentsPage: React.FC = () => {
     }
   };
 
+  // 编辑环境
+  const handleEditEnvironment = (environment: DevEnvironmentDisplay) => {
+    navigate(`/dev-environments/${environment.id}/edit`);
+  };
+
   // 页面变化处理
   const handlePageChange = (page: number) => {
     const newParams = { ...listParams, page };
@@ -129,13 +130,6 @@ const DevEnvironmentsPage: React.FC = () => {
     const newParams = { ...listParams, ...filters, page: 1 };
     setListParams(newParams);
     fetchEnvironments(newParams);
-  };
-
-  // 表单提交成功处理
-  const handleFormSuccess = () => {
-    setShowCreateForm(false);
-    setEditingEnvironment(null);
-    fetchEnvironments();
   };
 
   // 初始加载
@@ -166,7 +160,7 @@ const DevEnvironmentsPage: React.FC = () => {
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             {t('common.refresh')}
           </Button>
-          <Button onClick={() => setShowCreateForm(true)}>
+          <Button onClick={() => navigate('/dev-environments/create')}>
             <Plus className="h-4 w-4 mr-2" />
             {t('dev_environments.create')}
           </Button>
@@ -228,40 +222,21 @@ const DevEnvironmentsPage: React.FC = () => {
         </Card>
       </div>
 
-      <Tabs defaultValue="list" className="w-full">
-        <TabsList>
-          <TabsTrigger value="list">{t('common.list')}</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="list">
-          <DevEnvironmentList
-            environments={environments}
-            loading={loading}
-            params={listParams}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-            onFiltersChange={handleFiltersChange}
-            onEdit={setEditingEnvironment}
-            onDelete={handleDeleteEnvironment}
-            onControl={handleEnvironmentControl}
-            onUse={handleUseEnvironment}
-          />
-        </TabsContent>
-      </Tabs>
-
-      {/* 创建/编辑表单 */}
-      <DevEnvironmentForm
-        open={showCreateForm || !!editingEnvironment}
-        onClose={() => {
-          setShowCreateForm(false);
-          setEditingEnvironment(null);
-        }}
-        onSuccess={handleFormSuccess}
-        initialData={editingEnvironment}
-        mode={editingEnvironment ? 'edit' : 'create'}
+      {/* 环境列表 */}
+      <DevEnvironmentList
+        environments={environments}
+        loading={loading}
+        params={listParams}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        onFiltersChange={handleFiltersChange}
+        onEdit={handleEditEnvironment}
+        onDelete={handleDeleteEnvironment}
+        onControl={handleEnvironmentControl}
+        onUse={handleUseEnvironment}
       />
     </div>
   );
 };
 
-export default DevEnvironmentsPage; 
+export default DevEnvironmentListPage; 

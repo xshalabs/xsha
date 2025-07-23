@@ -7,11 +7,29 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Layout } from '@/components/Layout';
 import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
-import { ProjectsPage } from '@/pages/ProjectsPage';
-import { TasksPage } from '@/pages/TasksPage';
-import { GitCredentialsPage } from '@/pages/GitCredentialsPage';
-import DevEnvironmentsPage from '@/pages/DevEnvironmentsPage';
 import { AdminLogsPage } from '@/pages/AdminLogsPage';
+
+// 项目管理页面
+import ProjectListPage from '@/pages/projects/ProjectListPage';
+import ProjectCreatePage from '@/pages/projects/ProjectCreatePage';
+import ProjectEditPage from '@/pages/projects/ProjectEditPage';
+
+// 开发环境页面
+import DevEnvironmentListPage from '@/pages/dev-environments/DevEnvironmentListPage';
+import DevEnvironmentCreatePage from '@/pages/dev-environments/DevEnvironmentCreatePage';
+import DevEnvironmentEditPage from '@/pages/dev-environments/DevEnvironmentEditPage';
+
+// Git凭据页面
+import GitCredentialListPage from '@/pages/git-credentials/GitCredentialListPage';
+import GitCredentialCreatePage from '@/pages/git-credentials/GitCredentialCreatePage';
+import GitCredentialEditPage from '@/pages/git-credentials/GitCredentialEditPage';
+
+// 任务管理页面
+import TaskListPage from '@/pages/tasks/TaskListPage';
+import TaskCreatePage from '@/pages/tasks/TaskCreatePage';
+import TaskEditPage from '@/pages/tasks/TaskEditPage';
+import TaskConversationPage from '@/pages/tasks/TaskConversationPage';
+
 import './App.css';
 
 function NotFoundPage() {
@@ -54,49 +72,139 @@ function App() {
             } 
           />
           
-          {/* 项目管理页面 */}
+          {/* 项目管理页面组 */}
           <Route 
             path="/projects" 
             element={
               <ProtectedRoute>
                 <Layout>
-                  <ProjectsPage />
+                  <ProjectListPage />
                 </Layout>
               </ProtectedRoute>
             } 
           />
-          
-          {/* 项目任务管理页面 */}
           <Route 
-            path="/projects/:projectId/tasks" 
+            path="/projects/create" 
             element={
               <ProtectedRoute>
                 <Layout>
-                  <TasksPage />
+                  <ProjectCreatePage />
                 </Layout>
               </ProtectedRoute>
             } 
           />
-          
-          {/* Git 凭据管理页面 */}
           <Route 
-            path="/git-credentials" 
+            path="/projects/:id/edit" 
             element={
               <ProtectedRoute>
                 <Layout>
-                  <GitCredentialsPage />
+                  <ProjectEditPage />
                 </Layout>
               </ProtectedRoute>
             } 
           />
           
-          {/* 开发环境管理页面 */}
+          {/* 开发环境管理页面组 */}
           <Route 
             path="/dev-environments" 
             element={
               <ProtectedRoute>
                 <Layout>
-                  <DevEnvironmentsPage />
+                  <DevEnvironmentListPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dev-environments/create" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <DevEnvironmentCreatePage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dev-environments/:id/edit" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <DevEnvironmentEditPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Git 凭据管理页面组 */}
+          <Route 
+            path="/git-credentials" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <GitCredentialListPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/git-credentials/create" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <GitCredentialCreatePage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/git-credentials/:id/edit" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <GitCredentialEditPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* 项目任务管理页面组 */}
+          <Route 
+            path="/projects/:projectId/tasks" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TaskListPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/projects/:projectId/tasks/create" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TaskCreatePage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/projects/:projectId/tasks/:taskId/edit" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TaskEditPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/projects/:projectId/tasks/:taskId/conversation" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TaskConversationPage />
                 </Layout>
               </ProtectedRoute>
             } 
