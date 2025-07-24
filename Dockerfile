@@ -5,8 +5,8 @@ FROM golang:1.23.1-alpine AS builder
 # Set working directory
 WORKDIR /app
 
-# Install necessary tools
-RUN apk add --no-cache git ca-certificates tzdata
+# Install necessary tools including build dependencies for CGO
+RUN apk add --no-cache git ca-certificates tzdata gcc musl-dev sqlite-dev
 
 # Set timezone
 ENV TZ=Asia/Shanghai
@@ -20,14 +20,14 @@ RUN go mod download && go mod verify
 # Copy source code
 COPY backend/ .
 
-# Build application
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o main .
+# Build application with CGO enabled for SQLite support
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o main .
 
 # Stage 2: Runtime environment
 FROM alpine:latest
 
-# Install necessary packages including Docker CLI
-RUN apk --no-cache add ca-certificates tzdata curl docker-cli
+# Install necessary packages including Docker CLI and SQLite runtime
+RUN apk --no-cache add ca-certificates tzdata curl docker-cli sqlite
 
 # Set timezone
 ENV TZ=Asia/Shanghai
