@@ -72,7 +72,7 @@ backend/
 │   └── task_processor.go     # 任务处理器
 ├── utils/                     # 工具函数
 │   ├── crypto.go             # AES 加密工具
-│   ├── git.go                # Git 操作工具
+│   ├── git.go                # Git 操作工具（支持SSL配置）🆕
 │   ├── jwt.go                # JWT 工具
 │   └── workspace.go          # 工作目录管理工具 🆕
 ├── i18n/                      # 国际化模块
@@ -133,6 +133,9 @@ export SLEEP0_ADMIN_USER="admin"
 export SLEEP0_ADMIN_PASS="admin123"
 export SLEEP0_JWT_SECRET="your-strong-jwt-secret-key-here"
 export SLEEP0_AES_KEY="your-32-byte-aes-encryption-key-here"
+
+# Git配置 🆕
+export SLEEP0_GIT_SSL_VERIFY="false"                    # Git SSL验证开关（默认禁用以解决兼容性问题）
 
 # 定时器配置 🆕
 export SLEEP0_SCHEDULER_INTERVAL="30s"              # 定时器扫描间隔
@@ -222,6 +225,78 @@ go run main.go
 ### 健康检查
 - `GET /health` - 服务健康检查
 
+## 🔧 Git 配置与故障排除 🆕
+
+### Git SSL 验证配置
+
+项目支持灵活的 Git SSL 验证配置，以解决不同 Git 服务器的兼容性问题。
+
+#### 环境变量配置
+```bash
+# 禁用 SSL 验证（推荐用于解决 TLS 连接问题）
+export SLEEP0_GIT_SSL_VERIFY=false
+
+# 启用 SSL 验证（推荐用于生产环境）
+export SLEEP0_GIT_SSL_VERIFY=true
+```
+
+#### 配置说明
+- **默认值**: `false` - 禁用 SSL 验证，解决常见的 TLS 连接问题
+- **推荐设置**: 
+  - 开发环境：`false` - 避免证书问题
+  - 生产环境：`true` - 保证安全性
+
+#### 常见问题解决
+
+**问题 1: TLS 连接错误**
+```
+错误: fatal: unable to access 'https://gitee.com/xxx/xxx.git/': 
+TLS connect error: error:0A000126:SSL routines::unexpected eof while reading
+```
+
+**解决方案:**
+```bash
+export SLEEP0_GIT_SSL_VERIFY=false
+# 重启应用
+```
+
+**问题 2: SSL 证书验证失败**
+```
+错误: SSL certificate problem: unable to get local issuer certificate
+```
+
+**解决方案:**
+```bash
+# 临时禁用 SSL 验证
+export SLEEP0_GIT_SSL_VERIFY=false
+
+# 或者更新系统证书（推荐）
+# macOS:
+brew install ca-certificates
+# Ubuntu/Debian:
+sudo apt-get update && sudo apt-get install ca-certificates
+```
+
+#### 支持的 Git 服务器
+- ✅ **GitHub**: 支持 SSL 验证
+- ✅ **GitLab**: 支持 SSL 验证  
+- ⚠️ **Gitee**: 建议禁用 SSL 验证（`SLEEP0_GIT_SSL_VERIFY=false`）
+- ✅ **Bitbucket**: 支持 SSL 验证
+- ⚠️ **自建 Git 服务器**: 根据证书配置情况选择
+
+#### 错误处理增强
+当启用 SSL 验证且遇到相关错误时，系统会自动提供解决建议：
+```
+仓库访问验证失败: [具体错误信息]
+建议: 可尝试设置环境变量 SLEEP0_GIT_SSL_VERIFY=false 禁用SSL验证
+```
+
+#### 安全性考虑
+- **开发环境**: 可以安全地禁用 SSL 验证以提高兼容性
+- **生产环境**: 建议启用 SSL 验证，确保通信安全
+- **内网环境**: 对于内网 Git 服务器，可根据实际情况选择
+- **代理环境**: 使用代理时可能需要禁用 SSL 验证
+
 ## 🤖 AI 自动化功能
 
 ### 定时器系统
@@ -274,6 +349,7 @@ go run main.go
 | `SLEEP0_WORKSPACE_BASE_DIR` | 工作目录基础路径 🆕 | /tmp/sleep0-workspaces | string |
 | `SLEEP0_DOCKER_TIMEOUT` | Docker 执行超时时间 🆕 | 30m | duration |
 | `SLEEP0_MAX_CONCURRENT_TASKS` | 最大并发任务数 🆕 | 5 | int |
+| `SLEEP0_GIT_SSL_VERIFY` | Git SSL验证开关 🆕 | false | boolean |
 
 ## 🏗️ 架构设计
 
@@ -343,6 +419,7 @@ docker run -d \
   -e SLEEP0_ENVIRONMENT=production \
   -e SLEEP0_JWT_SECRET=your-production-secret \
   -e SLEEP0_AES_KEY=your-production-aes-key \
+  -e SLEEP0_GIT_SSL_VERIFY=true \
   -v /data/sleep0:/data \
   sleep0-backend
 ```
@@ -352,8 +429,9 @@ docker run -d \
 2. **强密钥**: 使用强随机密钥作为 JWT 和 AES 密钥
 3. **HTTPS**: 配置 HTTPS 传输加密
 4. **反向代理**: 使用 Nginx 作为反向代理
-5. **监控**: 配置应用监控和日志收集
-6. **备份**: 定期备份数据库
+5. **Git SSL 验证**: 生产环境启用 SSL 验证 (`SLEEP0_GIT_SSL_VERIFY=true`) 🆕
+6. **监控**: 配置应用监控和日志收集
+7. **备份**: 定期备份数据库
 
 ## 🧪 测试
 

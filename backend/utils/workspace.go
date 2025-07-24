@@ -44,8 +44,8 @@ func (w *WorkspaceManager) CreateTempWorkspace(conversationID uint) (string, err
 	return workspacePath, nil
 }
 
-// CloneRepository 克隆仓库到工作目录
-func (w *WorkspaceManager) CloneRepository(workspacePath, repoURL, branch string, credential *GitCredentialInfo) error {
+// CloneRepositoryWithConfig 克隆仓库到工作目录（带配置）
+func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, branch string, credential *GitCredentialInfo, sslVerify bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 
@@ -81,11 +81,27 @@ func (w *WorkspaceManager) CloneRepository(workspacePath, repoURL, branch string
 		cmd = exec.CommandContext(ctx, "git", "clone", "-b", branch, repoURL, workspacePath)
 	}
 
+	// 设置Git环境变量
+	if cmd.Env == nil {
+		cmd.Env = os.Environ()
+	}
+
+	// 根据配置决定是否禁用SSL验证
+	if !sslVerify {
+		cmd.Env = append(cmd.Env, "GIT_SSL_NO_VERIFY=true")
+	}
+
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("克隆仓库失败: %v", err)
 	}
 
 	return nil
+}
+
+// CloneRepository 克隆仓库到工作目录（保持向后兼容）
+func (w *WorkspaceManager) CloneRepository(workspacePath, repoURL, branch string, credential *GitCredentialInfo) error {
+	// 默认禁用SSL验证以解决兼容性问题
+	return w.CloneRepositoryWithConfig(workspacePath, repoURL, branch, credential, false)
 }
 
 // CommitChanges 提交更改并返回commit hash

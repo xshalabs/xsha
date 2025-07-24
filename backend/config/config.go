@@ -23,6 +23,9 @@ type Config struct {
 	WorkspaceBaseDir       string // 工作目录基础路径
 	DockerExecutionTimeout string // Docker执行超时时间
 	MaxConcurrentTasks     int    // 最大并发任务数
+
+	// Git配置
+	GitSSLVerify bool // Git SSL验证开关
 }
 
 func Load() *Config {
@@ -44,6 +47,9 @@ func Load() *Config {
 		WorkspaceBaseDir:       getEnv("SLEEP0_WORKSPACE_BASE_DIR", "/tmp/sleep0-workspaces"),
 		DockerExecutionTimeout: getEnv("SLEEP0_DOCKER_TIMEOUT", "30m"),
 		MaxConcurrentTasks:     getEnvInt("SLEEP0_MAX_CONCURRENT_TASKS", 5),
+
+		// Git配置 - 默认禁用SSL验证以解决兼容性问题
+		GitSSLVerify: getEnvBool("SLEEP0_GIT_SSL_VERIFY", false),
 	}
 
 	// 处理管理员密码：尝试解密，失败则当作明文（向后兼容）
@@ -72,6 +78,16 @@ func getEnvInt(key string, defaultValue int) int {
 			return intValue
 		}
 		log.Printf("警告：无法解析环境变量 %s 的值 '%s' 为整数，使用默认值 %d", key, value, defaultValue)
+	}
+	return defaultValue
+}
+
+func getEnvBool(key string, defaultValue bool) bool {
+	if value := os.Getenv(key); value != "" {
+		if boolValue, err := strconv.ParseBool(value); err == nil {
+			return boolValue
+		}
+		log.Printf("警告：无法解析环境变量 %s 的值 '%s' 为布尔值，使用默认值 %t", key, value, defaultValue)
 	}
 	return defaultValue
 }

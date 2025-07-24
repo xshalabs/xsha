@@ -1,8 +1,8 @@
 # Development environment Dockerfile
 FROM m.daocloud.io/docker.io/library/golang:1.24-alpine AS development
 
-# Install necessary tools including Docker CLI and build dependencies for CGO
-RUN apk add --no-cache git ca-certificates tzdata curl make docker-cli gcc musl-dev sqlite-dev
+# Update package index and install necessary tools including Docker CLI and build dependencies for CGO
+RUN apk update && apk add --no-cache git ca-certificates tzdata curl make docker-cli gcc musl-dev sqlite-dev
 
 # Set timezone
 ENV TZ=Asia/Shanghai

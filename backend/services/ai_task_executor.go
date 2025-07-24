@@ -350,11 +350,12 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		return
 	}
 
-	if err := s.workspaceManager.CloneRepository(
+	if err := s.workspaceManager.CloneRepositoryWithConfig(
 		workspacePath,
 		conv.Task.Project.RepoURL,
 		conv.Task.StartBranch,
 		credential,
+		s.config.GitSSLVerify,
 	); err != nil {
 		finalStatus = database.ConversationStatusFailed
 		execStatus = database.TaskExecStatusFailed

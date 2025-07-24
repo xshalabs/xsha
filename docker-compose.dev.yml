@@ -20,6 +20,7 @@ services:
       - SLEEP0_WORKSPACE_BASE_DIR=/app/workspaces
       - SLEEP0_SCHEDULER_INTERVAL=3s
       - SLEEP0_DOCKER_TIMEOUT=30m
+      - SLEEP0_GIT_SSL_VERIFY=false
     volumes:
       - ./backend:/app:cached
       - ./runtime/db:/app/data

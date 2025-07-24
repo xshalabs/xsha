@@ -261,8 +261,8 @@ func (s *projectService) FetchRepositoryBranches(repoURL string, credentialID *u
 		}
 	}
 
-	// 使用Git工具获取分支信息
-	return utils.FetchRepositoryBranches(repoURL, credentialInfo)
+	// 使用Git工具获取分支信息，传入SSL验证配置
+	return utils.FetchRepositoryBranchesWithConfig(repoURL, credentialInfo, s.config.GitSSLVerify)
 }
 
 // ValidateRepositoryAccess 验证仓库访问权限

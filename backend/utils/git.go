@@ -233,8 +233,8 @@ func IsGitURL(str string) bool {
 	return sshPattern.MatchString(str)
 }
 
-// FetchRepositoryBranches 获取仓库分支列表
-func FetchRepositoryBranches(repoURL string, credential *GitCredentialInfo) (*GitAccessResult, error) {
+// FetchRepositoryBranchesWithConfig 获取仓库分支列表（带配置）
+func FetchRepositoryBranchesWithConfig(repoURL string, credential *GitCredentialInfo, sslVerify bool) (*GitAccessResult, error) {
 	// 创建临时目录
 	tempDir, err := ioutil.TempDir("", "git-repo-*")
 	if err != nil {
@@ -338,13 +338,31 @@ func FetchRepositoryBranches(repoURL string, credential *GitCredentialInfo) (*Gi
 		cmd = exec.CommandContext(ctx, "git", "ls-remote", "--heads", repoURL)
 	}
 
+	// 设置Git环境变量
+	if cmd.Env == nil {
+		cmd.Env = os.Environ()
+	}
+
+	// 根据配置决定是否禁用SSL验证
+	if !sslVerify {
+		cmd.Env = append(cmd.Env, "GIT_SSL_NO_VERIFY=true")
+	}
+
 	// 执行Git命令
 	output, err := cmd.Output()
 	if err != nil {
 		if exitError, ok := err.(*exec.ExitError); ok {
+			errorMessage := string(exitError.Stderr)
+			// 如果是SSL相关错误且当前启用了SSL验证，建议禁用SSL验证
+			if sslVerify && (strings.Contains(errorMessage, "SSL") || strings.Contains(errorMessage, "TLS") || strings.Contains(errorMessage, "certificate")) {
+				return &GitAccessResult{
+					CanAccess:    false,
+					ErrorMessage: fmt.Sprintf("仓库访问验证失败: %s\n建议: 可尝试设置环境变量 SLEEP0_GIT_SSL_VERIFY=false 禁用SSL验证", errorMessage),
+				}, nil
+			}
 			return &GitAccessResult{
 				CanAccess:    false,
-				ErrorMessage: fmt.Sprintf("访问仓库失败: %s", string(exitError.Stderr)),
+				ErrorMessage: fmt.Sprintf("仓库访问验证失败: %s", errorMessage),
 			}, nil
 		}
 		return &GitAccessResult{
@@ -360,6 +378,12 @@ func FetchRepositoryBranches(repoURL string, credential *GitCredentialInfo) (*Gi
 		CanAccess: true,
 		Branches:  branches,
 	}, nil
+}
+
+// FetchRepositoryBranches 获取仓库分支列表（保持向后兼容）
+func FetchRepositoryBranches(repoURL string, credential *GitCredentialInfo) (*GitAccessResult, error) {
+	// 默认禁用SSL验证以解决兼容性问题
+	return FetchRepositoryBranchesWithConfig(repoURL, credential, false)
 }
 
 // parseBranchesFromLsRemote 从git ls-remote输出解析分支名称
