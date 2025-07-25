@@ -512,7 +512,14 @@ func (s *aiTaskExecutorService) buildDockerCommand(conv *database.TaskConversati
 	switch devEnv.Type {
 	case "claude-code":
 		imageName = "claude-code:latest"
-		aiCommand = []string{conv.Content}
+		aiCommand = []string{
+			"claude",
+			"-p",
+			"--output-format=stream-json",
+			"--dangerously-skip-permissions",
+			"--verbose",
+			conv.Content,
+		}
 	case "opencode":
 		imageName = "opencode:latest"
 		aiCommand = []string{conv.Content}
@@ -522,7 +529,14 @@ func (s *aiTaskExecutorService) buildDockerCommand(conv *database.TaskConversati
 	default:
 		// 默认使用 claude-code
 		imageName = "claude-code:latest"
-		aiCommand = []string{conv.Content}
+		aiCommand = []string{
+			"claude",
+			"-p",
+			"--output-format=stream-json",
+			"--dangerously-skip-permissions",
+			"--verbose",
+			conv.Content,
+		}
 	}
 
 	// 添加镜像名称
