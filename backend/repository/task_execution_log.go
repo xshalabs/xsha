@@ -49,7 +49,35 @@ func (r *taskExecutionLogRepository) Update(log *database.TaskExecutionLog) erro
 func (r *taskExecutionLogRepository) AppendLog(id uint, logContent string) error {
 	return r.db.Model(&database.TaskExecutionLog{}).
 		Where("id = ?", id).
-		Update("execution_logs", gorm.Expr("CONCAT(execution_logs, ?)", logContent)).Error
+		Update("execution_logs", gorm.Expr("CONCAT(COALESCE(execution_logs, ''), ?)", logContent)).Error
+}
+
+// UpdateMetadata 更新执行日志的元数据信息，不覆盖 execution_logs 字段
+func (r *taskExecutionLogRepository) UpdateMetadata(id uint, updates map[string]interface{}) error {
+	// 明确排除 execution_logs 字段，避免意外覆盖
+	allowedFields := map[string]bool{
+		"error_message":  true,
+		"commit_hash":    true,
+		"started_at":     true,
+		"completed_at":   true,
+		"workspace_path": true,
+		"docker_command": true,
+	}
+
+	filteredUpdates := make(map[string]interface{})
+	for key, value := range updates {
+		if allowedFields[key] {
+			filteredUpdates[key] = value
+		}
+	}
+
+	if len(filteredUpdates) == 0 {
+		return nil // 没有需要更新的字段
+	}
+
+	return r.db.Model(&database.TaskExecutionLog{}).
+		Where("id = ?", id).
+		Updates(filteredUpdates).Error
 }
 
 // DeleteByConversationID 删除指定对话ID的所有执行日志

@@ -292,6 +292,7 @@ func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversat
 	// 创建执行日志
 	execLog := &database.TaskExecutionLog{
 		ConversationID: conv.ID,
+		ExecutionLogs:  "", // 初始化为空字符串，避免NULL值问题
 	}
 	if err := s.execLogRepo.Create(execLog); err != nil {
 		s.rollbackConversationState(conv, fmt.Sprintf("创建执行日志失败: %v", err))
@@ -332,16 +333,23 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 			log.Printf("更新对话最终状态失败: %v", err)
 		}
 
-		// 更新执行日志信息
-		execLog.ErrorMessage = errorMsg
-		execLog.CommitHash = commitHash
+		// 准备执行日志元数据更新
+		updates := make(map[string]interface{})
+
+		if errorMsg != "" {
+			updates["error_message"] = errorMsg
+		}
+		if commitHash != "" {
+			updates["commit_hash"] = commitHash
+		}
 
 		// 更新完成时间
 		now := time.Now()
-		execLog.CompletedAt = &now
+		updates["completed_at"] = &now
 
-		if err := s.execLogRepo.Update(execLog); err != nil {
-			log.Printf("更新执行日志最终状态失败: %v", err)
+		// 使用 UpdateMetadata 避免覆盖 execution_logs 字段
+		if err := s.execLogRepo.UpdateMetadata(execLog.ID, updates); err != nil {
+			log.Printf("更新执行日志元数据失败: %v", err)
 		}
 
 		// 广播状态变化
@@ -373,10 +381,13 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	}
 	defer s.workspaceManager.CleanupWorkspace(workspacePath)
 
-	execLog.WorkspacePath = workspacePath
+	// 更新工作目录路径和开始时间
 	now := time.Now()
-	execLog.StartedAt = &now
-	s.execLogRepo.Update(execLog)
+	startedUpdates := map[string]interface{}{
+		"workspace_path": workspacePath,
+		"started_at":     &now,
+	}
+	s.execLogRepo.UpdateMetadata(execLog.ID, startedUpdates)
 
 	// 检查是否被取消
 	select {
@@ -412,8 +423,10 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 
 	// 3. 构建并执行Docker命令
 	dockerCmd := s.buildDockerCommand(conv, workspacePath)
-	execLog.DockerCommand = dockerCmd
-	s.execLogRepo.Update(execLog)
+	dockerUpdates := map[string]interface{}{
+		"docker_command": dockerCmd,
+	}
+	s.execLogRepo.UpdateMetadata(execLog.ID, dockerUpdates)
 
 	s.appendLog(execLog.ID, fmt.Sprintf("🚀 开始执行命令: %s\n", dockerCmd))
 
@@ -666,6 +679,7 @@ func (s *aiTaskExecutorService) setConversationFailed(conv *database.TaskConvers
 	execLog := &database.TaskExecutionLog{
 		ConversationID: conv.ID,
 		ErrorMessage:   errorMessage,
+		ExecutionLogs:  "", // 初始化为空字符串，避免NULL值问题
 	}
 	if logErr := s.execLogRepo.Create(execLog); logErr != nil {
 		log.Printf("创建执行日志失败: %v", logErr)
@@ -683,6 +697,7 @@ func (s *aiTaskExecutorService) rollbackConversationState(conv *database.TaskCon
 	failedExecLog := &database.TaskExecutionLog{
 		ConversationID: conv.ID,
 		ErrorMessage:   errorMessage,
+		ExecutionLogs:  "", // 初始化为空字符串，避免NULL值问题
 	}
 	if logErr := s.execLogRepo.Create(failedExecLog); logErr != nil {
 		log.Printf("创建失败执行日志失败: %v", logErr)
@@ -703,8 +718,10 @@ func (s *aiTaskExecutorService) rollbackToState(
 	}
 
 	// 更新执行日志错误信息
-	execLog.ErrorMessage = errorMessage
-	if updateErr := s.execLogRepo.Update(execLog); updateErr != nil {
+	errorUpdates := map[string]interface{}{
+		"error_message": errorMessage,
+	}
+	if updateErr := s.execLogRepo.UpdateMetadata(execLog.ID, errorUpdates); updateErr != nil {
 		log.Printf("更新执行日志时出错: %v", updateErr)
 	}
 }

@@ -121,5 +121,6 @@ type TaskExecutionLogRepository interface {
 	GetByConversationID(conversationID uint) (*database.TaskExecutionLog, error)
 	Update(log *database.TaskExecutionLog) error
 	AppendLog(id uint, logContent string) error
+	UpdateMetadata(id uint, updates map[string]interface{}) error
 	DeleteByConversationID(conversationID uint) error
 }
