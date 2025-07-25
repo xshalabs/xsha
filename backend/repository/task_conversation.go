@@ -23,7 +23,11 @@ func (r *taskConversationRepository) Create(conversation *database.TaskConversat
 // GetByID 根据ID获取对话
 func (r *taskConversationRepository) GetByID(id uint, createdBy string) (*database.TaskConversation, error) {
 	var conversation database.TaskConversation
-	err := r.db.Preload("Task").Where("id = ? AND created_by = ?", id, createdBy).First(&conversation).Error
+	err := r.db.Preload("Task").
+		Preload("Task.Project").
+		Preload("Task.Project.Credential").
+		Preload("Task.DevEnvironment").
+		Where("id = ? AND created_by = ?", id, createdBy).First(&conversation).Error
 	if err != nil {
 		return nil, err
 	}

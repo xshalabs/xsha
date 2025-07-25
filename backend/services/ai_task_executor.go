@@ -268,9 +268,17 @@ func (s *aiTaskExecutorService) GetExecutionStatus() map[string]interface{} {
 // processConversation 处理单个对话 - 添加上下文控制
 func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversation) error {
 	// 验证关联数据
-	if conv.Task == nil || conv.Task.Project == nil || conv.Task.DevEnvironment == nil {
-		s.setConversationFailed(conv, "对话关联数据不完整")
-		return fmt.Errorf("对话关联数据不完整")
+	if conv.Task == nil {
+		s.setConversationFailed(conv, "任务信息缺失")
+		return fmt.Errorf("任务信息缺失")
+	}
+	if conv.Task.Project == nil {
+		s.setConversationFailed(conv, "项目信息缺失")
+		return fmt.Errorf("项目信息缺失")
+	}
+	if conv.Task.DevEnvironment == nil {
+		s.setConversationFailed(conv, "任务未配置开发环境，无法执行")
+		return fmt.Errorf("任务未配置开发环境，无法执行")
 	}
 
 	// 更新对话状态为 running
