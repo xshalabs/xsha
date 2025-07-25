@@ -245,6 +245,11 @@ func (s *aiTaskExecutorService) RetryExecution(conversationID uint, createdBy st
 		return fmt.Errorf("已达到最大并发数限制，请稍后重试")
 	}
 
+	// 删除该对话的所有旧执行日志
+	if err := s.execLogRepo.DeleteByConversationID(conversationID); err != nil {
+		return fmt.Errorf("删除旧执行日志失败: %v", err)
+	}
+
 	// 重置对话状态为待处理
 	conv.Status = database.ConversationStatusPending
 	if err := s.taskConvRepo.Update(conv); err != nil {

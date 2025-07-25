@@ -78,3 +78,8 @@ func (r *taskExecutionLogRepository) ListByStatus(status database.TaskExecutionS
 	err := query.Find(&logs).Error
 	return logs, err
 }
+
+// DeleteByConversationID 删除指定对话ID的所有执行日志
+func (r *taskExecutionLogRepository) DeleteByConversationID(conversationID uint) error {
+	return r.db.Where("conversation_id = ?", conversationID).Delete(&database.TaskExecutionLog{}).Error
+}
