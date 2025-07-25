@@ -66,7 +66,6 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 			task.ID,
 			req.RequirementDesc,
 			username.(string),
-			database.ConversationRoleUser,
 		)
 		if err != nil {
 			// 如果对话创建失败，记录错误但不影响任务创建

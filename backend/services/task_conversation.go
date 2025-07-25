@@ -21,15 +21,10 @@ func NewTaskConversationService(repo repository.TaskConversationRepository, task
 }
 
 // CreateConversation 创建对话
-func (s *taskConversationService) CreateConversation(taskID uint, content, createdBy string, role database.ConversationRole) (*database.TaskConversation, error) {
+func (s *taskConversationService) CreateConversation(taskID uint, content, createdBy string) (*database.TaskConversation, error) {
 	// 验证输入数据
 	if err := s.ValidateConversationData(taskID, content, createdBy); err != nil {
 		return nil, err
-	}
-
-	// 验证角色
-	if role != database.ConversationRoleUser && role != database.ConversationRoleAssistant {
-		return nil, errors.New("invalid conversation role")
 	}
 
 	// 检查任务是否存在且属于当前用户
@@ -42,7 +37,6 @@ func (s *taskConversationService) CreateConversation(taskID uint, content, creat
 	conversation := &database.TaskConversation{
 		TaskID:    taskID,
 		Content:   strings.TrimSpace(content),
-		Role:      role,
 		Status:    database.ConversationStatusPending,
 		CreatedBy: createdBy,
 	}

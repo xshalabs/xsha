@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"sleep0-backend/database"
 	"sleep0-backend/services"
 	"strconv"
 
@@ -25,7 +24,6 @@ func NewTaskConversationHandlers(conversationService services.TaskConversationSe
 type CreateConversationRequest struct {
 	TaskID  uint   `json:"task_id" binding:"required"`
 	Content string `json:"content" binding:"required"`
-	Role    string `json:"role" binding:"required,oneof=user assistant"`
 }
 
 // UpdateConversationRequest 更新对话请求结构
@@ -49,8 +47,7 @@ func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 	}
 
 	// 创建对话
-	role := database.ConversationRole(req.Role)
-	conversation, err := h.conversationService.CreateConversation(req.TaskID, req.Content, username.(string), role)
+	conversation, err := h.conversationService.CreateConversation(req.TaskID, req.Content, username.(string))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

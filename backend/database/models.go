@@ -192,14 +192,6 @@ const (
 	TaskStatusCancelled  TaskStatus = "cancelled"   // 已取消
 )
 
-// ConversationRole 对话角色
-type ConversationRole string
-
-const (
-	ConversationRoleUser      ConversationRole = "user"      // 用户
-	ConversationRoleAssistant ConversationRole = "assistant" // AI助手
-)
-
 // ConversationStatus 对话状态
 type ConversationStatus string
 
@@ -252,7 +244,6 @@ type TaskConversation struct {
 
 	// 对话信息
 	Content string             `gorm:"type:text;not null" json:"content"` // 对话内容
-	Role    ConversationRole   `gorm:"not null;index" json:"role"`        // 对话角色
 	Status  ConversationStatus `gorm:"not null;index" json:"status"`      // 对话状态
 
 	// 元数据

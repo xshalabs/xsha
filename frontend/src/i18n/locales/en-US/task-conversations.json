@@ -1,20 +1,17 @@
 {
-  "title": "Task Conversations",
-  "subtitle": "Task: {{taskTitle}}",
-  "history": "Conversation History",
+  "list": {
+    "title": "Task Conversations",
+    "description": "Conversations for task: {{taskTitle}}"
+  },
   "newMessage": "New Message",
-  "messageCount": "{{count}} messages",
-  "messageRole": "Role",
-  "messagePlaceholder": "Enter your message...",
-  "sendHint": "Press Cmd/Ctrl + Enter to send quickly",
+  "content": "Content",
+  "contentPlaceholder": "Enter your message...",
+  "shortcut": "Press Ctrl/Cmd + Enter to send quickly",
+  "message": "Message",
   "selectTask": "Please select a task to view conversations",
   "empty": {
     "title": "No conversations yet",
     "description": "Start your first conversation"
-  },
-  "role": {
-    "user": "User",
-    "assistant": "Assistant"
   },
   "status": {
     "pending": "Pending",

@@ -83,8 +83,7 @@ const TaskConversationPage: React.FC = () => {
     try {
       await apiService.taskConversations.create({
         task_id: task.id,
-        content: data.content,
-        role: data.role
+        content: data.content
       });
       
       // 重新加载对话列表

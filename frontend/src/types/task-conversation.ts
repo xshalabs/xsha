@@ -1,6 +1,3 @@
-// 对话角色类型
-export type ConversationRole = 'user' | 'assistant';
-
 // 对话状态类型
 export type ConversationStatus = 'pending' | 'running' | 'success' | 'failed' | 'cancelled';
 
@@ -9,7 +6,6 @@ export interface TaskConversation {
   id: number;
   task_id: number;
   content: string;
-  role: ConversationRole;
   status: ConversationStatus;
   created_by: string;
   created_at: string;
@@ -24,7 +20,6 @@ export interface TaskConversation {
 export interface CreateConversationRequest {
   task_id: number;
   content: string;
-  role: ConversationRole;
 }
 
 // 更新对话请求
@@ -70,5 +65,4 @@ export interface LatestConversationResponse {
 // 对话表单数据
 export interface ConversationFormData {
   content: string;
-  role: ConversationRole;
 } 

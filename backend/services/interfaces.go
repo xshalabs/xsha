@@ -135,7 +135,7 @@ type TaskService interface {
 // TaskConversationService 定义任务对话服务接口
 type TaskConversationService interface {
 	// 对话管理
-	CreateConversation(taskID uint, content, createdBy string, role database.ConversationRole) (*database.TaskConversation, error)
+	CreateConversation(taskID uint, content, createdBy string) (*database.TaskConversation, error)
 	GetConversation(id uint, createdBy string) (*database.TaskConversation, error)
 	ListConversations(taskID uint, createdBy string, page, pageSize int) ([]database.TaskConversation, int64, error)
 	UpdateConversation(id uint, createdBy string, updates map[string]interface{}) error
