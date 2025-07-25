@@ -250,17 +250,6 @@ type TaskConversation struct {
 	CreatedBy string `gorm:"not null;index" json:"created_by"` // 创建者
 }
 
-// TaskExecutionStatus 任务执行状态
-type TaskExecutionStatus string
-
-const (
-	TaskExecStatusPending   TaskExecutionStatus = "pending"   // 等待执行
-	TaskExecStatusRunning   TaskExecutionStatus = "running"   // 执行中
-	TaskExecStatusSuccess   TaskExecutionStatus = "success"   // 执行成功
-	TaskExecStatusFailed    TaskExecutionStatus = "failed"    // 执行失败
-	TaskExecStatusCancelled TaskExecutionStatus = "cancelled" // 已取消
-)
-
 // TaskExecutionLog 任务执行日志模型
 type TaskExecutionLog struct {
 	ID        uint           `gorm:"primarykey" json:"id"`
@@ -273,12 +262,11 @@ type TaskExecutionLog struct {
 	Conversation   *TaskConversation `gorm:"foreignKey:ConversationID" json:"conversation"` // 关联对话
 
 	// 执行信息
-	Status        TaskExecutionStatus `gorm:"not null;index" json:"status"`        // 执行状态
-	WorkspacePath string              `gorm:"type:text" json:"workspace_path"`     // 工作目录绝对路径
-	DockerCommand string              `gorm:"type:text" json:"docker_command"`     // 执行的Docker命令
-	ExecutionLogs string              `gorm:"type:longtext" json:"execution_logs"` // 执行日志（实时追加）
-	ErrorMessage  string              `gorm:"type:text" json:"error_message"`      // 错误信息
-	CommitHash    string              `gorm:"default:''" json:"commit_hash"`       // 提交的hash（成功时）
+	WorkspacePath string `gorm:"type:text" json:"workspace_path"`     // 工作目录绝对路径
+	DockerCommand string `gorm:"type:text" json:"docker_command"`     // 执行的Docker命令
+	ExecutionLogs string `gorm:"type:longtext" json:"execution_logs"` // 执行日志（实时追加）
+	ErrorMessage  string `gorm:"type:text" json:"error_message"`      // 错误信息
+	CommitHash    string `gorm:"default:''" json:"commit_hash"`       // 提交的hash（成功时）
 
 	// 时间信息
 	StartedAt   *time.Time `json:"started_at"`   // 开始执行时间

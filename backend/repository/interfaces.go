@@ -120,8 +120,6 @@ type TaskExecutionLogRepository interface {
 	GetByID(id uint) (*database.TaskExecutionLog, error)
 	GetByConversationID(conversationID uint) (*database.TaskExecutionLog, error)
 	Update(log *database.TaskExecutionLog) error
-	UpdateStatus(id uint, status database.TaskExecutionStatus) error
 	AppendLog(id uint, logContent string) error
-	ListByStatus(status database.TaskExecutionStatus, limit int) ([]database.TaskExecutionLog, error)
 	DeleteByConversationID(conversationID uint) error
 }

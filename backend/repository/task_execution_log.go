@@ -2,7 +2,6 @@ package repository
 
 import (
 	"sleep0-backend/database"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -46,37 +45,11 @@ func (r *taskExecutionLogRepository) Update(log *database.TaskExecutionLog) erro
 	return r.db.Save(log).Error
 }
 
-// UpdateStatus 更新执行状态
-func (r *taskExecutionLogRepository) UpdateStatus(id uint, status database.TaskExecutionStatus) error {
-	updates := map[string]interface{}{
-		"status": status,
-	}
-
-	if status == database.TaskExecStatusRunning {
-		updates["started_at"] = time.Now()
-	} else if status == database.TaskExecStatusSuccess || status == database.TaskExecStatusFailed || status == database.TaskExecStatusCancelled {
-		updates["completed_at"] = time.Now()
-	}
-
-	return r.db.Model(&database.TaskExecutionLog{}).Where("id = ?", id).Updates(updates).Error
-}
-
 // AppendLog 追加执行日志
 func (r *taskExecutionLogRepository) AppendLog(id uint, logContent string) error {
 	return r.db.Model(&database.TaskExecutionLog{}).
 		Where("id = ?", id).
 		Update("execution_logs", gorm.Expr("CONCAT(execution_logs, ?)", logContent)).Error
-}
-
-// ListByStatus 根据状态获取执行日志列表
-func (r *taskExecutionLogRepository) ListByStatus(status database.TaskExecutionStatus, limit int) ([]database.TaskExecutionLog, error) {
-	var logs []database.TaskExecutionLog
-	query := r.db.Where("status = ?", status).Order("created_at ASC")
-	if limit > 0 {
-		query = query.Limit(limit)
-	}
-	err := query.Find(&logs).Error
-	return logs, err
 }
 
 // DeleteByConversationID 删除指定对话ID的所有执行日志

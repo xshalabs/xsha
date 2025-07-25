@@ -209,16 +209,6 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint, createdBy s
 		return fmt.Errorf("更新对话状态为已取消时出错: %v", err)
 	}
 
-	// 同步更新执行日志状态（如果存在）
-	execLog, err := s.execLogRepo.GetByConversationID(conversationID)
-	if err != nil {
-		log.Printf("获取执行日志失败，但对话状态已更新: %v", err)
-	} else {
-		if updateErr := s.execLogRepo.UpdateStatus(execLog.ID, database.TaskExecStatusCancelled); updateErr != nil {
-			log.Printf("同步更新执行日志状态时出错: %v", updateErr)
-		}
-	}
-
 	return nil
 }
 
@@ -302,7 +292,6 @@ func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversat
 	// 创建执行日志
 	execLog := &database.TaskExecutionLog{
 		ConversationID: conv.ID,
-		Status:         database.TaskExecStatusPending,
 	}
 	if err := s.execLogRepo.Create(execLog); err != nil {
 		s.rollbackConversationState(conv, fmt.Sprintf("创建执行日志失败: %v", err))
@@ -317,7 +306,6 @@ func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversat
 		// 如果无法添加到执行管理器，回滚状态
 		s.rollbackToState(conv, execLog,
 			database.ConversationStatusPending,
-			database.TaskExecStatusCancelled,
 			"超过最大并发数限制")
 		return fmt.Errorf("超过最大并发数限制")
 	}
@@ -344,32 +332,13 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 			log.Printf("更新对话最终状态失败: %v", err)
 		}
 
-		// 根据对话状态自动推导执行日志状态
-		var execStatus database.TaskExecutionStatus
-		switch finalStatus {
-		case database.ConversationStatusSuccess:
-			execStatus = database.TaskExecStatusSuccess
-		case database.ConversationStatusFailed:
-			execStatus = database.TaskExecStatusFailed
-		case database.ConversationStatusCancelled:
-			execStatus = database.TaskExecStatusCancelled
-		default:
-			// 理论上不应该到这里，但为了安全起见
-			execStatus = database.TaskExecStatusFailed
-		}
-
-		// 更新执行日志状态和时间
-		execLog.Status = execStatus
+		// 更新执行日志信息
 		execLog.ErrorMessage = errorMsg
 		execLog.CommitHash = commitHash
 
 		// 更新完成时间
-		if execStatus == database.TaskExecStatusSuccess ||
-			execStatus == database.TaskExecStatusFailed ||
-			execStatus == database.TaskExecStatusCancelled {
-			now := time.Now()
-			execLog.CompletedAt = &now
-		}
+		now := time.Now()
+		execLog.CompletedAt = &now
 
 		if err := s.execLogRepo.Update(execLog); err != nil {
 			log.Printf("更新执行日志最终状态失败: %v", err)
@@ -405,7 +374,6 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	defer s.workspaceManager.CleanupWorkspace(workspacePath)
 
 	execLog.WorkspacePath = workspacePath
-	execLog.Status = database.TaskExecStatusRunning
 	now := time.Now()
 	execLog.StartedAt = &now
 	s.execLogRepo.Update(execLog)
@@ -683,7 +651,6 @@ func (s *aiTaskExecutorService) setConversationFailed(conv *database.TaskConvers
 	// 创建执行日志记录失败原因
 	execLog := &database.TaskExecutionLog{
 		ConversationID: conv.ID,
-		Status:         database.TaskExecStatusFailed,
 		ErrorMessage:   errorMessage,
 	}
 	if logErr := s.execLogRepo.Create(execLog); logErr != nil {
@@ -701,7 +668,6 @@ func (s *aiTaskExecutorService) rollbackConversationState(conv *database.TaskCon
 	// 尝试创建或更新执行日志记录失败原因
 	failedExecLog := &database.TaskExecutionLog{
 		ConversationID: conv.ID,
-		Status:         database.TaskExecStatusFailed,
 		ErrorMessage:   errorMessage,
 	}
 	if logErr := s.execLogRepo.Create(failedExecLog); logErr != nil {
@@ -714,7 +680,6 @@ func (s *aiTaskExecutorService) rollbackToState(
 	conv *database.TaskConversation,
 	execLog *database.TaskExecutionLog,
 	convStatus database.ConversationStatus,
-	execStatus database.TaskExecutionStatus,
 	errorMessage string,
 ) {
 	// 回滚对话状态
@@ -723,11 +688,10 @@ func (s *aiTaskExecutorService) rollbackToState(
 		log.Printf("回滚对话状态为%s时出错: %v", convStatus, updateErr)
 	}
 
-	// 更新执行日志状态
-	execLog.Status = execStatus
+	// 更新执行日志错误信息
 	execLog.ErrorMessage = errorMessage
 	if updateErr := s.execLogRepo.Update(execLog); updateErr != nil {
-		log.Printf("更新执行日志状态时出错: %v", updateErr)
+		log.Printf("更新执行日志时出错: %v", updateErr)
 	}
 }
 

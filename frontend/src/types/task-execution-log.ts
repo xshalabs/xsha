@@ -1,11 +1,7 @@
-// 任务执行状态类型
-export type TaskExecutionStatus = 'pending' | 'running' | 'success' | 'failed' | 'cancelled';
-
 // 任务执行日志接口
 export interface TaskExecutionLog {
   id: number;
   conversation_id: number;
-  status: TaskExecutionStatus;
   workspace_path: string;
   docker_command: string;
   execution_logs: string;
