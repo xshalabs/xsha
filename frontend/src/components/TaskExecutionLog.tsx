@@ -76,14 +76,14 @@ export function TaskExecutionLog({
     }
   };
 
-  // 检查是否可以取消
-  const canCancel = (status: TaskExecutionStatus) => {
-    return status === 'pending' || status === 'running';
+  // 检查是否可以取消 - 基于对话状态
+  const canCancel = (conversationStatus: ConversationStatus) => {
+    return conversationStatus === 'pending' || conversationStatus === 'running';
   };
 
-  // 检查是否可以重试
-  const canRetry = (status: TaskExecutionStatus) => {
-    return status === 'failed' || status === 'cancelled';
+  // 检查是否可以重试 - 基于对话状态
+  const canRetry = (conversationStatus: ConversationStatus) => {
+    return conversationStatus === 'failed' || conversationStatus === 'cancelled';
   };
 
   // 加载执行日志
@@ -246,7 +246,7 @@ export function TaskExecutionLog({
             </Badge>
             
             {/* 操作按钮 */}
-            {canCancel(executionLog.status) && (
+            {canCancel(conversationStatus) && (
               <Button
                 variant="outline"
                 size="sm"
@@ -258,7 +258,7 @@ export function TaskExecutionLog({
               </Button>
             )}
             
-            {canRetry(executionLog.status) && (
+            {canRetry(conversationStatus) && (
               <Button
                 variant="outline"
                 size="sm"

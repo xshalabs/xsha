@@ -158,7 +158,7 @@ type AITaskExecutorService interface {
 	GetExecutionLog(conversationID uint) (*database.TaskExecutionLog, error)
 
 	// 取消执行
-	CancelExecution(conversationID uint) error
+	CancelExecution(conversationID uint, createdBy string) error
 
 	// 重试执行
 	RetryExecution(conversationID uint, createdBy string) error

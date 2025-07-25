@@ -186,13 +186,15 @@ func (s *aiTaskExecutorService) GetExecutionLog(conversationID uint) (*database.
 }
 
 // CancelExecution 取消执行 - 支持强制取消正在运行的任务
-func (s *aiTaskExecutorService) CancelExecution(conversationID uint) error {
-	execLog, err := s.execLogRepo.GetByConversationID(conversationID)
+func (s *aiTaskExecutorService) CancelExecution(conversationID uint, createdBy string) error {
+	// 获取对话信息作为主体
+	conv, err := s.taskConvRepo.GetByID(conversationID, createdBy)
 	if err != nil {
-		return fmt.Errorf("获取执行日志失败: %v", err)
+		return fmt.Errorf("获取对话信息失败: %v", err)
 	}
 
-	if execLog.Status != database.TaskExecStatusPending && execLog.Status != database.TaskExecStatusRunning {
+	// 检查对话状态是否可以取消
+	if conv.Status != database.ConversationStatusPending && conv.Status != database.ConversationStatusRunning {
 		return fmt.Errorf("只能取消待处理或执行中的任务")
 	}
 
@@ -201,19 +203,23 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint) error {
 		log.Printf("强制取消正在运行的对话 %d", conversationID)
 	}
 
-	// 获取对话信息并更新状态为已取消
-	conv, err := s.taskConvRepo.GetByID(conversationID, "")
+	// 更新对话状态为已取消
+	conv.Status = database.ConversationStatusCancelled
+	if err := s.taskConvRepo.Update(conv); err != nil {
+		return fmt.Errorf("更新对话状态为已取消时出错: %v", err)
+	}
+
+	// 同步更新执行日志状态（如果存在）
+	execLog, err := s.execLogRepo.GetByConversationID(conversationID)
 	if err != nil {
-		log.Printf("获取对话信息失败，仅更新执行日志状态: %v", err)
+		log.Printf("获取执行日志失败，但对话状态已更新: %v", err)
 	} else {
-		conv.Status = database.ConversationStatusCancelled
-		if updateErr := s.taskConvRepo.Update(conv); updateErr != nil {
-			log.Printf("更新对话状态为已取消时出错: %v", updateErr)
+		if updateErr := s.execLogRepo.UpdateStatus(execLog.ID, database.TaskExecStatusCancelled); updateErr != nil {
+			log.Printf("同步更新执行日志状态时出错: %v", updateErr)
 		}
 	}
 
-	// 更新执行状态为已取消
-	return s.execLogRepo.UpdateStatus(execLog.ID, database.TaskExecStatusCancelled)
+	return nil
 }
 
 // RetryExecution 重试执行对话
@@ -320,7 +326,6 @@ func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversat
 // executeTask 在协程中执行任务 - 添加上下文控制
 func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.TaskConversation, execLog *database.TaskExecutionLog) {
 	var finalStatus database.ConversationStatus
-	var execStatus database.TaskExecutionStatus
 	var errorMsg string
 	var commitHash string
 
@@ -328,10 +333,24 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	defer func() {
 		s.executionManager.RemoveExecution(conv.ID)
 
-		// 更新对话状态
+		// 更新对话状态 (主状态)
 		conv.Status = finalStatus
 		if err := s.taskConvRepo.Update(conv); err != nil {
 			log.Printf("更新对话最终状态失败: %v", err)
+		}
+
+		// 根据对话状态自动推导执行日志状态
+		var execStatus database.TaskExecutionStatus
+		switch finalStatus {
+		case database.ConversationStatusSuccess:
+			execStatus = database.TaskExecStatusSuccess
+		case database.ConversationStatusFailed:
+			execStatus = database.TaskExecStatusFailed
+		case database.ConversationStatusCancelled:
+			execStatus = database.TaskExecStatusCancelled
+		default:
+			// 理论上不应该到这里，但为了安全起见
+			execStatus = database.TaskExecStatusFailed
 		}
 
 		// 更新执行日志状态和时间
@@ -352,20 +371,19 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		}
 
 		// 广播状态变化
-		statusMessage := fmt.Sprintf("执行完成: %s", string(execStatus))
+		statusMessage := fmt.Sprintf("执行完成: %s", string(finalStatus))
 		if errorMsg != "" {
 			statusMessage += fmt.Sprintf(" - %s", errorMsg)
 		}
-		s.logBroadcaster.BroadcastStatusChange(conv.ID, string(execStatus), statusMessage)
+		s.logBroadcaster.BroadcastStatusChange(conv.ID, string(finalStatus), statusMessage)
 
-		log.Printf("对话 %d 执行完成，状态: %s", conv.ID, string(execStatus))
+		log.Printf("对话 %d 执行完成，状态: %s", conv.ID, string(finalStatus))
 	}()
 
 	// 检查是否被取消
 	select {
 	case <-ctx.Done():
 		finalStatus = database.ConversationStatusCancelled
-		execStatus = database.TaskExecStatusCancelled
 		errorMsg = "任务被取消"
 		s.appendLog(execLog.ID, "❌ 任务被用户取消\n")
 		return
@@ -376,7 +394,6 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	workspacePath, err := s.workspaceManager.CreateTempWorkspace(conv.ID)
 	if err != nil {
 		finalStatus = database.ConversationStatusFailed
-		execStatus = database.TaskExecStatusFailed
 		errorMsg = fmt.Sprintf("创建工作目录失败: %v", err)
 		return
 	}
@@ -392,7 +409,6 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	select {
 	case <-ctx.Done():
 		finalStatus = database.ConversationStatusCancelled
-		execStatus = database.TaskExecStatusCancelled
 		errorMsg = "任务被取消"
 		s.appendLog(execLog.ID, "❌ 任务在准备阶段被取消\n")
 		return
@@ -403,7 +419,6 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	credential, err := s.prepareGitCredential(conv.Task.Project)
 	if err != nil {
 		finalStatus = database.ConversationStatusFailed
-		execStatus = database.TaskExecStatusFailed
 		errorMsg = fmt.Sprintf("准备Git凭据失败: %v", err)
 		return
 	}
@@ -416,7 +431,6 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		s.config.GitSSLVerify,
 	); err != nil {
 		finalStatus = database.ConversationStatusFailed
-		execStatus = database.TaskExecStatusFailed
 		errorMsg = fmt.Sprintf("克隆仓库失败: %v", err)
 		return
 	}
@@ -436,12 +450,10 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		select {
 		case <-ctx.Done():
 			finalStatus = database.ConversationStatusCancelled
-			execStatus = database.TaskExecStatusCancelled
 			errorMsg = "任务被取消"
 			s.appendLog(execLog.ID, "❌ 任务在执行过程中被取消\n")
 		default:
 			finalStatus = database.ConversationStatusFailed
-			execStatus = database.TaskExecStatusFailed
 			errorMsg = fmt.Sprintf("执行Docker命令失败: %v", err)
 		}
 		return
@@ -458,7 +470,6 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	}
 
 	finalStatus = database.ConversationStatusSuccess
-	execStatus = database.TaskExecStatusSuccess
 }
 
 // prepareGitCredential 准备Git凭据
