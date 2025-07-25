@@ -7,6 +7,7 @@
   "content": "Content",
   "contentPlaceholder": "Enter your message...",
   "shortcut": "Press Ctrl/Cmd + Enter to send quickly",
+  "cannotSendWhileProcessing": "Cannot send new messages while there are pending or running conversations",
   "message": "Message",
   "selectTask": "Please select a task to view conversations",
   "empty": {

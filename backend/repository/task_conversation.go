@@ -105,3 +105,19 @@ func (r *taskConversationRepository) GetPendingConversationsWithDetails() ([]dat
 		Find(&conversations).Error
 	return conversations, err
 }
+
+// HasPendingOrRunningConversations 检查任务是否有pending或running状态的对话
+func (r *taskConversationRepository) HasPendingOrRunningConversations(taskID uint, createdBy string) (bool, error) {
+	var count int64
+	err := r.db.Model(&database.TaskConversation{}).
+		Where("task_id = ? AND created_by = ? AND status IN (?)",
+			taskID, createdBy, []database.ConversationStatus{
+				database.ConversationStatusPending,
+				database.ConversationStatusRunning,
+			}).
+		Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}

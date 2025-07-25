@@ -40,13 +40,20 @@ const TaskCreatePage: React.FC = () => {
     loadProjects();
   }, [projectId]);
 
-  const handleSubmit = async (data: TaskFormData) => {
+  const handleSubmit = async (data: TaskFormData | { title: string }) => {
     try {
       const projectIdNum = projectId ? parseInt(projectId, 10) : undefined;
       if (!projectIdNum) {
         throw new Error('项目ID不能为空');
       }
-      await apiService.tasks.create({ ...data, project_id: projectIdNum });
+      
+      // 类型守卫，确保data包含必要的字段
+      if ('start_branch' in data && 'project_id' in data) {
+        await apiService.tasks.create({ ...data, project_id: projectIdNum });
+      } else {
+        // 如果只有title，需要其他必需字段的默认值
+        throw new Error('缺少必需的任务字段');
+      }
       navigate(`/projects/${projectId}/tasks`);
     } catch (error) {
       logError(error as Error, 'Failed to submit task');

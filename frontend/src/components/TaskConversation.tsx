@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { 
   Send, 
   User, 
-  Bot, 
   Clock, 
   CheckCircle, 
   XCircle, 
@@ -67,9 +66,17 @@ export function TaskConversation({
     }
   };
 
+  // 检查是否有正在处理的对话
+  const hasPendingOrRunningConversations = () => {
+    return conversations.some(conv => 
+      conv.status === 'pending' || conv.status === 'running'
+    );
+  };
+
   // 处理发送消息
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
+    if (hasPendingOrRunningConversations()) return;
 
     setSending(true);
     try {
@@ -231,13 +238,20 @@ export function TaskConversation({
             <div className="flex justify-end">
               <Button
                 onClick={handleSendMessage}
-                disabled={!newMessage.trim() || sending}
+                disabled={!newMessage.trim() || sending || hasPendingOrRunningConversations()}
                 className="flex items-center space-x-2"
               >
                 <Send className="w-4 h-4" />
                 <span>{sending ? t('common.sending') : t('common.send')}</span>
               </Button>
             </div>
+
+            {/* 状态提示 */}
+            {hasPendingOrRunningConversations() && (
+              <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                {t('taskConversation.cannotSendWhileProcessing')}
+              </div>
+            )}
 
             {/* 快捷键提示 */}
             <div className="text-xs text-gray-500">

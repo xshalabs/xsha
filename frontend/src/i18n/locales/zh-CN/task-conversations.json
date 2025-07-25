@@ -7,6 +7,7 @@
   "content": "内容",
   "contentPlaceholder": "请输入对话内容...",
   "shortcut": "按 Ctrl/Cmd + Enter 快速发送",
+  "cannotSendWhileProcessing": "存在待处理或执行中的对话时无法发送新消息",
   "message": "消息",
   "selectTask": "请先选择一个任务查看对话",
   "empty": {
