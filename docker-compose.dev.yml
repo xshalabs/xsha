@@ -22,9 +22,9 @@ services:
       - SLEEP0_DOCKER_TIMEOUT=30m
       - SLEEP0_GIT_SSL_VERIFY=false
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./backend:/app:cached
       - ./runtime/db:/app/data
-      - /var/run/docker.sock:/var/run/docker.sock
       - ./runtime/workspaces:/app/workspaces
     restart: unless-stopped
     command: ["air", "-c", ".air.toml"]
