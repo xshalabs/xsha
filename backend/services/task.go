@@ -23,7 +23,7 @@ func NewTaskService(repo repository.TaskRepository, projectRepo repository.Proje
 }
 
 // CreateTask 创建任务
-func (s *taskService) CreateTask(title, description, startBranch, createdBy string, projectID uint, devEnvironmentID *uint) (*database.Task, error) {
+func (s *taskService) CreateTask(title, startBranch, createdBy string, projectID uint, devEnvironmentID *uint) (*database.Task, error) {
 	// 验证输入数据
 	if err := s.ValidateTaskData(title, startBranch, projectID, createdBy); err != nil {
 		return nil, err
@@ -47,7 +47,6 @@ func (s *taskService) CreateTask(title, description, startBranch, createdBy stri
 	// 创建任务
 	task := &database.Task{
 		Title:            strings.TrimSpace(title),
-		Description:      strings.TrimSpace(description),
 		StartBranch:      strings.TrimSpace(startBranch),
 		Status:           database.TaskStatusTodo,
 		ProjectID:        projectID,
@@ -122,10 +121,6 @@ func (s *taskService) UpdateTask(id uint, createdBy string, updates map[string]i
 		case "title":
 			if v, ok := value.(string); ok {
 				task.Title = strings.TrimSpace(v)
-			}
-		case "description":
-			if v, ok := value.(string); ok {
-				task.Description = strings.TrimSpace(v)
 			}
 		case "start_branch":
 			if v, ok := value.(string); ok {

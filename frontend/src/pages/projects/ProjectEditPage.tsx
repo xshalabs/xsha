@@ -44,7 +44,7 @@ const ProjectEditPage: React.FC = () => {
     loadProject();
   }, [id, navigate, t]);
 
-  const handleSubmit = (project: Project) => {
+  const handleSubmit = (_project: Project) => {
     navigate('/projects');
   };
 

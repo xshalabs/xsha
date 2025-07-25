@@ -5,7 +5,6 @@ export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'cancelled';
 export interface Task {
   id: number;
   title: string;
-  description: string;
   start_branch: string;
   status: TaskStatus;
   has_pull_request: boolean;
@@ -29,16 +28,15 @@ export interface Task {
 // 创建任务请求
 export interface CreateTaskRequest {
   title: string;
-  description?: string;
   start_branch: string;
   project_id: number;
   dev_environment_id?: number;
+  requirement_desc?: string; // 需求描述
 }
 
 // 更新任务请求
 export interface UpdateTaskRequest {
   title?: string;
-  description?: string;
   start_branch?: string;
   dev_environment_id?: number;
 }
@@ -91,8 +89,8 @@ export interface TaskStatsResponse {
 // 任务表单数据
 export interface TaskFormData {
   title: string;
-  description: string;
   start_branch: string;
   project_id: number;
   dev_environment_id?: number;
+  requirement_desc?: string; // 需求描述，仅在创建时使用
 } 

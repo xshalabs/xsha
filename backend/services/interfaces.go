@@ -118,7 +118,7 @@ type DevEnvironmentService interface {
 // TaskService 定义任务服务接口
 type TaskService interface {
 	// 任务管理
-	CreateTask(title, description, startBranch, createdBy string, projectID uint, devEnvironmentID *uint) (*database.Task, error)
+	CreateTask(title, startBranch, createdBy string, projectID uint, devEnvironmentID *uint) (*database.Task, error)
 	GetTask(id uint, createdBy string) (*database.Task, error)
 	ListTasks(projectID *uint, createdBy string, status *database.TaskStatus, page, pageSize int) ([]database.Task, int64, error)
 	UpdateTask(id uint, createdBy string, updates map[string]interface{}) error

@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { apiService } from '@/lib/api/index';
 import { logError } from '@/lib/errors';
-import { ROUTES } from '@/lib/constants';
 import { ProjectList } from '@/components/ProjectList';
 import type { Project } from '@/types/project';
 

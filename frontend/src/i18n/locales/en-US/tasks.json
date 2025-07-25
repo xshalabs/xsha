@@ -27,7 +27,7 @@
   },
   "fields": {
     "title": "Task Title",
-    "description": "Task Description",
+    "requirementDesc": "Requirement Description",
     "project": "Project",
     "startBranch": "Start Branch",
     "status": "Status",
@@ -38,7 +38,8 @@
     "createDescription": "Create a new development task",
     "editDescription": "Edit task information",
     "titlePlaceholder": "Enter task title",
-    "descriptionPlaceholder": "Describe the specific content and requirements of the task",
+    "requirementDescPlaceholder": "Describe the specific requirements and goals of the task",
+    "requirementDescHint": "This will be recorded as the initial conversation for the task",
     "selectProject": "Select a project",
     "selectDevEnvironment": "Select development environment",
     "noDevEnvironment": "No environment binding",

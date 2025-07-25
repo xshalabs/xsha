@@ -13,7 +13,7 @@ const ProjectCreatePage: React.FC = () => {
   
   usePageTitle(t('projects.create'));
 
-  const handleSubmit = (project: Project) => {
+  const handleSubmit = (_project: Project) => {
     navigate('/projects');
   };
 

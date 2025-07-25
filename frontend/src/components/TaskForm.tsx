@@ -31,10 +31,10 @@ export function TaskForm({
 
   const [formData, setFormData] = useState<TaskFormData>({
     title: task?.title || '',
-    description: task?.description || '',
     start_branch: task?.start_branch || 'main',
     project_id: task?.project_id || (projects[0]?.id || 0),
     dev_environment_id: task?.dev_environment_id || undefined,
+    requirement_desc: '', // 仅在创建时使用
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -151,20 +151,25 @@ export function TaskForm({
               )}
             </div>
 
-            {/* 任务描述 */}
-            <div className="space-y-2">
-              <Label htmlFor="description">
-                {t('tasks.fields.description')}
-              </Label>
-              <textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder={t('tasks.form.descriptionPlaceholder')}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+            {/* 任务描述 - 仅在创建模式下显示 */}
+            {!isEdit && (
+              <div className="space-y-2">
+                <Label htmlFor="requirement_desc">
+                  {t('tasks.fields.requirementDesc')}
+                </Label>
+                <textarea
+                  id="requirement_desc"
+                  value={formData.requirement_desc || ''}
+                  onChange={(e) => handleChange('requirement_desc', e.target.value)}
+                  placeholder={t('tasks.form.requirementDescPlaceholder')}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="text-sm text-gray-500">
+                  {t('tasks.form.requirementDescHint')}
+                </p>
+              </div>
+            )}
 
             {/* 项目选择 */}
             <div className="space-y-2">

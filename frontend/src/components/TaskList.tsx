@@ -242,13 +242,6 @@ export function TaskList({
               </CardHeader>
               
               <CardContent className="space-y-4">
-                {/* 任务描述 */}
-                {task.description && (
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {task.description}
-                  </p>
-                )}
-
                 {/* 分支信息 */}
                 <div className="flex items-center text-sm text-gray-500">
                   <GitBranch className="w-4 h-4 mr-1" />

@@ -220,7 +220,6 @@ type Task struct {
 
 	// 基本信息
 	Title       string `gorm:"not null" json:"title"`              // 任务标题
-	Description string `gorm:"type:text" json:"description"`       // 任务描述
 	StartBranch string `gorm:"default:'main'" json:"start_branch"` // 开始开发的分支
 
 	// 状态信息

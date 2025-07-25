@@ -5,35 +5,37 @@ import (
 	"sleep0-backend/database"
 	"sleep0-backend/services"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 // TaskHandlers 任务处理器结构体
 type TaskHandlers struct {
-	taskService services.TaskService
+	taskService         services.TaskService
+	conversationService services.TaskConversationService
 }
 
 // NewTaskHandlers 创建任务处理器实例
-func NewTaskHandlers(taskService services.TaskService) *TaskHandlers {
+func NewTaskHandlers(taskService services.TaskService, conversationService services.TaskConversationService) *TaskHandlers {
 	return &TaskHandlers{
-		taskService: taskService,
+		taskService:         taskService,
+		conversationService: conversationService,
 	}
 }
 
 // CreateTaskRequest 创建任务请求结构
 type CreateTaskRequest struct {
 	Title            string `json:"title" binding:"required"`
-	Description      string `json:"description"`
 	StartBranch      string `json:"start_branch" binding:"required"`
 	ProjectID        uint   `json:"project_id" binding:"required"`
 	DevEnvironmentID *uint  `json:"dev_environment_id"`
+	RequirementDesc  string `json:"requirement_desc"` // 需求描述，用于创建conversation
 }
 
 // UpdateTaskRequest 更新任务请求结构
 type UpdateTaskRequest struct {
 	Title            string `json:"title"`
-	Description      string `json:"description"`
 	StartBranch      string `json:"start_branch"`
 	DevEnvironmentID *uint  `json:"dev_environment_id"`
 }
@@ -54,10 +56,24 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 	}
 
 	// 创建任务
-	task, err := h.taskService.CreateTask(req.Title, req.Description, req.StartBranch, username.(string), req.ProjectID, req.DevEnvironmentID)
+	task, err := h.taskService.CreateTask(req.Title, req.StartBranch, username.(string), req.ProjectID, req.DevEnvironmentID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	// 如果有需求描述，创建初始对话记录
+	if strings.TrimSpace(req.RequirementDesc) != "" {
+		_, err := h.conversationService.CreateConversation(
+			task.ID,
+			req.RequirementDesc,
+			username.(string),
+			database.ConversationRoleUser,
+		)
+		if err != nil {
+			// 如果对话创建失败，记录错误但不影响任务创建
+			// 可以考虑添加日志记录
+		}
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
@@ -166,9 +182,6 @@ func (h *TaskHandlers) UpdateTask(c *gin.Context) {
 	updates := make(map[string]interface{})
 	if req.Title != "" {
 		updates["title"] = req.Title
-	}
-	if req.Description != "" {
-		updates["description"] = req.Description
 	}
 	if req.StartBranch != "" {
 		updates["start_branch"] = req.StartBranch
