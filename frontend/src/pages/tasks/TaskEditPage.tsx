@@ -53,11 +53,12 @@ const TaskEditPage: React.FC = () => {
     loadData();
   }, [taskId, projectId, navigate, t]);
 
-  const handleSubmit = async (data: TaskFormData) => {
+  const handleSubmit = async (data: TaskFormData | { title: string }) => {
     if (!taskId) return;
     
     try {
-      await apiService.tasks.update(parseInt(taskId, 10), data);
+      // 确保传递正确的数据格式给API（编辑时只有title字段）
+      await apiService.tasks.update(parseInt(taskId, 10), data as { title: string });
       navigate(`/projects/${projectId}/tasks`);
     } catch (error) {
       logError(error as Error, 'Failed to submit task');

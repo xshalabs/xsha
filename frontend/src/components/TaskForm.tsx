@@ -15,7 +15,7 @@ interface TaskFormProps {
   task?: Task;
   projects: Project[];
   loading?: boolean;
-  onSubmit: (data: TaskFormData) => Promise<void>;
+  onSubmit: (data: TaskFormData | { title: string }) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -68,12 +68,15 @@ export function TaskForm({
       newErrors.title = t('tasks.validation.titleRequired');
     }
 
-    if (!formData.start_branch.trim()) {
-      newErrors.start_branch = t('tasks.validation.branchRequired');
-    }
+    // 只在创建模式下验证其他字段
+    if (!isEdit) {
+      if (!formData.start_branch.trim()) {
+        newErrors.start_branch = t('tasks.validation.branchRequired');
+      }
 
-    if (!formData.project_id) {
-      newErrors.project_id = t('tasks.validation.projectRequired');
+      if (!formData.project_id) {
+        newErrors.project_id = t('tasks.validation.projectRequired');
+      }
     }
 
     setErrors(newErrors);
@@ -90,7 +93,12 @@ export function TaskForm({
 
     setSubmitting(true);
     try {
-      await onSubmit(formData);
+      // 在编辑模式下只发送标题字段
+      const submitData = isEdit 
+        ? { title: formData.title }
+        : formData;
+      
+      await onSubmit(submitData);
       // 成功后由父组件处理导航和消息显示
     } catch (error) {
       console.error('Failed to submit task:', error);
@@ -171,93 +179,99 @@ export function TaskForm({
               </div>
             )}
 
-            {/* 项目选择 */}
-            <div className="space-y-2">
-              <Label htmlFor="project">
-                {t('tasks.fields.project')} <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.project_id.toString()}
-                onValueChange={(value) => handleChange('project_id', parseInt(value))}
-              >
-                <SelectTrigger className={errors.project_id ? 'border-red-500' : ''}>
-                  <SelectValue placeholder={t('tasks.form.selectProject')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id.toString()}>
-                      <div className="flex items-center space-x-2">
-                        <span>{project.name}</span>
-                        {!project.is_active && (
-                          <span className="text-xs text-gray-500">({t('common.inactive')})</span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.project_id && (
-                <p className="text-sm text-red-500">{errors.project_id}</p>
-              )}
-            </div>
-
-            {/* 开发环境选择 */}
-            <div className="space-y-2">
-              <Label htmlFor="dev_environment">
-                {t('tasks.fields.devEnvironment')}
-              </Label>
-              <Select
-                value={formData.dev_environment_id?.toString() || 'none'}
-                onValueChange={(value) => handleChange('dev_environment_id', value === 'none' ? undefined : parseInt(value))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('tasks.form.selectDevEnvironment')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">
-                    {t('tasks.form.noDevEnvironment')}
-                  </SelectItem>
-                  {loadingDevEnvs ? (
-                    <SelectItem value="loading" disabled>
-                      {t('common.loading')}...
-                    </SelectItem>
-                  ) : (
-                    devEnvironments.map((env) => (
-                      <SelectItem key={env.id} value={env.id.toString()}>
+            {/* 项目选择 - 仅在创建模式下显示 */}
+            {!isEdit && (
+              <div className="space-y-2">
+                <Label htmlFor="project">
+                  {t('tasks.fields.project')} <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={formData.project_id.toString()}
+                  onValueChange={(value) => handleChange('project_id', parseInt(value))}
+                >
+                  <SelectTrigger className={errors.project_id ? 'border-red-500' : ''}>
+                    <SelectValue placeholder={t('tasks.form.selectProject')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id.toString()}>
                         <div className="flex items-center space-x-2">
-                          <span>{env.name}</span>
-                          <span className="text-xs text-gray-500">({env.type})</span>
+                          <span>{project.name}</span>
+                          {!project.is_active && (
+                            <span className="text-xs text-gray-500">({t('common.inactive')})</span>
+                          )}
                         </div>
                       </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-              <p className="text-sm text-gray-500">
-                {t('tasks.form.devEnvironmentHint')}
-              </p>
-            </div>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.project_id && (
+                  <p className="text-sm text-red-500">{errors.project_id}</p>
+                )}
+              </div>
+            )}
 
-            {/* 起始分支 */}
-            <div className="space-y-2">
-              <Label htmlFor="start_branch">
-                {t('tasks.fields.startBranch')} <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="start_branch"
-                type="text"
-                value={formData.start_branch}
-                onChange={(e) => handleChange('start_branch', e.target.value)}
-                placeholder={t('tasks.form.branchPlaceholder')}
-                className={errors.start_branch ? 'border-red-500' : ''}
-              />
-              {errors.start_branch && (
-                <p className="text-sm text-red-500">{errors.start_branch}</p>
-              )}
-              <p className="text-sm text-gray-500">
-                {t('tasks.form.branchHint')}
-              </p>
-            </div>
+            {/* 开发环境选择 - 仅在创建模式下显示 */}
+            {!isEdit && (
+              <div className="space-y-2">
+                <Label htmlFor="dev_environment">
+                  {t('tasks.fields.devEnvironment')}
+                </Label>
+                <Select
+                  value={formData.dev_environment_id?.toString() || 'none'}
+                  onValueChange={(value) => handleChange('dev_environment_id', value === 'none' ? undefined : parseInt(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('tasks.form.selectDevEnvironment')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">
+                      {t('tasks.form.noDevEnvironment')}
+                    </SelectItem>
+                    {loadingDevEnvs ? (
+                      <SelectItem value="loading" disabled>
+                        {t('common.loading')}...
+                      </SelectItem>
+                    ) : (
+                      devEnvironments.map((env) => (
+                        <SelectItem key={env.id} value={env.id.toString()}>
+                          <div className="flex items-center space-x-2">
+                            <span>{env.name}</span>
+                            <span className="text-xs text-gray-500">({env.type})</span>
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-gray-500">
+                  {t('tasks.form.devEnvironmentHint')}
+                </p>
+              </div>
+            )}
+
+            {/* 起始分支 - 仅在创建模式下显示 */}
+            {!isEdit && (
+              <div className="space-y-2">
+                <Label htmlFor="start_branch">
+                  {t('tasks.fields.startBranch')} <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="start_branch"
+                  type="text"
+                  value={formData.start_branch}
+                  onChange={(e) => handleChange('start_branch', e.target.value)}
+                  placeholder={t('tasks.form.branchPlaceholder')}
+                  className={errors.start_branch ? 'border-red-500' : ''}
+                />
+                {errors.start_branch && (
+                  <p className="text-sm text-red-500">{errors.start_branch}</p>
+                )}
+                <p className="text-sm text-gray-500">
+                  {t('tasks.form.branchHint')}
+                </p>
+              </div>
+            )}
 
             {/* 操作按钮 */}
             <div className="flex items-center justify-end space-x-4 pt-6">

@@ -82,7 +82,7 @@ func (s *taskService) ListTasks(projectID *uint, createdBy string, status *datab
 	return s.repo.List(projectID, createdBy, status, page, pageSize)
 }
 
-// UpdateTask 更新任务
+// UpdateTask 更新任务（只允许更新标题）
 func (s *taskService) UpdateTask(id uint, createdBy string, updates map[string]interface{}) error {
 	// 获取任务
 	task, err := s.repo.GetByID(id, createdBy)
@@ -90,50 +90,23 @@ func (s *taskService) UpdateTask(id uint, createdBy string, updates map[string]i
 		return err
 	}
 
-	// 验证更新数据
-	if title, ok := updates["title"]; ok {
-		if titleStr, ok := title.(string); ok && strings.TrimSpace(titleStr) == "" {
-			return errors.New("task title cannot be empty")
-		}
+	// 只允许更新标题
+	title, ok := updates["title"]
+	if !ok {
+		return errors.New("no updates provided")
 	}
 
-	if startBranch, ok := updates["start_branch"]; ok {
-		if branchStr, ok := startBranch.(string); ok && strings.TrimSpace(branchStr) == "" {
-			return errors.New("start branch cannot be empty")
-		}
+	titleStr, ok := title.(string)
+	if !ok {
+		return errors.New("invalid title format")
 	}
 
-	// 验证开发环境
-	if devEnvID, ok := updates["dev_environment_id"]; ok {
-		if devEnvID != nil {
-			if devEnvIDUint, ok := devEnvID.(uint); ok {
-				_, err := s.devEnvRepo.GetByID(devEnvIDUint, createdBy)
-				if err != nil {
-					return errors.New("development environment not found or access denied")
-				}
-			}
-		}
+	if strings.TrimSpace(titleStr) == "" {
+		return errors.New("task title cannot be empty")
 	}
 
-	// 更新字段
-	for key, value := range updates {
-		switch key {
-		case "title":
-			if v, ok := value.(string); ok {
-				task.Title = strings.TrimSpace(v)
-			}
-		case "start_branch":
-			if v, ok := value.(string); ok {
-				task.StartBranch = strings.TrimSpace(v)
-			}
-		case "dev_environment_id":
-			if v, ok := value.(uint); ok {
-				task.DevEnvironmentID = &v
-			} else if value == nil {
-				task.DevEnvironmentID = nil
-			}
-		}
-	}
+	// 更新标题
+	task.Title = strings.TrimSpace(titleStr)
 
 	return s.repo.Update(task)
 }

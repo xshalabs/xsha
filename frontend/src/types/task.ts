@@ -34,11 +34,9 @@ export interface CreateTaskRequest {
   requirement_desc?: string; // 需求描述
 }
 
-// 更新任务请求
+// 更新任务请求（只允许更新标题）
 export interface UpdateTaskRequest {
-  title?: string;
-  start_branch?: string;
-  dev_environment_id?: number;
+  title: string;
 }
 
 

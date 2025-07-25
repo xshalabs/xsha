@@ -35,9 +35,7 @@ type CreateTaskRequest struct {
 
 // UpdateTaskRequest 更新任务请求结构
 type UpdateTaskRequest struct {
-	Title            string `json:"title"`
-	StartBranch      string `json:"start_branch"`
-	DevEnvironmentID *uint  `json:"dev_environment_id"`
+	Title string `json:"title" binding:"required"`
 }
 
 // CreateTask 创建任务
@@ -180,15 +178,7 @@ func (h *TaskHandlers) UpdateTask(c *gin.Context) {
 
 	// 构建更新数据
 	updates := make(map[string]interface{})
-	if req.Title != "" {
-		updates["title"] = req.Title
-	}
-	if req.StartBranch != "" {
-		updates["start_branch"] = req.StartBranch
-	}
-	if req.DevEnvironmentID != nil {
-		updates["dev_environment_id"] = *req.DevEnvironmentID
-	}
+	updates["title"] = req.Title
 
 	// 更新任务
 	if err := h.taskService.UpdateTask(uint(id), username.(string), updates); err != nil {
