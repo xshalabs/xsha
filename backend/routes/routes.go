@@ -111,6 +111,7 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *
 		// 任务执行日志管理
 		api.GET("/task-conversations/:conversationId/execution-log", taskExecLogHandlers.GetExecutionLog)
 		api.POST("/task-conversations/:conversationId/execution/cancel", taskExecLogHandlers.CancelExecution)
+		api.POST("/task-conversations/:conversationId/execution/retry", taskExecLogHandlers.RetryExecution)
 
 		// SSE实时日志管理
 		logs := api.Group("/logs")

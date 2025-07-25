@@ -77,3 +77,32 @@ func (h *TaskExecutionLogHandlers) CancelExecution(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "任务执行已取消"})
 }
+
+// RetryExecution 重试任务执行
+// @Summary 重试任务执行
+// @Description 重试失败或已取消的AI任务
+// @Tags 任务执行日志
+// @Accept json
+// @Produce json
+// @Param conversationId path int true "对话ID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security BearerAuth
+// @Router /task-conversations/{conversationId}/execution/retry [post]
+func (h *TaskExecutionLogHandlers) RetryExecution(c *gin.Context) {
+	conversationIDStr := c.Param("conversationId")
+	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的对话ID"})
+		return
+	}
+
+	if err := h.aiTaskExecutor.RetryExecution(uint(conversationID)); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "任务重试执行已启动"})
+}

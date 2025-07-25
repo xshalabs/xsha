@@ -160,6 +160,9 @@ type AITaskExecutorService interface {
 	// 取消执行
 	CancelExecution(conversationID uint) error
 
+	// 重试执行
+	RetryExecution(conversationID uint) error
+
 	// 获取执行状态信息
 	GetExecutionStatus() map[string]interface{}
 }

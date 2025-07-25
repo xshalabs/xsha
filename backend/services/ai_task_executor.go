@@ -202,7 +202,7 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint) error {
 	}
 
 	// 获取对话信息并更新状态为已取消
-	conv, err := s.taskConvRepo.GetByID(conversationID, execLog.CreatedBy)
+	conv, err := s.taskConvRepo.GetByID(conversationID, "")
 	if err != nil {
 		log.Printf("获取对话信息失败，仅更新执行日志状态: %v", err)
 	} else {
@@ -214,6 +214,46 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint) error {
 
 	// 更新执行状态为已取消
 	return s.execLogRepo.UpdateStatus(execLog.ID, database.TaskExecStatusCancelled)
+}
+
+// RetryExecution 重试执行对话
+func (s *aiTaskExecutorService) RetryExecution(conversationID uint) error {
+	// 获取对话信息（不需要用户验证，使用空字符串）
+	conv, err := s.taskConvRepo.GetByID(conversationID, "")
+	if err != nil {
+		return fmt.Errorf("获取对话信息失败: %v", err)
+	}
+
+	// 检查对话状态是否可以重试
+	if conv.Status != database.ConversationStatusFailed && conv.Status != database.ConversationStatusCancelled {
+		return fmt.Errorf("只能重试失败或已取消的任务")
+	}
+
+	// 检查是否有正在运行的执行
+	if s.executionManager.IsRunning(conversationID) {
+		return fmt.Errorf("任务正在执行中，无法重试")
+	}
+
+	// 检查是否可以执行新任务（并发限制）
+	if !s.executionManager.CanExecute() {
+		return fmt.Errorf("已达到最大并发数限制，请稍后重试")
+	}
+
+	// 重置对话状态为待处理
+	conv.Status = database.ConversationStatusPending
+	if err := s.taskConvRepo.Update(conv); err != nil {
+		return fmt.Errorf("重置对话状态失败: %v", err)
+	}
+
+	// 处理对话（这会创建新的执行日志）
+	if err := s.processConversation(conv); err != nil {
+		// 如果处理失败，将状态回滚为失败
+		conv.Status = database.ConversationStatusFailed
+		s.taskConvRepo.Update(conv)
+		return fmt.Errorf("重试执行失败: %v", err)
+	}
+
+	return nil
 }
 
 // GetExecutionStatus 获取执行状态信息
@@ -244,7 +284,6 @@ func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversat
 	execLog := &database.TaskExecutionLog{
 		ConversationID: conv.ID,
 		Status:         database.TaskExecStatusPending,
-		CreatedBy:      conv.CreatedBy,
 	}
 	if err := s.execLogRepo.Create(execLog); err != nil {
 		s.rollbackConversationState(conv, fmt.Sprintf("创建执行日志失败: %v", err))
@@ -287,10 +326,19 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 			log.Printf("更新对话最终状态失败: %v", err)
 		}
 
-		// 更新执行日志状态
+		// 更新执行日志状态和时间
 		execLog.Status = execStatus
 		execLog.ErrorMessage = errorMsg
 		execLog.CommitHash = commitHash
+
+		// 更新完成时间
+		if execStatus == database.TaskExecStatusSuccess ||
+			execStatus == database.TaskExecStatusFailed ||
+			execStatus == database.TaskExecStatusCancelled {
+			now := time.Now()
+			execLog.CompletedAt = &now
+		}
+
 		if err := s.execLogRepo.Update(execLog); err != nil {
 			log.Printf("更新执行日志最终状态失败: %v", err)
 		}
@@ -328,6 +376,8 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 
 	execLog.WorkspacePath = workspacePath
 	execLog.Status = database.TaskExecStatusRunning
+	now := time.Now()
+	execLog.StartedAt = &now
 	s.execLogRepo.Update(execLog)
 
 	// 检查是否被取消
@@ -529,12 +579,32 @@ func (s *aiTaskExecutorService) executeDockerCommandWithContext(ctx context.Cont
 		return err
 	}
 
-	// 实时读取输出
+	// 实时读取输出和错误信息
+	var stderrLines []string
+	var mu sync.Mutex
+
 	go s.readPipe(stdout, execLogID, "STDOUT")
-	go s.readPipe(stderr, execLogID, "STDERR")
+	go s.readPipeWithErrorCapture(stderr, execLogID, "STDERR", &stderrLines, &mu)
 
 	// 等待命令完成
-	return cmd.Wait()
+	err = cmd.Wait()
+	if err != nil && len(stderrLines) > 0 {
+		// 将 STDERR 中的错误信息合并作为错误消息
+		mu.Lock()
+		errorLines := make([]string, len(stderrLines))
+		copy(errorLines, stderrLines)
+		mu.Unlock()
+
+		if len(errorLines) > 0 {
+			errorMsg := strings.Join(errorLines, "\n")
+			// 限制错误信息长度，避免过长
+			if len(errorMsg) > 1000 {
+				errorMsg = errorMsg[:1000] + "..."
+			}
+			return fmt.Errorf("%s", errorMsg)
+		}
+	}
+	return err
 }
 
 // checkDockerAvailability 检查 Docker 是否可用
@@ -561,6 +631,23 @@ func (s *aiTaskExecutorService) readPipe(pipe interface{}, execLogID uint, prefi
 	}
 }
 
+// readPipeWithErrorCapture 读取管道输出并捕获错误信息
+func (s *aiTaskExecutorService) readPipeWithErrorCapture(pipe interface{}, execLogID uint, prefix string, errorLines *[]string, mu *sync.Mutex) {
+	scanner := bufio.NewScanner(pipe.(interface{ Read([]byte) (int, error) }))
+	for scanner.Scan() {
+		line := scanner.Text()
+		logLine := fmt.Sprintf("[%s] %s: %s\n", time.Now().Format("15:04:05"), prefix, line)
+		s.appendLog(execLogID, logLine)
+
+		// 如果是 STDERR，捕获错误信息
+		if prefix == "STDERR" {
+			mu.Lock()
+			*errorLines = append(*errorLines, line)
+			mu.Unlock()
+		}
+	}
+}
+
 // setConversationFailed 设置对话状态为失败并创建执行日志
 func (s *aiTaskExecutorService) setConversationFailed(conv *database.TaskConversation, errorMessage string) {
 	// 更新对话状态为失败
@@ -574,7 +661,6 @@ func (s *aiTaskExecutorService) setConversationFailed(conv *database.TaskConvers
 		ConversationID: conv.ID,
 		Status:         database.TaskExecStatusFailed,
 		ErrorMessage:   errorMessage,
-		CreatedBy:      conv.CreatedBy,
 	}
 	if logErr := s.execLogRepo.Create(execLog); logErr != nil {
 		log.Printf("创建执行日志失败: %v", logErr)
@@ -593,7 +679,6 @@ func (s *aiTaskExecutorService) rollbackConversationState(conv *database.TaskCon
 		ConversationID: conv.ID,
 		Status:         database.TaskExecStatusFailed,
 		ErrorMessage:   errorMessage,
-		CreatedBy:      conv.CreatedBy,
 	}
 	if logErr := s.execLogRepo.Create(failedExecLog); logErr != nil {
 		log.Printf("创建失败执行日志失败: %v", logErr)

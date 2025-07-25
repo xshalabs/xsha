@@ -26,5 +26,41 @@
     "messages": {
     "createSuccess": "消息发送成功",
     "createFailed": "消息发送失败"
+  },
+  "execution": {
+    "title": "执行日志",
+    "subtitle": "任务执行详情和日志",
+    "status": {
+      "pending": "等待中",
+      "running": "执行中",
+      "success": "成功",
+      "failed": "失败",
+      "cancelled": "已取消"
+    },
+    "actions": {
+      "cancel": "取消",
+      "retry": "重试",
+      "showLogs": "显示日志",
+      "hideLogs": "隐藏日志"
+    },
+    "info": {
+      "started": "开始时间",
+      "completed": "完成时间", 
+      "duration": "执行时长",
+      "workspace": "工作目录",
+      "errorMessage": "错误信息",
+      "dockerCommand": "Docker 命令",
+      "commitHash": "提交哈希",
+      "executionLogs": "执行日志"
+    },
+    "messages": {
+      "loading": "正在加载执行日志...",
+      "notFound": "未找到执行日志",
+      "loadFailed": "加载执行日志失败",
+      "cancelSuccess": "任务执行已取消",
+      "cancelFailed": "取消执行失败",
+      "retrySuccess": "任务重试已启动",
+      "retryFailed": "重试执行失败"
+    }
   }
 } 

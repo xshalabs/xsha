@@ -22,6 +22,7 @@ import type {
   ConversationStatus, 
   ConversationFormData 
 } from '@/types/task-conversation';
+import { TaskExecutionLog } from './TaskExecutionLog';
 
 interface TaskConversationProps {
   taskTitle: string;
@@ -29,6 +30,7 @@ interface TaskConversationProps {
   loading: boolean;
   onSendMessage: (data: ConversationFormData) => Promise<void>;
   onRefresh: () => void;
+  onConversationStatusChange?: (conversationId: number, newStatus: ConversationStatus) => void;
 }
 
 export function TaskConversation({
@@ -36,7 +38,8 @@ export function TaskConversation({
   conversations,
   loading,
   onSendMessage,
-  onRefresh
+  onRefresh,
+  onConversationStatusChange
 }: TaskConversationProps) {
   const { t } = useTranslation();
   const [newMessage, setNewMessage] = useState('');
@@ -173,49 +176,62 @@ export function TaskConversation({
               </div>
             ) : (
               conversations.map((conversation) => (
-                <div
-                  key={conversation.id}
-                  className={`p-4 rounded-lg border ${getRoleColor(conversation.role)}`}
-                >
-                  {/* 消息头部 */}
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <div className={`p-1 rounded-full ${
-                        conversation.role === 'user' ? 'bg-blue-100' : 'bg-gray-100'
-                      }`}>
-                        {getRoleIcon(conversation.role)}
-                      </div>
-                      <span className="font-medium">
-                        {t(`taskConversation.role.${conversation.role}`)}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {conversation.created_by}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      {/* 显示状态 - 只读 */}
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs ${getStatusColor(conversation.status)}`}
-                      >
-                        {getStatusIcon(conversation.status)}
-                        <span className="ml-1">
-                          {t(`taskConversation.status.${conversation.status}`)}
+                <div key={conversation.id} className="space-y-4">
+                  {/* 对话消息 */}
+                  <div
+                    className={`p-4 rounded-lg border ${getRoleColor(conversation.role)}`}
+                  >
+                    {/* 消息头部 */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <div className={`p-1 rounded-full ${
+                          conversation.role === 'user' ? 'bg-blue-100' : 'bg-gray-100'
+                        }`}>
+                          {getRoleIcon(conversation.role)}
+                        </div>
+                        <span className="font-medium">
+                          {t(`taskConversation.role.${conversation.role}`)}
                         </span>
-                      </Badge>
+                        <span className="text-xs text-gray-500">
+                          {conversation.created_by}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        {/* 显示状态 - 只读 */}
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ${getStatusColor(conversation.status)}`}
+                        >
+                          {getStatusIcon(conversation.status)}
+                          <span className="ml-1">
+                            {t(`taskConversation.status.${conversation.status}`)}
+                          </span>
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* 消息内容 */}
+                    <div className="mb-2">
+                      <p className="text-sm whitespace-pre-wrap">{conversation.content}</p>
+                    </div>
+
+                    {/* 时间信息 */}
+                    <div className="text-xs text-gray-500">
+                      {formatTime(conversation.created_at)}
                     </div>
                   </div>
 
-                  {/* 消息内容 */}
-                  <div className="mb-2">
-                    <p className="text-sm whitespace-pre-wrap">{conversation.content}</p>
-                  </div>
-
-                  {/* 时间信息 */}
-                  <div className="text-xs text-gray-500">
-                    {formatTime(conversation.created_at)}
-                  </div>
+                  {/* 执行日志 - 只对用户消息显示 */}
+                  {conversation.role === 'user' && (
+                    <TaskExecutionLog
+                      conversationId={conversation.id}
+                      conversationStatus={conversation.status}
+                      onStatusChange={(newStatus) => {
+                        onConversationStatusChange?.(conversation.id, newStatus);
+                      }}
+                    />
+                  )}
                 </div>
               ))
             )}

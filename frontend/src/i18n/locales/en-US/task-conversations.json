@@ -26,5 +26,41 @@
     "messages": {
     "createSuccess": "Message sent successfully",
     "createFailed": "Failed to send message"
+  },
+  "execution": {
+    "title": "Execution Log",
+    "subtitle": "Task execution details and logs",
+    "status": {
+      "pending": "Pending",
+      "running": "Running", 
+      "success": "Success",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "retry": "Retry",
+      "showLogs": "Show Logs",
+      "hideLogs": "Hide Logs"
+    },
+    "info": {
+      "started": "Started",
+      "completed": "Completed",
+      "duration": "Duration",
+      "workspace": "Workspace",
+      "errorMessage": "Error Message",
+      "dockerCommand": "Docker Command",
+      "commitHash": "Commit Hash",
+      "executionLogs": "Execution Logs"
+    },
+    "messages": {
+      "loading": "Loading execution log...",
+      "notFound": "No execution log found",
+      "loadFailed": "Failed to load execution log",
+      "cancelSuccess": "Task execution cancelled",
+      "cancelFailed": "Failed to cancel execution",
+      "retrySuccess": "Task retry started",
+      "retryFailed": "Failed to retry execution"
+    }
   }
 } 

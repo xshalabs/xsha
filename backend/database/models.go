@@ -292,7 +292,4 @@ type TaskExecutionLog struct {
 	// 时间信息
 	StartedAt   *time.Time `json:"started_at"`   // 开始执行时间
 	CompletedAt *time.Time `json:"completed_at"` // 完成时间
-
-	// 元数据
-	CreatedBy string `gorm:"not null;index" json:"created_by"` // 创建者
 }

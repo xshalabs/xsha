@@ -20,9 +20,10 @@ import { projectsApi } from './projects';
 import { devEnvironmentsApi } from './dev-environments';
 import { tasksApi } from './tasks';
 import { taskConversationsApi } from './task-conversations';
+import { taskExecutionLogsApi } from './task-execution-logs';
 
 // API 模块导出
-export { authApi, gitCredentialsApi, adminLogsApi, projectsApi, devEnvironmentsApi, tasksApi, taskConversationsApi };
+export { authApi, gitCredentialsApi, adminLogsApi, projectsApi, devEnvironmentsApi, tasksApi, taskConversationsApi, taskExecutionLogsApi };
 
 // 兼容性导出 - 保持原有的 apiService 结构
 export const apiService = {
@@ -51,4 +52,7 @@ export const apiService = {
 
   // 任务对话
   taskConversations: taskConversationsApi,
+
+  // 任务执行日志
+  taskExecutionLogs: taskExecutionLogsApi,
 }; 
