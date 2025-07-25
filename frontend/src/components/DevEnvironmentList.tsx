@@ -13,7 +13,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -30,9 +29,6 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   MoreHorizontal,
-  Play,
-  Square,
-  RotateCcw,
   Edit,
   Trash2,
   Monitor,
@@ -43,7 +39,6 @@ import {
 import type {
   DevEnvironmentDisplay,
   DevEnvironmentListParams,
-  DevEnvironmentStatus,
   DevEnvironmentType,
 } from '@/types/dev-environment';
 
@@ -56,18 +51,7 @@ interface DevEnvironmentListProps {
   onFiltersChange: (filters: Partial<DevEnvironmentListParams>) => void;
   onEdit: (environment: DevEnvironmentDisplay) => void;
   onDelete: (id: number) => void;
-  onControl: (id: number, action: 'start' | 'stop' | 'restart') => void;
-  onUse: (id: number) => void;
 }
-
-// 环境状态配置
-const statusConfig: Record<DevEnvironmentStatus, { label: string; color: string; variant: any }> = {
-  'stopped': { label: 'dev_environments.status.stopped', color: 'text-gray-600', variant: 'secondary' },
-  'starting': { label: 'dev_environments.status.starting', color: 'text-orange-600', variant: 'default' },
-  'running': { label: 'dev_environments.status.running', color: 'text-green-600', variant: 'default' },
-  'stopping': { label: 'dev_environments.status.stopping', color: 'text-orange-600', variant: 'default' },
-  'error': { label: 'dev_environments.status.error', color: 'text-red-600', variant: 'destructive' },
-};
 
 // 环境类型配置
 const typeConfig: Record<DevEnvironmentType, { label: string; color: string }> = {
@@ -85,17 +69,9 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
   onFiltersChange,
   onEdit,
   onDelete,
-  onControl,
-  onUse,
 }) => {
   const { t } = useTranslation();
   const [showFilters, setShowFilters] = useState(false);
-
-  // 格式化时间
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return t('common.never');
-    return new Date(dateString).toLocaleString();
-  };
 
   // 格式化内存大小
   const formatMemory = (mb: number) => {
@@ -103,31 +79,6 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
       return `${(mb / 1024).toFixed(1)} GB`;
     }
     return `${mb} MB`;
-  };
-
-  // 获取可用的操作按钮
-  const getActions = (environment: DevEnvironmentDisplay) => {
-    const actions = [];
-    
-    switch (environment.status) {
-      case 'stopped':
-        actions.push({ key: 'start', label: t('dev_environments.actions.start'), icon: Play });
-        break;
-      case 'running':
-        actions.push({ key: 'stop', label: t('dev_environments.actions.stop'), icon: Square });
-        actions.push({ key: 'restart', label: t('dev_environments.actions.restart'), icon: RotateCcw });
-        actions.push({ key: 'use', label: t('dev_environments.actions.use'), icon: Monitor });
-        break;
-      case 'starting':
-      case 'stopping':
-        // 过渡状态不允许操作
-        break;
-      default:
-        actions.push({ key: 'start', label: t('dev_environments.actions.start'), icon: Play });
-        break;
-    }
-
-    return actions;
   };
 
   if (loading) {
@@ -172,7 +123,7 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
 
         {/* 筛选器 */}
         {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
             <div className="space-y-2">
               <Label>{t('dev_environments.filter.type')}</Label>
               <Select
@@ -187,26 +138,6 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
                   <SelectItem value="claude_code">Claude Code</SelectItem>
                   <SelectItem value="gemini_cli">Gemini CLI</SelectItem>
                   <SelectItem value="opencode">OpenCode</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>{t('dev_environments.filter.status')}</Label>
-              <Select
-                value={params.status || 'all'}
-                onValueChange={(value) => onFiltersChange({ status: value === 'all' ? undefined : value as DevEnvironmentStatus })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('common.all')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('common.all')}</SelectItem>
-                  <SelectItem value="stopped">{t('dev_environments.status.stopped')}</SelectItem>
-                  <SelectItem value="starting">{t('dev_environments.status.starting')}</SelectItem>
-                  <SelectItem value="running">{t('dev_environments.status.running')}</SelectItem>
-                  <SelectItem value="stopping">{t('dev_environments.status.stopping')}</SelectItem>
-                  <SelectItem value="error">{t('dev_environments.status.error')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -246,9 +177,7 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
                 <TableRow>
                   <TableHead>{t('dev_environments.table.name')}</TableHead>
                   <TableHead>{t('dev_environments.table.type')}</TableHead>
-                  <TableHead>{t('dev_environments.table.status')}</TableHead>
                   <TableHead>{t('dev_environments.table.resources')}</TableHead>
-                  <TableHead>{t('dev_environments.table.last_used')}</TableHead>
                   <TableHead className="text-right">{t('common.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -271,19 +200,9 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={statusConfig[environment.status].variant}>
-                        {t(statusConfig[environment.status].label)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
                       <div className="text-sm">
                         <div>CPU: {environment.cpu_limit} {t('dev_environments.stats.cores')}</div>
                         <div>{t('dev_environments.stats.memory')}: {formatMemory(environment.memory_limit)}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-muted-foreground">
-                        {formatDate(environment.last_used)}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
@@ -296,25 +215,6 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>{t('common.actions')}</DropdownMenuLabel>
-                          
-                          {/* 控制操作 */}
-                          {getActions(environment).map((action) => (
-                            <DropdownMenuItem
-                              key={action.key}
-                              onClick={() => {
-                                if (action.key === 'use') {
-                                  onUse(environment.id);
-                                } else {
-                                  onControl(environment.id, action.key as 'start' | 'stop' | 'restart');
-                                }
-                              }}
-                            >
-                              <action.icon className="h-4 w-4 mr-2" />
-                              {action.label}
-                            </DropdownMenuItem>
-                          ))}
-                          
-                          <DropdownMenuSeparator />
                           
                           <DropdownMenuItem onClick={() => onEdit(environment)}>
                             <Edit className="h-4 w-4 mr-2" />

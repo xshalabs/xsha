@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw, Play, Settings, Monitor } from 'lucide-react';
+import { Plus, RefreshCw, Settings, Monitor } from 'lucide-react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { apiService } from '@/lib/api/index';
 import { toast } from 'sonner';
@@ -73,17 +73,7 @@ const DevEnvironmentListPage: React.FC = () => {
     toast.success(t('common.refresh_success'));
   };
 
-  // 控制环境操作
-  const handleEnvironmentControl = async (id: number, action: 'start' | 'stop' | 'restart') => {
-    try {
-      await apiService.devEnvironments.control(id, { action });
-      toast.success(t(`dev_environments.${action}_success`));
-      await fetchEnvironments();
-    } catch (error) {
-      console.error(`Failed to ${action} environment:`, error);
-      toast.error(t(`dev_environments.${action}_failed`));
-    }
-  };
+
 
   // 删除环境
   const handleDeleteEnvironment = async (id: number) => {
@@ -101,17 +91,7 @@ const DevEnvironmentListPage: React.FC = () => {
     }
   };
 
-  // 使用环境
-  const handleUseEnvironment = async (id: number) => {
-    try {
-      await apiService.devEnvironments.use(id);
-      toast.success(t('dev_environments.use_success'));
-      await fetchEnvironments();
-    } catch (error) {
-      console.error('Failed to use environment:', error);
-      toast.error(t('dev_environments.use_failed'));
-    }
-  };
+
 
   // 编辑环境
   const handleEditEnvironment = (environment: DevEnvironmentDisplay) => {
@@ -138,7 +118,6 @@ const DevEnvironmentListPage: React.FC = () => {
   }, []);
 
   // 统计信息
-  const runningCount = environments.filter(env => env.status === 'running').length;
   const totalCpu = environments.reduce((sum, env) => sum + env.cpu_limit, 0);
   const totalMemory = environments.reduce((sum, env) => sum + env.memory_limit, 0);
 
@@ -168,7 +147,7 @@ const DevEnvironmentListPage: React.FC = () => {
       </div>
 
       {/* 统计卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -178,18 +157,6 @@ const DevEnvironmentListPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{total}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t('dev_environments.stats.running')}
-            </CardTitle>
-            <Play className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{runningCount}</div>
           </CardContent>
         </Card>
 
@@ -232,8 +199,6 @@ const DevEnvironmentListPage: React.FC = () => {
         onFiltersChange={handleFiltersChange}
         onEdit={handleEditEnvironment}
         onDelete={handleDeleteEnvironment}
-        onControl={handleEnvironmentControl}
-        onUse={handleUseEnvironment}
       />
     </div>
   );

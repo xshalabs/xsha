@@ -102,15 +102,9 @@ type DevEnvironmentService interface {
 	CreateEnvironment(name, description, envType, createdBy string, cpuLimit float64, memoryLimit int64, envVars map[string]string) (*database.DevEnvironment, error)
 	GetEnvironment(id uint, createdBy string) (*database.DevEnvironment, error)
 	GetEnvironmentByName(name, createdBy string) (*database.DevEnvironment, error)
-	ListEnvironments(createdBy string, envType *database.DevEnvironmentType, status *database.DevEnvironmentStatus, page, pageSize int) ([]database.DevEnvironment, int64, error)
+	ListEnvironments(createdBy string, envType *database.DevEnvironmentType, page, pageSize int) ([]database.DevEnvironment, int64, error)
 	UpdateEnvironment(id uint, createdBy string, updates map[string]interface{}) error
 	DeleteEnvironment(id uint, createdBy string) error
-
-	// 环境操作
-	StartEnvironment(id uint, createdBy string) error
-	StopEnvironment(id uint, createdBy string) error
-	RestartEnvironment(id uint, createdBy string) error
-	UseEnvironment(id uint, createdBy string) (*database.DevEnvironment, error)
 
 	// 环境变量操作
 	ValidateEnvVars(envVars map[string]string) error

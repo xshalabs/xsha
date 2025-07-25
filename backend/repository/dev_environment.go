@@ -2,7 +2,6 @@ package repository
 
 import (
 	"sleep0-backend/database"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -42,7 +41,7 @@ func (r *devEnvironmentRepository) GetByName(name, createdBy string) (*database.
 }
 
 // List 分页获取开发环境列表
-func (r *devEnvironmentRepository) List(createdBy string, envType *database.DevEnvironmentType, status *database.DevEnvironmentStatus, page, pageSize int) ([]database.DevEnvironment, int64, error) {
+func (r *devEnvironmentRepository) List(createdBy string, envType *database.DevEnvironmentType, page, pageSize int) ([]database.DevEnvironment, int64, error) {
 	var environments []database.DevEnvironment
 	var total int64
 
@@ -50,9 +49,6 @@ func (r *devEnvironmentRepository) List(createdBy string, envType *database.DevE
 
 	if envType != nil {
 		query = query.Where("type = ?", *envType)
-	}
-	if status != nil {
-		query = query.Where("status = ?", *status)
 	}
 
 	// 获取总数
@@ -77,27 +73,4 @@ func (r *devEnvironmentRepository) Update(env *database.DevEnvironment) error {
 // Delete 删除开发环境
 func (r *devEnvironmentRepository) Delete(id uint, createdBy string) error {
 	return r.db.Where("id = ? AND created_by = ?", id, createdBy).Delete(&database.DevEnvironment{}).Error
-}
-
-// UpdateLastUsed 更新最后使用时间
-func (r *devEnvironmentRepository) UpdateLastUsed(id uint, createdBy string) error {
-	now := time.Now()
-	return r.db.Model(&database.DevEnvironment{}).
-		Where("id = ? AND created_by = ?", id, createdBy).
-		Update("last_used", now).Error
-}
-
-// UpdateStatus 更新环境状态
-func (r *devEnvironmentRepository) UpdateStatus(id uint, createdBy string, status database.DevEnvironmentStatus) error {
-	return r.db.Model(&database.DevEnvironment{}).
-		Where("id = ? AND created_by = ?", id, createdBy).
-		Update("status", status).Error
-}
-
-// ListByStatus 根据状态获取环境列表
-func (r *devEnvironmentRepository) ListByStatus(createdBy string, status database.DevEnvironmentStatus) ([]database.DevEnvironment, error) {
-	var environments []database.DevEnvironment
-	err := r.db.Where("created_by = ? AND status = ?", createdBy, status).
-		Order("created_at DESC").Find(&environments).Error
-	return environments, err
 }

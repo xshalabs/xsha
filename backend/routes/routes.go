@@ -128,8 +128,6 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *
 			devEnvs.GET("/:id", devEnvHandlers.GetEnvironment)                 // 获取单个环境
 			devEnvs.PUT("/:id", devEnvHandlers.UpdateEnvironment)              // 更新环境
 			devEnvs.DELETE("/:id", devEnvHandlers.DeleteEnvironment)           // 删除环境
-			devEnvs.POST("/:id/control", devEnvHandlers.ControlEnvironment)    // 控制环境（启动/停止/重启）
-			devEnvs.POST("/:id/use", devEnvHandlers.UseEnvironment)            // 使用环境
 			devEnvs.GET("/:id/env-vars", devEnvHandlers.GetEnvironmentVars)    // 获取环境变量
 			devEnvs.PUT("/:id/env-vars", devEnvHandlers.UpdateEnvironmentVars) // 更新环境变量
 		}

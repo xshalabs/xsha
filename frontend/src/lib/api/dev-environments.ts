@@ -5,10 +5,8 @@ import type {
   UpdateDevEnvironmentRequest,
   DevEnvironmentDetailResponse,
   DevEnvironmentListResponse,
-  UseDevEnvironmentResponse,
   DevEnvironmentVarsResponse,
-  DevEnvironmentListParams,
-  EnvironmentControlRequest
+  DevEnvironmentListParams
 } from '@/types/dev-environment';
 
 export const devEnvironmentsApi = {
@@ -24,7 +22,6 @@ export const devEnvironmentsApi = {
   list: async (params?: DevEnvironmentListParams): Promise<DevEnvironmentListResponse> => {
     const searchParams = new URLSearchParams();
     if (params?.type) searchParams.set('type', params.type);
-    if (params?.status) searchParams.set('status', params.status);
     if (params?.page) searchParams.set('page', params.page.toString());
     if (params?.page_size) searchParams.set('page_size', params.page_size.toString());
     
@@ -54,20 +51,7 @@ export const devEnvironmentsApi = {
     });
   },
 
-  // 控制开发环境（启动/停止/重启）
-  control: async (id: number, action: EnvironmentControlRequest): Promise<{ message: string }> => {
-    return request<{ message: string }>(`/dev-environments/${id}/control`, {
-      method: 'POST',
-      body: JSON.stringify(action),
-    });
-  },
 
-  // 使用开发环境
-  use: async (id: number): Promise<UseDevEnvironmentResponse> => {
-    return request<UseDevEnvironmentResponse>(`/dev-environments/${id}/use`, {
-      method: 'POST',
-    });
-  },
 
   // 获取环境变量
   getEnvVars: async (id: number): Promise<DevEnvironmentVarsResponse> => {

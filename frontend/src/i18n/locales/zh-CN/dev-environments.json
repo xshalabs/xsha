@@ -14,35 +14,16 @@
   "delete_success": "环境删除成功",
   "delete_failed": "环境删除失败",
   "delete_confirm": "确定要删除这个环境吗？",
-  "start_success": "环境启动成功",
-  "start_failed": "环境启动失败",
-  "stop_success": "环境停止成功",
-  "stop_failed": "环境停止失败",
-  "restart_success": "环境重启成功",
-  "restart_failed": "环境重启失败",
-  "use_success": "环境使用成功",
-  "use_failed": "环境使用失败",
   
-  "status": {
-    "stopped": "已停止",
-    "starting": "启动中",
-    "running": "运行中",
-    "stopping": "停止中",
-    "error": "错误"
-  },
+
   
   "actions": {
-    "start": "启动",
-    "stop": "停止",
-    "restart": "重启",
-    "use": "使用",
     "edit": "编辑",
     "delete": "删除"
   },
   
   "stats": {
     "total": "总环境数",
-    "running": "运行中",
     "cpu_total": "总CPU",
     "memory_total": "总内存",
     "cores": "核",
@@ -52,14 +33,11 @@
   "table": {
     "name": "环境名称",
     "type": "环境类型",
-    "status": "状态",
-    "resources": "资源配置",
-    "last_used": "最后使用"
+    "resources": "资源配置"
   },
   
   "filter": {
-    "type": "环境类型",
-    "status": "状态"
+    "type": "环境类型"
   },
   
   "empty": {

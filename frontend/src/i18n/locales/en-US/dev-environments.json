@@ -14,35 +14,16 @@
   "delete_success": "Environment deleted successfully",
   "delete_failed": "Failed to delete environment",
   "delete_confirm": "Are you sure you want to delete this environment?",
-  "start_success": "Environment started successfully",
-  "start_failed": "Failed to start environment",
-  "stop_success": "Environment stopped successfully",
-  "stop_failed": "Failed to stop environment",
-  "restart_success": "Environment restarted successfully",
-  "restart_failed": "Failed to restart environment",
-  "use_success": "Environment used successfully",
-  "use_failed": "Failed to use environment",
   
-  "status": {
-    "stopped": "Stopped",
-    "starting": "Starting",
-    "running": "Running",
-    "stopping": "Stopping",
-    "error": "Error"
-  },
+
   
   "actions": {
-    "start": "Start",
-    "stop": "Stop",
-    "restart": "Restart",
-    "use": "Use",
     "edit": "Edit",
     "delete": "Delete"
   },
   
   "stats": {
     "total": "Total Environments",
-    "running": "Running",
     "cpu_total": "Total CPU",
     "memory_total": "Total Memory",
     "cores": "cores",
@@ -52,14 +33,11 @@
   "table": {
     "name": "Environment Name",
     "type": "Environment Type",
-    "status": "Status",
-    "resources": "Resource Config",
-    "last_used": "Last Used"
+    "resources": "Resource Config"
   },
   
   "filter": {
-    "type": "Environment Type",
-    "status": "Status"
+    "type": "Environment Type"
   },
   
   "empty": {

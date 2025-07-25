@@ -42,11 +42,6 @@ type UpdateEnvironmentRequest struct {
 	EnvVars     map[string]string `json:"env_vars"`
 }
 
-// EnvironmentActionRequest 环境操作请求结构
-type EnvironmentActionRequest struct {
-	Action string `json:"action" binding:"required,oneof=start stop restart"`
-}
-
 // CreateEnvironment 创建开发环境
 // @Summary 创建开发环境
 // @Description 创建一个新的开发环境
@@ -148,7 +143,6 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 	page := 1
 	pageSize := 20
 	var envType *database.DevEnvironmentType
-	var status *database.DevEnvironmentStatus
 
 	if p := c.Query("page"); p != "" {
 		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
@@ -164,12 +158,8 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 		typeValue := database.DevEnvironmentType(t)
 		envType = &typeValue
 	}
-	if s := c.Query("status"); s != "" {
-		statusValue := database.DevEnvironmentStatus(s)
-		status = &statusValue
-	}
 
-	environments, total, err := h.devEnvService.ListEnvironments(username.(string), envType, status, page, pageSize)
+	environments, total, err := h.devEnvService.ListEnvironments(username.(string), envType, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "获取环境列表失败",
@@ -293,102 +283,6 @@ func (h *DevEnvironmentHandlers) DeleteEnvironment(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "环境删除成功",
-	})
-}
-
-// ControlEnvironment 控制开发环境（启动/停止/重启）
-// @Summary 控制环境
-// @Description 对开发环境执行控制操作（启动/停止/重启）
-// @Tags 开发环境
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "环境ID"
-// @Param action body EnvironmentActionRequest true "操作类型"
-// @Success 200 {object} object{message=string} "操作成功"
-// @Failure 400 {object} object{error=string} "操作失败"
-// @Router /dev-environments/{id}/control [post]
-func (h *DevEnvironmentHandlers) ControlEnvironment(c *gin.Context) {
-	username, _ := c.Get("username")
-
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的环境ID",
-		})
-		return
-	}
-
-	var req EnvironmentActionRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误: " + err.Error(),
-		})
-		return
-	}
-
-	var operationErr error
-	switch req.Action {
-	case "start":
-		operationErr = h.devEnvService.StartEnvironment(uint(id), username.(string))
-	case "stop":
-		operationErr = h.devEnvService.StopEnvironment(uint(id), username.(string))
-	case "restart":
-		operationErr = h.devEnvService.RestartEnvironment(uint(id), username.(string))
-	default:
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "不支持的操作类型",
-		})
-		return
-	}
-
-	if operationErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "操作失败: " + operationErr.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "操作成功",
-	})
-}
-
-// UseEnvironment 使用开发环境
-// @Summary 使用环境
-// @Description 获取环境的详细信息用于使用
-// @Tags 开发环境
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "环境ID"
-// @Success 200 {object} object{message=string,environment=object} "环境使用成功"
-// @Failure 400 {object} object{error=string} "使用失败"
-// @Router /dev-environments/{id}/use [post]
-func (h *DevEnvironmentHandlers) UseEnvironment(c *gin.Context) {
-	username, _ := c.Get("username")
-
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的环境ID",
-		})
-		return
-	}
-
-	env, err := h.devEnvService.UseEnvironment(uint(id), username.(string))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "使用环境失败: " + err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message":     "环境使用成功",
-		"environment": env,
 	})
 }
 

@@ -222,14 +222,6 @@ export function TaskForm({
                         <div className="flex items-center space-x-2">
                           <span>{env.name}</span>
                           <span className="text-xs text-gray-500">({env.type})</span>
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            env.status === 'running' ? 'bg-green-100 text-green-800' :
-                            env.status === 'stopped' ? 'bg-gray-100 text-gray-800' :
-                            env.status === 'error' ? 'bg-red-100 text-red-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {env.status}
-                          </span>
                         </div>
                       </SelectItem>
                     ))

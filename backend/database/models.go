@@ -150,17 +150,6 @@ type AdminOperationLog struct {
 	OperationTime time.Time `gorm:"not null;index" json:"operation_time"` // 操作时间
 }
 
-// DevEnvironmentStatus 开发环境状态
-type DevEnvironmentStatus string
-
-const (
-	DevEnvStatusStopped  DevEnvironmentStatus = "stopped"  // 已停止
-	DevEnvStatusStarting DevEnvironmentStatus = "starting" // 启动中
-	DevEnvStatusRunning  DevEnvironmentStatus = "running"  // 运行中
-	DevEnvStatusStopping DevEnvironmentStatus = "stopping" // 停止中
-	DevEnvStatusError    DevEnvironmentStatus = "error"    // 错误状态
-)
-
 // DevEnvironmentType 开发环境类型
 type DevEnvironmentType string
 
@@ -178,10 +167,9 @@ type DevEnvironment struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// 基本信息
-	Name        string               `gorm:"not null;uniqueIndex:idx_env_name_user" json:"name"` // 环境名称
-	Description string               `gorm:"type:text" json:"description"`                       // 环境描述
-	Type        DevEnvironmentType   `gorm:"not null;index" json:"type"`                         // 环境类型
-	Status      DevEnvironmentStatus `gorm:"not null;index" json:"status"`                       // 环境状态
+	Name        string             `gorm:"not null;uniqueIndex:idx_env_name_user" json:"name"` // 环境名称
+	Description string             `gorm:"type:text" json:"description"`                       // 环境描述
+	Type        DevEnvironmentType `gorm:"not null;index" json:"type"`                         // 环境类型
 
 	// 资源限制
 	CPULimit    float64 `gorm:"default:1.0" json:"cpu_limit"`     // CPU限制 (核心数)
@@ -192,9 +180,6 @@ type DevEnvironment struct {
 
 	// 关联用户
 	CreatedBy string `gorm:"not null;index;uniqueIndex:idx_env_name_user" json:"created_by"` // 创建者用户名
-
-	// 元数据
-	LastUsed *time.Time `json:"last_used"` // 最后使用时间
 }
 
 // TaskStatus 任务状态

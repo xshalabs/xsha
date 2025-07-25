@@ -48,7 +48,6 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, envType, cr
 		Name:        name,
 		Description: description,
 		Type:        database.DevEnvironmentType(envType),
-		Status:      database.DevEnvStatusStopped,
 		CPULimit:    cpuLimit,
 		MemoryLimit: memoryLimit,
 		EnvVars:     string(envVarsJSON),
@@ -74,8 +73,8 @@ func (s *devEnvironmentService) GetEnvironmentByName(name, createdBy string) (*d
 }
 
 // ListEnvironments 获取开发环境列表
-func (s *devEnvironmentService) ListEnvironments(createdBy string, envType *database.DevEnvironmentType, status *database.DevEnvironmentStatus, page, pageSize int) ([]database.DevEnvironment, int64, error) {
-	return s.repo.List(createdBy, envType, status, page, pageSize)
+func (s *devEnvironmentService) ListEnvironments(createdBy string, envType *database.DevEnvironmentType, page, pageSize int) ([]database.DevEnvironment, int64, error) {
+	return s.repo.List(createdBy, envType, page, pageSize)
 }
 
 // UpdateEnvironment 更新开发环境
@@ -109,88 +108,7 @@ func (s *devEnvironmentService) UpdateEnvironment(id uint, createdBy string, upd
 
 // DeleteEnvironment 删除开发环境
 func (s *devEnvironmentService) DeleteEnvironment(id uint, createdBy string) error {
-	// 检查环境是否正在运行
-	env, err := s.repo.GetByID(id, createdBy)
-	if err != nil {
-		return err
-	}
-
-	if env.Status == database.DevEnvStatusRunning || env.Status == database.DevEnvStatusStarting {
-		return errors.New("cannot delete running or starting environment")
-	}
-
 	return s.repo.Delete(id, createdBy)
-}
-
-// StartEnvironment 启动开发环境
-func (s *devEnvironmentService) StartEnvironment(id uint, createdBy string) error {
-	env, err := s.repo.GetByID(id, createdBy)
-	if err != nil {
-		return err
-	}
-
-	if env.Status != database.DevEnvStatusStopped {
-		return errors.New("environment is not in stopped state")
-	}
-
-	// 更新状态为启动中
-	if err := s.repo.UpdateStatus(id, createdBy, database.DevEnvStatusStarting); err != nil {
-		return err
-	}
-
-	// TODO: 实际的Docker容器启动逻辑
-	// 这里应该调用Docker API启动对应的容器
-
-	return nil
-}
-
-// StopEnvironment 停止开发环境
-func (s *devEnvironmentService) StopEnvironment(id uint, createdBy string) error {
-	env, err := s.repo.GetByID(id, createdBy)
-	if err != nil {
-		return err
-	}
-
-	if env.Status != database.DevEnvStatusRunning {
-		return errors.New("environment is not running")
-	}
-
-	// 更新状态为停止中
-	if err := s.repo.UpdateStatus(id, createdBy, database.DevEnvStatusStopping); err != nil {
-		return err
-	}
-
-	// TODO: 实际的Docker容器停止逻辑
-	// 这里应该调用Docker API停止对应的容器
-
-	return nil
-}
-
-// RestartEnvironment 重启开发环境
-func (s *devEnvironmentService) RestartEnvironment(id uint, createdBy string) error {
-	if err := s.StopEnvironment(id, createdBy); err != nil {
-		return err
-	}
-	return s.StartEnvironment(id, createdBy)
-}
-
-// UseEnvironment 使用开发环境（更新最后使用时间）
-func (s *devEnvironmentService) UseEnvironment(id uint, createdBy string) (*database.DevEnvironment, error) {
-	env, err := s.repo.GetByID(id, createdBy)
-	if err != nil {
-		return nil, err
-	}
-
-	if env.Status != database.DevEnvStatusRunning {
-		return nil, errors.New("environment is not running")
-	}
-
-	// 更新最后使用时间
-	if err := s.repo.UpdateLastUsed(id, createdBy); err != nil {
-		return nil, err
-	}
-
-	return env, nil
 }
 
 // ValidateEnvVars 验证环境变量
