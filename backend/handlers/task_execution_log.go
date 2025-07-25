@@ -99,7 +99,20 @@ func (h *TaskExecutionLogHandlers) RetryExecution(c *gin.Context) {
 		return
 	}
 
-	if err := h.aiTaskExecutor.RetryExecution(uint(conversationID)); err != nil {
+	// 获取当前用户名
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "无法获取用户信息"})
+		return
+	}
+
+	createdBy, ok := username.(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户信息格式错误"})
+		return
+	}
+
+	if err := h.aiTaskExecutor.RetryExecution(uint(conversationID), createdBy); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

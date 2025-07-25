@@ -161,7 +161,7 @@ type AITaskExecutorService interface {
 	CancelExecution(conversationID uint) error
 
 	// 重试执行
-	RetryExecution(conversationID uint) error
+	RetryExecution(conversationID uint, createdBy string) error
 
 	// 获取执行状态信息
 	GetExecutionStatus() map[string]interface{}

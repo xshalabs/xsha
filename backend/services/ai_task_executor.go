@@ -217,9 +217,9 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint) error {
 }
 
 // RetryExecution 重试执行对话
-func (s *aiTaskExecutorService) RetryExecution(conversationID uint) error {
-	// 获取对话信息（不需要用户验证，使用空字符串）
-	conv, err := s.taskConvRepo.GetByID(conversationID, "")
+func (s *aiTaskExecutorService) RetryExecution(conversationID uint, createdBy string) error {
+	// 获取对话信息
+	conv, err := s.taskConvRepo.GetByID(conversationID, createdBy)
 	if err != nil {
 		return fmt.Errorf("获取对话信息失败: %v", err)
 	}
