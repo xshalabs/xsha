@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"sleep0-backend/utils"
 )
@@ -27,14 +26,20 @@ func main() {
 		var err error
 		aesKey, err = utils.GenerateAESKey()
 		if err != nil {
-			log.Fatalf("生成AES密钥失败: %v", err)
+			utils.Error("Failed to generate AES key",
+				"error", err.Error(),
+			)
+			os.Exit(1)
 		}
 		fmt.Printf("自动生成AES密钥: %s\n", aesKey)
 	}
 
 	encrypted, err := utils.EncryptAES(password, aesKey)
 	if err != nil {
-		log.Fatalf("密码加密失败: %v", err)
+		utils.Error("Failed to encrypt password",
+			"error", err.Error(),
+		)
+		os.Exit(1)
 	}
 
 	fmt.Printf("\n=== 加密结果 ===\n")

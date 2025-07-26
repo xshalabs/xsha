@@ -3,7 +3,8 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
+	"sleep0-backend/utils"
 	"sync"
 	"time"
 )
@@ -32,6 +33,7 @@ type LogBroadcaster struct {
 	unregister chan *SSEClient
 	broadcast  chan LogMessage
 	mu         sync.RWMutex
+	logger     *slog.Logger
 }
 
 // NewLogBroadcaster 创建日志广播管理器
@@ -41,6 +43,7 @@ func NewLogBroadcaster() *LogBroadcaster {
 		register:   make(chan *SSEClient),
 		unregister: make(chan *SSEClient),
 		broadcast:  make(chan LogMessage, 1000), // 缓冲区大小为1000
+		logger:     utils.WithFields(map[string]interface{}{"component": "log_broadcaster"}),
 	}
 }
 
@@ -52,56 +55,76 @@ func (lb *LogBroadcaster) Start() {
 
 // run 运行广播循环
 func (lb *LogBroadcaster) run() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case client := <-lb.register:
 			lb.mu.Lock()
 			lb.clients[client.ID] = client
 			lb.mu.Unlock()
-			log.Printf("SSE客户端已连接: %s (用户: %s)", client.ID, client.UserID)
+
+			lb.logger.Info("SSE client connected",
+				"client_id", client.ID,
+				"user_id", client.UserID,
+			)
 
 		case client := <-lb.unregister:
 			lb.mu.Lock()
-			if _, exists := lb.clients[client.ID]; exists {
+			if _, ok := lb.clients[client.ID]; ok {
 				delete(lb.clients, client.ID)
 				close(client.Channel)
-				close(client.CloseCh)
-				log.Printf("SSE客户端已断开: %s (用户: %s)", client.ID, client.UserID)
 			}
 			lb.mu.Unlock()
 
+			lb.logger.Info("SSE client disconnected",
+				"client_id", client.ID,
+				"user_id", client.UserID,
+			)
+
 		case message := <-lb.broadcast:
 			lb.mu.RLock()
-			for _, client := range lb.clients {
-				// 检查用户权限（简单实现：所有用户都能看到所有日志）
-				// 在实际应用中，这里应该根据用户权限过滤消息
+			for id, client := range lb.clients {
 				select {
 				case client.Channel <- message:
 					client.LastSeen = time.Now()
 				default:
-					// 客户端通道已满，断开连接
-					go lb.UnregisterClient(client.ID)
+					// 通道已满，客户端可能已断开
+					lb.logger.Warn("Client channel full, removing client",
+						"client_id", id,
+						"user_id", client.UserID,
+					)
+					delete(lb.clients, id)
+					close(client.Channel)
 				}
 			}
 			lb.mu.RUnlock()
+
+		case <-ticker.C:
+			// 定期检查不活跃的客户端
+			// 这个在cleanupInactiveClients中处理
 		}
 	}
 }
 
-// cleanupInactiveClients 清理非活跃客户端
+// cleanupInactiveClients 清理不活跃的客户端
 func (lb *LogBroadcaster) cleanupInactiveClients() {
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		lb.mu.Lock()
 		now := time.Now()
+		lb.mu.Lock()
 		for id, client := range lb.clients {
 			if now.Sub(client.LastSeen) > 10*time.Minute {
+				lb.logger.Info("Cleaning up inactive SSE client",
+					"client_id", id,
+					"user_id", client.UserID,
+					"inactive_duration", now.Sub(client.LastSeen).String(),
+				)
 				delete(lb.clients, id)
 				close(client.Channel)
-				close(client.CloseCh)
-				log.Printf("清理非活跃SSE客户端: %s", id)
 			}
 		}
 		lb.mu.Unlock()
@@ -134,7 +157,7 @@ func (lb *LogBroadcaster) UnregisterClient(clientID string) {
 }
 
 // BroadcastLog 广播日志消息
-func (lb *LogBroadcaster) BroadcastLog(conversationID uint, content string, logType string) {
+func (lb *LogBroadcaster) BroadcastLog(conversationID uint, content, logType string) {
 	message := LogMessage{
 		ConversationID: conversationID,
 		Content:        content,
@@ -144,24 +167,32 @@ func (lb *LogBroadcaster) BroadcastLog(conversationID uint, content string, logT
 
 	select {
 	case lb.broadcast <- message:
+		// 消息已发送
 	default:
-		log.Printf("警告：广播通道已满，丢弃消息")
+		lb.logger.Warn("Broadcast channel full, dropping message",
+			"conversation_id", conversationID,
+			"log_type", logType,
+		)
 	}
 }
 
-// BroadcastStatusChange 广播状态变化
-func (lb *LogBroadcaster) BroadcastStatusChange(conversationID uint, status string, message string) {
-	statusMessage := LogMessage{
+// BroadcastStatus 广播状态消息
+func (lb *LogBroadcaster) BroadcastStatus(conversationID uint, status string) {
+	message := LogMessage{
 		ConversationID: conversationID,
-		Content:        fmt.Sprintf("状态变更: %s - %s", status, message),
+		Content:        status,
 		Timestamp:      time.Now(),
 		LogType:        "status",
 	}
 
 	select {
-	case lb.broadcast <- statusMessage:
+	case lb.broadcast <- message:
+		// 消息已发送
 	default:
-		log.Printf("警告：广播通道已满，丢弃状态消息")
+		lb.logger.Warn("Broadcast channel full, dropping status message",
+			"conversation_id", conversationID,
+			"status", status,
+		)
 	}
 }
 

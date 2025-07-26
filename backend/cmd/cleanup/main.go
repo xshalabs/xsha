@@ -1,21 +1,43 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"sleep0-backend/config"
 	"sleep0-backend/database"
 	"sleep0-backend/repository"
 	"sleep0-backend/services"
+	"sleep0-backend/utils"
 )
 
 func main() {
 	// 加载配置
 	cfg := config.Load()
 
+	// 初始化日志
+	logConfig := utils.LogConfig{
+		Level:  cfg.LogLevel,
+		Format: cfg.LogFormat,
+		Output: cfg.LogOutput,
+	}
+
+	if err := utils.InitLogger(logConfig); err != nil {
+		slog.Error("Failed to initialize logger",
+			"error", err.Error(),
+		)
+		return
+	}
+
+	logger := utils.WithFields(map[string]interface{}{
+		"component": "cleanup",
+	})
+
 	// 初始化数据库（新架构）
 	dbManager, err := database.NewDatabaseManager(cfg)
 	if err != nil {
-		log.Fatalf("初始化数据库失败: %v", err)
+		logger.Error("Failed to initialize database",
+			"error", err.Error(),
+		)
+		return
 	}
 	defer dbManager.Close()
 
@@ -27,19 +49,25 @@ func main() {
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, cfg)
 	loginLogService := services.NewLoginLogService(loginLogRepo)
 
+	logger.Info("Starting cleanup tasks...")
+
 	// 清理过期的黑名单Token
 	if err := authService.CleanExpiredTokens(); err != nil {
-		log.Printf("清理过期Token失败: %v", err)
+		logger.Error("Failed to clean expired tokens",
+			"error", err.Error(),
+		)
 	} else {
-		log.Println("过期Token清理完成")
+		logger.Info("Expired tokens cleaned successfully")
 	}
 
 	// 清理30天前的登录日志
 	if err := loginLogService.CleanOldLogs(30); err != nil {
-		log.Printf("清理旧登录日志失败: %v", err)
+		logger.Error("Failed to clean old login logs",
+			"error", err.Error(),
+		)
 	} else {
-		log.Println("登录日志清理完成")
+		logger.Info("Old login logs cleaned successfully")
 	}
 
-	log.Println("清理任务全部完成")
+	logger.Info("All cleanup tasks completed")
 }

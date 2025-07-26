@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"os/exec"
 	"sleep0-backend/config"
 	"sleep0-backend/database"
@@ -105,6 +106,7 @@ type aiTaskExecutorService struct {
 	config           *config.Config
 	executionManager *ExecutionManager
 	logBroadcaster   *LogBroadcaster
+	logger           *slog.Logger
 }
 
 // NewAITaskExecutorService 创建AI任务执行服务
@@ -122,6 +124,10 @@ func NewAITaskExecutorService(
 		maxConcurrency = cfg.MaxConcurrentTasks
 	}
 
+	logger := utils.WithFields(map[string]interface{}{
+		"component": "ai_task_executor",
+	})
+
 	return &aiTaskExecutorService{
 		taskConvRepo:     taskConvRepo,
 		taskRepo:         taskRepo,
@@ -131,6 +137,7 @@ func NewAITaskExecutorService(
 		config:           cfg,
 		executionManager: NewExecutionManager(maxConcurrency),
 		logBroadcaster:   logBroadcaster,
+		logger:           logger,
 	}
 }
 
@@ -203,7 +210,9 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint, createdBy s
 
 	// 如果任务正在运行，先取消执行
 	if s.executionManager.CancelExecution(conversationID) {
-		log.Printf("强制取消正在运行的对话 %d", conversationID)
+		s.logger.Info("Force cancelling running conversation",
+			"conversation_id", conversationID,
+		)
 	}
 
 	// 更新对话状态为已取消
@@ -360,7 +369,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		if errorMsg != "" {
 			statusMessage += fmt.Sprintf(" - %s", errorMsg)
 		}
-		s.logBroadcaster.BroadcastStatusChange(conv.ID, string(finalStatus), statusMessage)
+		s.logBroadcaster.BroadcastStatus(conv.ID, fmt.Sprintf("%s - %s", string(finalStatus), statusMessage))
 
 		log.Printf("对话 %d 执行完成，状态: %s", conv.ID, string(finalStatus))
 	}()

@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"log/slog"
 	"os"
 	"sleep0-backend/utils"
 	"strconv"
@@ -26,6 +27,11 @@ type Config struct {
 
 	// Git配置
 	GitSSLVerify bool // Git SSL验证开关
+
+	// 日志配置
+	LogLevel  utils.LogLevel  // 日志级别
+	LogFormat utils.LogFormat // 日志格式
+	LogOutput string          // 日志输出
 }
 
 func Load() *Config {
@@ -50,13 +56,18 @@ func Load() *Config {
 
 		// Git配置 - 默认禁用SSL验证以解决兼容性问题
 		GitSSLVerify: getEnvBool("SLEEP0_GIT_SSL_VERIFY", false),
+
+		// 日志配置
+		LogLevel:  utils.LogLevel(getEnv("SLEEP0_LOG_LEVEL", "INFO")),
+		LogFormat: utils.LogFormat(getEnv("SLEEP0_LOG_FORMAT", "JSON")),
+		LogOutput: getEnv("SLEEP0_LOG_OUTPUT", "stdout"),
 	}
 
 	// 处理管理员密码：尝试解密，失败则当作明文（向后兼容）
 	encryptedPass := getEnv("SLEEP0_ADMIN_PASS", "admin123")
 	if decryptedPass, err := utils.DecryptAES(encryptedPass, aesKey); err == nil {
 		config.AdminPass = decryptedPass
-		log.Println("管理员密码已从加密值加载")
+		slog.Info("Administrator password loaded from encrypted value")
 	} else {
 		config.AdminPass = encryptedPass
 		log.Println("管理员密码作为明文加载（建议加密）")
