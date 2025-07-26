@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"log/slog"
 	"sleep0-backend/database"
 	"sleep0-backend/repository"
 	"sleep0-backend/utils"
@@ -14,21 +13,15 @@ type taskService struct {
 	projectRepo      repository.ProjectRepository
 	devEnvRepo       repository.DevEnvironmentRepository
 	workspaceManager *utils.WorkspaceManager
-	logger           *slog.Logger
 }
 
 // NewTaskService 创建任务服务实例
 func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository, workspaceManager *utils.WorkspaceManager) TaskService {
-	logger := utils.WithFields(map[string]interface{}{
-		"component": "task_service",
-	})
-
 	return &taskService{
 		repo:             repo,
 		projectRepo:      projectRepo,
 		devEnvRepo:       devEnvRepo,
 		workspaceManager: workspaceManager,
-		logger:           logger,
 	}
 }
 
@@ -137,7 +130,7 @@ func (s *taskService) UpdateTaskStatus(id uint, createdBy string, status databas
 		return err
 	}
 
-	s.logger.Info("Task status updated",
+	utils.Info("Task status updated",
 		"task_id", id,
 		"created_by", createdBy,
 		"old_status", string(oldStatus),
@@ -157,14 +150,14 @@ func (s *taskService) DeleteTask(id uint, createdBy string) error {
 	// 如果任务有工作空间，先清理工作空间
 	if task.WorkspacePath != "" {
 		if err := s.workspaceManager.CleanupTaskWorkspace(task.WorkspacePath); err != nil {
-			s.logger.Error("Failed to cleanup task workspace",
+			utils.Error("Failed to cleanup task workspace",
 				"task_id", id,
 				"workspace_path", task.WorkspacePath,
 				"error", err.Error(),
 			)
 			// 不返回错误，避免因清理失败影响任务删除
 		} else {
-			s.logger.Info("Task workspace cleaned up",
+			utils.Info("Task workspace cleaned up",
 				"task_id", id,
 				"workspace_path", task.WorkspacePath,
 			)
@@ -176,7 +169,7 @@ func (s *taskService) DeleteTask(id uint, createdBy string) error {
 		return err
 	}
 
-	s.logger.Info("Task deleted",
+	utils.Info("Task deleted",
 		"task_id", id,
 		"created_by", createdBy,
 	)

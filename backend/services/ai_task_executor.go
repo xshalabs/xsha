@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"os/exec"
 	"sleep0-backend/config"
 	"sleep0-backend/database"
@@ -105,7 +104,6 @@ type aiTaskExecutorService struct {
 	config           *config.Config
 	executionManager *ExecutionManager
 	logBroadcaster   *LogBroadcaster
-	logger           *slog.Logger
 }
 
 // NewAITaskExecutorService 创建AI任务执行服务
@@ -123,10 +121,6 @@ func NewAITaskExecutorService(
 		maxConcurrency = cfg.MaxConcurrentTasks
 	}
 
-	logger := utils.WithFields(map[string]interface{}{
-		"component": "ai_task_executor",
-	})
-
 	return &aiTaskExecutorService{
 		taskConvRepo:     taskConvRepo,
 		taskRepo:         taskRepo,
@@ -136,7 +130,6 @@ func NewAITaskExecutorService(
 		config:           cfg,
 		executionManager: NewExecutionManager(maxConcurrency),
 		logBroadcaster:   logBroadcaster,
-		logger:           logger,
 	}
 }
 
@@ -211,7 +204,7 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint, createdBy s
 
 	// 如果任务正在运行，先取消执行
 	if s.executionManager.CancelExecution(conversationID) {
-		s.logger.Info("Force cancelling running conversation",
+		utils.Info("Force cancelling running conversation",
 			"conversation_id", conversationID,
 		)
 	}

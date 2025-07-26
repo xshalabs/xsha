@@ -3,7 +3,6 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"sleep0-backend/utils"
 	"sync"
 	"time"
@@ -33,7 +32,6 @@ type LogBroadcaster struct {
 	unregister chan *SSEClient
 	broadcast  chan LogMessage
 	mu         sync.RWMutex
-	logger     *slog.Logger
 }
 
 // NewLogBroadcaster 创建日志广播管理器
@@ -43,7 +41,6 @@ func NewLogBroadcaster() *LogBroadcaster {
 		register:   make(chan *SSEClient),
 		unregister: make(chan *SSEClient),
 		broadcast:  make(chan LogMessage, 1000), // 缓冲区大小为1000
-		logger:     utils.WithFields(map[string]interface{}{"component": "log_broadcaster"}),
 	}
 }
 
@@ -65,7 +62,7 @@ func (lb *LogBroadcaster) run() {
 			lb.clients[client.ID] = client
 			lb.mu.Unlock()
 
-			lb.logger.Info("SSE client connected",
+			utils.Info("SSE client connected",
 				"client_id", client.ID,
 				"user_id", client.UserID,
 			)
@@ -78,7 +75,7 @@ func (lb *LogBroadcaster) run() {
 			}
 			lb.mu.Unlock()
 
-			lb.logger.Info("SSE client disconnected",
+			utils.Info("SSE client disconnected",
 				"client_id", client.ID,
 				"user_id", client.UserID,
 			)
@@ -91,7 +88,7 @@ func (lb *LogBroadcaster) run() {
 					client.LastSeen = time.Now()
 				default:
 					// 通道已满，客户端可能已断开
-					lb.logger.Warn("Client channel full, removing client",
+					utils.Warn("Client channel full, removing client",
 						"client_id", id,
 						"user_id", client.UserID,
 					)
@@ -118,7 +115,7 @@ func (lb *LogBroadcaster) cleanupInactiveClients() {
 		lb.mu.Lock()
 		for id, client := range lb.clients {
 			if now.Sub(client.LastSeen) > 10*time.Minute {
-				lb.logger.Info("Cleaning up inactive SSE client",
+				utils.Info("Cleaning up inactive SSE client",
 					"client_id", id,
 					"user_id", client.UserID,
 					"inactive_duration", now.Sub(client.LastSeen).String(),
@@ -169,7 +166,7 @@ func (lb *LogBroadcaster) BroadcastLog(conversationID uint, content, logType str
 	case lb.broadcast <- message:
 		// 消息已发送
 	default:
-		lb.logger.Warn("Broadcast channel full, dropping message",
+		utils.Warn("Broadcast channel full, dropping message",
 			"conversation_id", conversationID,
 			"log_type", logType,
 		)
@@ -189,7 +186,7 @@ func (lb *LogBroadcaster) BroadcastStatus(conversationID uint, status string) {
 	case lb.broadcast <- message:
 		// 消息已发送
 	default:
-		lb.logger.Warn("Broadcast channel full, dropping status message",
+		utils.Warn("Broadcast channel full, dropping status message",
 			"conversation_id", conversationID,
 			"status", status,
 		)

@@ -1,7 +1,6 @@
 package services
 
 import (
-	"log/slog"
 	"sleep0-backend/config"
 	"sleep0-backend/repository"
 	"sleep0-backend/utils"
@@ -11,20 +10,14 @@ type authService struct {
 	tokenRepo    repository.TokenBlacklistRepository
 	loginLogRepo repository.LoginLogRepository
 	config       *config.Config
-	logger       *slog.Logger
 }
 
 // NewAuthService 创建认证服务实例
 func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, cfg *config.Config) AuthService {
-	logger := utils.WithFields(map[string]interface{}{
-		"component": "auth_service",
-	})
-
 	return &authService{
 		tokenRepo:    tokenRepo,
 		loginLogRepo: loginLogRepo,
 		config:       cfg,
-		logger:       logger,
 	}
 }
 
@@ -45,7 +38,7 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 			// 记录失败日志
 			go func() {
 				if logErr := s.loginLogRepo.Add(username, clientIP, userAgent, "token_generation_failed", false); logErr != nil {
-					s.logger.Error("Failed to record login log",
+					utils.Error("Failed to record login log",
 						"username", username,
 						"client_ip", clientIP,
 						"error", logErr.Error(),
@@ -66,20 +59,20 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 	// 异步记录登录日志（不阻塞登录流程）
 	go func() {
 		if err := s.loginLogRepo.Add(username, clientIP, userAgent, failureReason, loginSuccess); err != nil {
-			s.logger.Error("Failed to record login log",
+			utils.Error("Failed to record login log",
 				"username", username,
 				"client_ip", clientIP,
 				"success", loginSuccess,
 				"error", err.Error(),
 			)
 		} else if loginSuccess {
-			s.logger.Info("User logged in successfully",
+			utils.Info("User logged in successfully",
 				"username", username,
 				"client_ip", clientIP,
 				"user_agent", userAgent,
 			)
 		} else {
-			s.logger.Warn("Login attempt failed",
+			utils.Warn("Login attempt failed",
 				"username", username,
 				"client_ip", clientIP,
 				"user_agent", userAgent,
