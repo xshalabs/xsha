@@ -119,7 +119,7 @@ func main() {
 	r := gin.Default()
 
 	// Setup routes - 传递所有处理器实例
-	routes.SetupRoutes(r, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskExecLogHandlers, sseLogHandlers)
+	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskExecLogHandlers, sseLogHandlers)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

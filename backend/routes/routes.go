@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"sleep0-backend/config"
 	"sleep0-backend/handlers"
 	"sleep0-backend/middleware"
 	"sleep0-backend/services"
@@ -11,7 +12,7 @@ import (
 )
 
 // SetupRoutes sets up routes
-func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, sseLogHandlers *handlers.SSELogHandlers) {
+func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, sseLogHandlers *handlers.SSELogHandlers) {
 	// Apply global middleware
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
@@ -39,7 +40,7 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *
 
 	// API route group (authentication required)
 	api := r.Group("/api/v1")
-	api.Use(middleware.AuthMiddlewareWithService(authService))
+	api.Use(middleware.AuthMiddlewareWithService(authService, cfg))
 
 	// 添加操作日志记录中间件（在认证中间件之后）
 	api.Use(middleware.OperationLogMiddleware(operationLogHandlers.OperationLogService))

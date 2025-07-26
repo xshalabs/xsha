@@ -11,9 +11,8 @@ import (
 )
 
 // AuthMiddleware authentication middleware with service injection
-func AuthMiddlewareWithService(authService services.AuthService) gin.HandlerFunc {
+func AuthMiddlewareWithService(authService services.AuthService, cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		cfg := config.Load()
 		lang := GetLangFromContext(c)
 
 		// Get token from Authorization header
