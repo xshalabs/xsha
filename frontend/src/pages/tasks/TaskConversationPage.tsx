@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { TaskConversation } from '@/components/TaskConversation';
+import { TaskExecutionLog } from '@/components/TaskExecutionLog';
 import { apiService } from '@/lib/api/index';
 import { logError } from '@/lib/errors';
 import type { Task } from '@/types/task';
 import type { 
   TaskConversation as TaskConversationInterface, 
-  ConversationFormData
+  ConversationFormData,
+  ConversationStatus
 } from '@/types/task-conversation';
 
 const TaskConversationPage: React.FC = () => {
@@ -20,6 +22,7 @@ const TaskConversationPage: React.FC = () => {
   
   const [task, setTask] = useState<Task | null>(null);
   const [conversations, setConversations] = useState<TaskConversationInterface[]>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
   const [conversationsLoading, setConversationsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +40,7 @@ const TaskConversationPage: React.FC = () => {
       try {
         setLoading(true);
         const response = await apiService.tasks.get(parseInt(taskId, 10));
-                 setTask(response.data);
+        setTask(response.data);
       } catch (error) {
         logError(error as Error, 'Failed to load task');
         alert(error instanceof Error ? error.message : t('tasks.messages.loadFailed'));
@@ -61,6 +64,11 @@ const TaskConversationPage: React.FC = () => {
       });
       
       setConversations(response.data.conversations);
+      
+      // 默认选中最新一条对话（如果没有选中的话）
+      if (response.data.conversations.length > 0 && !selectedConversationId) {
+        setSelectedConversationId(response.data.conversations[0].id);
+      }
     } catch (error) {
       logError(error as Error, 'Failed to load conversations');
     } finally {
@@ -86,7 +94,7 @@ const TaskConversationPage: React.FC = () => {
       });
       
       // 重新加载对话列表
-      loadConversations(task.id);
+      await loadConversations(task.id);
     } catch (error) {
       logError(error as Error, 'Failed to send message');
       throw error;
@@ -103,6 +111,13 @@ const TaskConversationPage: React.FC = () => {
   const handleDeleteConversation = async (conversationId: number) => {
     try {
       await apiService.taskConversations.delete(conversationId);
+      
+      // 如果删除的是当前选中的对话，选择另一个对话
+      if (selectedConversationId === conversationId) {
+        const remainingConversations = conversations.filter(c => c.id !== conversationId);
+        setSelectedConversationId(remainingConversations.length > 0 ? remainingConversations[0].id : null);
+      }
+      
       // 重新加载对话列表
       if (task) {
         loadConversations(task.id);
@@ -113,10 +128,24 @@ const TaskConversationPage: React.FC = () => {
     }
   };
 
+  // 处理对话状态变化
+  const handleConversationStatusChange = (conversationId: number, newStatus: ConversationStatus) => {
+    setConversations(prev => 
+      prev.map(conv => 
+        conv.id === conversationId 
+          ? { ...conv, status: newStatus }
+          : conv
+      )
+    );
+  };
+
+  // 获取当前选中的对话
+  const selectedConversation = conversations.find(c => c.id === selectedConversationId);
+
   if (loading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -134,7 +163,7 @@ const TaskConversationPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <Button 
             variant="outline" 
@@ -150,14 +179,45 @@ const TaskConversationPage: React.FC = () => {
           </p>
         </div>
 
-        <TaskConversation
-          taskTitle={task.title}
-          conversations={conversations}
-          loading={conversationsLoading}
-          onSendMessage={handleSendMessage}
-          onRefresh={handleConversationRefresh}
-          onDeleteConversation={handleDeleteConversation}
-        />
+        {/* 2栏布局 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
+          {/* 左侧：对话列表和新消息 */}
+          <div className="flex flex-col">
+            <TaskConversation
+              taskTitle={task.title}
+              conversations={conversations}
+              selectedConversationId={selectedConversationId}
+              loading={conversationsLoading}
+              onSendMessage={handleSendMessage}
+              onRefresh={handleConversationRefresh}
+              onDeleteConversation={handleDeleteConversation}
+              onSelectConversation={setSelectedConversationId}
+              onConversationStatusChange={handleConversationStatusChange}
+            />
+          </div>
+
+          {/* 右侧：执行日志 */}
+          <div className="flex flex-col">
+            {selectedConversation ? (
+              <div className="h-full">
+                <TaskExecutionLog
+                  conversationId={selectedConversation.id}
+                  conversationStatus={selectedConversation.status}
+                  onStatusChange={(newStatus) => 
+                    handleConversationStatusChange(selectedConversation.id, newStatus)
+                  }
+                />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <div className="text-center text-gray-500">
+                  <p className="text-lg font-medium mb-2">{t('taskConversation.noSelection.title')}</p>
+                  <p className="text-sm">{t('taskConversation.noSelection.description')}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

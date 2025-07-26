@@ -15,6 +15,10 @@
     "title": "No conversations yet",
     "description": "Start your first conversation"
   },
+  "noSelection": {
+    "title": "Select a conversation",
+    "description": "Choose a conversation from the left to view execution logs"
+  },
   "status": {
     "pending": "Pending",
     "running": "Running",

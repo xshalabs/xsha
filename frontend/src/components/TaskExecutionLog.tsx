@@ -190,7 +190,7 @@ export function TaskExecutionLog({
   }
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -232,7 +232,7 @@ export function TaskExecutionLog({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex-1 overflow-y-auto">
         {/* 执行信息 */}
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
@@ -335,7 +335,7 @@ export function TaskExecutionLog({
             </div>
 
             {showLogs && (
-              <div className="p-4 bg-black text-green-400 rounded-lg font-mono text-xs overflow-x-auto max-h-96 overflow-y-auto">
+              <div className="p-4 bg-black text-green-400 rounded-lg font-mono text-xs overflow-x-auto max-h-80 overflow-y-auto">
                 <pre className="whitespace-pre-wrap">
                   {executionLog.execution_logs}
                 </pre>
