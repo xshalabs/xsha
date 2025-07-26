@@ -41,7 +41,6 @@ export function TaskConversation({
   onSendMessage,
   onRefresh,
   onSelectConversation,
-  onConversationStatusChange,
   onDeleteConversation
 }: TaskConversationProps) {
   const { t } = useTranslation();

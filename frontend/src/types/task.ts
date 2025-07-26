@@ -33,6 +33,7 @@ export interface CreateTaskRequest {
   project_id: number;
   dev_environment_id?: number;
   requirement_desc?: string; // 需求描述
+  include_branches?: boolean; // 是否返回项目分支信息
 }
 
 // 更新任务请求（只允许更新标题）
@@ -62,7 +63,11 @@ export interface TaskStats {
 // API响应类型
 export interface CreateTaskResponse {
   message: string;
-  data: Task;
+  data: {
+    task: Task;
+    project_branches?: string[]; // 项目分支列表
+    branch_error?: string;       // 获取分支时的错误信息
+  };
 }
 
 export interface TaskListResponse {
@@ -92,4 +97,5 @@ export interface TaskFormData {
   project_id: number;
   dev_environment_id?: number;
   requirement_desc?: string; // 需求描述，仅在创建时使用
+  include_branches?: boolean; // 是否返回项目分支信息
 } 

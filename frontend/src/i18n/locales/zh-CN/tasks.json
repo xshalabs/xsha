@@ -27,6 +27,7 @@
   },
   "fields": {
     "title": "任务标题",
+    "requirementDesc": "需求描述",
     "description": "任务描述",
     "project": "所属项目",
     "startBranch": "起始分支",
@@ -38,12 +39,16 @@
     "createDescription": "创建一个新的开发任务",
     "editDescription": "修改任务信息",
     "titlePlaceholder": "请输入任务标题",
+    "requirementDescPlaceholder": "请描述任务的具体需求和目标",
+    "requirementDescHint": "这将作为任务的初始对话记录",
     "descriptionPlaceholder": "请描述任务的具体内容和要求",
     "selectProject": "请选择项目",
     "selectDevEnvironment": "请选择开发环境",
     "noDevEnvironment": "不绑定开发环境",
     "branchPlaceholder": "例如：main, develop",
     "branchHint": "指定开始开发的Git分支名称",
+    "selectBranch": "选择分支",
+    "branchFromRepository": "仓库中的可用分支",
     "devEnvironmentHint": "可选择一个开发环境来执行此任务"
   },
   "validation": {
@@ -63,6 +68,9 @@
     "updateFailed": "任务更新失败",
     "deleteFailed": "任务删除失败",
     "deleteConfirm": "确定要删除任务 \"{{title}}\" 吗？此操作不可撤销。"
+  },
+  "errors": {
+    "fetchBranchesFailed": "获取仓库分支失败"
   },
   "tabs": {
     "management": "任务管理",

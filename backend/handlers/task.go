@@ -14,13 +14,15 @@ import (
 type TaskHandlers struct {
 	taskService         services.TaskService
 	conversationService services.TaskConversationService
+	projectService      services.ProjectService
 }
 
 // NewTaskHandlers 创建任务处理器实例
-func NewTaskHandlers(taskService services.TaskService, conversationService services.TaskConversationService) *TaskHandlers {
+func NewTaskHandlers(taskService services.TaskService, conversationService services.TaskConversationService, projectService services.ProjectService) *TaskHandlers {
 	return &TaskHandlers{
 		taskService:         taskService,
 		conversationService: conversationService,
+		projectService:      projectService,
 	}
 }
 
@@ -31,6 +33,14 @@ type CreateTaskRequest struct {
 	ProjectID        uint   `json:"project_id" binding:"required"`
 	DevEnvironmentID *uint  `json:"dev_environment_id"`
 	RequirementDesc  string `json:"requirement_desc"` // 需求描述，用于创建conversation
+	IncludeBranches  bool   `json:"include_branches"` // 是否返回项目分支信息
+}
+
+// CreateTaskResponse 创建任务响应结构
+type CreateTaskResponse struct {
+	Task            *database.Task `json:"task"`
+	ProjectBranches []string       `json:"project_branches,omitempty"` // 项目分支列表
+	BranchError     string         `json:"branch_error,omitempty"`     // 获取分支时的错误信息
 }
 
 // UpdateTaskRequest 更新任务请求结构
@@ -73,9 +83,34 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 		}
 	}
 
+	// 构建响应数据
+	response := CreateTaskResponse{
+		Task: task,
+	}
+
+	// 如果请求包含分支信息，获取项目分支
+	if req.IncludeBranches {
+		if task.Project != nil {
+			branchResult, err := h.projectService.FetchRepositoryBranches(
+				task.Project.RepoURL,
+				task.Project.CredentialID,
+				username.(string),
+			)
+			if err != nil {
+				response.BranchError = err.Error()
+			} else if branchResult.CanAccess {
+				response.ProjectBranches = branchResult.Branches
+			} else {
+				response.BranchError = branchResult.ErrorMessage
+			}
+		} else {
+			response.BranchError = "项目信息不完整"
+		}
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Task created successfully",
-		"data":    task,
+		"data":    response,
 	})
 }
 

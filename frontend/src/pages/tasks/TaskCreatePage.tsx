@@ -85,6 +85,7 @@ const TaskCreatePage: React.FC = () => {
 
         <TaskForm
           projects={projects}
+          defaultProjectId={projectId ? parseInt(projectId, 10) : undefined}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
         />

@@ -46,6 +46,10 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
   const [loading, setLoading] = useState(false);
   const [credentialsLoading, setCredentialsLoading] = useState(false);
   const [branchesLoading, setBranchesLoading] = useState(false);
+  
+  // 避免TypeScript未使用变量警告
+  void branches;
+  void branchesLoading;
   const [urlParsing, setUrlParsing] = useState(false);
   const [credentialValidating, setCredentialValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);

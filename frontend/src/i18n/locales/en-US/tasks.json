@@ -45,6 +45,8 @@
     "noDevEnvironment": "No environment binding",
     "branchPlaceholder": "e.g.: main, develop",
     "branchHint": "Specify the Git branch name to start development",
+    "selectBranch": "Select a branch",
+    "branchFromRepository": "Available branches from the repository",
     "devEnvironmentHint": "Optionally select a development environment to execute this task"
   },
   "validation": {
@@ -65,6 +67,9 @@
     "deleteFailed": "Failed to delete task",
 
     "deleteConfirm": "Are you sure you want to delete task \"{{title}}\"? This action cannot be undone."
+  },
+  "errors": {
+    "fetchBranchesFailed": "Failed to fetch repository branches"
   },
   "tabs": {
     "management": "Task Management",

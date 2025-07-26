@@ -105,7 +105,7 @@ func main() {
 	gitCredHandlers := handlers.NewGitCredentialHandlers(gitCredService)
 	projectHandlers := handlers.NewProjectHandlers(projectService)
 	devEnvHandlers := handlers.NewDevEnvironmentHandlers(devEnvService)
-	taskHandlers := handlers.NewTaskHandlers(taskService, taskConvService)
+	taskHandlers := handlers.NewTaskHandlers(taskService, taskConvService, projectService)
 	taskConvHandlers := handlers.NewTaskConversationHandlers(taskConvService)
 	taskExecLogHandlers := handlers.NewTaskExecutionLogHandlers(aiTaskExecutor)
 	sseLogHandlers := handlers.NewSSELogHandlers(logBroadcaster)
