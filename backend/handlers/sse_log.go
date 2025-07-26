@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sleep0-backend/i18n"
+	"sleep0-backend/middleware"
 	"sleep0-backend/services"
 	"strconv"
 	"time"
@@ -34,6 +36,8 @@ func NewSSELogHandlers(logBroadcaster *services.LogBroadcaster) *SSELogHandlers 
 // @Security BearerAuth
 // @Router /api/v1/logs/stream [get]
 func (h *SSELogHandlers) StreamLogs(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
 	// 设置SSE头
 	c.Header("Content-Type", "text/event-stream")
 	c.Header("Cache-Control", "no-cache")
@@ -44,7 +48,7 @@ func (h *SSELogHandlers) StreamLogs(c *gin.Context) {
 	// 获取用户信息
 	username, exists := c.Get("username")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 

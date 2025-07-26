@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"net/http"
+	"sleep0-backend/i18n"
+	"sleep0-backend/middleware"
 	"sleep0-backend/services"
 	"strconv"
 
@@ -33,79 +35,85 @@ type UpdateConversationRequest struct {
 
 // CreateConversation 创建对话
 func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
 	var req CreateConversationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error()})
 		return
 	}
 
 	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
 	// 创建对话
 	conversation, err := h.conversationService.CreateConversation(req.TaskID, req.Content, username.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Conversation created successfully",
+		"message": i18n.T(lang, "task_conversation.create_success"),
 		"data":    conversation,
 	})
 }
 
 // GetConversation 获取对话详情
 func (h *TaskConversationHandlers) GetConversation(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid conversation ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
 	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
 	// 获取对话
 	conversation, err := h.conversationService.GetConversation(uint(id), username.(string))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Conversation not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "task_conversation.not_found")})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Conversation retrieved successfully",
+		"message": i18n.T(lang, "task_conversation.get_success"),
 		"data":    conversation,
 	})
 }
 
 // ListConversations 获取对话列表
 func (h *TaskConversationHandlers) ListConversations(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
 	taskIDStr := c.Query("task_id")
 	if taskIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Task ID is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "task.project_id_required")})
 		return
 	}
 
 	taskID, err := strconv.ParseUint(taskIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
 	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
@@ -116,12 +124,12 @@ func (h *TaskConversationHandlers) ListConversations(c *gin.Context) {
 	// 获取对话列表
 	conversations, total, err := h.conversationService.ListConversations(uint(taskID), username.(string), page, pageSize)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Conversations retrieved successfully",
+		"message": i18n.T(lang, "task_conversation.get_success"),
 		"data": gin.H{
 			"conversations": conversations,
 			"total":         total,
@@ -133,23 +141,25 @@ func (h *TaskConversationHandlers) ListConversations(c *gin.Context) {
 
 // UpdateConversation 更新对话
 func (h *TaskConversationHandlers) UpdateConversation(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid conversation ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
 	var req UpdateConversationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error()})
 		return
 	}
 
 	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
@@ -161,68 +171,72 @@ func (h *TaskConversationHandlers) UpdateConversation(c *gin.Context) {
 
 	// 更新对话
 	if err := h.conversationService.UpdateConversation(uint(id), username.(string), updates); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Conversation updated successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task_conversation.update_success")})
 }
 
 // DeleteConversation 删除对话
 func (h *TaskConversationHandlers) DeleteConversation(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid conversation ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
 	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
 	// 删除对话
 	if err := h.conversationService.DeleteConversation(uint(id), username.(string)); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Conversation not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Conversation deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task_conversation.update_success")})
 }
 
 // GetLatestConversation 获取最新对话
 func (h *TaskConversationHandlers) GetLatestConversation(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
 	taskIDStr := c.Query("task_id")
 	if taskIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Task ID is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "task.project_id_required")})
 		return
 	}
 
 	taskID, err := strconv.ParseUint(taskIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
 	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
 	// 获取最新对话
 	conversation, err := h.conversationService.GetLatestConversation(uint(taskID), username.(string))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "No conversation found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "task_conversation.not_found")})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Latest conversation retrieved successfully",
+		"message": i18n.T(lang, "task_conversation.get_success"),
 		"data":    conversation,
 	})
 }
