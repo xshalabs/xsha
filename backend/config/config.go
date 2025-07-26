@@ -15,9 +15,9 @@ type Config struct {
 	SQLitePath   string
 	MySQLDSN     string
 	AdminUser    string
-	AdminPass    string // 解密后的明文密码
+	AdminPass    string // 管理员密码（明文）
 	JWTSecret    string
-	AESKey       string // 新增：AES密钥
+	AESKey       string // AES密钥（用于Git凭据加密）
 
 	// 定时器配置
 	SchedulerInterval      string // 定时器间隔
@@ -44,7 +44,7 @@ func Load() *Config {
 		utils.Info("成功加载 .env 文件")
 	}
 
-	// 获取AES密钥
+	// 获取AES密钥（仅用于Git凭据加密）
 	aesKey := normalizeAESKey(getEnv("SLEEP0_AES_KEY", "default-aes-key-change-in-production"))
 
 	config := &Config{
@@ -54,6 +54,7 @@ func Load() *Config {
 		SQLitePath:   getEnv("SLEEP0_SQLITE_PATH", "app.db"),
 		MySQLDSN:     getEnv("SLEEP0_MYSQL_DSN", ""),
 		AdminUser:    getEnv("SLEEP0_ADMIN_USER", "admin"),
+		AdminPass:    getEnv("SLEEP0_ADMIN_PASS", "admin123"), // 直接读取明文密码
 		JWTSecret:    getEnv("SLEEP0_JWT_SECRET", "your-jwt-secret-key-change-this-in-production"),
 		AESKey:       aesKey,
 
@@ -70,16 +71,6 @@ func Load() *Config {
 		LogLevel:  utils.LogLevel(getEnv("SLEEP0_LOG_LEVEL", "INFO")),
 		LogFormat: utils.LogFormat(getEnv("SLEEP0_LOG_FORMAT", "JSON")),
 		LogOutput: getEnv("SLEEP0_LOG_OUTPUT", "stdout"),
-	}
-
-	// 处理管理员密码：尝试解密，失败则当作明文（向后兼容）
-	encryptedPass := getEnv("SLEEP0_ADMIN_PASS", "admin123")
-	if decryptedPass, err := utils.DecryptAES(encryptedPass, aesKey); err == nil {
-		config.AdminPass = decryptedPass
-		utils.Info("Administrator password loaded from encrypted value")
-	} else {
-		config.AdminPass = encryptedPass
-		utils.Info("管理员密码作为明文加载（建议加密）")
 	}
 
 	return config

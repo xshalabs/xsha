@@ -82,8 +82,7 @@ backend/
 │       ├── en-US.json        # 英文语言包
 │       └── zh-CN.json        # 中文语言包
 ├── cmd/                       # 命令行工具
-│   ├── cleanup/              # 清理工具
-│   └── encrypt-password/     # 密码加密工具
+│   └── cleanup/              # 清理工具
 ├── docs/                      # API 文档（自动生成）
 ├── go.mod                     # Go 模块文件
 ├── go.sum                     # 依赖版本锁定
@@ -132,7 +131,7 @@ export SLEEP0_MYSQL_DSN="user:password@tcp(localhost:3306)/sleep0?charset=utf8mb
 export SLEEP0_ADMIN_USER="admin"
 export SLEEP0_ADMIN_PASS="admin123"
 export SLEEP0_JWT_SECRET="your-strong-jwt-secret-key-here"
-export SLEEP0_AES_KEY="your-32-byte-aes-encryption-key-here"
+export SLEEP0_AES_KEY="your-32-byte-aes-encryption-key-here"  # 用于Git凭据加密
 
 # Git配置 🆕
 export SLEEP0_GIT_SSL_VERIFY="false"                    # Git SSL验证开关（默认禁用以解决兼容性问题）
@@ -344,7 +343,7 @@ sudo apt-get update && sudo apt-get install ca-certificates
 | `SLEEP0_ADMIN_USER` | 管理员用户名 | admin | string |
 | `SLEEP0_ADMIN_PASS` | 管理员密码 | admin123 | string |
 | `SLEEP0_JWT_SECRET` | JWT 密钥 | your-jwt-secret-key-change-this-in-production | string |
-| `SLEEP0_AES_KEY` | AES 加密密钥 | default-aes-key-change-in-production | string |
+| `SLEEP0_AES_KEY` | AES 加密密钥（用于Git凭据） | default-aes-key-change-in-production | string |
 | `SLEEP0_SCHEDULER_INTERVAL` | 定时器间隔 🆕 | 30s | duration |
 | `SLEEP0_WORKSPACE_BASE_DIR` | 工作目录基础路径 🆕 | /tmp/sleep0-workspaces | string |
 | `SLEEP0_DOCKER_TIMEOUT` | Docker 执行超时时间 🆕 | 30m | duration |
@@ -383,7 +382,7 @@ sudo apt-get update && sudo apt-get install ca-certificates
 
 - **JWT 认证**: 无状态 token 认证
 - **Token 黑名单**: 支持 token 撤销
-- **AES 加密**: 敏感信息加密存储
+- **AES 加密**: Git凭据敏感信息加密存储
 - **速率限制**: 登录接口防暴力破解
 - **操作审计**: 完整的操作日志记录
 - **输入验证**: 所有输入参数验证
