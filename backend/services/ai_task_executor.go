@@ -410,27 +410,33 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	default:
 	}
 
-	// 2. 克隆代码
-	credential, err := s.prepareGitCredential(conv.Task.Project)
-	if err != nil {
-		finalStatus = database.ConversationStatusFailed
-		errorMsg = fmt.Sprintf("准备Git凭据失败: %v", err)
-		return
-	}
+	// 2. 检查并克隆代码
+	if s.workspaceManager.CheckGitRepositoryExists(workspacePath) {
+		// 仓库已存在，跳过克隆
+		s.appendLog(execLog.ID, fmt.Sprintf("📁 仓库已存在，跳过克隆: %s\n", workspacePath))
+	} else {
+		// 仓库不存在，执行克隆
+		credential, err := s.prepareGitCredential(conv.Task.Project)
+		if err != nil {
+			finalStatus = database.ConversationStatusFailed
+			errorMsg = fmt.Sprintf("准备Git凭据失败: %v", err)
+			return
+		}
 
-	if err := s.workspaceManager.CloneRepositoryWithConfig(
-		workspacePath,
-		conv.Task.Project.RepoURL,
-		conv.Task.StartBranch,
-		credential,
-		s.config.GitSSLVerify,
-	); err != nil {
-		finalStatus = database.ConversationStatusFailed
-		errorMsg = fmt.Sprintf("克隆仓库失败: %v", err)
-		return
-	}
+		if err := s.workspaceManager.CloneRepositoryWithConfig(
+			workspacePath,
+			conv.Task.Project.RepoURL,
+			conv.Task.StartBranch,
+			credential,
+			s.config.GitSSLVerify,
+		); err != nil {
+			finalStatus = database.ConversationStatusFailed
+			errorMsg = fmt.Sprintf("克隆仓库失败: %v", err)
+			return
+		}
 
-	s.appendLog(execLog.ID, fmt.Sprintf("✅ 成功克隆仓库到: %s\n", workspacePath))
+		s.appendLog(execLog.ID, fmt.Sprintf("✅ 成功克隆仓库到: %s\n", workspacePath))
+	}
 
 	// 3. 构建并执行Docker命令
 	dockerCmd := s.buildDockerCommand(conv, workspacePath)

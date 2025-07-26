@@ -216,6 +216,18 @@ func (w *WorkspaceManager) CheckWorkspaceExists(workspacePath string) bool {
 	return err == nil && info.IsDir()
 }
 
+// CheckGitRepositoryExists 检查工作空间中是否已存在git仓库
+func (w *WorkspaceManager) CheckGitRepositoryExists(workspacePath string) bool {
+	if workspacePath == "" {
+		return false
+	}
+
+	// 检查.git目录是否存在
+	gitDir := filepath.Join(workspacePath, ".git")
+	info, err := os.Stat(gitDir)
+	return err == nil && info.IsDir()
+}
+
 // GetWorkspaceSize 获取工作目录大小（MB）
 func (w *WorkspaceManager) GetWorkspaceSize(workspacePath string) (int64, error) {
 	var size int64
