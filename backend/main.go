@@ -32,6 +32,7 @@ import (
 	"sleep0-backend/routes"
 	"sleep0-backend/scheduler"
 	"sleep0-backend/services"
+	"sleep0-backend/utils"
 	"syscall"
 	"time"
 
@@ -72,6 +73,9 @@ func main() {
 	logBroadcaster := services.NewLogBroadcaster()
 	logBroadcaster.Start()
 
+	// Initialize workspace manager
+	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir)
+
 	// Initialize services
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, cfg)
 	loginLogService := services.NewLoginLogService(loginLogRepo)
@@ -79,9 +83,9 @@ func main() {
 	gitCredService := services.NewGitCredentialService(gitCredRepo, cfg)
 	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, cfg)
 	devEnvService := services.NewDevEnvironmentService(devEnvRepo)
-	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo)
+	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, workspaceManager)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo)
-	aiTaskExecutor := services.NewAITaskExecutorService(taskConvRepo, execLogRepo, gitCredService, cfg, logBroadcaster)
+	aiTaskExecutor := services.NewAITaskExecutorService(taskConvRepo, taskRepo, execLogRepo, gitCredService, cfg, logBroadcaster)
 
 	// Initialize scheduler
 	taskProcessor := scheduler.NewTaskProcessor(aiTaskExecutor)

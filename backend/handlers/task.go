@@ -188,6 +188,58 @@ func (h *TaskHandlers) UpdateTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Task updated successfully"})
 }
 
+// UpdateTaskStatusRequest 更新任务状态请求结构
+type UpdateTaskStatusRequest struct {
+	Status string `json:"status" binding:"required"`
+}
+
+// UpdateTaskStatus 更新任务状态
+func (h *TaskHandlers) UpdateTaskStatus(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
+		return
+	}
+
+	var req UpdateTaskStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// 验证状态值
+	var status database.TaskStatus
+	switch req.Status {
+	case "todo":
+		status = database.TaskStatusTodo
+	case "in_progress":
+		status = database.TaskStatusInProgress
+	case "done":
+		status = database.TaskStatusDone
+	case "cancelled":
+		status = database.TaskStatusCancelled
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status value"})
+		return
+	}
+
+	// 更新任务状态
+	if err := h.taskService.UpdateTaskStatus(uint(id), username.(string), status); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Task status updated successfully"})
+}
+
 // DeleteTask 删除任务
 func (h *TaskHandlers) DeleteTask(c *gin.Context) {
 	idStr := c.Param("id")

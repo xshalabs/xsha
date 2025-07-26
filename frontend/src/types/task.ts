@@ -8,6 +8,7 @@ export interface Task {
   start_branch: string;
   status: TaskStatus;
   has_pull_request: boolean;
+  workspace_path: string;
   project_id: number;
   dev_environment_id?: number;
   created_by: string;

@@ -25,15 +25,15 @@ func NewWorkspaceManager(baseDir string) *WorkspaceManager {
 	return &WorkspaceManager{baseDir: baseDir}
 }
 
-// CreateTempWorkspace 创建临时工作目录
-func (w *WorkspaceManager) CreateTempWorkspace(conversationID uint) (string, error) {
+// CreateTaskWorkspace 创建任务级工作目录
+func (w *WorkspaceManager) CreateTaskWorkspace(taskID uint) (string, error) {
 	// 创建基础目录
 	if err := os.MkdirAll(w.baseDir, 0755); err != nil {
 		return "", fmt.Errorf("创建基础目录失败: %v", err)
 	}
 
-	// 生成唯一目录名
-	dirName := fmt.Sprintf("conversation-%d-%d", conversationID, time.Now().Unix())
+	// 生成任务工作目录名
+	dirName := fmt.Sprintf("task-%d-%d", taskID, time.Now().Unix())
 	workspacePath := filepath.Join(w.baseDir, dirName)
 
 	// 创建工作目录
@@ -42,6 +42,25 @@ func (w *WorkspaceManager) CreateTempWorkspace(conversationID uint) (string, err
 	}
 
 	return workspacePath, nil
+}
+
+// GetOrCreateTaskWorkspace 获取或创建任务工作目录
+func (w *WorkspaceManager) GetOrCreateTaskWorkspace(taskID uint, existingPath string) (string, error) {
+	// 如果已有工作空间路径且目录存在，直接返回
+	if existingPath != "" && w.CheckWorkspaceExists(existingPath) {
+		return existingPath, nil
+	}
+
+	// 否则创建新的工作空间
+	return w.CreateTaskWorkspace(taskID)
+}
+
+// CleanupTaskWorkspace 清理任务工作目录
+func (w *WorkspaceManager) CleanupTaskWorkspace(workspacePath string) error {
+	if workspacePath == "" {
+		return nil
+	}
+	return os.RemoveAll(workspacePath)
 }
 
 // CloneRepositoryWithConfig 克隆仓库到工作目录（带配置）
@@ -159,11 +178,6 @@ func (w *WorkspaceManager) CommitChanges(workspacePath, message string) (string,
 	return strings.TrimSpace(string(output)), nil
 }
 
-// CleanupWorkspace 清理工作目录
-func (w *WorkspaceManager) CleanupWorkspace(workspacePath string) error {
-	return os.RemoveAll(workspacePath)
-}
-
 // buildAuthenticatedURL 构建带认证信息的URL
 func (w *WorkspaceManager) buildAuthenticatedURL(repoURL string, credential *GitCredentialInfo) (string, error) {
 	parsedURL, err := url.Parse(repoURL)
@@ -242,8 +256,10 @@ func (w *WorkspaceManager) CleanupOldWorkspaces(days int) error {
 			continue
 		}
 
-		// 检查目录是否符合命名模式 conversation-*
-		if !strings.HasPrefix(entry.Name(), "conversation-") {
+		// 检查目录是否符合工作空间命名模式
+		// conversation-* : 旧格式，保留用于向后兼容和清理历史数据
+		// task-* : 新格式，当前使用的任务级工作空间
+		if !strings.HasPrefix(entry.Name(), "conversation-") && !strings.HasPrefix(entry.Name(), "task-") {
 			continue
 		}
 

@@ -122,6 +122,7 @@ type TaskService interface {
 	GetTask(id uint, createdBy string) (*database.Task, error)
 	ListTasks(projectID *uint, createdBy string, status *database.TaskStatus, page, pageSize int) ([]database.Task, int64, error)
 	UpdateTask(id uint, createdBy string, updates map[string]interface{}) error
+	UpdateTaskStatus(id uint, createdBy string, status database.TaskStatus) error
 	DeleteTask(id uint, createdBy string) error
 
 	// 任务统计

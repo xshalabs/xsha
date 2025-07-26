@@ -2,23 +2,27 @@ package services
 
 import (
 	"errors"
+	"log"
 	"sleep0-backend/database"
 	"sleep0-backend/repository"
+	"sleep0-backend/utils"
 	"strings"
 )
 
 type taskService struct {
-	repo        repository.TaskRepository
-	projectRepo repository.ProjectRepository
-	devEnvRepo  repository.DevEnvironmentRepository
+	repo             repository.TaskRepository
+	projectRepo      repository.ProjectRepository
+	devEnvRepo       repository.DevEnvironmentRepository
+	workspaceManager *utils.WorkspaceManager
 }
 
 // NewTaskService 创建任务服务实例
-func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository) TaskService {
+func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository, workspaceManager *utils.WorkspaceManager) TaskService {
 	return &taskService{
-		repo:        repo,
-		projectRepo: projectRepo,
-		devEnvRepo:  devEnvRepo,
+		repo:             repo,
+		projectRepo:      projectRepo,
+		devEnvRepo:       devEnvRepo,
+		workspaceManager: workspaceManager,
 	}
 }
 
@@ -109,6 +113,43 @@ func (s *taskService) UpdateTask(id uint, createdBy string, updates map[string]i
 	task.Title = strings.TrimSpace(titleStr)
 
 	return s.repo.Update(task)
+}
+
+// UpdateTaskStatus 更新任务状态
+func (s *taskService) UpdateTaskStatus(id uint, createdBy string, status database.TaskStatus) error {
+	// 获取任务
+	task, err := s.repo.GetByID(id, createdBy)
+	if err != nil {
+		return err
+	}
+
+	oldStatus := task.Status
+	task.Status = status
+
+	// 更新任务状态
+	if err := s.repo.Update(task); err != nil {
+		return err
+	}
+
+	// 如果任务状态变为完成或取消，清理工作空间
+	if (status == database.TaskStatusDone || status == database.TaskStatusCancelled) &&
+		task.WorkspacePath != "" {
+		if err := s.workspaceManager.CleanupTaskWorkspace(task.WorkspacePath); err != nil {
+			log.Printf("清理任务 %d 工作空间失败: %v", id, err)
+			// 不返回错误，避免因清理失败影响任务状态更新
+		} else {
+			log.Printf("任务 %d 工作空间已清理: %s", id, task.WorkspacePath)
+		}
+
+		// 清空任务的工作空间路径
+		task.WorkspacePath = ""
+		if err := s.repo.Update(task); err != nil {
+			log.Printf("清空任务 %d 工作空间路径失败: %v", id, err)
+		}
+	}
+
+	log.Printf("任务 %d 状态从 %s 更新为 %s", id, oldStatus, status)
+	return nil
 }
 
 // DeleteTask 删除任务

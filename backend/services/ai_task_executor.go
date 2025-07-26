@@ -98,6 +98,7 @@ func (em *ExecutionManager) IsRunning(conversationID uint) bool {
 
 type aiTaskExecutorService struct {
 	taskConvRepo     repository.TaskConversationRepository
+	taskRepo         repository.TaskRepository
 	execLogRepo      repository.TaskExecutionLogRepository
 	workspaceManager *utils.WorkspaceManager
 	gitCredService   GitCredentialService
@@ -109,6 +110,7 @@ type aiTaskExecutorService struct {
 // NewAITaskExecutorService 创建AI任务执行服务
 func NewAITaskExecutorService(
 	taskConvRepo repository.TaskConversationRepository,
+	taskRepo repository.TaskRepository,
 	execLogRepo repository.TaskExecutionLogRepository,
 	gitCredService GitCredentialService,
 	cfg *config.Config,
@@ -122,6 +124,7 @@ func NewAITaskExecutorService(
 
 	return &aiTaskExecutorService{
 		taskConvRepo:     taskConvRepo,
+		taskRepo:         taskRepo,
 		execLogRepo:      execLogRepo,
 		workspaceManager: utils.NewWorkspaceManager(cfg.WorkspaceBaseDir),
 		gitCredService:   gitCredService,
@@ -372,14 +375,22 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	default:
 	}
 
-	// 1. 创建临时工作目录
-	workspacePath, err := s.workspaceManager.CreateTempWorkspace(conv.ID)
+	// 1. 获取或创建任务级工作目录
+	workspacePath, err := s.workspaceManager.GetOrCreateTaskWorkspace(conv.Task.ID, conv.Task.WorkspacePath)
 	if err != nil {
 		finalStatus = database.ConversationStatusFailed
 		errorMsg = fmt.Sprintf("创建工作目录失败: %v", err)
 		return
 	}
-	defer s.workspaceManager.CleanupWorkspace(workspacePath)
+
+	// 更新任务的工作空间路径（如果尚未设置）
+	if conv.Task.WorkspacePath == "" {
+		conv.Task.WorkspacePath = workspacePath
+		if updateErr := s.taskRepo.Update(conv.Task); updateErr != nil {
+			log.Printf("更新任务工作空间路径失败: %v", updateErr)
+			// 继续执行，不因为路径更新失败而中断任务
+		}
+	}
 
 	// 更新工作目录路径和开始时间
 	now := time.Now()

@@ -218,6 +218,9 @@ type Task struct {
 	Status         TaskStatus `gorm:"not null;index" json:"status"`          // 任务状态
 	HasPullRequest bool       `gorm:"default:false" json:"has_pull_request"` // 是否提交PR
 
+	// 工作空间信息
+	WorkspacePath string `gorm:"type:text" json:"workspace_path"` // 任务工作空间路径
+
 	// 关联信息
 	ProjectID        uint            `gorm:"not null;index" json:"project_id"`                   // 所属项目ID
 	Project          *Project        `gorm:"foreignKey:ProjectID" json:"project"`                // 关联项目

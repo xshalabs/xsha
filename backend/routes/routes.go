@@ -89,12 +89,13 @@ func SetupRoutes(r *gin.Engine, authService services.AuthService, authHandlers *
 		// 任务管理
 		tasks := api.Group("/tasks")
 		{
-			tasks.POST("", taskHandlers.CreateTask)        // 创建任务
-			tasks.GET("", taskHandlers.ListTasks)          // 获取任务列表
-			tasks.GET("/stats", taskHandlers.GetTaskStats) // 获取任务统计
-			tasks.GET("/:id", taskHandlers.GetTask)        // 获取单个任务
-			tasks.PUT("/:id", taskHandlers.UpdateTask)     // 更新任务
-			tasks.DELETE("/:id", taskHandlers.DeleteTask)  // 删除任务
+			tasks.POST("", taskHandlers.CreateTask)                 // 创建任务
+			tasks.GET("", taskHandlers.ListTasks)                   // 获取任务列表
+			tasks.GET("/stats", taskHandlers.GetTaskStats)          // 获取任务统计
+			tasks.GET("/:id", taskHandlers.GetTask)                 // 获取单个任务
+			tasks.PUT("/:id", taskHandlers.UpdateTask)              // 更新任务
+			tasks.PUT("/:id/status", taskHandlers.UpdateTaskStatus) // 更新任务状态
+			tasks.DELETE("/:id", taskHandlers.DeleteTask)           // 删除任务
 		}
 
 		// 任务对话管理
