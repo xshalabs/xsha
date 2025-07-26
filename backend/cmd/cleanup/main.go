@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log/slog"
 	"sleep0-backend/config"
 	"sleep0-backend/database"
 	"sleep0-backend/repository"
@@ -21,9 +20,7 @@ func main() {
 	}
 
 	if err := utils.InitLogger(logConfig); err != nil {
-		slog.Error("Failed to initialize logger",
-			"error", err.Error(),
-		)
+		utils.Error("Failed to initialize logger", "error", err.Error())
 		return
 	}
 

@@ -1,8 +1,6 @@
 package config
 
 import (
-	"log"
-	"log/slog"
 	"os"
 	"sleep0-backend/utils"
 	"strconv"
@@ -67,10 +65,10 @@ func Load() *Config {
 	encryptedPass := getEnv("SLEEP0_ADMIN_PASS", "admin123")
 	if decryptedPass, err := utils.DecryptAES(encryptedPass, aesKey); err == nil {
 		config.AdminPass = decryptedPass
-		slog.Info("Administrator password loaded from encrypted value")
+		utils.Info("Administrator password loaded from encrypted value")
 	} else {
 		config.AdminPass = encryptedPass
-		log.Println("管理员密码作为明文加载（建议加密）")
+		utils.Info("管理员密码作为明文加载（建议加密）")
 	}
 
 	return config
@@ -88,7 +86,7 @@ func getEnvInt(key string, defaultValue int) int {
 		if intValue, err := strconv.Atoi(value); err == nil {
 			return intValue
 		}
-		log.Printf("警告：无法解析环境变量 %s 的值 '%s' 为整数，使用默认值 %d", key, value, defaultValue)
+		utils.Warn("警告：无法解析环境变量的值为整数，使用默认值", "key", key, "value", value, "default", defaultValue)
 	}
 	return defaultValue
 }
@@ -98,7 +96,7 @@ func getEnvBool(key string, defaultValue bool) bool {
 		if boolValue, err := strconv.ParseBool(value); err == nil {
 			return boolValue
 		}
-		log.Printf("警告：无法解析环境变量 %s 的值 '%s' 为布尔值，使用默认值 %t", key, value, defaultValue)
+		utils.Warn("警告：无法解析环境变量的值为布尔值，使用默认值", "key", key, "value", value, "default", defaultValue)
 	}
 	return defaultValue
 }

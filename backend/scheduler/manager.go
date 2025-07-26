@@ -1,7 +1,7 @@
 package scheduler
 
 import (
-	"log"
+	"sleep0-backend/utils"
 	"sync"
 	"time"
 )
@@ -44,7 +44,7 @@ func (s *schedulerManager) Start() error {
 	s.wg.Add(1)
 	go s.run()
 
-	log.Printf("定时器已启动，间隔: %v", s.interval)
+	utils.Info("定时器已启动", "interval", s.interval)
 	return nil
 }
 
@@ -62,7 +62,7 @@ func (s *schedulerManager) Stop() error {
 	s.wg.Wait()
 	s.running = false
 
-	log.Println("定时器已停止")
+	utils.Info("定时器已停止")
 	return nil
 }
 
@@ -79,14 +79,14 @@ func (s *schedulerManager) run() {
 
 	// 立即执行一次
 	if err := s.processor.ProcessTasks(); err != nil {
-		log.Printf("初始任务处理失败: %v", err)
+		utils.Error("初始任务处理失败", "error", err)
 	}
 
 	for {
 		select {
 		case <-s.ticker.C:
 			if err := s.processor.ProcessTasks(); err != nil {
-				log.Printf("定时任务处理失败: %v", err)
+				utils.Error("定时任务处理失败", "error", err)
 			}
 		case <-s.quit:
 			return

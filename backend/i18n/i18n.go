@@ -3,9 +3,9 @@ package i18n
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
+	"sleep0-backend/utils"
 	"sync"
 )
 
@@ -38,13 +38,13 @@ func (i *I18n) loadMessages() {
 	// Try to load messages from file
 	langDir := "i18n/locales"
 	if _, err := os.Stat(langDir); os.IsNotExist(err) {
-		log.Printf("Language file directory does not exist, using built-in messages: %s", langDir)
+		utils.Warn("Language file directory does not exist, using built-in messages", "langDir", langDir)
 		return
 	}
 
 	files, err := os.ReadDir(langDir)
 	if err != nil {
-		log.Printf("Failed to read language file directory: %v", err)
+		utils.Error("Failed to read language file directory", "error", err)
 		return
 	}
 
@@ -60,13 +60,13 @@ func (i *I18n) loadMessages() {
 func (i *I18n) loadMessageFile(filename, lang string) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		log.Printf("Failed to read language file %s: %v", filename, err)
+		utils.Error("Failed to read language file", "filename", filename, "error", err)
 		return
 	}
 
 	var messages map[string]string
 	if err := json.Unmarshal(data, &messages); err != nil {
-		log.Printf("Failed to parse language file %s: %v", filename, err)
+		utils.Error("Failed to parse language file", "filename", filename, "error", err)
 		return
 	}
 
@@ -74,7 +74,7 @@ func (i *I18n) loadMessageFile(filename, lang string) {
 	i.messages[lang] = messages
 	i.mu.Unlock()
 
-	log.Printf("Language file loaded: %s (%d messages)", filename, len(messages))
+	utils.Info("Language file loaded", "filename", filename, "messageCount", len(messages))
 }
 
 // GetMessage gets message for specified language

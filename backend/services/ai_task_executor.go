@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"log/slog"
 	"os/exec"
 	"sleep0-backend/config"
@@ -148,8 +147,10 @@ func (s *aiTaskExecutorService) ProcessPendingConversations() error {
 		return fmt.Errorf("获取待处理对话失败: %v", err)
 	}
 
-	log.Printf("发现 %d 个待处理的对话，当前运行数量: %d，最大并发数: %d",
-		len(conversations), s.executionManager.GetRunningCount(), s.executionManager.maxConcurrency)
+	utils.Info("发现待处理的对话",
+		"count", len(conversations),
+		"running", s.executionManager.GetRunningCount(),
+		"maxConcurrency", s.executionManager.maxConcurrency)
 
 	// 并发处理对话
 	var wg sync.WaitGroup
@@ -160,14 +161,14 @@ func (s *aiTaskExecutorService) ProcessPendingConversations() error {
 		// 检查是否可以执行新任务
 		if !s.executionManager.CanExecute() {
 			skippedCount++
-			log.Printf("达到最大并发数限制，跳过对话 %d", conv.ID)
+			utils.Warn("达到最大并发数限制，跳过对话", "conversationId", conv.ID)
 			continue
 		}
 
 		// 检查是否已经在运行
 		if s.executionManager.IsRunning(conv.ID) {
 			skippedCount++
-			log.Printf("对话 %d 已在运行中，跳过", conv.ID)
+			utils.Warn("对话已在运行中，跳过", "conversationId", conv.ID)
 			continue
 		}
 
@@ -178,7 +179,7 @@ func (s *aiTaskExecutorService) ProcessPendingConversations() error {
 		go func(conversation database.TaskConversation) {
 			defer wg.Done()
 			if err := s.processConversation(&conversation); err != nil {
-				log.Printf("处理对话 %d 失败: %v", conversation.ID, err)
+				utils.Error("处理对话失败", "conversationId", conversation.ID, "error", err)
 			}
 		}(conv)
 	}
@@ -186,7 +187,7 @@ func (s *aiTaskExecutorService) ProcessPendingConversations() error {
 	// 等待所有当前批次的对话开始处理（不等待完成）
 	wg.Wait()
 
-	log.Printf("本批次处理了 %d 个对话，跳过 %d 个对话", processedCount, skippedCount)
+	utils.Info("本批次对话处理完成", "processed", processedCount, "skipped", skippedCount)
 	return nil
 }
 
@@ -342,7 +343,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		// 更新对话状态 (主状态)
 		conv.Status = finalStatus
 		if err := s.taskConvRepo.Update(conv); err != nil {
-			log.Printf("更新对话最终状态失败: %v", err)
+			utils.Error("更新对话最终状态失败", "error", err)
 		}
 
 		// 准备执行日志元数据更新
@@ -361,7 +362,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 
 		// 使用 UpdateMetadata 避免覆盖 execution_logs 字段
 		if err := s.execLogRepo.UpdateMetadata(execLog.ID, updates); err != nil {
-			log.Printf("更新执行日志元数据失败: %v", err)
+			utils.Error("更新执行日志元数据失败", "error", err)
 		}
 
 		// 广播状态变化
@@ -371,7 +372,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		}
 		s.logBroadcaster.BroadcastStatus(conv.ID, fmt.Sprintf("%s - %s", string(finalStatus), statusMessage))
 
-		log.Printf("对话 %d 执行完成，状态: %s", conv.ID, string(finalStatus))
+		utils.Info("对话执行完成", "conversationId", conv.ID, "status", string(finalStatus))
 	}()
 
 	// 检查是否被取消
@@ -396,7 +397,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	if conv.Task.WorkspacePath == "" {
 		conv.Task.WorkspacePath = workspacePath
 		if updateErr := s.taskRepo.Update(conv.Task); updateErr != nil {
-			log.Printf("更新任务工作空间路径失败: %v", updateErr)
+			utils.Error("更新任务工作空间路径失败", "error", updateErr)
 			// 继续执行，不因为路径更新失败而中断任务
 		}
 	}
@@ -674,7 +675,7 @@ func (s *aiTaskExecutorService) executeDockerCommandWithContext(ctx context.Cont
 	// 解析超时时间
 	timeout, err := time.ParseDuration(s.config.DockerExecutionTimeout)
 	if err != nil {
-		log.Printf("解析Docker超时时间失败，使用默认值30分钟: %v", err)
+		utils.Warn("解析Docker超时时间失败，使用默认值30分钟", "error", err)
 		timeout = 30 * time.Minute
 	}
 
@@ -772,7 +773,7 @@ func (s *aiTaskExecutorService) setConversationFailed(conv *database.TaskConvers
 	// 更新对话状态为失败
 	conv.Status = database.ConversationStatusFailed
 	if updateErr := s.taskConvRepo.Update(conv); updateErr != nil {
-		log.Printf("更新对话状态为失败时出错: %v", updateErr)
+		utils.Error("更新对话状态为失败时出错", "error", updateErr)
 	}
 
 	// 创建执行日志记录失败原因
@@ -782,7 +783,7 @@ func (s *aiTaskExecutorService) setConversationFailed(conv *database.TaskConvers
 		ExecutionLogs:  "", // 初始化为空字符串，避免NULL值问题
 	}
 	if logErr := s.execLogRepo.Create(execLog); logErr != nil {
-		log.Printf("创建执行日志失败: %v", logErr)
+		utils.Error("创建执行日志失败", "error", logErr)
 	}
 }
 
@@ -790,7 +791,7 @@ func (s *aiTaskExecutorService) setConversationFailed(conv *database.TaskConvers
 func (s *aiTaskExecutorService) rollbackConversationState(conv *database.TaskConversation, errorMessage string) {
 	conv.Status = database.ConversationStatusFailed
 	if updateErr := s.taskConvRepo.Update(conv); updateErr != nil {
-		log.Printf("回滚对话状态为失败时出错: %v", updateErr)
+		utils.Error("回滚对话状态为失败时出错", "error", updateErr)
 	}
 
 	// 尝试创建或更新执行日志记录失败原因
@@ -800,7 +801,7 @@ func (s *aiTaskExecutorService) rollbackConversationState(conv *database.TaskCon
 		ExecutionLogs:  "", // 初始化为空字符串，避免NULL值问题
 	}
 	if logErr := s.execLogRepo.Create(failedExecLog); logErr != nil {
-		log.Printf("创建失败执行日志失败: %v", logErr)
+		utils.Error("创建失败执行日志失败", "error", logErr)
 	}
 }
 
@@ -814,7 +815,7 @@ func (s *aiTaskExecutorService) rollbackToState(
 	// 回滚对话状态
 	conv.Status = convStatus
 	if updateErr := s.taskConvRepo.Update(conv); updateErr != nil {
-		log.Printf("回滚对话状态为%s时出错: %v", convStatus, updateErr)
+		utils.Error("回滚对话状态时出错", "status", convStatus, "error", updateErr)
 	}
 
 	// 更新执行日志错误信息
@@ -822,7 +823,7 @@ func (s *aiTaskExecutorService) rollbackToState(
 		"error_message": errorMessage,
 	}
 	if updateErr := s.execLogRepo.UpdateMetadata(execLog.ID, errorUpdates); updateErr != nil {
-		log.Printf("更新执行日志时出错: %v", updateErr)
+		utils.Error("更新执行日志时出错", "error", updateErr)
 	}
 }
 
@@ -830,7 +831,7 @@ func (s *aiTaskExecutorService) rollbackToState(
 func (s *aiTaskExecutorService) appendLog(execLogID uint, content string) {
 	// 追加到数据库
 	if err := s.execLogRepo.AppendLog(execLogID, content); err != nil {
-		log.Printf("追加日志失败: %v", err)
+		utils.Error("追加日志失败", "error", err)
 		return
 	}
 

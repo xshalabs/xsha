@@ -21,7 +21,6 @@
 package main
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"sleep0-backend/config"
@@ -51,7 +50,8 @@ func main() {
 	// Initialize database with new architecture
 	dbManager, err := database.NewDatabaseManager(cfg)
 	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+		utils.Error("Failed to initialize database", "error", err)
+		os.Exit(1)
 	}
 	defer dbManager.Close()
 
@@ -93,7 +93,7 @@ func main() {
 	// 解析定时器间隔
 	schedulerInterval, err := time.ParseDuration(cfg.SchedulerInterval)
 	if err != nil {
-		log.Printf("解析定时器间隔失败，使用默认值30秒: %v", err)
+		utils.Warn("解析定时器间隔失败，使用默认值30秒", "error", err)
 		schedulerInterval = 30 * time.Second
 	}
 
@@ -123,7 +123,8 @@ func main() {
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {
-		log.Fatalf("启动定时器失败: %v", err)
+		utils.Error("启动定时器失败", "error", err)
+		os.Exit(1)
 	}
 
 	// 设置优雅关闭
@@ -132,21 +133,22 @@ func main() {
 
 	go func() {
 		<-sigChan
-		log.Println("收到关闭信号，正在停止服务...")
+		utils.Info("收到关闭信号，正在停止服务...")
 
 		// 停止定时器
 		if err := schedulerManager.Stop(); err != nil {
-			log.Printf("停止定时器失败: %v", err)
+			utils.Error("停止定时器失败", "error", err)
 		}
 
 		os.Exit(0)
 	}()
 
 	// Start server
-	log.Print(i18nInstance.GetMessage("zh-CN", "server.starting"))
-	log.Printf("Server starting on port %s", cfg.Port)
+	utils.Info(i18nInstance.GetMessage("zh-CN", "server.starting"))
+	utils.Info("Server starting on port", "port", cfg.Port)
 
 	if err := r.Run(":" + cfg.Port); err != nil {
-		log.Fatalf("%s: %v", i18nInstance.GetMessage("zh-CN", "server.start_failed"), err)
+		utils.Error(i18nInstance.GetMessage("zh-CN", "server.start_failed"), "error", err)
+		os.Exit(1)
 	}
 }
