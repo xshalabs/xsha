@@ -1,76 +1,170 @@
-# API Design Conventions
+# API Conventions and REST Patterns
 
-## RESTful Endpoints
-Follow the established patterns from [routes.go](mdc:backend/routes/routes.go):
+RESTful API design patterns used in the Sleep0 backend.
 
-- `GET /api/v1/resources` - List with pagination
-- `POST /api/v1/resources` - Create new resource  
-- `GET /api/v1/resources/{id}` - Get single resource
-- `PUT /api/v1/resources/{id}` - Update resource
-- `DELETE /api/v1/resources/{id}` - Delete resource
-- `POST /api/v1/resources/{id}/action` - Special actions
+## URL Structure and Routing
 
-## Response Format
-Maintain consistent response structure as seen in handlers:
+**Base Path**: All APIs use `/api/v1` prefix
 
-**Success Response:**
-```json
-{
-  "message": "internationalized_success_message",
-  "data": { /* resource data */ },
-  "total": 100,          // for lists
-  "page": 1,             // for pagination
-  "page_size": 20,       // for pagination  
-  "total_pages": 5       // for pagination
+**Resource Patterns** ([backend/routes/routes.go](mdc:backend/routes/routes.go)):
+```go
+// Resource groups
+authGroup := v1.Group("/auth")
+projectsGroup := v1.Group("/projects") 
+credentialsGroup := v1.Group("/git-credentials")
+devEnvGroup := v1.Group("/dev-environments")
+tasksGroup := v1.Group("/tasks")
+```
+
+**Standard REST Endpoints**:
+- `GET /api/v1/projects` - List resources (with pagination)
+- `POST /api/v1/projects` - Create resource
+- `GET /api/v1/projects/:id` - Get single resource
+- `PUT /api/v1/projects/:id` - Update resource
+- `DELETE /api/v1/projects/:id` - Delete resource
+
+**Nested Resources** for hierarchical data:
+```go
+// Tasks belong to projects
+projectGroup.GET("/:projectId/tasks", handler.ListTasks)
+projectGroup.POST("/:projectId/tasks", handler.CreateTask)
+```
+
+## Request/Response Patterns
+
+**Request Binding**: Use struct tags for validation:
+```go
+type CreateProjectRequest struct {
+    Name        string              `json:"name" binding:"required,min=1,max=100"`
+    Description string              `json:"description"`
+    RepoURL     string              `json:"repo_url" binding:"required,url"`
+    Protocol    GitProtocolType     `json:"protocol" binding:"required,oneof=https ssh"`
 }
 ```
 
-**Error Response:**
-```json
+**Response Format**: Consistent JSON structure:
+```go
+// Success - Single resource
 {
-  "error": "internationalized_error_message",
-  "details": "optional_technical_details"
+    "id": 1,
+    "name": "project-name",
+    "created_at": "2024-01-01T00:00:00Z"
+}
+
+// Success - List with pagination
+{
+    "items": [...],
+    "total": 42,
+    "page": 1,
+    "page_size": 20
+}
+
+// Error response
+{
+    "error": "Validation failed"
 }
 ```
-
-## Pagination Pattern
-Support pagination on all list endpoints:
-- `page` query parameter (default: 1)
-- `page_size` query parameter (default: 20, max: 100)
-- Return `total`, `page`, `page_size`, `total_pages` in response
-
-## Authentication & Authorization
-- All API endpoints except `/auth/login` require Bearer token
-- Extract username from JWT context: `username, _ := c.Get("username")`
-- Use user-scoped data access (resources belong to users)
-
-## Internationalization in APIs
-- Accept `Accept-Language` header
-- Use `middleware.GetLangFromContext(c)` to get user language
-- Return internationalized messages using `i18n.T(lang, "key")`
-- Provide English (`en-US`) and Chinese (`zh-CN`) translations
-
-## Validation & Error Handling
-- Use Gin binding tags: `binding:"required"`, `binding:"oneof=value1 value2"`
-- Return appropriate HTTP status codes
-- Include validation details in error responses
-- Log errors for debugging while returning user-friendly messages
 
 ## Swagger Documentation
-Include comprehensive Swagger annotations:
+
+**Handler Documentation**: Include comprehensive Swagger comments:
 ```go
-// @Summary Brief description
-// @Description Detailed description
-// @Tags CategoryName
+// CreateProject creates a new project
+// @Summary Create project
+// @Description Create a new Git repository project with credentials
+// @Tags Projects
 // @Accept json
 // @Produce json
+// @Param projectData body CreateProjectRequest true "Project data"
+// @Success 201 {object} database.Project "Created project"
+// @Failure 400 {object} object{error=string} "Validation error"
+// @Failure 401 {object} object{error=string} "Unauthorized"
 // @Security BearerAuth
-// @Param param_name path/query/body type required "description"
-// @Success 200 {object} ResponseType "Success description"
-// @Failure 400 {object} object{error=string} "Error description"
-// @Router /endpoint [method]
+// @Router /projects [post]
+func (h *ProjectHandlers) CreateProject(c *gin.Context) {
+    // Implementation
+}
 ```
-description:
-globs:
-alwaysApply: false
+
+**Security**: Use `@Security BearerAuth` for protected endpoints
+
+## Authentication and Authorization
+
+**JWT Header**: `Authorization: Bearer <token>`
+
+**Middleware Application**:
+```go
+// Protected routes
+protected := v1.Group("/")
+protected.Use(middleware.AuthMiddleware(authService))
+{
+    protected.GET("/projects", handlers.ListProjects)
+    // ... other protected routes
+}
+```
+
+**User Context**: Extract authenticated user:
+```go
+username, exists := c.Get("username")
+if !exists {
+    c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+    return
+}
+```
+
+## Error Handling
+
+**HTTP Status Codes**:
+- `200` - Success
+- `201` - Created 
+- `400` - Bad Request (validation errors)
+- `401` - Unauthorized
+- `403` - Forbidden
+- `404` - Not Found
+- `429` - Too Many Requests (rate limiting)
+- `500` - Internal Server Error
+
+**Error Response Structure**:
+```go
+// Simple error
+c.JSON(http.StatusBadRequest, gin.H{
+    "error": i18n.T(lang, "validation.invalid_request"),
+})
+
+// Error with details
+c.JSON(http.StatusBadRequest, gin.H{
+    "error": i18n.T(lang, "validation.invalid_format"),
+    "details": err.Error(),
+})
+```
+
+## Internationalization Support
+
+**Language Header**: `Accept-Language: zh-CN` or `Accept-Language: en-US`
+
+**Message Keys**: Use dot notation:
+- `auth.login_failed`
+- `validation.invalid_request`
+- `common.internal_error`
+
+## Pagination and Filtering
+
+**Query Parameters**:
+```go
+page := c.DefaultQuery("page", "1")
+pageSize := c.DefaultQuery("page_size", "20")
+status := c.Query("status") // Optional filter
+```
+
+**Response**: Include pagination metadata:
+```go
+c.JSON(http.StatusOK, gin.H{
+    "items":     items,
+    "total":     total,
+    "page":      page,
+    "page_size": pageSize,
+})
+```
+---
+globs: backend/handlers/**,backend/routes/**
 ---

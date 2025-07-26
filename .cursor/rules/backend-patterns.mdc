@@ -1,90 +1,132 @@
-# Backend Development Patterns
+# Backend Architecture Patterns
 
-## Clean Architecture Layers
-Follow the established architecture pattern from [main.go](mdc:backend/main.go):
+The Sleep0 backend follows clean architecture with strict layer separation.
 
-1. **Handlers** ([handlers/](mdc:backend/handlers/)) - HTTP request handling
-2. **Services** ([services/](mdc:backend/services/)) - Business logic
-3. **Repository** ([repository/](mdc:backend/repository/)) - Data access
-4. **Models** ([database/models.go](mdc:backend/database/models.go)) - Data structures
+## Layer Structure
 
-## Handler Pattern
-Follow the structure from [project.go](mdc:backend/handlers/project.go):
+```
+Handlers → Services → Repository → Database
+```
+
+Each layer has specific responsibilities and communicates only with adjacent layers.
+
+## Repository Layer ([backend/repository/](mdc:backend/repository/))
+
+**Purpose**: Data access abstraction  
+**Pattern**: Interface + Implementation
 
 ```go
-// Handler struct with service injection
-type ResourceHandlers struct {
-    resourceService services.ResourceService
+// Define interface in interfaces.go
+type ProjectRepository interface {
+    Create(project *database.Project) error
+    GetByID(id uint, createdBy string) (*database.Project, error)
+    // ... other methods
 }
 
-// Constructor function
-func NewResourceHandlers(resourceService services.ResourceService) *ResourceHandlers {
-    return &ResourceHandlers{resourceService: resourceService}
+// Implement in separate file (project.go)
+type projectRepository struct {
+    db *gorm.DB
 }
 
-// Handler method pattern
-func (h *ResourceHandlers) ActionHandler(c *gin.Context) {
-    lang := middleware.GetLangFromContext(c)
-    username, _ := c.Get("username")
-    
-    // Request validation
-    var req RequestStruct
-    if err := c.ShouldBindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{
-            "error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
-        })
-        return
-    }
-    
-    // Business logic via service
-    result, err := h.resourceService.Action(params)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{
-            "error": i18n.T(lang, "resource.action_failed") + ": " + err.Error(),
-        })
-        return
-    }
-    
-    // Success response
-    c.JSON(http.StatusOK, gin.H{
-        "message": i18n.T(lang, "resource.action_success"),
-        "data": result,
-    })
+func NewProjectRepository(db *gorm.DB) ProjectRepository {
+    return &projectRepository{db: db}
 }
 ```
 
-## Service Pattern
-Follow the dependency injection pattern from [auth.go](mdc:backend/services/auth.go):
+**Key Conventions**:
+- All methods include `createdBy` parameter for user isolation
+- Return `(entity, error)` or `([]entity, int64, error)` for lists
+- Use GORM for database operations
+- Handle soft deletes automatically
+
+## Service Layer ([backend/services/](mdc:backend/services/))
+
+**Purpose**: Business logic and orchestration  
+**Pattern**: Interface + Implementation with dependency injection
 
 ```go
-type resourceService struct {
-    repo   repository.ResourceRepository
-    config *config.Config
+// Interface definition
+type ProjectService interface {
+    Create(projectData CreateProjectRequest, createdBy string) (*database.Project, error)
+    GetByID(id uint, createdBy string) (*database.Project, error)
 }
 
-func NewResourceService(repo repository.ResourceRepository, cfg *config.Config) ResourceService {
-    return &resourceService{repo: repo, config: cfg}
+// Implementation
+type projectService struct {
+    projectRepo  repository.ProjectRepository
+    gitCredRepo  repository.GitCredentialRepository
+    gitCredService GitCredentialService
+    config       *config.Config
 }
 ```
 
-## Error Handling & Internationalization
-- Always use `i18n.T(lang, "key")` for user-facing messages
+**Key Conventions**:
+- Inject all dependencies through constructor
+- Validate business rules before calling repository
+- Transform between request/response DTOs and domain models
+- Handle cross-cutting concerns (logging, validation)
+
+## Handler Layer ([backend/handlers/](mdc:backend/handlers/))
+
+**Purpose**: HTTP request/response handling  
+**Pattern**: Struct with service dependencies
+
+```go
+type ProjectHandlers struct {
+    projectService services.ProjectService
+}
+
+func NewProjectHandlers(projectService services.ProjectService) *ProjectHandlers {
+    return &ProjectHandlers{
+        projectService: projectService,
+    }
+}
+```
+
+**Key Conventions**:
 - Extract language from context: `lang := middleware.GetLangFromContext(c)`
-- Follow error response pattern from [error.go](mdc:backend/middleware/error.go)
-- Add operation logging for important actions
+- Use `ShouldBindJSON` for request binding with validation
+- Return internationalized error messages
+- Include Swagger documentation comments
+- Handle authentication via middleware
 
-## Request/Response Structs
-- Define request structs with binding tags
-- Include Swagger annotations for API documentation
-- Use pointer types for optional fields (`*uint`, `*string`)
-- Validate required vs optional fields
+## Middleware Pattern ([backend/middleware/](mdc:backend/middleware/))
 
-## Database Models
-- Use GORM patterns from [models.go](mdc:backend/database/models.go)
-- Include soft deletes with `gorm.DeletedAt`
-- Add created/updated timestamps
-- Use appropriate indexes and constraints
-description:
-globs:
-alwaysApply: false
+All middleware follows the Gin middleware pattern:
+
+```go
+func SomeMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Pre-processing
+        
+        c.Next() // Call next handler
+        
+        // Post-processing (optional)
+    }
+}
+```
+
+**Key Middleware**:
+- `AuthMiddleware()`: JWT validation and user context
+- `I18nMiddleware()`: Language detection and context
+- `OperationLogMiddleware()`: Audit logging
+- `ErrorHandlerMiddleware()`: Centralized error handling
+
+## Configuration Pattern ([backend/config/](mdc:backend/config/))
+
+Use environment variables with sensible defaults:
+
+```go
+type Config struct {
+    Port        string `mapstructure:"SLEEP0_PORT" default:"8080"`
+    Environment string `mapstructure:"SLEEP0_ENVIRONMENT" default:"development"`
+    // ...
+}
+
+func Load() *Config {
+    // Load with viper or manual parsing
+}
+```
+---
+globs: backend/**
 ---

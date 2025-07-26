@@ -1,123 +1,263 @@
 # Error Handling Patterns
 
-## Frontend Error Handling
-Follow the pattern from [errors.ts](mdc:frontend/src/lib/errors.ts) and components:
+Comprehensive error handling with internationalization support throughout the Sleep0 application.
 
-### API Error Handling
-```typescript
-try {
-  setLoading(true);
-  setError(null);
-  const result = await apiService.action(data);
-  // Handle success
-} catch (error) {
-  // Prioritize backend internationalized error messages
-  const errorMessage = error instanceof Error 
-    ? error.message 
-    : t('fallback.error.message');
-  setError(errorMessage);
-  logError(error as Error, 'Action context');
-} finally {
-  setLoading(false);
+## Backend Error Handling
+
+### Gin Error Middleware ([backend/middleware/error.go](mdc:backend/middleware/error.go))
+
+**Centralized Error Processing**:
+```go
+func ErrorHandlerMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        c.Next()
+        
+        if len(c.Errors) > 0 {
+            lang := GetLangFromContext(c)
+            err := c.Errors.Last()
+            
+            switch err.Type {
+            case gin.ErrorTypeBind:
+                c.JSON(http.StatusBadRequest, gin.H{
+                    "error":   i18n.T(lang, "validation.invalid_format"),
+                    "details": err.Error(),
+                })
+            case gin.ErrorTypePublic:
+                c.JSON(http.StatusBadRequest, gin.H{
+                    "error": err.Error(),
+                })
+            default:
+                c.JSON(http.StatusInternalServerError, gin.H{
+                    "error": i18n.T(lang, "common.internal_error"),
+                })
+            }
+        }
+    }
 }
 ```
 
-### Error Logging
-```typescript
-import { logError } from '@/lib/errors';
+### Handler Error Patterns
 
-// Always provide context for errors
-logError(error as Error, 'Failed to load projects');
-logError(error as Error, 'User authentication failed');
-```
-
-### Error Display
-- Use state-based error display: `const [error, setError] = useState<string | null>(null)`
-- Clear errors before new operations: `setError(null)`
-- Show user-friendly error messages with internationalization
-- Provide fallback messages when backend errors are unavailable
-
-## Backend Error Handling
-Follow patterns from [error.go](mdc:backend/middleware/error.go) and handlers:
-
-### Error Response Pattern
+**Standard Error Response Structure**:
 ```go
-// Standard error response
+// Simple error
 c.JSON(http.StatusBadRequest, gin.H{
-    "error": i18n.T(lang, "operation.failed") + ": " + err.Error(),
+    "error": i18n.T(lang, "validation.invalid_request"),
 })
 
-// Error with technical details
+// Error with additional context
 c.JSON(http.StatusBadRequest, gin.H{
-    "error": i18n.T(lang, "validation.invalid_format"),
-    "details": err.Error(),
+    "error":   i18n.T(lang, "validation.invalid_format"), 
+    "details": validationErr.Error(),
 })
-```
 
-### Validation Errors
-```go
-if err := c.ShouldBindJSON(&req); err != nil {
-    c.JSON(http.StatusBadRequest, gin.H{
-        "error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
+// Service layer error handling
+result, err := h.service.DoSomething(data)
+if err != nil {
+    utils.Error("Service operation failed", "operation", "DoSomething", "error", err)
+    c.JSON(http.StatusInternalServerError, gin.H{
+        "error": i18n.T(lang, "common.internal_error"),
     })
     return
 }
 ```
 
-### Service Layer Errors
-```go
-// Return descriptive errors from services
-if err := s.validateInput(data); err != nil {
-    return nil, errors.New("validation failed: " + err.Error())
-}
+### Service Layer Error Handling
 
-// Check business logic constraints
-if existing != nil {
-    return nil, errors.New("resource already exists")
+**Business Logic Errors**:
+```go
+func (s *projectService) Create(data CreateProjectRequest, createdBy string) (*database.Project, error) {
+    // Validate business rules
+    if existing, _ := s.projectRepo.GetByName(data.Name, createdBy); existing != nil {
+        return nil, fmt.Errorf("project with name '%s' already exists", data.Name)
+    }
+    
+    // Attempt operation
+    project := &database.Project{
+        Name:      data.Name,
+        CreatedBy: createdBy,
+    }
+    
+    if err := s.projectRepo.Create(project); err != nil {
+        utils.Error("Failed to create project", "name", data.Name, "error", err)
+        return nil, err
+    }
+    
+    return project, nil
 }
 ```
 
-## Error Categories & HTTP Status Codes
+### Repository Layer Error Handling
 
-### 400 Bad Request
-- Invalid request format/JSON
-- Validation failures
-- Business logic violations
-- Missing required fields
+**Database Errors**:
+```go
+func (r *projectRepository) GetByID(id uint, createdBy string) (*database.Project, error) {
+    var project database.Project
+    err := r.db.Where("id = ? AND created_by = ?", id, createdBy).First(&project).Error
+    
+    if errors.Is(err, gorm.ErrRecordNotFound) {
+        return nil, fmt.Errorf("project not found")
+    }
+    
+    if err != nil {
+        utils.Error("Database query failed", "id", id, "error", err)
+        return nil, err
+    }
+    
+    return &project, nil
+}
+```
 
-### 401 Unauthorized  
-- Invalid or missing JWT token
-- Token blacklisted
-- Authentication failures
+## Frontend Error Handling
 
-### 404 Not Found
-- Resource doesn't exist
-- Resource not owned by user
-- Invalid resource ID
+### API Error Classes ([frontend/src/lib/errors.ts](mdc:frontend/src/lib/errors.ts))
 
-### 429 Too Many Requests
-- Rate limiting triggered
-- Login attempt limits exceeded
+**Structured Error Types**:
+```typescript
+export class ApiError extends Error {
+    constructor(
+        message: string,
+        public statusCode: number,
+        public code?: string
+    ) {
+        super(message);
+        this.name = 'ApiError';
+    }
+}
 
-### 500 Internal Server Error
-- Database connection failures
-- Unexpected system errors
-- Service unavailable
+export class NetworkError extends Error {
+    constructor(message: string = 'Network connection failed') {
+        super(message);
+        this.name = 'NetworkError';
+    }
+}
+```
 
-## Error Internationalization
-Maintain error message translations in:
-- Backend: [backend/i18n/locales/](mdc:backend/i18n/locales/)
-- Frontend: [frontend/src/i18n/locales/](mdc:frontend/src/i18n/locales/)
+### Request Layer Error Handling ([frontend/src/lib/api/request.ts](mdc:frontend/src/lib/api/request.ts))
 
-Use descriptive error keys:
+**HTTP Request Error Processing**:
+```typescript
+export const request = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
+    try {
+        const response = await fetch(`${API_BASE_URL}${url}`, config);
+        
+        if (!response.ok) {
+            const errorData: ApiErrorResponse = await response.json();
+            throw new ApiError(
+                errorData.error || `HTTP error! status: ${response.status}`,
+                response.status
+            );
+        }
+        
+        return response.json();
+    } catch (error) {
+        if (error instanceof ApiError) {
+            logError(error, `API request to ${url}`);
+            throw error;
+        }
+        
+        const networkError = new NetworkError('Failed to connect to server');
+        logError(networkError, `API request to ${url}`);
+        throw networkError;
+    }
+};
+```
+
+### Component Error Handling
+
+**Try-Catch with User Feedback**:
+```typescript
+const handleSubmit = async (data: FormData) => {
+    try {
+        setLoading(true);
+        await api.createProject(data);
+        navigate('/projects');
+        toast.success(t('projects.createSuccess'));
+    } catch (error) {
+        if (error instanceof ApiError) {
+            toast.error(error.message);
+        } else {
+            toast.error(t('errors.unexpected'));
+        }
+    } finally {
+        setLoading(false);
+    }
+};
+```
+
+## Logging Patterns
+
+### Backend Logging ([backend/utils/logger.go](mdc:backend/utils/logger.go))
+
+**Structured Logging**:
+```go
+// Info level
+utils.Info("Operation completed", "resource", resourceID, "user", username)
+
+// Warning level  
+utils.Warn("Unusual condition detected", "condition", "rate_limit_approached", "user", username)
+
+// Error level
+utils.Error("Operation failed", "operation", "create_project", "user", username, "error", err)
+```
+
+### Frontend Error Logging
+
+**Console Logging with Context**:
+```typescript
+export const logError = (error: Error, context: string): void => {
+    console.error(`[${context}]`, {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+    });
+};
+```
+
+## Internationalization Error Messages
+
+### Backend Message Keys ([backend/i18n/locales/](mdc:backend/i18n/locales/))
+
 ```json
 {
-  "auth.invalid_credentials": "Invalid username or password",
-  "project.create_failed": "Failed to create project",
-  "validation.required": "This field is required"
+    "auth.login_failed": "Login failed, please check your credentials",
+    "validation.invalid_request": "Invalid request format",
+    "validation.invalid_format": "Request data validation failed", 
+    "common.internal_error": "Internal server error",
+    "api.not_found": "Resource not found",
+    "api.method_not_allowed": "Method not allowed"
 }
 ```
-description:
-globs:
-alwaysApply: false
+
+### Frontend Message Keys ([frontend/src/i18n/locales/](mdc:frontend/src/i18n/locales/))
+
+```json
+{
+    "errors.pageNotFound": "Page not found",
+    "errors.unexpected": "An unexpected error occurred",
+    "errors.networkError": "Network connection failed",
+    "errors.unauthorized": "Please login to continue"
+}
+```
+
+## Error Response Standards
+
+**HTTP Status Code Mapping**:
+- `400` - Client errors (validation, bad format)
+- `401` - Authentication required  
+- `403` - Authorization failed
+- `404` - Resource not found
+- `429` - Rate limit exceeded
+- `500` - Server errors (unexpected failures)
+
+**Consistent Response Format**:
+```json
+{
+    "error": "Human-readable error message",
+    "details": "Additional technical details (optional)"
+}
+```
+---
+description: Error handling patterns and internationalized error responses
 ---

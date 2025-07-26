@@ -1,146 +1,143 @@
-# Database & Repository Patterns
+# Database Patterns and GORM Conventions
 
-## Model Structure
-Follow the patterns from [models.go](mdc:backend/database/models.go):
+Database layer patterns for the Sleep0 project using GORM ORM.
+
+## Model Definition ([backend/database/models.go](mdc:backend/database/models.go))
+
+**Base Structure**: All models inherit standard GORM fields:
 
 ```go
-type ResourceModel struct {
+type SomeModel struct {
     ID        uint           `gorm:"primarykey" json:"id"`
     CreatedAt time.Time      `json:"created_at"`
     UpdatedAt time.Time      `json:"updated_at"`
     DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
     
-    // Business fields
-    Name        string `gorm:"not null;index" json:"name"`
-    Description string `gorm:"type:text" json:"description"`
-    
-    // Foreign keys
-    CreatedBy    string `gorm:"not null;index" json:"created_by"`
-    CredentialID *uint  `gorm:"index" json:"credential_id,omitempty"`
-    
-    // Status fields
-    IsActive bool `gorm:"default:true" json:"is_active"`
+    // Model-specific fields
 }
 ```
 
-## Repository Interface Pattern
-Follow the pattern from [interfaces.go](mdc:backend/repository/interfaces.go):
+**Key Conventions**:
+- Use `gorm.DeletedAt` for soft deletes
+- Include `json:"-"` for `DeletedAt` to hide from API responses
+- Use appropriate GORM tags for constraints and indexes
+- Use typed constants for enums
 
+## Relationship Patterns
+
+**Foreign Key Relationships**:
 ```go
-type ResourceRepository interface {
-    Create(resource *database.ResourceModel) error
-    GetByID(id uint, createdBy string) (*database.ResourceModel, error)
-    GetByName(name, createdBy string) (*database.ResourceModel, error)
-    List(createdBy string, filters *Filters, page, pageSize int) ([]database.ResourceModel, int64, error)
-    Update(id uint, createdBy string, updates map[string]interface{}) error
-    Delete(id uint, createdBy string) error
+type Task struct {
+    // Foreign key
+    ProjectID uint     `gorm:"not null;index" json:"project_id"`
+    // Association
+    Project   *Project `gorm:"foreignKey:ProjectID" json:"project"`
 }
 ```
 
-## Repository Implementation
+**User Isolation Pattern**:
+All user-scoped models include `CreatedBy` field:
 ```go
-type resourceRepository struct {
-    db *gorm.DB
+CreatedBy string `gorm:"not null;index;uniqueIndex:idx_name_user" json:"created_by"`
+```
+
+**Composite Indexes** for user isolation:
+```go
+Name      string `gorm:"not null;uniqueIndex:idx_name_user" json:"name"`
+CreatedBy string `gorm:"not null;index;uniqueIndex:idx_name_user" json:"created_by"`
+```
+
+## Repository Implementation Patterns
+
+**Standard CRUD Methods**:
+```go
+func (r *someRepository) Create(entity *database.SomeModel) error {
+    return r.db.Create(entity).Error
 }
 
-func NewResourceRepository(db *gorm.DB) ResourceRepository {
-    return &resourceRepository{db: db}
-}
-
-func (r *resourceRepository) Create(resource *database.ResourceModel) error {
-    return r.db.Create(resource).Error
-}
-
-func (r *resourceRepository) GetByID(id uint, createdBy string) (*database.ResourceModel, error) {
-    var resource database.ResourceModel
-    err := r.db.Where("id = ? AND created_by = ?", id, createdBy).First(&resource).Error
+func (r *someRepository) GetByID(id uint, createdBy string) (*database.SomeModel, error) {
+    var entity database.SomeModel
+    err := r.db.Where("id = ? AND created_by = ?", id, createdBy).First(&entity).Error
     if err != nil {
         return nil, err
     }
-    return &resource, nil
+    return &entity, nil
 }
 
-func (r *resourceRepository) List(createdBy string, filters *Filters, page, pageSize int) ([]database.ResourceModel, int64, error) {
-    var resources []database.ResourceModel
+func (r *someRepository) List(createdBy string, page, pageSize int) ([]database.SomeModel, int64, error) {
+    var entities []database.SomeModel
     var total int64
     
     query := r.db.Where("created_by = ?", createdBy)
     
-    // Apply filters
-    if filters != nil {
-        // Add filter conditions
-    }
-    
     // Count total
-    if err := query.Model(&database.ResourceModel{}).Count(&total).Error; err != nil {
-        return nil, 0, err
-    }
+    query.Model(&database.SomeModel{}).Count(&total)
     
-    // Apply pagination
+    // Get page
     offset := (page - 1) * pageSize
-    err := query.Offset(offset).Limit(pageSize).Find(&resources).Error
+    err := query.Offset(offset).Limit(pageSize).Find(&entities).Error
     
-    return resources, total, err
+    return entities, total, err
 }
 ```
-
-## Database Connection
-Follow the pattern from [database.go](mdc:backend/database/database.go):
-- Use DatabaseManager for connection management
-- Support both SQLite and MySQL
-- Auto-migrate models on startup
-- Proper connection lifecycle management
 
 ## Query Patterns
 
-### User-Scoped Queries
-Always scope queries by user ownership:
+**User Isolation**: Always filter by `created_by`:
 ```go
-query := r.db.Where("created_by = ?", createdBy)
+r.db.Where("created_by = ?", createdBy).Find(&entities)
 ```
 
-### Soft Deletes
-GORM automatically handles soft deletes with `gorm.DeletedAt` field
+**Associations**: Use `Preload` for related data:
+```go
+r.db.Preload("Project").Preload("DevEnvironment").Find(&tasks)
+```
 
-### Pagination
+**Pagination**: Consistent offset/limit pattern:
 ```go
 offset := (page - 1) * pageSize
-query.Offset(offset).Limit(pageSize)
+query.Offset(offset).Limit(pageSize).Find(&entities)
 ```
 
-### Filtering
-Build dynamic queries based on optional filters:
+**Filtering with Pointers**: Handle optional filters:
 ```go
-if filters.Type != nil {
-    query = query.Where("type = ?", *filters.Type)
-}
-if filters.Status != nil {
-    query = query.Where("is_active = ?", *filters.Status)
+if status != nil {
+    query = query.Where("status = ?", *status)
 }
 ```
 
-## Relationships
-Use proper foreign key constraints and preloading:
-```go
-// Define relationships
-type Project struct {
-    CredentialID *uint         `gorm:"index"`
-    Credential   *GitCredential `gorm:"foreignKey:CredentialID"`
-}
+## Migration and Schema
 
-// Preload relationships
-r.db.Preload("Credential").Find(&projects)
+**Auto-Migration** in [database.go](mdc:backend/database/database.go):
+```go
+db.AutoMigrate(
+    &database.TokenBlacklist{},
+    &database.LoginLog{},
+    &database.GitCredential{},
+    // ... all models
+)
 ```
 
-## Transactions
-For complex operations involving multiple models:
+**Constraints**: Use GORM tags for database constraints:
+- `not null`: Required fields
+- `uniqueIndex`: Unique constraints
+- `index`: Performance indexes
+- `foreignKey`: Relationship definitions
+
+## Encryption for Sensitive Data
+
+For sensitive fields like passwords and SSH keys:
+
 ```go
-err := r.db.Transaction(func(tx *gorm.DB) error {
-    // Multiple operations
-    return nil
-})
+// Before create/update
+encryptedData, err := utils.Encrypt(sensitiveData, config.AESKey)
+
+// In model
+PasswordHash string `gorm:"type:text" json:"-"`          // Encrypted
+PublicKey    string `gorm:"type:text" json:"public_key"` // Not sensitive
 ```
-description:
-globs:
-alwaysApply: false
+
+**Key Pattern**: Sensitive fields use `json:"-"` tag to exclude from JSON serialization.
+---
+globs: backend/database/**,backend/repository/**
 ---

@@ -1,42 +1,92 @@
 ---
 globs: *.go
-description: "Go coding standards and patterns"
 ---
 
-# Go Coding Standards for Sleep0 Backend
+# Go Standards and Conventions
 
-## Project Patterns
-- Follow clean architecture: handlers → services → repository
-- Use dependency injection via interfaces (see [interfaces.go](mdc:backend/services/interfaces.go))
-- Implement proper error handling with custom error types
-- Use context.Context for request handling and cancellation
+Follow these Go conventions used throughout the Sleep0 backend.
 
-## Database Patterns
-- Use GORM for ORM operations (see [models.go](mdc:backend/database/models.go))
-- Repository pattern for data access
-- Database transactions for multi-step operations
+## Package Organization
 
-## Authentication & Security
-- JWT tokens for stateless authentication
-- Token blacklisting for logout functionality
-- Bcrypt for password hashing
-- Rate limiting middleware for API protection
+- **Package names**: Use lowercase, single words (e.g., `handlers`, `services`, `repository`)
+- **File names**: Use snake_case for multi-word files (e.g., `admin_operation_log.go`)
+- **Struct names**: Use PascalCase (e.g., `AuthHandlers`, `GitCredential`)
 
-## Middleware Chain
-- Logger middleware for request logging
-- Error middleware for centralized error handling
-- Auth middleware for protected routes
-- i18n middleware for localization
-- Rate limit middleware for protection
+## Dependency Injection Pattern
 
-## Testing & Error Handling
-- Return errors using Go idioms (error as last return value)
-- Use proper HTTP status codes
-- Implement structured logging
-- Validate input parameters
+Always use constructor functions for dependency injection:
 
-## Code Organization
-- Group related functionality in packages
-- Use meaningful interface names
-- Follow Go naming conventions
-- Keep handlers thin, business logic in services
+```go
+// Service constructor example
+func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, cfg *config.Config) AuthService {
+    return &authService{
+        tokenRepo:    tokenRepo,
+        loginLogRepo: loginLogRepo,
+        config:       cfg,
+    }
+}
+```
+
+## Interface Definitions
+
+- Define interfaces in the consumer package, not the provider package
+- Keep interfaces small and focused on specific behavior
+- Interface names end with the type (e.g., `AuthService`, `ProjectRepository`)
+
+## Error Handling
+
+Use structured logging with the utils package:
+
+```go
+utils.Error("Operation failed", "user", username, "error", err)
+utils.Info("Operation successful", "resource", resourceID)
+utils.Warn("Unusual condition", "details", details)
+```
+
+## Constants and Enums
+
+Use typed constants for enums:
+
+```go
+type GitCredentialType string
+
+const (
+    GitCredentialTypePassword GitCredentialType = "password"
+    GitCredentialTypeToken    GitCredentialType = "token"
+    GitCredentialTypeSSHKey   GitCredentialType = "ssh_key"
+)
+```
+
+## Gin Handler Pattern
+
+Follow this structure for all HTTP handlers:
+
+```go
+func (h *SomeHandlers) SomeHandler(c *gin.Context) {
+    lang := middleware.GetLangFromContext(c)
+    
+    // 1. Bind request data
+    var requestData struct {
+        Field string `json:"field" binding:"required"`
+    }
+    
+    if err := c.ShouldBindJSON(&requestData); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "error": i18n.T(lang, "validation.invalid_request"),
+        })
+        return
+    }
+    
+    // 2. Call service layer
+    result, err := h.service.DoSomething(requestData.Field)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "error": i18n.T(lang, "common.internal_error"),
+        })
+        return
+    }
+    
+    // 3. Return response
+    c.JSON(http.StatusOK, result)
+}
+```

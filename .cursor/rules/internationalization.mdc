@@ -1,45 +1,329 @@
----
-description: "Internationalization (i18n) system guide"
----
+# Internationalization (i18n) Patterns
 
-# Internationalization (i18n) System Guide
+Comprehensive i18n support for both backend and frontend components.
 
-## i18n Architecture
+## Backend Internationalization
 
-### Core Components
-- **i18n Package**: [i18n.go](mdc:backend/i18n/i18n.go) - Main i18n functionality
-- **i18n Helper**: [helper.go](mdc:backend/i18n/helper.go) - Utility functions
-- **i18n Handler**: [i18n.go](mdc:backend/handlers/i18n.go) - HTTP endpoints for i18n
-- **i18n Middleware**: [i18n.go](mdc:backend/middleware/i18n.go) - Language detection and setup
+### Core i18n System ([backend/i18n/](mdc:backend/i18n/))
 
-### Locale Files
-- **English**: [en-US.json](mdc:backend/i18n/locales/en-US.json) - English translations
-- **Chinese**: [zh-CN.json](mdc:backend/i18n/locales/zh-CN.json) - Chinese translations
+**Singleton Pattern** ([backend/i18n/i18n.go](mdc:backend/i18n/i18n.go)):
+```go
+type I18n struct {
+    mu          sync.RWMutex
+    messages    map[string]map[string]string // [language][key]message
+    defaultLang string
+}
 
-## i18n Workflow
-1. Middleware detects user language preference (header/query/session)
-2. Appropriate locale file loaded based on detected language
-3. Translation keys resolved to localized strings
-4. Response messages returned in user's preferred language
+// Singleton instance
+func GetInstance() *I18n {
+    once.Do(func() {
+        instance = &I18n{
+            messages:    make(map[string]map[string]string),
+            defaultLang: "zh-CN",
+        }
+        instance.loadMessages()
+    })
+    return instance
+}
+```
 
-## Working with Translations
-- Store all user-facing strings as translation keys
-- Use descriptive key names (e.g., "auth.login.success")
-- Maintain consistent key structure across locales
-- Add new translations to all supported locale files
-- Test with different languages during development
+**Translation Function**:
+```go
+// Simple translation
+func T(lang, key string, args ...interface{}) string {
+    return GetInstance().GetMessageWithArgs(lang, key, args...)
+}
+
+// Usage in handlers
+c.JSON(http.StatusBadRequest, gin.H{
+    "error": i18n.T(lang, "validation.invalid_request"),
+})
+```
+
+### Language Detection Middleware
+
+**Language Context** ([backend/middleware/i18n.go](mdc:backend/middleware/i18n.go)):
+```go
+func I18nMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Get language from Accept-Language header
+        lang := c.GetHeader("Accept-Language")
+        if lang == "" {
+            lang = "zh-CN" // Default language
+        }
+        
+        // Set in context for handlers
+        c.Set("language", lang)
+        c.Next()
+    }
+}
+
+// Helper function for handlers
+func GetLangFromContext(c *gin.Context) string {
+    if lang, exists := c.Get("language"); exists {
+        return lang.(string)
+    }
+    return "zh-CN"
+}
+```
+
+### Language Files Structure ([backend/i18n/locales/](mdc:backend/i18n/locales/))
+
+**Chinese (zh-CN.json)**:
+```json
+{
+    "server.starting": "服务器正在启动...",
+    "server.start_failed": "服务器启动失败",
+    "auth.login_failed": "登录失败，请检查用户名和密码",
+    "auth.token_invalid": "Token无效或已过期",
+    "validation.invalid_request": "请求格式不正确",
+    "validation.invalid_format": "请求数据验证失败",
+    "common.internal_error": "内部服务器错误",
+    "common.success": "操作成功",
+    "projects.not_found": "项目不存在",
+    "projects.name_required": "项目名称不能为空"
+}
+```
+
+**English (en-US.json)**:
+```json
+{
+    "server.starting": "Server is starting...",
+    "server.start_failed": "Failed to start server",
+    "auth.login_failed": "Login failed, please check your credentials",
+    "auth.token_invalid": "Token is invalid or expired",
+    "validation.invalid_request": "Invalid request format",
+    "validation.invalid_format": "Request data validation failed",
+    "common.internal_error": "Internal server error",
+    "common.success": "Operation successful",
+    "projects.not_found": "Project not found", 
+    "projects.name_required": "Project name is required"
+}
+```
+
+## Frontend Internationalization
+
+### React i18next Setup ([frontend/src/i18n/](mdc:frontend/src/i18n/))
+
+**Configuration** ([frontend/src/i18n/index.ts](mdc:frontend/src/i18n/index.ts)):
+```typescript
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+
+// Language resources
+const resources = {
+    'zh-CN': {
+        // Feature-based namespaces
+        common: require('./locales/zh-CN/common.json'),
+        auth: require('./locales/zh-CN/auth.json'),
+        projects: require('./locales/zh-CN/projects.json'),
+        navigation: require('./locales/zh-CN/navigation.json'),
+    },
+    'en-US': {
+        common: require('./locales/en-US/common.json'),
+        auth: require('./locales/en-US/auth.json'),
+        projects: require('./locales/en-US/projects.json'),
+        navigation: require('./locales/en-US/navigation.json'),
+    }
+};
+
+i18n
+    .use(initReactI18next)
+    .init({
+        resources,
+        lng: localStorage.getItem('language') || 'zh-CN',
+        defaultNS: 'common',
+        interpolation: {
+            escapeValue: false,
+        },
+    });
+
+export default i18n;
+```
+
+### Component Usage Patterns
+
+**Hook-Based Translation**:
+```typescript
+import { useTranslation } from 'react-i18next';
+
+export default function ProjectForm() {
+    const { t } = useTranslation(['projects', 'common']);
+    
+    return (
+        <form>
+            <h2>{t('projects:form.title')}</h2>
+            <input placeholder={t('projects:form.namePlaceholder')} />
+            <button>{t('common:buttons.save')}</button>
+        </form>
+    );
+}
+```
+
+**Language Switcher Component** ([frontend/src/components/LanguageSwitcher.tsx](mdc:frontend/src/components/LanguageSwitcher.tsx)):
+```typescript
+export const LanguageSwitcher: React.FC = () => {
+    const { i18n } = useTranslation();
+    
+    const changeLanguage = (lng: string) => {
+        i18n.changeLanguage(lng);
+        localStorage.setItem('language', lng);
+    };
+    
+    return (
+        <Select value={i18n.language} onValueChange={changeLanguage}>
+            <SelectItem value="zh-CN">中文</SelectItem>
+            <SelectItem value="en-US">English</SelectItem>
+        </Select>
+    );
+};
+```
+
+### Namespace Organization
+
+**Feature-Based Namespaces**:
+```
+locales/
+├── zh-CN/
+│   ├── common.json           # Shared UI text
+│   ├── auth.json            # Authentication
+│   ├── projects.json        # Project management
+│   ├── git-credentials.json # Git credentials
+│   ├── tasks.json           # Task management
+│   ├── navigation.json      # Menu and navigation
+│   └── errors.json          # Error messages
+└── en-US/
+    └── [same structure]
+```
+
+**Common Namespace** (common.json):
+```json
+{
+    "buttons": {
+        "save": "Save",
+        "cancel": "Cancel", 
+        "delete": "Delete",
+        "edit": "Edit",
+        "create": "Create",
+        "back": "Back"
+    },
+    "labels": {
+        "name": "Name",
+        "description": "Description",
+        "createdAt": "Created At",
+        "updatedAt": "Updated At"
+    },
+    "pagination": {
+        "previous": "Previous",
+        "next": "Next",
+        "total": "Total {{count}} items"
+    }
+}
+```
+
+**Feature Namespace** (projects.json):
+```json
+{
+    "title": "Projects",
+    "create": "Create Project",
+    "edit": "Edit Project",
+    "form": {
+        "title": "Project Information",
+        "namePlaceholder": "Enter project name",
+        "repoUrlPlaceholder": "https://github.com/user/repo.git"
+    },
+    "validation": {
+        "nameRequired": "Project name is required",
+        "invalidUrl": "Please enter a valid Git repository URL"
+    },
+    "messages": {
+        "createSuccess": "Project created successfully",
+        "updateSuccess": "Project updated successfully",
+        "deleteSuccess": "Project deleted successfully"
+    }
+}
+```
+
+## API Language Integration
+
+### Request Headers
+
+**Frontend API Calls**:
+```typescript
+// Add language header to all requests
+const request = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
+    const currentLanguage = i18n.language;
+    
+    const config: RequestInit = {
+        headers: {
+            'Accept-Language': currentLanguage,
+            ...options.headers,
+        },
+        ...options,
+    };
+    
+    return fetch(`${API_BASE_URL}${url}`, config);
+};
+```
+
+**Backend Language Detection**:
+```go
+// In handlers, get language from middleware
+lang := middleware.GetLangFromContext(c)
+
+// Use in responses
+c.JSON(http.StatusBadRequest, gin.H{
+    "error": i18n.T(lang, "validation.invalid_request"),
+})
+```
 
 ## Best Practices
-- Always use translation keys instead of hardcoded strings
-- Provide fallback to default language (en-US)
-- Handle missing translations gracefully
-- Use parameterized translations for dynamic content
-- Keep locale files organized with nested JSON structure
-- Validate all locale files have same key structure
 
-## Adding New Languages
-1. Create new locale file in [locales/](mdc:backend/i18n/locales/) directory
-2. Copy key structure from existing locale file
-3. Translate all values to target language
-4. Update i18n configuration to include new language
-5. Test language switching functionality
+### Key Naming Convention
+
+**Hierarchical Keys**: Use dot notation for organization
+```
+feature.section.specific
+auth.form.passwordLabel
+projects.validation.nameRequired
+common.buttons.save
+```
+
+**Consistent Patterns**:
+- `*.title` - Page/section titles
+- `*.form.*` - Form labels and placeholders  
+- `*.validation.*` - Validation error messages
+- `*.messages.*` - Success/info messages
+- `common.buttons.*` - Button text
+- `common.labels.*` - Generic labels
+
+### Dynamic Content
+
+**Interpolation** with parameters:
+```typescript
+// Template: "Total {{count}} items"
+t('pagination.total', { count: 42 })
+
+// Template: "Welcome back, {{name}}!"
+t('auth.welcome', { name: user.name })
+```
+
+**Pluralization** support:
+```json
+{
+    "item_one": "{{count}} item",
+    "item_other": "{{count}} items"
+}
+```
+
+### Language-Specific Formatting
+
+**Dates and Numbers**: Use locale-specific formatting
+```typescript
+const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat(i18n.language).format(date);
+};
+```
+---
+description: Internationalization (i18n) patterns for backend and frontend
+---
