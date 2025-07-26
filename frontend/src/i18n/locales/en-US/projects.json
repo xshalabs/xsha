@@ -13,7 +13,7 @@
   "description": "Project Description",
   "repoUrl": "Repository URL",
   "protocol": "Protocol Type",
-  "defaultBranch": "Default Branch",
+
   "credential": "Access Credential",
   "createdAt": "Created At",
   "lastUsed": "Last Used",
@@ -35,7 +35,7 @@
     "name": "Enter project name",
     "description": "Enter project description (optional)",
     "repoUrl": "https://github.com/user/repo.git or git@github.com:user/repo.git",
-    "defaultBranch": "main",
+
     "selectCredential": "Select access credential (optional)"
   },
   "validation": {

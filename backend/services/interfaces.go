@@ -51,7 +51,7 @@ type GitCredentialService interface {
 // ProjectService 定义项目服务接口
 type ProjectService interface {
 	// 项目管理
-	CreateProject(name, description, repoURL, protocol, defaultBranch, createdBy string, credentialID *uint) (*database.Project, error)
+	CreateProject(name, description, repoURL, protocol, createdBy string, credentialID *uint) (*database.Project, error)
 	GetProject(id uint, createdBy string) (*database.Project, error)
 	GetProjectByName(name, createdBy string) (*database.Project, error)
 	ListProjects(createdBy string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)

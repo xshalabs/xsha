@@ -12,7 +12,7 @@
   "description": "项目描述",
   "repoUrl": "仓库地址",
   "protocol": "协议类型",
-  "defaultBranch": "默认分支",
+
   "credential": "访问凭据",
   "createdAt": "创建时间",
   "lastUsed": "上次使用",
@@ -34,7 +34,7 @@
     "name": "输入项目名称",
     "description": "输入项目描述（可选）",
     "repoUrl": "https://github.com/user/repo.git 或 git@github.com:user/repo.git",
-    "defaultBranch": "main",
+
     "selectCredential": "选择访问凭据（可选）"
   },
   "validation": {

@@ -29,9 +29,9 @@ func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository
 }
 
 // CreateProject 创建项目
-func (s *projectService) CreateProject(name, description, repoURL, protocol, defaultBranch, createdBy string, credentialID *uint) (*database.Project, error) {
+func (s *projectService) CreateProject(name, description, repoURL, protocol, createdBy string, credentialID *uint) (*database.Project, error) {
 	// 验证输入
-	if err := s.validateProjectData(name, repoURL, protocol, defaultBranch); err != nil {
+	if err := s.validateProjectData(name, repoURL, protocol); err != nil {
 		return nil, err
 	}
 
@@ -53,19 +53,13 @@ func (s *projectService) CreateProject(name, description, repoURL, protocol, def
 
 	// 创建项目对象
 	project := &database.Project{
-		Name:          name,
-		Description:   description,
-		RepoURL:       repoURL,
-		Protocol:      protocolType,
-		DefaultBranch: defaultBranch,
-		CredentialID:  credentialID,
-		CreatedBy:     createdBy,
-		IsActive:      true,
-	}
-
-	// 设置默认分支
-	if project.DefaultBranch == "" {
-		project.DefaultBranch = "main"
+		Name:         name,
+		Description:  description,
+		RepoURL:      repoURL,
+		Protocol:     protocolType,
+		CredentialID: credentialID,
+		CreatedBy:    createdBy,
+		IsActive:     true,
 	}
 
 	// 保存到数据库
@@ -112,9 +106,7 @@ func (s *projectService) UpdateProject(id uint, createdBy string, updates map[st
 			return err
 		}
 	}
-	if defaultBranch, ok := updates["default_branch"]; ok {
-		project.DefaultBranch = defaultBranch.(string)
-	}
+
 	if credentialID, ok := updates["credential_id"]; ok {
 		if credentialID == nil {
 			project.CredentialID = nil
@@ -280,7 +272,7 @@ func (s *projectService) ValidateRepositoryAccess(repoURL string, credentialID *
 }
 
 // validateProjectData 验证项目数据
-func (s *projectService) validateProjectData(name, repoURL, protocol, defaultBranch string) error {
+func (s *projectService) validateProjectData(name, repoURL, protocol string) error {
 	if strings.TrimSpace(name) == "" {
 		return errors.New("project name is required")
 	}
@@ -289,9 +281,6 @@ func (s *projectService) validateProjectData(name, repoURL, protocol, defaultBra
 	}
 	if protocol != string(database.GitProtocolHTTPS) && protocol != string(database.GitProtocolSSH) {
 		return errors.New("unsupported protocol type")
-	}
-	if strings.TrimSpace(defaultBranch) == "" {
-		return errors.New("default branch is required")
 	}
 	return nil
 }

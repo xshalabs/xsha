@@ -242,8 +242,7 @@ export function ProjectList({ onEdit, onDelete, onCreateNew }: ProjectListProps)
                     <div className="text-blue-600 truncate">{project.repo_url}</div>
                   </div>
                   <div>
-                    <span className="font-medium text-gray-700">{t('projects.defaultBranch')}:</span>
-                    <div>{project.default_branch || 'main'}</div>
+                    
                   </div>
                   {project.credential && (
                     <div>

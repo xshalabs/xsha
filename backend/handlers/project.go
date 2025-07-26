@@ -27,22 +27,20 @@ func NewProjectHandlers(projectService services.ProjectService) *ProjectHandlers
 
 // CreateProjectRequest 创建项目请求结构
 type CreateProjectRequest struct {
-	Name          string `json:"name" binding:"required"`
-	Description   string `json:"description"`
-	RepoURL       string `json:"repo_url" binding:"required"`
-	Protocol      string `json:"protocol" binding:"required,oneof=https ssh"`
-	DefaultBranch string `json:"default_branch"`
-	CredentialID  *uint  `json:"credential_id"`
+	Name         string `json:"name" binding:"required"`
+	Description  string `json:"description"`
+	RepoURL      string `json:"repo_url" binding:"required"`
+	Protocol     string `json:"protocol" binding:"required,oneof=https ssh"`
+	CredentialID *uint  `json:"credential_id"`
 }
 
 // UpdateProjectRequest 更新项目请求结构
 // @Description 更新项目的请求参数
 type UpdateProjectRequest struct {
-	Name          string `json:"name" example:"更新的项目名称"`
-	Description   string `json:"description" example:"更新的项目描述"`
-	RepoURL       string `json:"repo_url" example:"https://github.com/user/repo.git"`
-	DefaultBranch string `json:"default_branch" example:"main"`
-	CredentialID  *uint  `json:"credential_id" example:"1"`
+	Name         string `json:"name" example:"更新的项目名称"`
+	Description  string `json:"description" example:"更新的项目描述"`
+	RepoURL      string `json:"repo_url" example:"https://github.com/user/repo.git"`
+	CredentialID *uint  `json:"credential_id" example:"1"`
 }
 
 // CreateProject 创建项目
@@ -71,7 +69,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 
 	project, err := h.projectService.CreateProject(
 		req.Name, req.Description, req.RepoURL, req.Protocol,
-		req.DefaultBranch, username.(string), req.CredentialID,
+		username.(string), req.CredentialID,
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -225,9 +223,7 @@ func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 	if req.RepoURL != "" {
 		updates["repo_url"] = req.RepoURL
 	}
-	if req.DefaultBranch != "" {
-		updates["default_branch"] = req.DefaultBranch
-	}
+
 	// 处理凭据ID（包括设置为null的情况）
 	updates["credential_id"] = req.CredentialID
 

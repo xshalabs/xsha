@@ -38,7 +38,6 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
     description: project?.description || '',
     repo_url: project?.repo_url || '',
     protocol: project?.protocol || 'https',
-    default_branch: project?.default_branch || 'main',
     credential_id: project?.credential_id
   });
   
@@ -105,21 +104,6 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
       if (branchesResponse.result.can_access) {
         setBranches(branchesResponse.result.branches);
         setAccessValidated(true);
-        
-        // 如果当前默认分支不在分支列表中，且分支列表不为空，设置第一个分支为默认
-        if (branchesResponse.result.branches.length > 0 && 
-            !branchesResponse.result.branches.includes(formData.default_branch)) {
-          // 优先选择 main、master、develop 等常见分支
-          const commonBranches = ['main', 'master', 'develop', 'dev'];
-          const suggestedBranch = commonBranches.find(branch => 
-            branchesResponse.result.branches.includes(branch)
-          ) || branchesResponse.result.branches[0];
-          
-          setFormData(prev => ({
-            ...prev,
-            default_branch: suggestedBranch
-          }));
-        }
       } else {
         setAccessError(branchesResponse.result.error_message || '获取分支列表失败');
         setBranches([]);
@@ -277,7 +261,6 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
           description: formData.description,
           repo_url: formData.repo_url,
           protocol: formData.protocol,
-          default_branch: formData.default_branch,
           credential_id: formData.credential_id
         };
 
@@ -292,7 +275,6 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
           description: formData.description,
           repo_url: formData.repo_url,
           protocol: formData.protocol,
-          default_branch: formData.default_branch,
           credential_id: formData.credential_id
         };
 
@@ -320,7 +302,6 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         description: project.description,
         repo_url: project.repo_url,
         protocol: project.protocol,
-        default_branch: project.default_branch,
         credential_id: project.credential_id
       });
     } else {
@@ -329,7 +310,6 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         description: '',
         repo_url: '',
         protocol: 'https',
-        default_branch: 'main',
         credential_id: undefined
       });
     }
@@ -454,42 +434,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
               )}
             </div>
 
-            {/* 默认分支 */}
-            <div className="space-y-2">
-              <Label htmlFor="default_branch">{t('projects.defaultBranch')}</Label>
-              {branchesLoading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                  <span className="text-sm text-gray-500">{t('projects.repository.fetchingBranches')}</span>
-                </div>
-              ) : branches.length > 0 ? (
-                <select
-                  id="default_branch"
-                  value={formData.default_branch}
-                  onChange={(e) => handleInputChange('default_branch', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {branches.map((branch) => (
-                    <option key={branch} value={branch}>
-                      {branch}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <Input
-                  id="default_branch"
-                  type="text"
-                  value={formData.default_branch}
-                  onChange={(e) => handleInputChange('default_branch', e.target.value)}
-                  placeholder={t('projects.placeholders.defaultBranch')}
-                />
-              )}
-              {branches.length > 0 && (
-                <p className="text-sm text-gray-500">
-                  {t('projects.repository.branchesDetected', { count: branches.length })}
-                </p>
-              )}
-            </div>
+
           </div>
 
           {/* 操作按钮 */}

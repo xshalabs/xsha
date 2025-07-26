@@ -13,7 +13,6 @@ export interface Project {
   description: string;
   repo_url: string;
   protocol: GitProtocolType;
-  default_branch: string;
   credential_id?: number;
   created_by: string;
   is_active: boolean;
@@ -33,7 +32,6 @@ export interface CreateProjectRequest {
   description?: string;
   repo_url: string;
   protocol: GitProtocolType;
-  default_branch?: string;
   credential_id?: number;
 }
 
@@ -43,7 +41,6 @@ export interface UpdateProjectRequest {
   description?: string;
   repo_url?: string;
   protocol?: GitProtocolType;
-  default_branch?: string;
   credential_id?: number;
 }
 
@@ -95,7 +92,6 @@ export interface ProjectFormData {
   description: string;
   repo_url: string;
   protocol: GitProtocolType;
-  default_branch: string;
   credential_id?: number;
 }
 

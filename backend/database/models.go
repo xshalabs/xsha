@@ -89,11 +89,10 @@ type Project struct {
 	Description string `gorm:"type:text" json:"description"`                           // 项目描述
 
 	// Git配置
-	RepoURL       string          `gorm:"not null" json:"repo_url"`                  // Git仓库地址
-	Protocol      GitProtocolType `gorm:"not null;index" json:"protocol"`            // Git协议类型
-	DefaultBranch string          `gorm:"default:'main'" json:"default_branch"`      // 默认分支
-	CredentialID  *uint           `gorm:"index" json:"credential_id"`                // 绑定的凭据ID
-	Credential    *GitCredential  `gorm:"foreignKey:CredentialID" json:"credential"` // 关联的凭据
+	RepoURL      string          `gorm:"not null" json:"repo_url"`                  // Git仓库地址
+	Protocol     GitProtocolType `gorm:"not null;index" json:"protocol"`            // Git协议类型
+	CredentialID *uint           `gorm:"index" json:"credential_id"`                // 绑定的凭据ID
+	Credential   *GitCredential  `gorm:"foreignKey:CredentialID" json:"credential"` // 关联的凭据
 
 	// 元数据
 	IsActive bool       `gorm:"default:true;index" json:"is_active"` // 是否激活
