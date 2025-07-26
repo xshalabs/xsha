@@ -12,7 +12,8 @@ import {
   RotateCcw,
   RefreshCw,
   MessageSquare,
-  Play
+  Play,
+  Trash2
 } from 'lucide-react';
 import type { 
   TaskConversation as TaskConversationInterface, 
@@ -28,6 +29,7 @@ interface TaskConversationProps {
   onSendMessage: (data: ConversationFormData) => Promise<void>;
   onRefresh: () => void;
   onConversationStatusChange?: (conversationId: number, newStatus: ConversationStatus) => void;
+  onDeleteConversation?: (conversationId: number) => Promise<void>;
 }
 
 export function TaskConversation({
@@ -36,11 +38,13 @@ export function TaskConversation({
   loading,
   onSendMessage,
   onRefresh,
-  onConversationStatusChange
+  onConversationStatusChange,
+  onDeleteConversation
 }: TaskConversationProps) {
   const { t } = useTranslation();
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // 自动滚动到底部
@@ -88,6 +92,22 @@ export function TaskConversation({
       console.error('Failed to send message:', error);
     } finally {
       setSending(false);
+    }
+  };
+
+  // 删除对话
+  const handleDeleteConversation = async (conversationId: number) => {
+    if (!onDeleteConversation) return;
+    
+    if (window.confirm(t('taskConversation.deleteConfirm'))) {
+      try {
+        setDeletingId(conversationId);
+        await onDeleteConversation(conversationId);
+      } catch (error) {
+        console.error('Failed to delete conversation:', error);
+      } finally {
+        setDeletingId(null);
+      }
     }
   };
 
@@ -175,6 +195,18 @@ export function TaskConversation({
                             <span>{t(`taskConversation.status.${conversation.status}`)}</span>
                           </div>
                         </Badge>
+                        {/* 删除按钮 - 只对非running状态的对话显示 */}
+                        {conversation.status !== 'running' && onDeleteConversation && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteConversation(conversation.id)}
+                            disabled={deletingId === conversation.id}
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        )}
                       </div>
                     </div>
 

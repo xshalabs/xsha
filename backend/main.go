@@ -84,7 +84,7 @@ func main() {
 	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, cfg)
 	devEnvService := services.NewDevEnvironmentService(devEnvRepo)
 	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, workspaceManager)
-	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo)
+	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo)
 	aiTaskExecutor := services.NewAITaskExecutorService(taskConvRepo, taskRepo, execLogRepo, gitCredService, cfg, logBroadcaster)
 
 	// Initialize scheduler

@@ -8,15 +8,17 @@ import (
 )
 
 type taskConversationService struct {
-	repo     repository.TaskConversationRepository
-	taskRepo repository.TaskRepository
+	repo        repository.TaskConversationRepository
+	taskRepo    repository.TaskRepository
+	execLogRepo repository.TaskExecutionLogRepository
 }
 
 // NewTaskConversationService 创建任务对话服务实例
-func NewTaskConversationService(repo repository.TaskConversationRepository, taskRepo repository.TaskRepository) TaskConversationService {
+func NewTaskConversationService(repo repository.TaskConversationRepository, taskRepo repository.TaskRepository, execLogRepo repository.TaskExecutionLogRepository) TaskConversationService {
 	return &taskConversationService{
-		repo:     repo,
-		taskRepo: taskRepo,
+		repo:        repo,
+		taskRepo:    taskRepo,
+		execLogRepo: execLogRepo,
 	}
 }
 
@@ -108,11 +110,22 @@ func (s *taskConversationService) UpdateConversation(id uint, createdBy string, 
 // DeleteConversation 删除对话
 func (s *taskConversationService) DeleteConversation(id uint, createdBy string) error {
 	// 检查对话是否存在
-	_, err := s.repo.GetByID(id, createdBy)
+	conversation, err := s.repo.GetByID(id, createdBy)
 	if err != nil {
 		return err
 	}
 
+	// 验证对话状态：只有在非 running 状态时才能删除
+	if conversation.Status == database.ConversationStatusRunning {
+		return errors.New("cannot delete conversation while it is running")
+	}
+
+	// 先删除关联的任务执行日志
+	if err := s.execLogRepo.DeleteByConversationID(id); err != nil {
+		return errors.New("failed to delete related execution logs")
+	}
+
+	// 再删除对话
 	return s.repo.Delete(id, createdBy)
 }
 

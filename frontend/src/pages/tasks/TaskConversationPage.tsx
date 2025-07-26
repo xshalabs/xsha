@@ -99,6 +99,20 @@ const TaskConversationPage: React.FC = () => {
     }
   };
 
+  // 处理删除对话
+  const handleDeleteConversation = async (conversationId: number) => {
+    try {
+      await apiService.taskConversations.delete(conversationId);
+      // 重新加载对话列表
+      if (task) {
+        loadConversations(task.id);
+      }
+    } catch (error) {
+      logError(error as Error, 'Failed to delete conversation');
+      throw error;
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto p-6">
@@ -142,6 +156,7 @@ const TaskConversationPage: React.FC = () => {
           loading={conversationsLoading}
           onSendMessage={handleSendMessage}
           onRefresh={handleConversationRefresh}
+          onDeleteConversation={handleDeleteConversation}
         />
       </div>
     </div>
