@@ -392,11 +392,10 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		}
 	}
 
-	// 更新工作目录路径和开始时间
+	// 更新开始时间
 	now := time.Now()
 	startedUpdates := map[string]interface{}{
-		"workspace_path": workspacePath,
-		"started_at":     &now,
+		"started_at": &now,
 	}
 	s.execLogRepo.UpdateMetadata(execLog.ID, startedUpdates)
 

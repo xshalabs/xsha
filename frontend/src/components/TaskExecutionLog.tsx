@@ -260,14 +260,7 @@ export function TaskExecutionLog({
               )}
             </span>
           </div>
-          <div>
-            <span className="text-gray-500">
-              {t("taskConversation.execution.info.workspace")}:
-            </span>
-            <span className="ml-2 font-mono text-xs">
-              {executionLog.workspace_path || "-"}
-            </span>
-          </div>
+
         </div>
 
         {/* 错误信息 */}

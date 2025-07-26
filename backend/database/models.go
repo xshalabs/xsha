@@ -265,7 +265,6 @@ type TaskExecutionLog struct {
 	Conversation   *TaskConversation `gorm:"foreignKey:ConversationID" json:"conversation"` // 关联对话
 
 	// 执行信息
-	WorkspacePath string `gorm:"type:text" json:"workspace_path"`     // 工作目录绝对路径
 	DockerCommand string `gorm:"type:text" json:"docker_command"`     // 执行的Docker命令
 	ExecutionLogs string `gorm:"type:longtext" json:"execution_logs"` // 执行日志（实时追加）
 	ErrorMessage  string `gorm:"type:text" json:"error_message"`      // 错误信息

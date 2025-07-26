@@ -2,7 +2,6 @@
 export interface TaskExecutionLog {
   id: number;
   conversation_id: number;
-  workspace_path: string;
   docker_command: string;
   execution_logs: string;
   error_message: string;

@@ -60,7 +60,6 @@ func (r *taskExecutionLogRepository) UpdateMetadata(id uint, updates map[string]
 		"commit_hash":    true,
 		"started_at":     true,
 		"completed_at":   true,
-		"workspace_path": true,
 		"docker_command": true,
 	}
 
