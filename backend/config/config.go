@@ -4,6 +4,8 @@ import (
 	"os"
 	"sleep0-backend/utils"
 	"strconv"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -33,6 +35,15 @@ type Config struct {
 }
 
 func Load() *Config {
+	// 尝试加载 .env 文件
+	// godotenv.Load() 不会覆盖已存在的环境变量，确保环境变量优先级高于 .env 文件
+	if err := godotenv.Load(); err != nil {
+		// .env 文件不存在或加载失败时不报错，继续使用环境变量和默认值
+		utils.Info("未找到 .env 文件或加载失败，将使用环境变量和默认值", "error", err.Error())
+	} else {
+		utils.Info("成功加载 .env 文件")
+	}
+
 	// 获取AES密钥
 	aesKey := normalizeAESKey(getEnv("SLEEP0_AES_KEY", "default-aes-key-change-in-production"))
 
