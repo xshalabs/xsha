@@ -5,7 +5,9 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"time"
 )
 
 // LogLevel 日志级别类型
@@ -55,18 +57,11 @@ func InitLogger(config LogConfig) error {
 	// 配置选项
 	opts := &slog.HandlerOptions{
 		Level:     level,
-		AddSource: true, // 添加源码位置信息
+		AddSource: false, // 我们手动添加源码位置信息
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 			// 自定义时间格式
 			if a.Key == slog.TimeKey {
 				return slog.String("timestamp", a.Value.Time().Format("2006-01-02T15:04:05.000Z07:00"))
-			}
-			// 简化源码路径
-			if a.Key == slog.SourceKey {
-				if source, ok := a.Value.Any().(*slog.Source); ok {
-					// 只显示文件名和行号
-					source.File = filepath.Base(source.File)
-				}
 			}
 			return a
 		},
@@ -147,44 +142,140 @@ func WithFields(fields map[string]interface{}) *slog.Logger {
 	return logger.With(args...)
 }
 
-// 便利函数
+// 便利函数 - 修改以正确获取调用者信息
 func Debug(msg string, args ...interface{}) {
-	GetLogger().Debug(msg, args...)
+	logWithCaller(slog.LevelDebug, msg, args...)
 }
 
 func Info(msg string, args ...interface{}) {
-	GetLogger().Info(msg, args...)
+	logWithCaller(slog.LevelInfo, msg, args...)
 }
 
 func Warn(msg string, args ...interface{}) {
-	GetLogger().Warn(msg, args...)
+	logWithCaller(slog.LevelWarn, msg, args...)
 }
 
 func Error(msg string, args ...interface{}) {
-	GetLogger().Error(msg, args...)
+	logWithCaller(slog.LevelError, msg, args...)
 }
 
 func DebugContext(ctx context.Context, msg string, args ...interface{}) {
-	WithContext(ctx).Debug(msg, args...)
+	logWithCallerContext(ctx, slog.LevelDebug, msg, args...)
 }
 
 func InfoContext(ctx context.Context, msg string, args ...interface{}) {
-	WithContext(ctx).Info(msg, args...)
+	logWithCallerContext(ctx, slog.LevelInfo, msg, args...)
 }
 
 func WarnContext(ctx context.Context, msg string, args ...interface{}) {
-	WithContext(ctx).Warn(msg, args...)
+	logWithCallerContext(ctx, slog.LevelWarn, msg, args...)
 }
 
 func ErrorContext(ctx context.Context, msg string, args ...interface{}) {
-	WithContext(ctx).Error(msg, args...)
+	logWithCallerContext(ctx, slog.LevelError, msg, args...)
+}
+
+// logWithCaller 记录日志并正确获取调用者信息
+func logWithCaller(level slog.Level, msg string, args ...interface{}) {
+	logger := GetLogger()
+	if !logger.Enabled(context.Background(), level) {
+		return
+	}
+
+	var pc uintptr
+	var file string
+	var line int
+	var function string
+
+	// 获取调用者信息，跳过2层：logWithCaller -> 便利函数 -> 实际调用者
+	pc, file, line, ok := runtime.Caller(2)
+	if ok {
+		fn := runtime.FuncForPC(pc)
+		if fn != nil {
+			function = fn.Name()
+		}
+		file = filepath.Base(file)
+	}
+
+	// 创建带源码信息的记录
+	record := slog.NewRecord(time.Now(), level, msg, pc)
+
+	// 转换args为slog.Attr格式
+	if len(args) > 0 {
+		attrs := make([]slog.Attr, 0, len(args)/2)
+		for i := 0; i < len(args)-1; i += 2 {
+			if key, ok := args[i].(string); ok {
+				attrs = append(attrs, slog.Any(key, args[i+1]))
+			}
+		}
+		record.AddAttrs(attrs...)
+	}
+
+	// 手动设置源码信息
+	if ok {
+		record.AddAttrs(slog.Group("source",
+			slog.String("function", function),
+			slog.String("file", file),
+			slog.Int("line", line),
+		))
+	}
+
+	logger.Handler().Handle(context.Background(), record)
+}
+
+// logWithCallerContext 带上下文记录日志并正确获取调用者信息
+func logWithCallerContext(ctx context.Context, level slog.Level, msg string, args ...interface{}) {
+	logger := WithContext(ctx)
+	if !logger.Enabled(ctx, level) {
+		return
+	}
+
+	var pc uintptr
+	var file string
+	var line int
+	var function string
+
+	// 获取调用者信息，跳过2层：logWithCallerContext -> 便利函数 -> 实际调用者
+	pc, file, line, ok := runtime.Caller(2)
+	if ok {
+		fn := runtime.FuncForPC(pc)
+		if fn != nil {
+			function = fn.Name()
+		}
+		file = filepath.Base(file)
+	}
+
+	// 创建带源码信息的记录
+	record := slog.NewRecord(time.Now(), level, msg, pc)
+
+	// 转换args为slog.Attr格式
+	if len(args) > 0 {
+		attrs := make([]slog.Attr, 0, len(args)/2)
+		for i := 0; i < len(args)-1; i += 2 {
+			if key, ok := args[i].(string); ok {
+				attrs = append(attrs, slog.Any(key, args[i+1]))
+			}
+		}
+		record.AddAttrs(attrs...)
+	}
+
+	// 手动设置源码信息
+	if ok {
+		record.AddAttrs(slog.Group("source",
+			slog.String("function", function),
+			slog.String("file", file),
+			slog.Int("line", line),
+		))
+	}
+
+	logger.Handler().Handle(ctx, record)
 }
 
 // LogError 记录错误日志，如果err不为nil
 func LogError(err error, msg string, args ...interface{}) {
 	if err != nil {
 		allArgs := append([]interface{}{"error", err.Error()}, args...)
-		GetLogger().Error(msg, allArgs...)
+		logWithCaller(slog.LevelError, msg, allArgs...)
 	}
 }
 
@@ -192,6 +283,6 @@ func LogError(err error, msg string, args ...interface{}) {
 func LogErrorContext(ctx context.Context, err error, msg string, args ...interface{}) {
 	if err != nil {
 		allArgs := append([]interface{}{"error", err.Error()}, args...)
-		WithContext(ctx).Error(msg, allArgs...)
+		logWithCallerContext(ctx, slog.LevelError, msg, allArgs...)
 	}
 }
