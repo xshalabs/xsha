@@ -15,29 +15,24 @@ const TaskCreatePage: React.FC = () => {
   const navigate = useNavigate();
   const { projectId } = useParams<{ projectId: string }>();
   
-  const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
 
   usePageTitle(t('tasks.create'));
 
-  // 加载项目列表
+  // 加载当前项目信息
   useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        const response = await apiService.projects.list();
-        setProjects(response.projects);
-
-        // 如果有projectId，加载当前项目信息
-        if (projectId) {
+    const loadCurrentProject = async () => {
+      if (projectId) {
+        try {
           const projectResponse = await apiService.projects.get(parseInt(projectId, 10));
           setCurrentProject(projectResponse.project);
+        } catch (error) {
+          logError(error as Error, 'Failed to load current project');
         }
-      } catch (error) {
-        logError(error as Error, 'Failed to load projects');
       }
     };
 
-    loadProjects();
+    loadCurrentProject();
   }, [projectId]);
 
   const handleSubmit = async (data: TaskFormData | { title: string }) => {
@@ -84,8 +79,8 @@ const TaskCreatePage: React.FC = () => {
         </div>
 
         <TaskForm
-          projects={projects}
           defaultProjectId={projectId ? parseInt(projectId, 10) : undefined}
+          currentProject={currentProject || undefined}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
         />

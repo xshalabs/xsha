@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,8 +14,8 @@ import { projectsApi } from '@/lib/api/projects';
 
 interface TaskFormProps {
   task?: Task;
-  projects: Project[];
   defaultProjectId?: number; // 默认选择的项目ID
+  currentProject?: Project; // 当前项目信息
   loading?: boolean;
   onSubmit: (data: TaskFormData | { title: string }) => Promise<void>;
   onCancel: () => void;
@@ -23,8 +23,8 @@ interface TaskFormProps {
 
 export function TaskForm({ 
   task, 
-  projects, 
   defaultProjectId,
+  currentProject,
   loading = false, 
   onSubmit, 
   onCancel 
@@ -35,7 +35,7 @@ export function TaskForm({
   const [formData, setFormData] = useState<TaskFormData>({
     title: task?.title || '',
     start_branch: task?.start_branch || 'main',
-    project_id: task?.project_id || defaultProjectId || (projects[0]?.id || 0),
+    project_id: task?.project_id || defaultProjectId || 0,
     dev_environment_id: task?.dev_environment_id || undefined,
     requirement_desc: '', // 仅在创建时使用
   });
@@ -67,9 +67,8 @@ export function TaskForm({
   }, []);
 
   // 获取项目分支列表
-  const fetchProjectBranches = async (projectId: number) => {
-    const selectedProject = projects.find(p => p.id === projectId);
-    if (!selectedProject || isEdit) return;
+  const fetchProjectBranches = useCallback(async () => {
+    if (!currentProject || isEdit) return;
 
     try {
       setLoadingBranches(true);
@@ -77,22 +76,25 @@ export function TaskForm({
       setAvailableBranches([]);
 
       const response = await projectsApi.fetchBranches({
-        repo_url: selectedProject.repo_url,
-        credential_id: selectedProject.credential_id || undefined,
+        repo_url: currentProject.repo_url,
+        credential_id: currentProject.credential_id || undefined,
       });
 
       if (response.result.can_access) {
         setAvailableBranches(response.result.branches);
         // 如果当前选择的分支不在列表中，选择第一个分支或默认的main
-        const currentBranch = formData.start_branch;
-        if (!response.result.branches.includes(currentBranch)) {
-          const defaultBranch = response.result.branches.includes('main') 
-            ? 'main' 
-            : response.result.branches.includes('master')
-            ? 'master'
-            : response.result.branches[0] || 'main';
-          setFormData(prev => ({ ...prev, start_branch: defaultBranch }));
-        }
+        setFormData(prev => {
+          const currentBranch = prev.start_branch;
+          if (!response.result.branches.includes(currentBranch)) {
+            const defaultBranch = response.result.branches.includes('main') 
+              ? 'main' 
+              : response.result.branches.includes('master')
+              ? 'master'
+              : response.result.branches[0] || 'main';
+            return { ...prev, start_branch: defaultBranch };
+          }
+          return prev;
+        });
       } else {
         setBranchError(response.result.error_message || t('tasks.errors.fetchBranchesFailed'));
       }
@@ -102,24 +104,23 @@ export function TaskForm({
     } finally {
       setLoadingBranches(false);
     }
-  };
+  }, [currentProject, isEdit, t]);
 
-  // 当projects或defaultProjectId变化时更新project_id
+  // 当defaultProjectId变化时更新project_id
   useEffect(() => {
-    if (!isEdit && !task) {
-      const newProjectId = defaultProjectId || (projects.length > 0 ? projects[0].id : 0);
-      if (newProjectId && newProjectId !== formData.project_id) {
-        setFormData(prev => ({ ...prev, project_id: newProjectId }));
+    if (!isEdit && !task && defaultProjectId) {
+      if (defaultProjectId !== formData.project_id) {
+        setFormData(prev => ({ ...prev, project_id: defaultProjectId }));
       }
     }
-  }, [projects, defaultProjectId, isEdit, task, formData.project_id]);
+  }, [defaultProjectId, isEdit, task, formData.project_id]);
 
   // 当项目改变时获取分支
   useEffect(() => {
-    if (formData.project_id && !isEdit) {
-      fetchProjectBranches(formData.project_id);
+    if (currentProject && !isEdit) {
+      fetchProjectBranches();
     }
-  }, [formData.project_id, isEdit]);
+  }, [currentProject, isEdit, fetchProjectBranches]);
 
   // 表单验证
   const validateForm = (): boolean => {
@@ -135,9 +136,7 @@ export function TaskForm({
         newErrors.start_branch = t('tasks.validation.branchRequired');
       }
 
-      if (!formData.project_id) {
-        newErrors.project_id = t('tasks.validation.projectRequired');
-      }
+
     }
 
     setErrors(newErrors);
@@ -240,37 +239,7 @@ export function TaskForm({
               </div>
             )}
 
-            {/* 项目选择 - 仅在创建模式下显示 */}
-            {!isEdit && (
-              <div className="space-y-2">
-                <Label htmlFor="project">
-                  {t('tasks.fields.project')} <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.project_id.toString()}
-                  onValueChange={(value) => handleChange('project_id', parseInt(value))}
-                >
-                  <SelectTrigger className={errors.project_id ? 'border-red-500' : ''}>
-                    <SelectValue placeholder={t('tasks.form.selectProject')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.map((project) => (
-                      <SelectItem key={project.id} value={project.id.toString()}>
-                        <div className="flex items-center space-x-2">
-                          <span>{project.name}</span>
-                          {!project.is_active && (
-                            <span className="text-xs text-gray-500">({t('common.inactive')})</span>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.project_id && (
-                  <p className="text-sm text-red-500">{errors.project_id}</p>
-                )}
-              </div>
-            )}
+
 
             {/* 开发环境选择 - 仅在创建模式下显示 */}
             {!isEdit && (

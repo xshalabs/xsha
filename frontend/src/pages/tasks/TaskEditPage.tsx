@@ -8,7 +8,6 @@ import { TaskForm } from '@/components/TaskForm';
 import { apiService } from '@/lib/api/index';
 import { logError } from '@/lib/errors';
 import type { Task, TaskFormData } from '@/types/task';
-import type { Project } from '@/types/project';
 
 const TaskEditPage: React.FC = () => {
   const { t } = useTranslation();
@@ -16,7 +15,6 @@ const TaskEditPage: React.FC = () => {
   const { projectId, taskId } = useParams<{ projectId: string; taskId: string }>();
   
   const [task, setTask] = useState<Task | null>(null);
-  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
   usePageTitle(task ? `${t('tasks.edit')} - ${task.title}` : t('tasks.edit'));
@@ -33,16 +31,11 @@ const TaskEditPage: React.FC = () => {
       try {
         setLoading(true);
         
-        // 并行加载任务和项目列表
-        const [taskResponse, projectsResponse] = await Promise.all([
-          apiService.tasks.get(parseInt(taskId, 10)),
-          apiService.projects.list()
-        ]);
-
-                 setTask(taskResponse.data);
-         setProjects(projectsResponse.projects);
+        // 加载任务
+        const taskResponse = await apiService.tasks.get(parseInt(taskId, 10));
+        setTask(taskResponse.data);
       } catch (error) {
-        logError(error as Error, 'Failed to load task or projects');
+        logError(error as Error, 'Failed to load task');
         alert(error instanceof Error ? error.message : t('tasks.messages.loadFailed'));
         navigate(`/projects/${projectId}/tasks`);
       } finally {
@@ -109,7 +102,6 @@ const TaskEditPage: React.FC = () => {
 
         <TaskForm
           task={task}
-          projects={projects}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
         />
