@@ -212,7 +212,7 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint, createdBy s
 	// 更新对话状态为已取消
 	conv.Status = database.ConversationStatusCancelled
 	if err := s.taskConvRepo.Update(conv); err != nil {
-		return fmt.Errorf("更新对话状态为已取消时出错: %v", err)
+		return fmt.Errorf("failed to update conversation status to cancelled: %v", err)
 	}
 
 	return nil
@@ -284,15 +284,15 @@ func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversat
 		return fmt.Errorf("项目信息缺失")
 	}
 	if conv.Task.DevEnvironment == nil {
-		s.setConversationFailed(conv, "任务未配置开发环境，无法执行")
-		return fmt.Errorf("任务未配置开发环境，无法执行")
+		s.setConversationFailed(conv, "task has no development environment configured, cannot execute")
+		return fmt.Errorf("task has no development environment configured, cannot execute")
 	}
 
 	// 更新对话状态为 running
 	conv.Status = database.ConversationStatusRunning
 	if err := s.taskConvRepo.Update(conv); err != nil {
-		s.rollbackConversationState(conv, fmt.Sprintf("更新对话状态失败: %v", err))
-		return fmt.Errorf("更新对话状态失败: %v", err)
+		s.rollbackConversationState(conv, fmt.Sprintf("failed to update conversation status: %v", err))
+		return fmt.Errorf("failed to update conversation status: %v", err)
 	}
 
 	// 创建执行日志
@@ -301,8 +301,8 @@ func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversat
 		ExecutionLogs:  "", // 初始化为空字符串，避免NULL值问题
 	}
 	if err := s.execLogRepo.Create(execLog); err != nil {
-		s.rollbackConversationState(conv, fmt.Sprintf("创建执行日志失败: %v", err))
-		return fmt.Errorf("创建执行日志失败: %v", err)
+		s.rollbackConversationState(conv, fmt.Sprintf("failed to create execution log: %v", err))
+		return fmt.Errorf("failed to create execution log: %v", err)
 	}
 
 	// 创建上下文和取消函数
@@ -766,7 +766,7 @@ func (s *aiTaskExecutorService) setConversationFailed(conv *database.TaskConvers
 	// 更新对话状态为失败
 	conv.Status = database.ConversationStatusFailed
 	if updateErr := s.taskConvRepo.Update(conv); updateErr != nil {
-		utils.Error("更新对话状态为失败时出错", "error", updateErr)
+		utils.Error("failed to update conversation status to failed", "error", updateErr)
 	}
 
 	// 创建执行日志记录失败原因
@@ -776,7 +776,7 @@ func (s *aiTaskExecutorService) setConversationFailed(conv *database.TaskConvers
 		ExecutionLogs:  "", // 初始化为空字符串，避免NULL值问题
 	}
 	if logErr := s.execLogRepo.Create(execLog); logErr != nil {
-		utils.Error("创建执行日志失败", "error", logErr)
+		utils.Error("failed to create execution log", "error", logErr)
 	}
 }
 
@@ -784,7 +784,7 @@ func (s *aiTaskExecutorService) setConversationFailed(conv *database.TaskConvers
 func (s *aiTaskExecutorService) rollbackConversationState(conv *database.TaskConversation, errorMessage string) {
 	conv.Status = database.ConversationStatusFailed
 	if updateErr := s.taskConvRepo.Update(conv); updateErr != nil {
-		utils.Error("回滚对话状态为失败时出错", "error", updateErr)
+		utils.Error("failed to rollback conversation status to failed", "error", updateErr)
 	}
 
 	// 尝试创建或更新执行日志记录失败原因
@@ -794,7 +794,7 @@ func (s *aiTaskExecutorService) rollbackConversationState(conv *database.TaskCon
 		ExecutionLogs:  "", // 初始化为空字符串，避免NULL值问题
 	}
 	if logErr := s.execLogRepo.Create(failedExecLog); logErr != nil {
-		utils.Error("创建失败执行日志失败", "error", logErr)
+		utils.Error("failed to create failed execution log", "error", logErr)
 	}
 }
 
@@ -808,7 +808,7 @@ func (s *aiTaskExecutorService) rollbackToState(
 	// 回滚对话状态
 	conv.Status = convStatus
 	if updateErr := s.taskConvRepo.Update(conv); updateErr != nil {
-		utils.Error("回滚对话状态时出错", "status", convStatus, "error", updateErr)
+		utils.Error("failed to rollback conversation status", "status", convStatus, "error", updateErr)
 	}
 
 	// 更新执行日志错误信息
@@ -816,7 +816,7 @@ func (s *aiTaskExecutorService) rollbackToState(
 		"error_message": errorMessage,
 	}
 	if updateErr := s.execLogRepo.UpdateMetadata(execLog.ID, errorUpdates); updateErr != nil {
-		utils.Error("更新执行日志时出错", "error", updateErr)
+		utils.Error("failed to update execution log", "error", updateErr)
 	}
 }
 

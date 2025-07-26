@@ -137,19 +137,21 @@ func (h *SSELogHandlers) GetLogStats(c *gin.Context) {
 // @Security BearerAuth
 // @Router /api/v1/logs/test/{conversationId} [post]
 func (h *SSELogHandlers) SendTestMessage(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
 	conversationIDStr := c.Param("conversationId")
 	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的对话ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
 	// 发送测试消息
-	testMessage := fmt.Sprintf("测试消息 - 时间: %s", time.Now().Format("15:04:05"))
+	testMessage := fmt.Sprintf(i18n.T(lang, "sse_log.test_message_content"), time.Now().Format("15:04:05"))
 	h.logBroadcaster.BroadcastLog(uint(conversationID), testMessage, "test")
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "测试消息已发送",
+		"message": i18n.T(lang, "sse_log.test_message_sent"),
 		"content": testMessage,
 	})
 }

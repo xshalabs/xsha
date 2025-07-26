@@ -27,6 +27,10 @@ var ErrorMapping = map[string]string{
 	"repository URL is required":                                                     "validation.required",
 	"HTTPS protocol requires URL to start with 'https://'":                           "validation.invalid_format",
 	"SSH protocol requires URL in format 'user@host:path' or 'ssh://user@host/path'": "validation.invalid_format",
+	"invalid repository URL format":                                                  "validation.invalid_format",
+	"failed to get credential":                                                       "git_credential.use_failed",
+	"failed to decrypt credential":                                                   "git_credential.use_failed",
+	"failed to decrypt SSH private key":                                              "git_credential.use_failed",
 
 	// Development environment related errors
 	"environment name already exists":                       "dev_environment.create_failed",
@@ -58,6 +62,12 @@ var ErrorMapping = map[string]string{
 	"conversation content is required":                                                "validation.required",
 	"conversation content too long":                                                   "validation.too_long",
 	"task ID is required":                                                             "validation.required",
+
+	// Task execution related errors
+	"task has no development environment configured, cannot execute": "task_execution.no_dev_environment",
+	"failed to update conversation status to cancelled":              "task_execution.update_status_failed",
+	"failed to update conversation status":                           "task_execution.update_status_failed",
+	"failed to create execution log":                                 "task_execution.create_log_failed",
 }
 
 // MapErrorToI18nKey 将错误消息映射到国际化键值

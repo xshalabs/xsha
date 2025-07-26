@@ -198,7 +198,7 @@ func (s *projectService) FetchRepositoryBranches(repoURL string, credentialID *u
 	if err := utils.ValidateGitURL(repoURL); err != nil {
 		return &utils.GitAccessResult{
 			CanAccess:    false,
-			ErrorMessage: fmt.Sprintf("仓库URL格式无效: %v", err),
+			ErrorMessage: fmt.Sprintf("invalid repository URL format: %v", err),
 		}, nil
 	}
 
@@ -209,14 +209,14 @@ func (s *projectService) FetchRepositoryBranches(repoURL string, credentialID *u
 		if err != nil {
 			return &utils.GitAccessResult{
 				CanAccess:    false,
-				ErrorMessage: fmt.Sprintf("获取凭据失败: %v", err),
+				ErrorMessage: fmt.Sprintf("failed to get credential: %v", err),
 			}, nil
 		}
 
 		if !credential.IsActive {
 			return &utils.GitAccessResult{
 				CanAccess:    false,
-				ErrorMessage: "凭据未激活",
+				ErrorMessage: "credential is not active",
 			}, nil
 		}
 
@@ -233,7 +233,7 @@ func (s *projectService) FetchRepositoryBranches(repoURL string, credentialID *u
 				if err != nil {
 					return &utils.GitAccessResult{
 						CanAccess:    false,
-						ErrorMessage: fmt.Sprintf("解密凭据失败: %v", err),
+						ErrorMessage: fmt.Sprintf("failed to decrypt credential: %v", err),
 					}, nil
 				}
 				credentialInfo.Password = password
@@ -244,7 +244,7 @@ func (s *projectService) FetchRepositoryBranches(repoURL string, credentialID *u
 				if err != nil {
 					return &utils.GitAccessResult{
 						CanAccess:    false,
-						ErrorMessage: fmt.Sprintf("解密SSH私钥失败: %v", err),
+						ErrorMessage: fmt.Sprintf("failed to decrypt SSH private key: %v", err),
 					}, nil
 				}
 				credentialInfo.PrivateKey = privateKey

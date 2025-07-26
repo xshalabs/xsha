@@ -68,13 +68,13 @@ func (s *adminOperationLogService) LogRead(username, resource, resourceID, descr
 // LogLogin 记录登录操作
 func (s *adminOperationLogService) LogLogin(username, ip, userAgent string, success bool, errorMsg string) error {
 	return s.LogOperation(username, string(database.AdminOperationLogin), "auth", username,
-		"用户登录", "", success, errorMsg, ip, userAgent, "POST", "/api/v1/auth/login")
+		"user login", "", success, errorMsg, ip, userAgent, "POST", "/api/v1/auth/login")
 }
 
 // LogLogout 记录登出操作
 func (s *adminOperationLogService) LogLogout(username, ip, userAgent string, success bool, errorMsg string) error {
 	return s.LogOperation(username, string(database.AdminOperationLogout), "auth", username,
-		"用户登出", "", success, errorMsg, ip, userAgent, "POST", "/api/v1/auth/logout")
+		"user logout", "", success, errorMsg, ip, userAgent, "POST", "/api/v1/auth/logout")
 }
 
 // GetLogs 获取操作日志

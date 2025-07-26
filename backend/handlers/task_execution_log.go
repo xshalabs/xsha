@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"net/http"
+	"sleep0-backend/i18n"
+	"sleep0-backend/middleware"
 	"sleep0-backend/services"
 	"strconv"
 
@@ -33,16 +35,18 @@ func NewTaskExecutionLogHandlers(aiTaskExecutor services.AITaskExecutorService) 
 // @Security BearerAuth
 // @Router /task-conversations/{conversationId}/execution-log [get]
 func (h *TaskExecutionLogHandlers) GetExecutionLog(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
 	conversationIDStr := c.Param("conversationId")
 	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的对话ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
 	log, err := h.aiTaskExecutor.GetExecutionLog(uint(conversationID))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "执行日志不存在"})
+		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "task_execution_log.not_found")})
 		return
 	}
 
@@ -63,23 +67,25 @@ func (h *TaskExecutionLogHandlers) GetExecutionLog(c *gin.Context) {
 // @Security BearerAuth
 // @Router /task-conversations/{conversationId}/execution/cancel [post]
 func (h *TaskExecutionLogHandlers) CancelExecution(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
 	conversationIDStr := c.Param("conversationId")
 	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的对话ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
 	// 获取当前用户名
 	username, exists := c.Get("username")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "无法获取用户信息"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
 	createdBy, ok := username.(string)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户信息格式错误"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "user.info_format_error")})
 		return
 	}
 
@@ -88,7 +94,7 @@ func (h *TaskExecutionLogHandlers) CancelExecution(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "任务执行已取消"})
+	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task_execution_log.cancel_success")})
 }
 
 // RetryExecution 重试任务执行
@@ -105,23 +111,25 @@ func (h *TaskExecutionLogHandlers) CancelExecution(c *gin.Context) {
 // @Security BearerAuth
 // @Router /task-conversations/{conversationId}/execution/retry [post]
 func (h *TaskExecutionLogHandlers) RetryExecution(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
 	conversationIDStr := c.Param("conversationId")
 	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的对话ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
 	// 获取当前用户名
 	username, exists := c.Get("username")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "无法获取用户信息"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
 	createdBy, ok := username.(string)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户信息格式错误"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "user.info_format_error")})
 		return
 	}
 
@@ -130,5 +138,5 @@ func (h *TaskExecutionLogHandlers) RetryExecution(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "任务重试执行已启动"})
+	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task_execution_log.retry_success")})
 }
