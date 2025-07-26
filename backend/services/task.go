@@ -131,23 +131,6 @@ func (s *taskService) UpdateTaskStatus(id uint, createdBy string, status databas
 		return err
 	}
 
-	// 如果任务状态变为完成或取消，清理工作空间
-	if (status == database.TaskStatusDone || status == database.TaskStatusCancelled) &&
-		task.WorkspacePath != "" {
-		if err := s.workspaceManager.CleanupTaskWorkspace(task.WorkspacePath); err != nil {
-			log.Printf("清理任务 %d 工作空间失败: %v", id, err)
-			// 不返回错误，避免因清理失败影响任务状态更新
-		} else {
-			log.Printf("任务 %d 工作空间已清理: %s", id, task.WorkspacePath)
-		}
-
-		// 清空任务的工作空间路径
-		task.WorkspacePath = ""
-		if err := s.repo.Update(task); err != nil {
-			log.Printf("清空任务 %d 工作空间路径失败: %v", id, err)
-		}
-	}
-
 	log.Printf("任务 %d 状态从 %s 更新为 %s", id, oldStatus, status)
 	return nil
 }
@@ -155,12 +138,28 @@ func (s *taskService) UpdateTaskStatus(id uint, createdBy string, status databas
 // DeleteTask 删除任务
 func (s *taskService) DeleteTask(id uint, createdBy string) error {
 	// 检查任务是否存在
-	_, err := s.repo.GetByID(id, createdBy)
+	task, err := s.repo.GetByID(id, createdBy)
 	if err != nil {
 		return err
 	}
 
-	return s.repo.Delete(id, createdBy)
+	// 如果任务有工作空间，先清理工作空间
+	if task.WorkspacePath != "" {
+		if err := s.workspaceManager.CleanupTaskWorkspace(task.WorkspacePath); err != nil {
+			log.Printf("清理任务 %d 工作空间失败: %v", id, err)
+			// 不返回错误，避免因清理失败影响任务删除
+		} else {
+			log.Printf("任务 %d 工作空间已清理: %s", id, task.WorkspacePath)
+		}
+	}
+
+	// 删除任务记录
+	if err := s.repo.Delete(id, createdBy); err != nil {
+		return err
+	}
+
+	log.Printf("任务 %d 已删除", id)
+	return nil
 }
 
 // GetTaskStats 获取任务统计
