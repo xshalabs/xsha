@@ -87,3 +87,15 @@ func GenerateAESKey() (string, error) {
 	}
 	return base64.StdEncoding.EncodeToString(key), nil
 }
+
+// MaskSensitiveValue 给敏感信息打码
+// 显示前2个字符和后2个字符，中间用星号替代
+func MaskSensitiveValue(value string) string {
+	if len(value) <= 4 {
+		return "****"
+	}
+	if len(value) <= 8 {
+		return value[:2] + "****" + value[len(value)-2:]
+	}
+	return value[:2] + "********" + value[len(value)-2:]
+}

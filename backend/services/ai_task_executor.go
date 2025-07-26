@@ -434,12 +434,14 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 
 	// 3. 构建并执行Docker命令
 	dockerCmd := s.buildDockerCommand(conv, workspacePath)
+	// 构建用于记录的安全版本（环境变量值已打码）
+	dockerCmdForLog := s.buildDockerCommandForLog(conv, workspacePath)
 	dockerUpdates := map[string]interface{}{
-		"docker_command": dockerCmd,
+		"docker_command": dockerCmdForLog,
 	}
 	s.execLogRepo.UpdateMetadata(execLog.ID, dockerUpdates)
 
-	s.appendLog(execLog.ID, fmt.Sprintf("🚀 开始执行命令: %s\n", dockerCmd))
+	s.appendLog(execLog.ID, fmt.Sprintf("🚀 开始执行命令: %s\n", dockerCmdForLog))
 
 	// 使用上下文控制的Docker执行
 	if err := s.executeDockerCommandWithContext(ctx, dockerCmd, execLog.ID); err != nil {
@@ -527,6 +529,79 @@ func (s *aiTaskExecutorService) buildDockerCommand(conv *database.TaskConversati
 	// 添加环境变量
 	for key, value := range envVars {
 		cmd = append(cmd, fmt.Sprintf("-e %s=%s", key, value))
+	}
+
+	// 根据开发环境类型选择镜像和命令
+	var imageName string
+	var aiCommand []string
+
+	switch devEnv.Type {
+	case "claude-code":
+		imageName = "claude-code:latest"
+		aiCommand = []string{
+			"claude",
+			"-p",
+			"--output-format=stream-json",
+			"--dangerously-skip-permissions",
+			"--verbose",
+			conv.Content,
+		}
+	case "opencode":
+		imageName = "opencode:latest"
+		aiCommand = []string{conv.Content}
+	case "gemini-cli":
+		imageName = "gemini-cli:latest"
+		aiCommand = []string{conv.Content}
+	default:
+		// 默认使用 claude-code
+		imageName = "claude-code:latest"
+		aiCommand = []string{
+			"claude",
+			"-p",
+			"--output-format=stream-json",
+			"--dangerously-skip-permissions",
+			"--verbose",
+			conv.Content,
+		}
+	}
+
+	// 添加镜像名称
+	cmd = append(cmd, imageName)
+
+	// 添加 AI 命令参数
+	cmd = append(cmd, aiCommand...)
+
+	return strings.Join(cmd, " ")
+}
+
+// buildDockerCommandForLog 构建用于记录的Docker命令（环境变量值已打码）
+func (s *aiTaskExecutorService) buildDockerCommandForLog(conv *database.TaskConversation, workspacePath string) string {
+	devEnv := conv.Task.DevEnvironment
+
+	// 解析环境变量
+	envVars := make(map[string]string)
+	if devEnv.EnvVars != "" {
+		json.Unmarshal([]byte(devEnv.EnvVars), &envVars)
+	}
+
+	// 构建基础命令
+	cmd := []string{
+		"docker", "run", "--rm",
+		fmt.Sprintf("-v %s:/app", workspacePath),
+	}
+
+	// 添加资源限制
+	if devEnv.CPULimit > 0 {
+		cmd = append(cmd, fmt.Sprintf("--cpus=%.2f", devEnv.CPULimit))
+	}
+	if devEnv.MemoryLimit > 0 {
+		cmd = append(cmd, fmt.Sprintf("--memory=%dm", devEnv.MemoryLimit))
+	}
+
+	// 添加环境变量（值已打码）
+	for key, value := range envVars {
+		maskedValue := utils.MaskSensitiveValue(value)
+		cmd = append(cmd, fmt.Sprintf("-e %s=%s", key, maskedValue))
 	}
 
 	// 根据开发环境类型选择镜像和命令
