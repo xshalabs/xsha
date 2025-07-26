@@ -43,8 +43,3 @@ sleep0-backend
 main
 sleep0
 backend*.env
-
-# Swagger generated documentation
-docs/docs.go
-docs/swagger.json
-docs/swagger.yaml
