@@ -142,8 +142,17 @@ export const AdminLogsPage: React.FC = () => {
   const handleViewOperationDetail = async (id: number) => {
     try {
       const response = await apiService.adminLogs.getOperationLog(id);
-      // 这里可以弹出模态框显示详情，暂时用 alert 展示
-      alert(JSON.stringify(response.log, null, 2));
+      // 简化的详情展示 - 使用国际化
+      const logInfo = [
+        `${t('adminLogs.operationLogs.columns.id')}: ${response.log.id}`,
+        `${t('adminLogs.operationLogs.columns.operation')}: ${response.log.operation}`,
+        `${t('adminLogs.operationLogs.columns.resource')}: ${response.log.resource || 'N/A'}`,
+        `${t('adminLogs.operationLogs.columns.username')}: ${response.log.user || 'N/A'}`,
+        `${t('adminLogs.operationLogs.columns.description')}: ${response.log.details || 'N/A'}`,
+        `${t('adminLogs.operationLogs.columns.time')}: ${new Date(response.log.timestamp).toLocaleString()}`
+      ].join('\n\n');
+      
+      alert(logInfo);
     } catch (err: any) {
       logError(err, 'Failed to load operation log detail');
       console.error('Failed to load operation log detail:', err);

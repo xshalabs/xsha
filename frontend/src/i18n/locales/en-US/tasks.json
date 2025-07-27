@@ -29,6 +29,7 @@
   "fields": {
     "title": "Task Title",
     "requirementDesc": "Requirement Description",
+    "description": "Task Description",
     "project": "Project",
     "startBranch": "Start Branch",
     "status": "Status",
@@ -41,6 +42,7 @@
     "titlePlaceholder": "Enter task title",
     "requirementDescPlaceholder": "Describe the specific requirements and goals of the task",
     "requirementDescHint": "This will be recorded as the initial conversation for the task",
+    "descriptionPlaceholder": "Describe the specific content and requirements of the task",
     "selectProject": "Select a project",
     "selectDevEnvironment": "Select development environment",
     "noDevEnvironment": "No environment binding",

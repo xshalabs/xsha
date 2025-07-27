@@ -33,7 +33,7 @@ export function NavSecondary({
                 isActive={location.pathname === item.url}
               >
                 {item.url === "#" ? (
-                  <button onClick={() => console.log(`${item.title} clicked`)}>
+                  <button>
                     <item.icon />
                     <span>{item.title}</span>
                   </button>

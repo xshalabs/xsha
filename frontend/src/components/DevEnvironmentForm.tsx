@@ -37,22 +37,22 @@ const defaultResources = {
   opencode: { cpu: 1.5, memory: 3072 },
 };
 
-// 环境类型选项
-const environmentTypes: Array<{ value: DevEnvironmentType; label: string; description: string }> = [
+// 环境类型选项 - 使用国际化
+const getEnvironmentTypes = (t: (key: string) => string) => [
   {
-    value: 'claude_code',
-    label: 'Claude Code',
-    description: 'A development environment for Claude AI models.',
+    value: 'claude_code' as DevEnvironmentType,
+    label: t('dev_environments.types.claude_code.label'),
+    description: t('dev_environments.types.claude_code.description'),
   },
   {
-    value: 'gemini_cli',
-    label: 'Gemini CLI',
-    description: 'A development environment for Gemini AI models.',
+    value: 'gemini_cli' as DevEnvironmentType,
+    label: t('dev_environments.types.gemini_cli.label'),
+    description: t('dev_environments.types.gemini_cli.description'),
   },
   {
-    value: 'opencode',
-    label: 'OpenCode',
-    description: 'A development environment for OpenAI models.',
+    value: 'opencode' as DevEnvironmentType,
+    label: t('dev_environments.types.opencode.label'),
+    description: t('dev_environments.types.opencode.description'),
   },
 ];
 
@@ -63,6 +63,9 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
   mode,
 }) => {
   const { t } = useTranslation();
+  
+  // 环境类型选项
+  const environmentTypes = getEnvironmentTypes(t);
   
   // 表单状态
   const [formData, setFormData] = useState({
