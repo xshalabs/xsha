@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ROUTES } from "@/lib/constants";
 import {
   Card,
@@ -32,9 +31,6 @@ export const DashboardPage: React.FC = () => {
             <p className="mt-2 text-sm text-gray-600">
               {t("dashboard.welcome")}, {user}!
             </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <LanguageSwitcher />
           </div>
         </div>
       </div>
