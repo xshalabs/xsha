@@ -147,9 +147,9 @@ export const AdminLogsPage: React.FC = () => {
         `${t('adminLogs.operationLogs.columns.id')}: ${response.log.id}`,
         `${t('adminLogs.operationLogs.columns.operation')}: ${response.log.operation}`,
         `${t('adminLogs.operationLogs.columns.resource')}: ${response.log.resource || 'N/A'}`,
-        `${t('adminLogs.operationLogs.columns.username')}: ${response.log.user || 'N/A'}`,
+        `${t('adminLogs.operationLogs.columns.username')}: ${response.log.username || 'N/A'}`,
         `${t('adminLogs.operationLogs.columns.description')}: ${response.log.details || 'N/A'}`,
-        `${t('adminLogs.operationLogs.columns.time')}: ${new Date(response.log.timestamp).toLocaleString()}`
+        `${t('adminLogs.operationLogs.columns.time')}: ${new Date(response.log.operation_time).toLocaleString()}`
       ].join('\n\n');
       
       alert(logInfo);
