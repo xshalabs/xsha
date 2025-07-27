@@ -1,21 +1,19 @@
 {
-  "create": "Create Environment",
-  "edit": "Edit Environment",
+  "create": "Create Development Environment",
+  "edit": "Edit Development Environment",
   "list": "Environment List",
   "page_description": "Manage your development environments with support for multiple environment types and resource configurations",
-  "create_description": "Create a new development environment with environment type and resource limit configurations",
-  "edit_description": "Modify the configuration information of the development environment",
+  "create_description": "Create a new development environment with environment type and resource limits configuration",
+  "edit_description": "Modify development environment configuration information",
   
   "fetch_failed": "Failed to fetch environment list",
   "create_success": "Environment created successfully",
   "create_failed": "Failed to create environment",
-  "update_success": "Environment updated successfully",
+  "update_success": "Environment updated successfully", 
   "update_failed": "Failed to update environment",
   "delete_success": "Environment deleted successfully",
   "delete_failed": "Failed to delete environment",
   "delete_confirm": "Are you sure you want to delete this environment?",
-  
-
   
   "actions": {
     "edit": "Edit",
@@ -26,14 +24,14 @@
     "total": "Total Environments",
     "cpu_total": "Total CPU",
     "memory_total": "Total Memory",
-    "cores": "cores",
+    "cores": "Cores",
     "memory": "Memory"
   },
   
   "table": {
     "name": "Environment Name",
     "type": "Environment Type",
-    "resources": "Resource Config"
+    "resources": "Resource Configuration"
   },
   
   "filter": {
@@ -41,8 +39,23 @@
   },
   
   "empty": {
-    "title": "No Development Environments",
-    "description": "You haven't created any development environments yet, click the button above to create one"
+    "title": "No development environments yet",
+    "description": "You haven't created any development environments yet. Click the button above to create one"
+  },
+  
+  "types": {
+    "claude_code": {
+      "label": "Claude Code",
+      "description": "Claude AI code editing environment"
+    },
+    "gemini_cli": {
+      "label": "Gemini CLI",
+      "description": "Google Gemini command line interface"
+    },
+    "opencode": {
+      "label": "OpenCode", 
+      "description": "Open source code editing environment"
+    }
   },
   
   "form": {

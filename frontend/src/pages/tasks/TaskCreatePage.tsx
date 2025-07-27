@@ -39,7 +39,7 @@ const TaskCreatePage: React.FC = () => {
     try {
       const projectIdNum = projectId ? parseInt(projectId, 10) : undefined;
       if (!projectIdNum) {
-        throw new Error('项目ID不能为空');
+        throw new Error(t('errors.project_id_required'));
       }
       
       // 类型守卫，确保data包含必要的字段
@@ -47,7 +47,7 @@ const TaskCreatePage: React.FC = () => {
         await apiService.tasks.create({ ...data, project_id: projectIdNum });
       } else {
         // 如果只有title，需要其他必需字段的默认值
-        throw new Error('缺少必需的任务字段');
+        throw new Error(t('errors.task_fields_required'));
       }
       navigate(`/projects/${projectId}/tasks`);
     } catch (error) {

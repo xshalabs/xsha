@@ -1,5 +1,6 @@
 {
   "title": "Task Management",
+  "description": "Manage development tasks in projects, track task progress and status",
   "totalCount": "{{count}} tasks total",
   "empty": {
     "title": "No tasks yet",
@@ -65,7 +66,6 @@
     "createFailed": "Failed to create task",
     "updateFailed": "Failed to update task",
     "deleteFailed": "Failed to delete task",
-
     "deleteConfirm": "Are you sure you want to delete task \"{{title}}\"? This action cannot be undone."
   },
   "errors": {

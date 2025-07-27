@@ -30,31 +30,31 @@ interface DevEnvironmentFormProps {
   mode: 'create' | 'edit';
 }
 
-// 环境类型选项
-const environmentTypes: Array<{ value: DevEnvironmentType; label: string; description: string }> = [
-  {
-    value: 'claude_code',
-    label: 'Claude Code',
-    description: 'Claude AI 代码编辑环境',
-  },
-  {
-    value: 'gemini_cli',
-    label: 'Gemini CLI',
-    description: 'Google Gemini 命令行界面',
-  },
-  {
-    value: 'opencode',
-    label: 'OpenCode',
-    description: '开源代码编辑环境',
-  },
-];
-
 // 默认资源配置
 const defaultResources = {
   claude_code: { cpu: 2.0, memory: 4096 },
   gemini_cli: { cpu: 1.0, memory: 2048 },
   opencode: { cpu: 1.5, memory: 3072 },
 };
+
+// 环境类型选项
+const environmentTypes: Array<{ value: DevEnvironmentType; label: string; description: string }> = [
+  {
+    value: 'claude_code',
+    label: 'Claude Code',
+    description: 'A development environment for Claude AI models.',
+  },
+  {
+    value: 'gemini_cli',
+    label: 'Gemini CLI',
+    description: 'A development environment for Gemini AI models.',
+  },
+  {
+    value: 'opencode',
+    label: 'OpenCode',
+    description: 'A development environment for OpenAI models.',
+  },
+];
 
 const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
   onClose,

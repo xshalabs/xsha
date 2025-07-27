@@ -1,5 +1,6 @@
 {
   "title": "任务管理",
+  "description": "管理项目中的开发任务，跟踪任务进度和状态",
   "totalCount": "共 {{count}} 个任务",
   "empty": {
     "title": "暂无任务",

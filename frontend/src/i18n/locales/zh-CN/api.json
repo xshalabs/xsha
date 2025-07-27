@@ -1,6 +1,0 @@
-{
-  "not_found": "请求的资源不存在",
-  "method_not_allowed": "不支持的请求方法",
-  "rate_limit": "请求过于频繁，请稍后再试",
-  "health_status_ok": "服务运行正常"
-} 

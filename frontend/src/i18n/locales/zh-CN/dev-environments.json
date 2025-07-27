@@ -15,8 +15,6 @@
   "delete_failed": "环境删除失败",
   "delete_confirm": "确定要删除这个环境吗？",
   
-
-  
   "actions": {
     "edit": "编辑",
     "delete": "删除"
@@ -43,6 +41,21 @@
   "empty": {
     "title": "暂无开发环境",
     "description": "您还没有创建任何开发环境，点击上方按钮创建一个"
+  },
+  
+  "types": {
+    "claude_code": {
+      "label": "Claude Code",
+      "description": "Claude AI 代码编辑环境"
+    },
+    "gemini_cli": {
+      "label": "Gemini CLI", 
+      "description": "Google Gemini 命令行界面"
+    },
+    "opencode": {
+      "label": "OpenCode",
+      "description": "开源代码编辑环境"
+    }
   },
   
   "form": {
