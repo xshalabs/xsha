@@ -26,23 +26,16 @@
     "failed": "Failed",
     "cancelled": "Cancelled"
   },
-    "messages": {
-    "createSuccess": "Message sent successfully",
-    "createFailed": "Failed to send message"
-  },
   "execution": {
-    "title": "Execution Log",
-    "subtitle": "Task execution details and logs",
-    "status": {
-      "pending": "Pending",
-      "running": "Running", 
-      "success": "Success",
-      "failed": "Failed",
-      "cancelled": "Cancelled"
+    "title": "Execution Details",
+    "subtitle": "Task execution information and logs",
+    "messages": {
+      "loading": "Loading execution details...",
+      "notFound": "Execution log not found"
     },
     "actions": {
-      "cancel": "Cancel",
-      "retry": "Retry",
+      "cancel": "Cancel Execution",
+      "retry": "Retry Execution",
       "showLogs": "Show Logs",
       "hideLogs": "Hide Logs"
     },
@@ -50,20 +43,28 @@
       "started": "Started",
       "completed": "Completed",
       "duration": "Duration",
-      "workspace": "Workspace",
       "errorMessage": "Error Message",
       "dockerCommand": "Docker Command",
       "commitHash": "Commit Hash",
       "executionLogs": "Execution Logs"
-    },
-    "messages": {
-      "loading": "Loading execution log...",
-      "notFound": "No execution log found",
-      "loadFailed": "Failed to load execution log",
-      "cancelSuccess": "Task execution cancelled",
-      "cancelFailed": "Failed to cancel execution",
-      "retrySuccess": "Task retry started",
-      "retryFailed": "Failed to retry execution"
     }
+  },
+  "messages": {
+    "createSuccess": "Message sent successfully",
+    "createFailed": "Failed to send message",
+    "loadFailed": "Failed to load conversations",
+    "deleteFailed": "Failed to delete conversation",
+    "noConversations": "No conversations found",
+    "conversationNotFound": "Conversation not found"
+  },
+  "refresh": "Refresh",
+  "filter": {
+    "all": "All Status",
+    "byStatus": "Filter by Status"
+  },
+  "actions": {
+    "delete": "Delete",
+    "view": "View Details",
+    "edit": "Edit"
   }
 } 

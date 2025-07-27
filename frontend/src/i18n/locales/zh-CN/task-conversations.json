@@ -3,67 +3,68 @@
     "title": "任务对话",
     "description": "任务对话：{{taskTitle}}"
   },
-  "newMessage": "新建对话",
+  "newMessage": "新消息",
   "content": "内容",
-  "contentPlaceholder": "请输入对话内容...",
+  "contentPlaceholder": "请输入您的消息...",
   "shortcut": "按 Ctrl/Cmd + Enter 快速发送",
-  "cannotSendWhileProcessing": "存在待处理或执行中的对话时无法发送新消息",
-  "deleteConfirm": "确定要删除这条对话吗？此操作无法撤销。",
+  "cannotSendWhileProcessing": "有待处理或运行中的对话时无法发送新消息",
+  "deleteConfirm": "确定要删除这个对话吗？此操作不可撤销。",
   "message": "消息",
-  "selectTask": "请先选择一个任务查看对话",
+  "selectTask": "请选择一个任务来查看对话",
   "empty": {
-    "title": "暂无对话记录",
-    "description": "开始您的第一次对话"
+    "title": "暂无对话",
+    "description": "开始您的第一个对话"
   },
   "noSelection": {
-    "title": "请选择对话",
-    "description": "选择左侧的对话记录以查看执行日志"
+    "title": "选择一个对话",
+    "description": "从左侧选择一个对话来查看执行日志"
   },
   "status": {
     "pending": "待处理",
-    "running": "执行中",
+    "running": "运行中",
     "success": "成功",
     "failed": "失败",
     "cancelled": "已取消"
   },
-    "messages": {
-    "createSuccess": "消息发送成功",
-    "createFailed": "消息发送失败"
-  },
   "execution": {
-    "title": "执行日志",
-    "subtitle": "任务执行详情和日志",
-    "status": {
-      "pending": "等待中",
-      "running": "执行中",
-      "success": "成功",
-      "failed": "失败",
-      "cancelled": "已取消"
+    "title": "执行详情",
+    "subtitle": "任务执行信息和日志",
+    "messages": {
+      "loading": "加载执行详情中...",
+      "notFound": "未找到执行日志"
     },
     "actions": {
-      "cancel": "取消",
-      "retry": "重试",
+      "cancel": "取消执行",
+      "retry": "重试执行",
       "showLogs": "显示日志",
       "hideLogs": "隐藏日志"
     },
     "info": {
       "started": "开始时间",
-      "completed": "完成时间", 
+      "completed": "完成时间",
       "duration": "执行时长",
-      "workspace": "工作目录",
       "errorMessage": "错误信息",
-      "dockerCommand": "Docker 命令",
+      "dockerCommand": "Docker命令",
       "commitHash": "提交哈希",
       "executionLogs": "执行日志"
-    },
-    "messages": {
-      "loading": "正在加载执行日志...",
-      "notFound": "未找到执行日志",
-      "loadFailed": "加载执行日志失败",
-      "cancelSuccess": "任务执行已取消",
-      "cancelFailed": "取消执行失败",
-      "retrySuccess": "任务重试已启动",
-      "retryFailed": "重试执行失败"
     }
+  },
+  "messages": {
+    "createSuccess": "消息发送成功",
+    "createFailed": "发送消息失败",
+    "loadFailed": "加载对话失败",
+    "deleteFailed": "删除对话失败",
+    "noConversations": "未找到对话",
+    "conversationNotFound": "对话不存在"
+  },
+  "refresh": "刷新",
+  "filter": {
+    "all": "全部状态",
+    "byStatus": "按状态筛选"
+  },
+  "actions": {
+    "delete": "删除",
+    "view": "查看详情",
+    "edit": "编辑"
   }
 } 

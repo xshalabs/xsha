@@ -1,0 +1,13 @@
+{
+  "loading": "Loading...",
+  "error": "Request failed",
+  "success": "Operation successful",
+  "timeout": "Request timeout",
+  "network_error": "Network connection error",
+  "server_error": "Server error", 
+  "unauthorized": "Unauthorized access",
+  "forbidden": "Access forbidden",
+  "not_found": "Resource not found",
+  "validation_error": "Data validation failed",
+  "rate_limit": "Too many requests, please try again later"
+} 

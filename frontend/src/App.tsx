@@ -36,7 +36,7 @@ function NotFoundPage() {
   const { t } = useTranslation();
   
   // 设置页面标题
-  usePageTitle('pageTitle.notFound');
+  usePageTitle('common.pageTitle.notFound');
   
   return (
     <div className="min-h-screen flex items-center justify-center">

@@ -3,9 +3,11 @@
   "edit": "编辑开发环境",
   "list": "环境列表",
   "page_description": "管理您的开发环境，支持多种环境类型和资源配置",
-  "create_description": "创建一个新的开发环境，配置环境类型和资源限制",
-  "edit_description": "修改开发环境的配置信息",
+  "create_description": "创建新的开发环境，配置环境类型和资源限制",
+  "edit_description": "修改开发环境配置信息",
   
+  "invalid_id": "无效的环境ID",
+  "load_failed": "加载环境失败",
   "fetch_failed": "获取环境列表失败",
   "create_success": "环境创建成功",
   "create_failed": "环境创建失败",
@@ -19,34 +21,37 @@
     "edit": "编辑",
     "delete": "删除"
   },
-  
+
+  "empty": {
+    "title": "暂无环境",
+    "description": "创建您的第一个开发环境开始使用"
+  },
+
+  "table": {
+    "name": "名称",
+    "type": "类型",
+    "resources": "资源",
+    "status": "状态",
+    "actions": "操作"
+  },
+
+  "filter": {
+    "type": "环境类型",
+    "all": "所有类型"
+  },
+
   "stats": {
-    "total": "总环境数",
+    "total": "环境总数",
     "cpu_total": "总CPU",
-    "memory_total": "总内存",
     "cores": "核",
+    "memory_total": "总内存",
     "memory": "内存"
   },
-  
-  "table": {
-    "name": "环境名称",
-    "type": "环境类型",
-    "resources": "资源配置"
-  },
-  
-  "filter": {
-    "type": "环境类型"
-  },
-  
-  "empty": {
-    "title": "暂无开发环境",
-    "description": "您还没有创建任何开发环境，点击上方按钮创建一个"
-  },
-  
+
   "types": {
     "claude_code": {
       "label": "Claude Code",
-      "description": "Claude AI 代码编辑环境"
+      "description": "Anthropic Claude 代码生成环境"
     },
     "gemini_cli": {
       "label": "Gemini CLI", 

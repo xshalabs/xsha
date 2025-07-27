@@ -74,5 +74,11 @@
   "tabs": {
     "management": "Task Management",
     "conversations": "Task Conversations"
-  }
+  },
+  "create": "Create Task",
+  "edit": "Edit Task", 
+  "conversation": "Task Conversation",
+  "create_description": "Create a new development task",
+  "edit_description": "Edit task information",
+  "loadFailed": "Failed to load task"
 } 

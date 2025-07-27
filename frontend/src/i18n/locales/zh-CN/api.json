@@ -1,0 +1,13 @@
+{
+  "loading": "加载中...",
+  "error": "请求失败",
+  "success": "操作成功",
+  "timeout": "请求超时",
+  "network_error": "网络连接错误",
+  "server_error": "服务器错误",
+  "unauthorized": "未授权访问",
+  "forbidden": "访问被禁止",
+  "not_found": "资源未找到",
+  "validation_error": "数据验证失败",
+  "rate_limit": "请求过于频繁，请稍后再试"
+} 

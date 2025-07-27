@@ -76,5 +76,11 @@
   "tabs": {
     "management": "任务管理",
     "conversations": "任务对话"
-  }
+  },
+  "create": "创建任务",
+  "edit": "编辑任务",
+  "conversation": "任务对话",
+  "create_description": "创建一个新的开发任务",
+  "edit_description": "修改任务信息",
+  "loadFailed": "加载任务失败"
 } 
