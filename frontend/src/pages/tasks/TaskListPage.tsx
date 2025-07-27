@@ -162,11 +162,11 @@ const TaskListPage: React.FC = () => {
     if (!stats) return null;
 
     const statItems = [
-      { key: 'total', icon: BarChart3, color: 'text-gray-600' },
-      { key: 'todo', icon: Clock, color: 'text-gray-600' },
-      { key: 'in_progress', icon: Play, color: 'text-blue-600' },
-      { key: 'done', icon: CheckCircle, color: 'text-green-600' },
-      { key: 'cancelled', icon: X, color: 'text-red-600' },
+      { key: 'total', icon: BarChart3, color: 'text-muted-foreground' },
+      { key: 'todo', icon: Clock, color: 'text-muted-foreground' },
+      { key: 'in_progress', icon: Play, color: 'text-primary' },
+      { key: 'done', icon: CheckCircle, color: 'text-accent' },
+      { key: 'cancelled', icon: X, color: 'text-destructive' },
     ];
 
     return (
@@ -178,7 +178,7 @@ const TaskListPage: React.FC = () => {
                 <Icon className={`w-5 h-5 ${color}`} />
                 <div>
                   <p className="text-2xl font-bold">{stats[key as keyof TaskStats]}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     {t(`tasks.stats.${key}`)}
                   </p>
                 </div>
@@ -202,7 +202,7 @@ const TaskListPage: React.FC = () => {
           {currentProject && (
             <div>
               <h1 className="text-2xl font-bold">{currentProject.name}</h1>
-              <p className="text-gray-600">任务管理</p>
+              <p className="text-muted-foreground">任务管理</p>
             </div>
           )}
         </div>

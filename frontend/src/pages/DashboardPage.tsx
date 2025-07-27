@@ -21,14 +21,14 @@ export const DashboardPage: React.FC = () => {
   usePageTitle("common.pageTitle.dashboard");
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-foreground">
               {t("dashboard.title")}
             </h1>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-muted-foreground">
               {t("dashboard.welcome")}, {user}!
             </p>
           </div>
@@ -49,7 +49,7 @@ export const DashboardPage: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   {t("dashboard.projectManagement.content")}
                 </p>
                 <Button
@@ -75,7 +75,7 @@ export const DashboardPage: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   {t("dashboard.gitCredentials.content")}
                 </p>
                 <Button
@@ -101,7 +101,7 @@ export const DashboardPage: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   {t("dashboard.adminLogs.content")}
                 </p>
                 <Button

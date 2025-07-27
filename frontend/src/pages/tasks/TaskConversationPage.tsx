@@ -209,8 +209,8 @@ const TaskConversationPage: React.FC = () => {
                 />
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                <div className="text-center text-gray-500">
+              <div className="flex items-center justify-center h-full bg-muted rounded-lg border-2 border-dashed border-border">
+                <div className="text-center text-muted-foreground">
                   <p className="text-lg font-medium mb-2">{t('taskConversation.noSelection.title')}</p>
                   <p className="text-sm">{t('taskConversation.noSelection.description')}</p>
                 </div>

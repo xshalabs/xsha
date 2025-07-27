@@ -99,7 +99,7 @@ const GitCredentialListPage: React.FC = () => {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold">{t('gitCredentials.title')}</h1>
-              <p className="text-gray-600 mt-1">{t('gitCredentials.subtitle', 'Manage your Git repository access credentials')}</p>
+              <p className="text-muted-foreground mt-1">{t('gitCredentials.subtitle', 'Manage your Git repository access credentials')}</p>
             </div>
             <div className="flex gap-2">
               <Button
@@ -136,26 +136,26 @@ const GitCredentialListPage: React.FC = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{total}</div>
-                <div className="text-sm text-gray-600">{t('gitCredentials.statistics.total')}</div>
+                <div className="text-2xl font-bold text-primary">{total}</div>
+                <div className="text-sm text-muted-foreground">{t('gitCredentials.statistics.total')}</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-2xl font-bold text-accent">
                   {credentials.filter(c => c.is_active).length}
                 </div>
-                <div className="text-sm text-gray-600">{t('gitCredentials.statistics.active')}</div>
+                <div className="text-sm text-muted-foreground">{t('gitCredentials.statistics.active')}</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">
+                <div className="text-2xl font-bold text-chart-1">
                   {credentials.filter(c => c.type === GitCredentialType.SSH_KEY).length}
                 </div>
-                <div className="text-sm text-gray-600">{t('gitCredentials.statistics.sshKeys')}</div>
+                <div className="text-sm text-muted-foreground">{t('gitCredentials.statistics.sshKeys')}</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
+                <div className="text-2xl font-bold text-chart-2">
                   {credentials.filter(c => c.type === GitCredentialType.TOKEN).length}
                 </div>
-                <div className="text-sm text-gray-600">{t('gitCredentials.statistics.tokens')}</div>
+                <div className="text-sm text-muted-foreground">{t('gitCredentials.statistics.tokens')}</div>
               </div>
             </div>
           </CardContent>

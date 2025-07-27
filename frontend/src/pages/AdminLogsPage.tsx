@@ -233,12 +233,12 @@ export const AdminLogsPage: React.FC = () => {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold">{t('adminLogs.stats.title')}</h2>
-              <p className="text-gray-600">{t('adminLogs.stats.description')}</p>
+              <p className="text-muted-foreground">{t('adminLogs.stats.description')}</p>
             </div>
 
             {statsLoading ? (
               <div className="flex items-center justify-center h-64">
-                <div className="text-gray-500">{t('common.loading')}</div>
+                <div className="text-muted-foreground">{t('common.loading')}</div>
               </div>
             ) : stats ? (
               <div className="space-y-6">
@@ -252,9 +252,9 @@ export const AdminLogsPage: React.FC = () => {
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                       {Object.entries(stats.operation_stats).map(([operation, count]) => (
-                        <div key={operation} className="text-center p-4 bg-gray-50 rounded-lg">
-                          <div className="text-2xl font-bold text-blue-600">{count}</div>
-                          <div className="text-sm text-gray-600">
+                        <div key={operation} className="text-center p-4 bg-muted rounded-lg">
+                          <div className="text-2xl font-bold text-primary">{count}</div>
+                          <div className="text-sm text-muted-foreground">
                             {t(`adminLogs.operationLogs.operations.${operation}`)}
                           </div>
                         </div>
@@ -270,9 +270,9 @@ export const AdminLogsPage: React.FC = () => {
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {Object.entries(stats.resource_stats).map(([resource, count]) => (
-                        <div key={resource} className="text-center p-4 bg-gray-50 rounded-lg">
-                          <div className="text-2xl font-bold text-green-600">{count}</div>
-                          <div className="text-sm text-gray-600 capitalize">{resource}</div>
+                        <div key={resource} className="text-center p-4 bg-muted rounded-lg">
+                          <div className="text-2xl font-bold text-accent">{count}</div>
+                          <div className="text-sm text-muted-foreground capitalize">{resource}</div>
                         </div>
                       ))}
                     </div>
@@ -281,7 +281,7 @@ export const AdminLogsPage: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-500">{t('adminLogs.stats.noStatsAvailable')}</p>
+                <p className="text-muted-foreground">{t('adminLogs.stats.noStatsAvailable')}</p>
               </div>
             )}
           </div>
@@ -293,15 +293,15 @@ export const AdminLogsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow">
+    <div className="min-h-screen bg-background">
+      <div className="bg-card shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 {t('adminLogs.title')}
               </h1>
-              <p className="mt-2 text-sm text-gray-600">
+              <p className="mt-2 text-sm text-muted-foreground">
                 {t('adminLogs.description')}
               </p>
             </div>
@@ -312,14 +312,14 @@ export const AdminLogsPage: React.FC = () => {
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           {/* 标签导航 */}
-          <div className="border-b border-gray-200 mb-6">
+          <div className="border-b border-border mb-6">
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setActiveTab('operationLogs')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'operationLogs'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted'
                 }`}
               >
                 <FileText className="w-4 h-4 inline mr-2" />
@@ -330,8 +330,8 @@ export const AdminLogsPage: React.FC = () => {
                 onClick={() => setActiveTab('loginLogs')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'loginLogs'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted'
                 }`}
               >
                 <Shield className="w-4 h-4 inline mr-2" />
@@ -342,8 +342,8 @@ export const AdminLogsPage: React.FC = () => {
                 onClick={() => setActiveTab('stats')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'stats'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted'
                 }`}
               >
                 <TrendingUp className="w-4 h-4 inline mr-2" />
