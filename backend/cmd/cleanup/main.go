@@ -41,9 +41,11 @@ func main() {
 	// 初始化仓库层
 	tokenRepo := repository.NewTokenBlacklistRepository(dbManager.GetDB())
 	loginLogRepo := repository.NewLoginLogRepository(dbManager.GetDB())
+	adminOperationLogRepo := repository.NewAdminOperationLogRepository(dbManager.GetDB())
 
 	// 初始化服务层
-	authService := services.NewAuthService(tokenRepo, loginLogRepo, cfg)
+	adminOperationLogService := services.NewAdminOperationLogService(adminOperationLogRepo)
+	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, cfg)
 	loginLogService := services.NewLoginLogService(loginLogRepo)
 
 	logger.Info("Starting cleanup tasks...")

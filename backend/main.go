@@ -77,9 +77,9 @@ func main() {
 	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir)
 
 	// Initialize services
-	authService := services.NewAuthService(tokenRepo, loginLogRepo, cfg)
 	loginLogService := services.NewLoginLogService(loginLogRepo)
 	adminOperationLogService := services.NewAdminOperationLogService(adminOperationLogRepo)
+	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, cfg)
 	gitCredService := services.NewGitCredentialService(gitCredRepo, cfg)
 	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, cfg)
 	devEnvService := services.NewDevEnvironmentService(devEnvRepo)

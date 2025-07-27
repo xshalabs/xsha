@@ -7,17 +7,19 @@ import (
 )
 
 type authService struct {
-	tokenRepo    repository.TokenBlacklistRepository
-	loginLogRepo repository.LoginLogRepository
-	config       *config.Config
+	tokenRepo           repository.TokenBlacklistRepository
+	loginLogRepo        repository.LoginLogRepository
+	operationLogService AdminOperationLogService
+	config              *config.Config
 }
 
 // NewAuthService 创建认证服务实例
-func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, cfg *config.Config) AuthService {
+func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, operationLogService AdminOperationLogService, cfg *config.Config) AuthService {
 	return &authService{
-		tokenRepo:    tokenRepo,
-		loginLogRepo: loginLogRepo,
-		config:       cfg,
+		tokenRepo:           tokenRepo,
+		loginLogRepo:        loginLogRepo,
+		operationLogService: operationLogService,
+		config:              cfg,
 	}
 }
 
@@ -35,7 +37,18 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 		var err error
 		token, err = utils.GenerateJWT(username, s.config.JWTSecret)
 		if err != nil {
-			// 记录失败日志
+			// 记录失败的管理员操作日志
+			go func() {
+				if logErr := s.operationLogService.LogLogin(username, clientIP, userAgent, false, "token_generation_failed"); logErr != nil {
+					utils.Error("Failed to record admin operation log",
+						"username", username,
+						"client_ip", clientIP,
+						"error", logErr.Error(),
+					)
+				}
+			}()
+
+			// 记录常规登录日志
 			go func() {
 				if logErr := s.loginLogRepo.Add(username, clientIP, userAgent, "token_generation_failed", false); logErr != nil {
 					utils.Error("Failed to record login log",
@@ -55,6 +68,18 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 			failureReason = "invalid_password"
 		}
 	}
+
+	// 记录管理员操作日志
+	go func() {
+		if err := s.operationLogService.LogLogin(username, clientIP, userAgent, loginSuccess, failureReason); err != nil {
+			utils.Error("Failed to record admin operation log",
+				"username", username,
+				"client_ip", clientIP,
+				"success", loginSuccess,
+				"error", err.Error(),
+			)
+		}
+	}()
 
 	// 异步记录登录日志（不阻塞登录流程）
 	go func() {
@@ -89,11 +114,43 @@ func (s *authService) Logout(token, username string) error {
 	// 获取token过期时间
 	expiresAt, err := utils.GetTokenExpiration(token, s.config.JWTSecret)
 	if err != nil {
+		// 记录失败的管理员操作日志
+		go func() {
+			if logErr := s.operationLogService.LogLogout(username, "", "", false, err.Error()); logErr != nil {
+				utils.Error("Failed to record admin operation log for logout failure",
+					"username", username,
+					"error", logErr.Error(),
+				)
+			}
+		}()
 		return err
 	}
 
 	// 将token添加到黑名单
-	return s.tokenRepo.Add(token, username, expiresAt, "logout")
+	err = s.tokenRepo.Add(token, username, expiresAt, "logout")
+
+	// 记录管理员操作日志
+	go func() {
+		logoutSuccess := err == nil
+		errorMsg := ""
+		if err != nil {
+			errorMsg = err.Error()
+		}
+
+		if logErr := s.operationLogService.LogLogout(username, "", "", logoutSuccess, errorMsg); logErr != nil {
+			utils.Error("Failed to record admin operation log for logout",
+				"username", username,
+				"success", logoutSuccess,
+				"error", logErr.Error(),
+			)
+		} else if logoutSuccess {
+			utils.Info("User logged out successfully",
+				"username", username,
+			)
+		}
+	}()
+
+	return err
 }
 
 // IsTokenBlacklisted 检查Token是否在黑名单

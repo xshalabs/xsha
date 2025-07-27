@@ -114,40 +114,100 @@ func determineOperationInfo(method, path, id string) (operation, resource, resou
 		} else if strings.Contains(path, "/use") {
 			operation = "read"
 			description = "使用资源"
+		} else if strings.Contains(path, "/parse-url") {
+			operation = "read"
+			description = "解析仓库URL"
+		} else if strings.Contains(path, "/branches") {
+			operation = "read"
+			description = "获取仓库分支列表"
+		} else if strings.Contains(path, "/validate-access") {
+			operation = "read"
+			description = "验证仓库访问权限"
 		} else {
-			description = "创建" + resource
+			description = "创建" + getResourceDisplayName(resource)
 		}
 	case "PUT":
 		operation = "update"
-		description = "更新" + resource
+		description = "更新" + getResourceDisplayName(resource)
 		resourceID = id
 	case "DELETE":
 		operation = "delete"
-		description = "删除" + resource
+		description = "删除" + getResourceDisplayName(resource)
 		resourceID = id
 	case "GET":
 		operation = "read"
 		if id != "" {
-			description = "查看" + resource + "详情"
+			description = "查看" + getResourceDisplayName(resource) + "详情"
 			resourceID = id
 		} else {
-			description = "查看" + resource + "列表"
+			description = "查看" + getResourceDisplayName(resource) + "列表"
 		}
 	}
 
-	// 特殊路径处理
-	if strings.Contains(path, "admin") {
-		resource = "admin"
-	}
-	if strings.Contains(path, "auth") {
-		resource = "auth"
-	}
-	if strings.Contains(path, "git-credentials") {
-		resource = "git-credential"
-	}
-	if strings.Contains(path, "projects") {
-		resource = "project"
-	}
+	// 特殊路径处理和资源名称规范化
+	resource = normalizeResourceName(path, resource)
 
 	return
+}
+
+// getResourceDisplayName 获取资源的显示名称
+func getResourceDisplayName(resource string) string {
+	displayNames := map[string]string{
+		"admin":            "管理员",
+		"auth":             "认证",
+		"git-credentials":  "Git凭据",
+		"projects":         "项目",
+		"tasks":            "任务",
+		"conversations":    "任务对话",
+		"dev-environments": "开发环境",
+		"operation-logs":   "操作日志",
+		"login-logs":       "登录日志",
+		"logs":             "日志",
+		"user":             "用户",
+	}
+
+	if displayName, exists := displayNames[resource]; exists {
+		return displayName
+	}
+	return resource
+}
+
+// normalizeResourceName 规范化资源名称
+func normalizeResourceName(path, resource string) string {
+	// 特殊路径处理，按优先级顺序
+	if strings.Contains(path, "/admin/operation-logs") {
+		return "operation-logs"
+	}
+	if strings.Contains(path, "/admin/login-logs") {
+		return "login-logs"
+	}
+	if strings.Contains(path, "/admin") {
+		return "admin"
+	}
+	if strings.Contains(path, "/auth") {
+		return "auth"
+	}
+	if strings.Contains(path, "/git-credentials") {
+		return "git-credentials"
+	}
+	if strings.Contains(path, "/projects") {
+		return "projects"
+	}
+	if strings.Contains(path, "/tasks") {
+		return "tasks"
+	}
+	if strings.Contains(path, "/conversations") {
+		return "conversations"
+	}
+	if strings.Contains(path, "/dev-environments") {
+		return "dev-environments"
+	}
+	if strings.Contains(path, "/logs") {
+		return "logs"
+	}
+	if strings.Contains(path, "/user") {
+		return "user"
+	}
+
+	return resource
 }
