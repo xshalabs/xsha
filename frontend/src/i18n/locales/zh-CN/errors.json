@@ -6,5 +6,8 @@
   "validation_required": "此字段为必填项",
   "validation_invalid_format": "格式无效",
   "validation_too_short": "内容太短",
-  "validation_too_long": "内容太长"
+  "validation_too_long": "内容太长",
+  "execution_log_load_failed": "加载执行日志失败",
+  "execution_cancel_failed": "取消执行失败",
+  "execution_retry_failed": "重试执行失败"
 } 

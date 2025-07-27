@@ -28,6 +28,7 @@
   "all": "全部",
   "page_size": "每页条数",
   "open_menu": "打开菜单",
+  "toggle_sidebar": "切换侧边栏",
   "page": "第",
   "pagination": {
     "info": "显示第 {{start}} - {{end}} 条，共 {{total}} 条",

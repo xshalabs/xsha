@@ -68,7 +68,7 @@ export function TaskExecutionLog({
       setExecutionLog(log);
     } catch (error) {
       console.error("Failed to load execution log:", error);
-      setError("Failed to load execution log");
+      setError(t('errors.execution_log_load_failed'));
     } finally {
       setLoading(false);
     }
@@ -85,7 +85,7 @@ export function TaskExecutionLog({
       onStatusChange?.("cancelled");
     } catch (error) {
       console.error("Failed to cancel execution:", error);
-      setError("Failed to cancel execution");
+      setError(t('errors.execution_cancel_failed'));
     } finally {
       setActionLoading(null);
     }
@@ -102,7 +102,7 @@ export function TaskExecutionLog({
       onStatusChange?.("running");
     } catch (error) {
       console.error("Failed to retry execution:", error);
-      setError("Failed to retry execution");
+      setError(t('errors.execution_retry_failed'));
     } finally {
       setActionLoading(null);
     }

@@ -40,29 +40,7 @@ const loadModularTranslations = async (locale: string) => {
       auth: auth.default,
       navigation: navigation.default,
       errors: errors.default,
-      validation: {
-        required: errors.default.validation_required,
-        invalid_format: errors.default.validation_invalid_format,
-        too_short: errors.default.validation_too_short,
-        too_long: errors.default.validation_too_long
-      },
       api: api.default,
-      health: {
-        status_ok: api.default.health_status_ok
-      },
-      login: {
-        success: auth.default.login_success,
-        failed: auth.default.login_failed,
-        invalid_request: auth.default.login_invalid_request,
-        token_generate_error: auth.default.login_token_generate_error,
-        rate_limit: auth.default.login_rate_limit
-      },
-      logout: {
-        success: auth.default.logout_success,
-        failed: auth.default.logout_failed,
-        invalid_token: auth.default.logout_invalid_token,
-        token_expired: auth.default.logout_token_expired
-      },
       dashboard: dashboard.default,
       gitCredentials: gitCredentials.default,
       projects: projects.default,
