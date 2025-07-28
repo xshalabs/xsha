@@ -2,8 +2,8 @@
   "create": "创建",
   "edit": "编辑",
   "list": "环境列表",
-  "page_description": "管理您的开发环境，支持多种环境类型和资源配置",
-  "create_description": "创建新的开发环境，配置环境类型和资源限制",
+  "page_description": "管理您的开发环境",
+  "create_description": "创建新的开发环境",
   "edit_description": "修改开发环境配置信息",
   
   "invalid_id": "无效的环境ID",
