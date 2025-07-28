@@ -24,6 +24,7 @@ export const devEnvironmentsApi = {
     if (params?.type) searchParams.set('type', params.type);
     if (params?.page) searchParams.set('page', params.page.toString());
     if (params?.page_size) searchParams.set('page_size', params.page_size.toString());
+    if (params?.name) searchParams.set('name', params.name);
     
     const queryString = searchParams.toString();
     const url = queryString ? `/dev-environments?${queryString}` : '/dev-environments';

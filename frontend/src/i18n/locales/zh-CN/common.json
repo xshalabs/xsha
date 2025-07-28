@@ -28,6 +28,9 @@
   "all": "全部",
   "page_size": "每页条数",
   "open_menu": "打开菜单",
+  "apply": "应用",
+  "total": "共",
+  "items": "条记录",
   "toggle_sidebar": "切换侧边栏",
   "page": "第",
   "pagination": {

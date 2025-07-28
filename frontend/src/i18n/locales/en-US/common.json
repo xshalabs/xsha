@@ -28,6 +28,9 @@
   "all": "All",
   "page_size": "Page Size",
   "open_menu": "Open menu",
+  "apply": "Apply",
+  "total": "Total",
+  "items": "items",
   "toggle_sidebar": "Toggle Sidebar",
   "page": "Page",
   "pagination": {

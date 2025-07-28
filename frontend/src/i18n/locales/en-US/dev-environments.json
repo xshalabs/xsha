@@ -1,6 +1,6 @@
 {
-  "create": "Create Development Environment",
-  "edit": "Edit Development Environment", 
+  "create": "Create",
+  "edit": "Edit", 
   "list": "Environment List",
   "page_description": "Manage your development environments with support for multiple environment types and resource configurations",
   "create_description": "Create a new development environment with environment type and resource limits configuration",
@@ -38,6 +38,13 @@
   "filter": {
     "type": "Environment Type",
     "all": "All Types"
+  },
+
+  "filters": {
+    "title": "Filter Options",
+    "name": "Environment Name",
+    "name_placeholder": "Search by environment name",
+    "type": "Environment Type"
   },
 
   "stats": {

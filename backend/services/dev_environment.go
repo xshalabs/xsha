@@ -68,8 +68,8 @@ func (s *devEnvironmentService) GetEnvironment(id uint, createdBy string) (*data
 }
 
 // ListEnvironments 获取开发环境列表
-func (s *devEnvironmentService) ListEnvironments(createdBy string, envType *database.DevEnvironmentType, page, pageSize int) ([]database.DevEnvironment, int64, error) {
-	return s.repo.List(createdBy, envType, page, pageSize)
+func (s *devEnvironmentService) ListEnvironments(createdBy string, envType *database.DevEnvironmentType, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
+	return s.repo.List(createdBy, envType, name, page, pageSize)
 }
 
 // UpdateEnvironment 更新开发环境

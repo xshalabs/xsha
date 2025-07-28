@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   MoreHorizontal,
@@ -35,6 +36,7 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
+  RefreshCw,
 } from 'lucide-react';
 import type {
   DevEnvironmentDisplay,
@@ -47,8 +49,10 @@ interface DevEnvironmentListProps {
   loading: boolean;
   params: DevEnvironmentListParams;
   totalPages: number;
+  total: number;
   onPageChange: (page: number) => void;
-  onFiltersChange: (filters: Partial<DevEnvironmentListParams>) => void;
+  onFiltersChange: (filters: DevEnvironmentListParams) => void;
+  onRefresh: () => void;
   onEdit: (environment: DevEnvironmentDisplay) => void;
   onDelete: (id: number) => void;
 }
@@ -65,13 +69,39 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
   loading,
   params,
   totalPages,
+  total,
   onPageChange,
   onFiltersChange,
+  onRefresh,
   onEdit,
   onDelete,
 }) => {
   const { t } = useTranslation();
   const [showFilters, setShowFilters] = useState(false);
+  const [localFilters, setLocalFilters] = useState<DevEnvironmentListParams>(params);
+
+  const handleFilterChange = (
+    key: keyof DevEnvironmentListParams,
+    value: string | number | undefined
+  ) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      [key]: value === "" ? undefined : value,
+    }));
+  };
+
+  const applyFilters = () => {
+    onFiltersChange({
+      ...localFilters,
+      page: 1,
+    });
+  };
+
+  const resetFilters = () => {
+    const emptyFilters: DevEnvironmentListParams = { page: 1, page_size: 10 };
+    setLocalFilters(emptyFilters);
+    onFiltersChange(emptyFilters);
+  };
 
   // 格式化内存大小
   const formatMemory = (mb: number) => {
@@ -111,162 +141,204 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>{t('dev_environments.list')}</span>
-          <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
-            <Filter className="h-4 w-4 mr-2" />
-            {t('common.filter')}
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-foreground">
+          {t("common.total")} {total} {t("common.items")}
+        </div>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-foreground"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            {t("common.filter")}
           </Button>
-        </CardTitle>
+          <Button
+            onClick={onRefresh}
+            disabled={loading}
+            size="sm"
+            variant="ghost"
+            className="text-foreground"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            {t("common.refresh")}
+          </Button>
+        </div>
+      </div>
 
-        {/* 筛选器 */}
-        {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-            <div className="space-y-2">
-              <Label>{t('dev_environments.filter.type')}</Label>
-              <Select
-                value={params.type || 'all'}
-                onValueChange={(value) => onFiltersChange({ type: value === 'all' ? undefined : value as DevEnvironmentType })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('common.all')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('common.all')}</SelectItem>
-                  <SelectItem value="claude_code">Claude Code</SelectItem>
-                  <SelectItem value="gemini_cli">Gemini CLI</SelectItem>
-                  <SelectItem value="opencode">OpenCode</SelectItem>
-                </SelectContent>
-              </Select>
+      {showFilters && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">
+              {t("dev_environments.filters.title")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="name">
+                  {t("dev_environments.filters.name")}
+                </Label>
+                <Input
+                  id="name"
+                  value={localFilters.name || ""}
+                  onChange={(e) =>
+                    handleFilterChange("name", e.target.value)
+                  }
+                  placeholder={t("dev_environments.filters.name_placeholder")}
+                />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="type">
+                  {t("dev_environments.filters.type")}
+                </Label>
+                <Select
+                  value={localFilters.type || "all"}
+                  onValueChange={(value) =>
+                    handleFilterChange(
+                      "type",
+                      value === "all" ? undefined : (value as DevEnvironmentType)
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t("common.all")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("common.all")}</SelectItem>
+                    <SelectItem value="claude_code">Claude Code</SelectItem>
+                    <SelectItem value="gemini_cli">Gemini CLI</SelectItem>
+                    <SelectItem value="opencode">OpenCode</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>{t('common.page_size')}</Label>
-              <Select
-                value={params.page_size?.toString() || '20'}
-                onValueChange={(value) => onFiltersChange({ page_size: parseInt(value) })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                  <SelectItem value="100">100</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex gap-2 mt-4">
+              <Button onClick={applyFilters}>
+                {t("common.apply")}
+              </Button>
+              <Button variant="outline" onClick={resetFilters}>
+                {t("common.reset")}
+              </Button>
             </div>
-          </div>
-        )}
-      </CardHeader>
+          </CardContent>
+        </Card>
+      )}
 
-      <CardContent>
-        {environments.length === 0 ? (
-          <div className="text-center py-8">
-            <Monitor className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">{t('dev_environments.empty.title')}</h3>
-            <p className="text-muted-foreground">{t('dev_environments.empty.description')}</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('dev_environments.table.name')}</TableHead>
-                  <TableHead>{t('dev_environments.table.type')}</TableHead>
-                  <TableHead>{t('dev_environments.table.resources')}</TableHead>
-                  <TableHead className="text-right">{t('common.actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {environments.map((environment) => (
-                  <TableRow key={environment.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{environment.name}</div>
-                        {environment.description && (
-                          <div className="text-sm text-muted-foreground">
-                            {environment.description}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('dev_environments.list')}</CardTitle>
+        </CardHeader>
+          <CardContent>
+            {environments.length === 0 ? (
+              <div className="text-center py-8">
+                <Monitor className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">{t('dev_environments.empty.title')}</h3>
+                <p className="text-muted-foreground">{t('dev_environments.empty.description')}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('dev_environments.table.name')}</TableHead>
+                      <TableHead>{t('dev_environments.table.type')}</TableHead>
+                      <TableHead>{t('dev_environments.table.resources')}</TableHead>
+                      <TableHead className="text-right">{t('common.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {environments.map((environment) => (
+                      <TableRow key={environment.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{environment.name}</div>
+                            {environment.description && (
+                              <div className="text-sm text-muted-foreground">
+                                {environment.description}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={typeConfig[environment.type].color}>
-                        {typeConfig[environment.type].label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div>CPU: {environment.cpu_limit} {t('dev_environments.stats.cores')}</div>
-                        <div>{t('dev_environments.stats.memory')}: {formatMemory(environment.memory_limit)}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">{t('common.open_menu')}</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>{t('common.actions')}</DropdownMenuLabel>
-                          
-                          <DropdownMenuItem onClick={() => onEdit(environment)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            {t('common.edit')}
-                          </DropdownMenuItem>
-                          
-                          <DropdownMenuItem
-                            onClick={() => onDelete(environment.id)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            {t('common.delete')}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={typeConfig[environment.type].color}>
+                            {typeConfig[environment.type].label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            <div>CPU: {environment.cpu_limit} {t('dev_environments.stats.cores')}</div>
+                            <div>{t('dev_environments.stats.memory')}: {formatMemory(environment.memory_limit)}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">{t('common.open_menu')}</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>{t('common.actions')}</DropdownMenuLabel>
+                              
+                              <DropdownMenuItem onClick={() => onEdit(environment)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                {t('common.edit')}
+                              </DropdownMenuItem>
+                              
+                              <DropdownMenuItem
+                                onClick={() => onDelete(environment.id)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {t('common.delete')}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
 
-            {/* 分页 */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  {t('common.page')} {params.page || 1} / {totalPages}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onPageChange((params.page || 1) - 1)}
-                    disabled={!params.page || params.page <= 1}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onPageChange((params.page || 1) + 1)}
-                    disabled={!params.page || params.page >= totalPages}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+                {/* 分页 */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      {t('common.page')} {params.page || 1} / {totalPages}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onPageChange((params.page || 1) - 1)}
+                        disabled={!params.page || params.page <= 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onPageChange((params.page || 1) + 1)}
+                        disabled={!params.page || params.page >= totalPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
 
 export default DevEnvironmentList; 

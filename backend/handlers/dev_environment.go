@@ -131,9 +131,9 @@ func (h *DevEnvironmentHandlers) GetEnvironment(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param page query int false "页码，默认为1"
-// @Param page_size query int false "每页数量，默认为20"
+// @Param page_size query int false "每页数量，默认为10"
 // @Param type query string false "环境类型筛选"
-// @Param status query string false "状态筛选"
+// @Param name query string false "环境名称筛选"
 // @Success 200 {object} object{environments=[]object,total=number} "环境列表"
 // @Router /dev-environments [get]
 func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
@@ -141,8 +141,9 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 
 	// 解析查询参数
 	page := 1
-	pageSize := 20
+	pageSize := 10 // 默认改为10
 	var envType *database.DevEnvironmentType
+	var name *string
 
 	if p := c.Query("page"); p != "" {
 		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
@@ -158,8 +159,11 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 		typeValue := database.DevEnvironmentType(t)
 		envType = &typeValue
 	}
+	if n := c.Query("name"); n != "" {
+		name = &n
+	}
 
-	environments, total, err := h.devEnvService.ListEnvironments(username.(string), envType, page, pageSize)
+	environments, total, err := h.devEnvService.ListEnvironments(username.(string), envType, name, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "获取环境列表失败",

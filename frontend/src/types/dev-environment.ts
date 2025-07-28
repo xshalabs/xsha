@@ -74,6 +74,7 @@ export interface DevEnvironmentListParams {
   page?: number;
   page_size?: number;
   type?: DevEnvironmentType;
+  name?: string;
 }
 
 // 环境类型选项
