@@ -43,16 +43,20 @@ export function ModeToggle() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="icon">
-          <Sun className={`h-[1.2rem] w-[1.2rem] transition-all ${
-            actualTheme === "dark" 
-              ? "rotate-90 scale-0" 
-              : "rotate-0 scale-100"
-          }`} />
-          <Moon className={`absolute h-[1.2rem] w-[1.2rem] transition-all ${
-            actualTheme === "dark" 
-              ? "rotate-0 scale-100" 
-              : "-rotate-90 scale-0"
-          }`} />
+          <Sun
+            className={`h-[1.2rem] w-[1.2rem] transition-all text-foreground ${
+              actualTheme === "dark"
+                ? "rotate-90 scale-0"
+                : "rotate-0 scale-100"
+            }`}
+          />
+          <Moon
+            className={`absolute h-[1.2rem] w-[1.2rem] transition-all text-foreground ${
+              actualTheme === "dark"
+                ? "rotate-0 scale-100"
+                : "-rotate-90 scale-0"
+            }`}
+          />
           <span className="sr-only">{t("common.theme.toggle")}</span>
         </Button>
       </DropdownMenuTrigger>
