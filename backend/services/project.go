@@ -75,11 +75,6 @@ func (s *projectService) GetProject(id uint, createdBy string) (*database.Projec
 	return s.repo.GetByID(id, createdBy)
 }
 
-// GetProjectByName 根据名称获取项目
-func (s *projectService) GetProjectByName(name, createdBy string) (*database.Project, error) {
-	return s.repo.GetByName(name, createdBy)
-}
-
 // ListProjects 获取项目列表
 func (s *projectService) ListProjects(createdBy string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error) {
 	return s.repo.List(createdBy, protocol, page, pageSize)

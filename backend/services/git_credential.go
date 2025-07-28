@@ -81,11 +81,6 @@ func (s *gitCredentialService) GetCredential(id uint, createdBy string) (*databa
 	return s.repo.GetByID(id, createdBy)
 }
 
-// GetCredentialByName 根据名称获取Git凭据
-func (s *gitCredentialService) GetCredentialByName(name, createdBy string) (*database.GitCredential, error) {
-	return s.repo.GetByName(name, createdBy)
-}
-
 // ListCredentials 获取凭据列表
 func (s *gitCredentialService) ListCredentials(createdBy string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error) {
 	return s.repo.List(createdBy, credType, page, pageSize)

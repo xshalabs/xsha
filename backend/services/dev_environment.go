@@ -67,11 +67,6 @@ func (s *devEnvironmentService) GetEnvironment(id uint, createdBy string) (*data
 	return s.repo.GetByID(id, createdBy)
 }
 
-// GetEnvironmentByName 根据名称获取开发环境
-func (s *devEnvironmentService) GetEnvironmentByName(name, createdBy string) (*database.DevEnvironment, error) {
-	return s.repo.GetByName(name, createdBy)
-}
-
 // ListEnvironments 获取开发环境列表
 func (s *devEnvironmentService) ListEnvironments(createdBy string, envType *database.DevEnvironmentType, page, pageSize int) ([]database.DevEnvironment, int64, error) {
 	return s.repo.List(createdBy, envType, page, pageSize)

@@ -129,11 +129,6 @@ func (s *taskConversationService) DeleteConversation(id uint, createdBy string) 
 	return s.repo.Delete(id, createdBy)
 }
 
-// ListConversationsByTask 根据任务获取对话列表
-func (s *taskConversationService) ListConversationsByTask(taskID uint, createdBy string) ([]database.TaskConversation, error) {
-	return s.repo.ListByTask(taskID, createdBy)
-}
-
 // GetLatestConversation 获取最新对话
 func (s *taskConversationService) GetLatestConversation(taskID uint, createdBy string) (*database.TaskConversation, error) {
 	return s.repo.GetLatestByTask(taskID, createdBy)

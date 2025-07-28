@@ -35,7 +35,7 @@ type GitCredentialService interface {
 	// 凭据管理
 	CreateCredential(name, description, credType, username, createdBy string, secretData map[string]string) (*database.GitCredential, error)
 	GetCredential(id uint, createdBy string) (*database.GitCredential, error)
-	GetCredentialByName(name, createdBy string) (*database.GitCredential, error)
+
 	ListCredentials(createdBy string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
 	UpdateCredential(id uint, createdBy string, updates map[string]interface{}, secretData map[string]string) error
 	DeleteCredential(id uint, createdBy string) error
@@ -53,7 +53,7 @@ type ProjectService interface {
 	// 项目管理
 	CreateProject(name, description, repoURL, protocol, createdBy string, credentialID *uint) (*database.Project, error)
 	GetProject(id uint, createdBy string) (*database.Project, error)
-	GetProjectByName(name, createdBy string) (*database.Project, error)
+
 	ListProjects(createdBy string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
 	UpdateProject(id uint, createdBy string, updates map[string]interface{}) error
 	DeleteProject(id uint, createdBy string) error
@@ -101,7 +101,7 @@ type DevEnvironmentService interface {
 	// 环境管理
 	CreateEnvironment(name, description, envType, createdBy string, cpuLimit float64, memoryLimit int64, envVars map[string]string) (*database.DevEnvironment, error)
 	GetEnvironment(id uint, createdBy string) (*database.DevEnvironment, error)
-	GetEnvironmentByName(name, createdBy string) (*database.DevEnvironment, error)
+
 	ListEnvironments(createdBy string, envType *database.DevEnvironmentType, page, pageSize int) ([]database.DevEnvironment, int64, error)
 	UpdateEnvironment(id uint, createdBy string, updates map[string]interface{}) error
 	DeleteEnvironment(id uint, createdBy string) error
@@ -127,7 +127,6 @@ type TaskService interface {
 
 	// 任务统计
 	GetTaskStats(projectID uint, createdBy string) (map[database.TaskStatus]int64, error)
-	ListTasksByProject(projectID uint, createdBy string) ([]database.Task, error)
 
 	// 验证操作
 	ValidateTaskData(title, startBranch string, projectID uint, createdBy string) error
@@ -143,7 +142,7 @@ type TaskConversationService interface {
 	DeleteConversation(id uint, createdBy string) error
 
 	// 对话业务操作
-	ListConversationsByTask(taskID uint, createdBy string) ([]database.TaskConversation, error)
+
 	GetLatestConversation(taskID uint, createdBy string) (*database.TaskConversation, error)
 
 	// 验证操作

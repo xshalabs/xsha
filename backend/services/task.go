@@ -181,11 +181,6 @@ func (s *taskService) GetTaskStats(projectID uint, createdBy string) (map[databa
 	return s.repo.CountByStatus(projectID, createdBy)
 }
 
-// ListTasksByProject 根据项目获取任务列表
-func (s *taskService) ListTasksByProject(projectID uint, createdBy string) ([]database.Task, error) {
-	return s.repo.ListByProject(projectID, createdBy)
-}
-
 // ValidateTaskData 验证任务数据
 func (s *taskService) ValidateTaskData(title, startBranch string, projectID uint, createdBy string) error {
 	// 验证标题
