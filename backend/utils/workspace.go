@@ -291,3 +291,95 @@ func (w *WorkspaceManager) CleanupOldWorkspaces(days int) error {
 
 	return nil
 }
+
+// ResetWorkspaceToCleanState 重置工作空间到干净状态，清理所有未提交的变更
+// 用于在任务对话被取消或执行失败时防止文件污染
+func (w *WorkspaceManager) ResetWorkspaceToCleanState(workspacePath string) error {
+	if workspacePath == "" {
+		return fmt.Errorf("工作空间路径不能为空")
+	}
+
+	// 检查工作空间是否存在
+	if !w.CheckWorkspaceExists(workspacePath) {
+		return fmt.Errorf("工作空间不存在: %s", workspacePath)
+	}
+
+	// 检查是否为 Git 仓库
+	if !w.CheckGitRepositoryExists(workspacePath) {
+		// 如果不是 Git 仓库，直接清理整个目录并重新创建
+		if err := os.RemoveAll(workspacePath); err != nil {
+			return fmt.Errorf("清理非Git工作空间失败: %v", err)
+		}
+		if err := os.MkdirAll(workspacePath, 0755); err != nil {
+			return fmt.Errorf("重新创建工作空间失败: %v", err)
+		}
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	// 1. 重置所有已暂存的更改
+	resetStagedCmd := exec.CommandContext(ctx, "git", "reset", "HEAD", ".")
+	resetStagedCmd.Dir = workspacePath
+	if err := resetStagedCmd.Run(); err != nil {
+		// 如果没有staged文件，git reset会返回错误，但这是正常的
+		Info("重置暂存区", "workspace", workspacePath, "note", "可能没有暂存的文件")
+	}
+
+	// 2. 重置工作目录到最后一次提交的状态
+	resetHardCmd := exec.CommandContext(ctx, "git", "reset", "--hard", "HEAD")
+	resetHardCmd.Dir = workspacePath
+	if err := resetHardCmd.Run(); err != nil {
+		return fmt.Errorf("重置工作目录失败: %v", err)
+	}
+
+	// 3. 清理所有未跟踪的文件和目录
+	cleanCmd := exec.CommandContext(ctx, "git", "clean", "-fd")
+	cleanCmd.Dir = workspacePath
+	if err := cleanCmd.Run(); err != nil {
+		return fmt.Errorf("清理未跟踪文件失败: %v", err)
+	}
+
+	// 4. 清理忽略的文件（可选，更彻底的清理）
+	cleanIgnoredCmd := exec.CommandContext(ctx, "git", "clean", "-fdx")
+	cleanIgnoredCmd.Dir = workspacePath
+	if err := cleanIgnoredCmd.Run(); err != nil {
+		// 清理忽略文件失败不应该中断整个流程，只记录警告
+		Warn("清理忽略文件失败", "workspace", workspacePath, "error", err.Error())
+	}
+
+	Info("工作空间已重置到干净状态", "workspace", workspacePath)
+	return nil
+}
+
+// CheckWorkspaceIsDirty 检查工作空间是否有未提交的更改
+func (w *WorkspaceManager) CheckWorkspaceIsDirty(workspacePath string) (bool, error) {
+	if workspacePath == "" {
+		return false, fmt.Errorf("工作空间路径不能为空")
+	}
+
+	// 检查工作空间是否存在
+	if !w.CheckWorkspaceExists(workspacePath) {
+		return false, fmt.Errorf("工作空间不存在: %s", workspacePath)
+	}
+
+	// 检查是否为 Git 仓库
+	if !w.CheckGitRepositoryExists(workspacePath) {
+		return false, fmt.Errorf("不是Git仓库: %s", workspacePath)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// 检查Git状态
+	statusCmd := exec.CommandContext(ctx, "git", "status", "--porcelain")
+	statusCmd.Dir = workspacePath
+	output, err := statusCmd.Output()
+	if err != nil {
+		return false, fmt.Errorf("检查Git状态失败: %v", err)
+	}
+
+	// 如果有输出，说明有未提交的更改
+	return len(strings.TrimSpace(string(output))) > 0, nil
+}

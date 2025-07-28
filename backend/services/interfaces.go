@@ -166,4 +166,8 @@ type AITaskExecutorService interface {
 
 	// 获取执行状态信息
 	GetExecutionStatus() map[string]interface{}
+
+	// 工作空间清理
+	CleanupWorkspaceOnFailure(taskID uint, workspacePath string) error
+	CleanupWorkspaceOnCancel(taskID uint, workspacePath string) error
 }

@@ -215,6 +215,14 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint, createdBy s
 		return fmt.Errorf("failed to update conversation status to cancelled: %v", err)
 	}
 
+	// 清理工作空间（在取消时）
+	if conv.Task != nil && conv.Task.WorkspacePath != "" {
+		if cleanupErr := s.CleanupWorkspaceOnCancel(conv.Task.ID, conv.Task.WorkspacePath); cleanupErr != nil {
+			utils.Error("取消执行时清理工作空间失败", "task_id", conv.Task.ID, "workspace", conv.Task.WorkspacePath, "error", cleanupErr)
+			// 不因为清理失败而中断取消操作，但要记录错误
+		}
+	}
+
 	return nil
 }
 
@@ -337,6 +345,21 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		conv.Status = finalStatus
 		if err := s.taskConvRepo.Update(conv); err != nil {
 			utils.Error("更新对话最终状态失败", "error", err)
+		}
+
+		// 清理工作空间（在失败或取消时）
+		if finalStatus == database.ConversationStatusFailed || finalStatus == database.ConversationStatusCancelled {
+			if conv.Task != nil && conv.Task.WorkspacePath != "" {
+				if finalStatus == database.ConversationStatusFailed {
+					if cleanupErr := s.CleanupWorkspaceOnFailure(conv.Task.ID, conv.Task.WorkspacePath); cleanupErr != nil {
+						utils.Error("清理失败任务工作空间时出错", "task_id", conv.Task.ID, "error", cleanupErr)
+					}
+				} else if finalStatus == database.ConversationStatusCancelled {
+					if cleanupErr := s.CleanupWorkspaceOnCancel(conv.Task.ID, conv.Task.WorkspacePath); cleanupErr != nil {
+						utils.Error("清理取消任务工作空间时出错", "task_id", conv.Task.ID, "error", cleanupErr)
+					}
+				}
+			}
 		}
 
 		// 准备执行日志元数据更新
@@ -832,4 +855,64 @@ func (s *aiTaskExecutorService) appendLog(execLogID uint, content string) {
 	if execLog, err := s.execLogRepo.GetByID(execLogID); err == nil {
 		s.logBroadcaster.BroadcastLog(execLog.ConversationID, content, "log")
 	}
+}
+
+// CleanupWorkspaceOnFailure 在任务执行失败时清理工作空间
+func (s *aiTaskExecutorService) CleanupWorkspaceOnFailure(taskID uint, workspacePath string) error {
+	if workspacePath == "" {
+		utils.Warn("工作空间路径为空，跳过清理", "task_id", taskID)
+		return nil
+	}
+
+	utils.Info("开始清理失败任务的工作空间", "task_id", taskID, "workspace", workspacePath)
+
+	// 检查工作空间是否为脏状态
+	isDirty, err := s.workspaceManager.CheckWorkspaceIsDirty(workspacePath)
+	if err != nil {
+		utils.Error("检查工作空间状态失败", "task_id", taskID, "workspace", workspacePath, "error", err)
+		// 即使检查失败，也尝试清理
+	}
+
+	if isDirty || err != nil {
+		// 重置工作空间到干净状态
+		if resetErr := s.workspaceManager.ResetWorkspaceToCleanState(workspacePath); resetErr != nil {
+			utils.Error("重置工作空间失败", "task_id", taskID, "workspace", workspacePath, "error", resetErr)
+			return fmt.Errorf("清理失败任务工作空间失败: %v", resetErr)
+		}
+		utils.Info("已清理失败任务的工作空间文件变动", "task_id", taskID, "workspace", workspacePath)
+	} else {
+		utils.Info("工作空间已处于干净状态，无需清理", "task_id", taskID, "workspace", workspacePath)
+	}
+
+	return nil
+}
+
+// CleanupWorkspaceOnCancel 在任务被取消时清理工作空间
+func (s *aiTaskExecutorService) CleanupWorkspaceOnCancel(taskID uint, workspacePath string) error {
+	if workspacePath == "" {
+		utils.Warn("工作空间路径为空，跳过清理", "task_id", taskID)
+		return nil
+	}
+
+	utils.Info("开始清理被取消任务的工作空间", "task_id", taskID, "workspace", workspacePath)
+
+	// 检查工作空间是否为脏状态
+	isDirty, err := s.workspaceManager.CheckWorkspaceIsDirty(workspacePath)
+	if err != nil {
+		utils.Error("检查工作空间状态失败", "task_id", taskID, "workspace", workspacePath, "error", err)
+		// 即使检查失败，也尝试清理
+	}
+
+	if isDirty || err != nil {
+		// 重置工作空间到干净状态
+		if resetErr := s.workspaceManager.ResetWorkspaceToCleanState(workspacePath); resetErr != nil {
+			utils.Error("重置工作空间失败", "task_id", taskID, "workspace", workspacePath, "error", resetErr)
+			return fmt.Errorf("清理取消任务工作空间失败: %v", resetErr)
+		}
+		utils.Info("已清理被取消任务的工作空间文件变动", "task_id", taskID, "workspace", workspacePath)
+	} else {
+		utils.Info("工作空间已处于干净状态，无需清理", "task_id", taskID, "workspace", workspacePath)
+	}
+
+	return nil
 }
