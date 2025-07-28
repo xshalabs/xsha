@@ -197,12 +197,16 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
                   onValueChange={(value) =>
                     handleFilterChange(
                       "operation",
-                      value === "all" ? undefined : (value as AdminOperationType)
+                      value === "all"
+                        ? undefined
+                        : (value as AdminOperationType)
                     )
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t("adminLogs.operationLogs.filters.all")} />
+                    <SelectValue
+                      placeholder={t("adminLogs.operationLogs.filters.all")}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">
@@ -243,14 +247,14 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
                   onValueChange={(value) =>
                     handleFilterChange(
                       "success",
-                      value === "all"
-                        ? undefined
-                        : value === "true"
+                      value === "all" ? undefined : value === "true"
                     )
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t("adminLogs.operationLogs.filters.all")} />
+                    <SelectValue
+                      placeholder={t("adminLogs.operationLogs.filters.all")}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">
@@ -271,9 +275,16 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
                   id="start_time"
                   label={t("adminLogs.operationLogs.filters.startDate")}
                   placeholder={t("adminLogs.operationLogs.filters.startDate")}
-                  value={localFilters.start_time ? new Date(localFilters.start_time) : undefined}
+                  value={
+                    localFilters.start_time
+                      ? new Date(localFilters.start_time)
+                      : undefined
+                  }
                   onChange={(date) =>
-                    handleFilterChange("start_time", date ? date.toISOString().split('T')[0] : "")
+                    handleFilterChange(
+                      "start_time",
+                      date ? date.toISOString().split("T")[0] : ""
+                    )
                   }
                 />
               </div>
@@ -283,9 +294,16 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
                   id="end_time"
                   label={t("adminLogs.operationLogs.filters.endDate")}
                   placeholder={t("adminLogs.operationLogs.filters.endDate")}
-                  value={localFilters.end_time ? new Date(localFilters.end_time) : undefined}
+                  value={
+                    localFilters.end_time
+                      ? new Date(localFilters.end_time)
+                      : undefined
+                  }
                   onChange={(date) =>
-                    handleFilterChange("end_time", date ? date.toISOString().split('T')[0] : "")
+                    handleFilterChange(
+                      "end_time",
+                      date ? date.toISOString().split("T")[0] : ""
+                    )
                   }
                 />
               </div>
@@ -316,8 +334,8 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
           logs.map((log) => (
             <Card key={log.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 flex-1">
+                <div className="flex flex-col space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+                  <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-x-4 lg:space-y-0 flex-1">
                     <div className="flex items-center space-x-2">
                       {getOperationIcon(log.operation)}
                       <span className="font-medium">
@@ -329,12 +347,12 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
 
                     <div className="flex items-center space-x-2">
                       <User className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm">{log.username}</span>
+                      <span className="text-sm break-all">{log.username}</span>
                     </div>
 
                     <div className="flex items-center space-x-2">
                       <Activity className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm">{log.resource}</span>
+                      <span className="text-sm break-all">{log.resource}</span>
                     </div>
 
                     <div className="flex items-center space-x-2">
@@ -358,7 +376,7 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center justify-end lg:justify-start">
                     <Button
                       variant="outline"
                       size="sm"
@@ -371,13 +389,13 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
                 </div>
 
                 {log.description && (
-                  <div className="mt-2 text-sm text-gray-600">
+                  <div className="mt-3 text-sm text-gray-600 break-words">
                     {log.description}
                   </div>
                 )}
 
                 {!log.success && log.error_msg && (
-                  <div className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
+                  <div className="mt-3 text-sm text-red-600 bg-red-50 p-3 rounded break-words">
                     {log.error_msg}
                   </div>
                 )}
@@ -396,6 +414,7 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
             <Button
               variant="outline"
               size="sm"
+              className="text-foreground"
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage <= 1}
             >
@@ -404,6 +423,7 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
             <Button
               variant="outline"
               size="sm"
+              className="text-foreground"
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
             >
