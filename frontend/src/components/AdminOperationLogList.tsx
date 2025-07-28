@@ -160,7 +160,7 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
+              <div className="flex flex-col gap-3">
                 <Label htmlFor="username">
                   {t("adminLogs.operationLogs.filters.username")}
                 </Label>
@@ -174,7 +174,7 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
                 />
               </div>
 
-              <div>
+              <div className="flex flex-col gap-3">
                 <Label htmlFor="resource">
                   {t("adminLogs.operationLogs.filters.resource")}
                 </Label>
@@ -188,7 +188,7 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
                 />
               </div>
 
-              <div>
+              <div className="flex flex-col gap-3">
                 <Label htmlFor="operation">
                   {t("adminLogs.operationLogs.filters.operation")}
                 </Label>
@@ -234,7 +234,7 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
                 </Select>
               </div>
 
-              <div>
+              <div className="flex flex-col gap-3">
                 <Label htmlFor="success">
                   {t("adminLogs.operationLogs.filters.success")}
                 </Label>

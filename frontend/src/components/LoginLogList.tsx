@@ -134,7 +134,7 @@ export const LoginLogList: React.FC<LoginLogListProps> = ({
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
+              <div className="flex flex-col gap-3">
                 <Label htmlFor="username">
                   {t("adminLogs.loginLogs.filters.username")}
                 </Label>
