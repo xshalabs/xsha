@@ -149,6 +149,31 @@ type TaskConversationService interface {
 	ValidateConversationData(taskID uint, content string, createdBy string) error
 }
 
+// TaskConversationResultService 定义任务对话结果服务接口
+type TaskConversationResultService interface {
+	// 结果管理
+	CreateResult(conversationID uint, resultData map[string]interface{}) (*database.TaskConversationResult, error)
+	GetResult(id uint) (*database.TaskConversationResult, error)
+	GetResultByConversationID(conversationID uint) (*database.TaskConversationResult, error)
+	UpdateResult(id uint, updates map[string]interface{}) error
+	DeleteResult(id uint) error
+
+	// 查询操作
+	ListResultsByTaskID(taskID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error)
+	ListResultsByProjectID(projectID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error)
+
+	// 统计操作
+	GetTaskStats(taskID uint) (map[string]interface{}, error)
+	GetProjectStats(projectID uint) (map[string]interface{}, error)
+
+	// 业务操作
+	ProcessResultFromJSON(jsonStr string, conversationID uint) (*database.TaskConversationResult, error)
+	ExistsForConversation(conversationID uint) (bool, error)
+
+	// 验证操作
+	ValidateResultData(resultData map[string]interface{}) error
+}
+
 // AITaskExecutorService 定义AI任务执行服务接口
 type AITaskExecutorService interface {
 	// 处理待处理的对话

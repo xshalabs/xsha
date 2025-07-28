@@ -68,6 +68,7 @@ func main() {
 	taskRepo := repository.NewTaskRepository(dbManager.GetDB())
 	taskConvRepo := repository.NewTaskConversationRepository(dbManager.GetDB())
 	execLogRepo := repository.NewTaskExecutionLogRepository(dbManager.GetDB())
+	taskConvResultRepo := repository.NewTaskConversationResultRepository(dbManager.GetDB())
 
 	// Initialize log broadcaster
 	logBroadcaster := services.NewLogBroadcaster()
@@ -85,6 +86,7 @@ func main() {
 	devEnvService := services.NewDevEnvironmentService(devEnvRepo)
 	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, workspaceManager)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo)
+	taskConvResultService := services.NewTaskConversationResultService(taskConvResultRepo, taskConvRepo, taskRepo, projectRepo)
 	aiTaskExecutor := services.NewAITaskExecutorService(taskConvRepo, taskRepo, execLogRepo, gitCredService, cfg, logBroadcaster)
 
 	// Initialize scheduler
@@ -107,6 +109,7 @@ func main() {
 	devEnvHandlers := handlers.NewDevEnvironmentHandlers(devEnvService)
 	taskHandlers := handlers.NewTaskHandlers(taskService, taskConvService, projectService)
 	taskConvHandlers := handlers.NewTaskConversationHandlers(taskConvService)
+	taskConvResultHandlers := handlers.NewTaskConversationResultHandlers(taskConvResultService)
 	taskExecLogHandlers := handlers.NewTaskExecutionLogHandlers(aiTaskExecutor)
 	sseLogHandlers := handlers.NewSSELogHandlers(logBroadcaster)
 
@@ -119,7 +122,7 @@ func main() {
 	r := gin.Default()
 
 	// Setup routes - 传递所有处理器实例
-	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskExecLogHandlers, sseLogHandlers)
+	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvResultHandlers, taskExecLogHandlers, sseLogHandlers)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

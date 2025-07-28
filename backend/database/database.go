@@ -45,7 +45,7 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 	}
 
 	// Auto-migrate database tables
-	if err := db.AutoMigrate(&TokenBlacklist{}, &LoginLog{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}); err != nil {
+	if err := db.AutoMigrate(&TokenBlacklist{}, &LoginLog{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}); err != nil {
 		return nil, err
 	}
 	utils.Info("Database table migration completed")

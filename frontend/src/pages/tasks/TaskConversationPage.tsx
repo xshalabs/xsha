@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft } from 'lucide-react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { TaskConversation } from '@/components/TaskConversation';
 import { TaskExecutionLog } from '@/components/TaskExecutionLog';
+import { TaskConversationResult } from '@/components/TaskConversationResult';
 import { apiService } from '@/lib/api/index';
 import { logError } from '@/lib/errors';
 import type { Task } from '@/types/task';
@@ -25,6 +27,7 @@ const TaskConversationPage: React.FC = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
   const [conversationsLoading, setConversationsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'log' | 'result'>('log');
 
   usePageTitle(task ? `${t('tasks.conversation')} - ${task.title}` : t('tasks.conversation'));
 
@@ -196,19 +199,37 @@ const TaskConversationPage: React.FC = () => {
             />
           </div>
 
-          {/* 右侧：执行日志 */}
+          {/* 右侧：执行日志和结果 */}
           <div className="flex flex-col">
             {selectedConversation ? (
-              <div className="h-full">
-                <TaskExecutionLog
-                  conversationId={selectedConversation.id}
-                  conversationStatus={selectedConversation.status}
-                  conversation={selectedConversation}
-                  onStatusChange={(newStatus) => 
-                    handleConversationStatusChange(selectedConversation.id, newStatus)
-                  }
-                />
-              </div>
+              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'log' | 'result')} className="h-full flex flex-col">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="log">{t('task_conversation.execution_log')}</TabsTrigger>
+                  <TabsTrigger value="result">{t('task_conversation.execution_result')}</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="log" className="flex-1 mt-2">
+                  <div className="h-full">
+                    <TaskExecutionLog
+                      conversationId={selectedConversation.id}
+                      conversationStatus={selectedConversation.status}
+                      conversation={selectedConversation}
+                      onStatusChange={(newStatus) => 
+                        handleConversationStatusChange(selectedConversation.id, newStatus)
+                      }
+                    />
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="result" className="flex-1 mt-2">
+                  <div className="h-full overflow-auto">
+                    <TaskConversationResult
+                      conversationId={selectedConversation.id}
+                      showHeader={false}
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
             ) : (
               <div className="flex items-center justify-center h-full bg-muted rounded-lg border-2 border-dashed border-border">
                 <div className="text-center text-muted-foreground">

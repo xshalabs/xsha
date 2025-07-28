@@ -275,3 +275,52 @@ type TaskExecutionLog struct {
 	StartedAt   *time.Time `json:"started_at"`   // 开始执行时间
 	CompletedAt *time.Time `json:"completed_at"` // 完成时间
 }
+
+// ResultType 结果类型
+type ResultType string
+
+const (
+	ResultTypeResult ResultType = "result" // 结果
+)
+
+// ResultSubtype 结果子类型
+type ResultSubtype string
+
+const (
+	ResultSubtypeSuccess ResultSubtype = "success" // 成功
+	ResultSubtypeError   ResultSubtype = "error"   // 错误
+)
+
+// TaskConversationResult 任务对话结果模型
+type TaskConversationResult struct {
+	ID        uint           `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	// 关联信息
+	ConversationID uint              `gorm:"not null;index;unique" json:"conversation_id"`  // 对话ID (一对一关系)
+	Conversation   *TaskConversation `gorm:"foreignKey:ConversationID" json:"conversation"` // 关联对话
+
+	// 执行结果基本信息
+	Type    ResultType    `gorm:"not null;index" json:"type"`     // 结果类型，固定为"result"
+	Subtype ResultSubtype `gorm:"not null;index" json:"subtype"`  // 结果子类型，如"success"、"error"
+	IsError bool          `gorm:"not null;index" json:"is_error"` // 是否错误
+
+	// 时间和性能信息
+	DurationMs    int64 `gorm:"not null" json:"duration_ms"`     // 执行持续时间（毫秒）
+	DurationApiMs int64 `gorm:"not null" json:"duration_api_ms"` // API调用持续时间（毫秒）
+	NumTurns      int   `gorm:"not null" json:"num_turns"`       // 对话轮数
+
+	// 结果内容
+	Result string `gorm:"type:text;not null" json:"result"` // 执行结果内容
+
+	// 会话信息
+	SessionID string `gorm:"not null;index" json:"session_id"` // 会话ID
+
+	// 成本信息
+	TotalCostUsd float64 `gorm:"type:decimal(10,6);not null;default:0" json:"total_cost_usd"` // 总成本（美元）
+
+	// 使用统计（JSON格式）
+	Usage string `gorm:"type:text" json:"usage"` // 使用统计信息JSON字符串
+}

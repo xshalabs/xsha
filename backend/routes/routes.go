@@ -12,7 +12,7 @@ import (
 )
 
 // SetupRoutes sets up routes
-func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, sseLogHandlers *handlers.SSELogHandlers) {
+func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskConvResultHandlers *handlers.TaskConversationResultHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, sseLogHandlers *handlers.SSELogHandlers) {
 	// Apply global middleware
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
@@ -108,6 +108,26 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			conversations.GET("/:id", taskConvHandlers.GetConversation)          // 获取单个对话
 			conversations.PUT("/:id", taskConvHandlers.UpdateConversation)       // 更新对话
 			conversations.DELETE("/:id", taskConvHandlers.DeleteConversation)    // 删除对话
+		}
+
+		// 任务对话结果管理
+		results := api.Group("/conversation-results")
+		{
+			results.POST("", taskConvResultHandlers.CreateResult)                                              // 创建结果
+			results.POST("/process-json", taskConvResultHandlers.ProcessResultFromJSON)                        // 从JSON处理结果
+			results.GET("", taskConvResultHandlers.ListResultsByTaskID)                                        // 根据任务ID获取结果列表
+			results.GET("/by-project", taskConvResultHandlers.ListResultsByProjectID)                          // 根据项目ID获取结果列表
+			results.GET("/:id", taskConvResultHandlers.GetResult)                                              // 获取单个结果
+			results.GET("/by-conversation/:conversation_id", taskConvResultHandlers.GetResultByConversationID) // 根据对话ID获取结果
+			results.PUT("/:id", taskConvResultHandlers.UpdateResult)                                           // 更新结果
+			results.DELETE("/:id", taskConvResultHandlers.DeleteResult)                                        // 删除结果
+		}
+
+		// 统计信息管理
+		stats := api.Group("/stats")
+		{
+			stats.GET("/tasks/:task_id", taskConvResultHandlers.GetTaskStats)          // 获取任务统计
+			stats.GET("/projects/:project_id", taskConvResultHandlers.GetProjectStats) // 获取项目统计
 		}
 
 		// 任务执行日志管理

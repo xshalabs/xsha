@@ -66,5 +66,33 @@
     "delete": "删除",
     "view": "查看详情",
     "edit": "编辑"
-  }
+  },
+  "result": {
+    "title": "执行结果",
+    "description": "会话 {{sessionId}} 的执行结果",
+    "content": "结果内容",
+    "duration": "执行时长",
+    "api_duration": "API时长",
+    "turns": "对话轮数",
+    "cost": "成本",
+    "usage_stats": "使用统计",
+    "input_tokens": "输入令牌",
+    "output_tokens": "输出令牌", 
+    "cache_read": "缓存读取",
+    "service_tier": "服务等级",
+    "session_id": "会话ID",
+    "created_at": "创建时间",
+    "no_result": "暂无执行结果",
+    "load_failed": "加载结果失败",
+    "process_success": "结果处理成功",
+    "create_success": "结果创建成功",
+    "update_success": "结果更新成功",
+    "delete_success": "结果删除成功",
+    "not_found": "结果不存在",
+    "list_success": "结果列表获取成功",
+    "get_success": "结果获取成功",
+    "stats_get_success": "统计信息获取成功"
+  },
+  "execution_log": "执行日志",
+  "execution_result": "执行结果"
 } 

@@ -126,3 +126,26 @@ type TaskExecutionLogRepository interface {
 	UpdateMetadata(id uint, updates map[string]interface{}) error
 	DeleteByConversationID(conversationID uint) error
 }
+
+// TaskConversationResultRepository 定义任务对话结果仓库接口
+type TaskConversationResultRepository interface {
+	// 基本CRUD操作
+	Create(result *database.TaskConversationResult) error
+	GetByID(id uint) (*database.TaskConversationResult, error)
+	GetByConversationID(conversationID uint) (*database.TaskConversationResult, error)
+	Update(result *database.TaskConversationResult) error
+	Delete(id uint) error
+
+	// 查询操作
+	ListByTaskID(taskID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error)
+	ListByProjectID(projectID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error)
+
+	// 统计操作
+	GetSuccessRate(taskID uint) (float64, error)
+	GetTotalCost(taskID uint) (float64, error)
+	GetAverageDuration(taskID uint) (float64, error)
+
+	// 业务操作
+	ExistsByConversationID(conversationID uint) (bool, error)
+	DeleteByConversationID(conversationID uint) error
+}

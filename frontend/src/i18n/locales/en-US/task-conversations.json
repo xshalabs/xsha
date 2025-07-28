@@ -66,5 +66,33 @@
     "delete": "Delete",
     "view": "View Details",
     "edit": "Edit"
-  }
+  },
+  "result": {
+    "title": "Execution Result",
+    "description": "Execution result for session {{sessionId}}",
+    "content": "Result Content",
+    "duration": "Duration",
+    "api_duration": "API Duration",
+    "turns": "Turns",
+    "cost": "Cost",
+    "usage_stats": "Usage Statistics",
+    "input_tokens": "Input Tokens",
+    "output_tokens": "Output Tokens",
+    "cache_read": "Cache Read",
+    "service_tier": "Service Tier",
+    "session_id": "Session ID",
+    "created_at": "Created At",
+    "no_result": "No execution result",
+    "load_failed": "Failed to load result",
+    "process_success": "Result processed successfully",
+    "create_success": "Result created successfully",
+    "update_success": "Result updated successfully",
+    "delete_success": "Result deleted successfully",
+    "not_found": "Result not found",
+    "list_success": "Result list retrieved successfully",
+    "get_success": "Result retrieved successfully",
+    "stats_get_success": "Statistics retrieved successfully"
+  },
+  "execution_log": "Execution Log",
+  "execution_result": "Execution Result"
 } 
