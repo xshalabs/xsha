@@ -51,29 +51,6 @@ export interface ParsedTaskConversationResult extends Omit<TaskConversationResul
   usage: UsageStats;
 }
 
-// 创建结果请求
-export interface CreateResultRequest {
-  conversation_id: number;
-  result_data: {
-    type: string;
-    subtype: string;
-    is_error: boolean;
-    duration_ms?: number;
-    duration_api_ms?: number;
-    num_turns?: number;
-    result: string;
-    session_id: string;
-    total_cost_usd?: number;
-    usage?: UsageStats;
-  };
-}
-
-// 从JSON处理结果请求
-export interface ProcessResultFromJSONRequest {
-  conversation_id: number;
-  json_data: string;
-}
-
 // 更新结果请求
 export interface UpdateResultRequest {
   updates: {
@@ -120,16 +97,6 @@ export interface ProjectStats {
 }
 
 // API响应类型
-export interface CreateResultResponse {
-  message: string;
-  data: TaskConversationResult;
-}
-
-export interface ProcessResultResponse {
-  message: string;
-  data: TaskConversationResult;
-}
-
 export interface ResultListResponse {
   message: string;
   data: {

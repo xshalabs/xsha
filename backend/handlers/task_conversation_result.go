@@ -22,67 +22,9 @@ func NewTaskConversationResultHandlers(resultService services.TaskConversationRe
 	}
 }
 
-// CreateResultRequest 创建结果请求结构
-type CreateResultRequest struct {
-	ConversationID uint                   `json:"conversation_id" binding:"required"`
-	ResultData     map[string]interface{} `json:"result_data" binding:"required"`
-}
-
-// ProcessResultFromJSONRequest 从JSON处理结果请求结构
-type ProcessResultFromJSONRequest struct {
-	ConversationID uint   `json:"conversation_id" binding:"required"`
-	JSONData       string `json:"json_data" binding:"required"`
-}
-
 // UpdateResultRequest 更新结果请求结构
 type UpdateResultRequest struct {
 	Updates map[string]interface{} `json:"updates"`
-}
-
-// CreateResult 创建结果
-func (h *TaskConversationResultHandlers) CreateResult(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	var req CreateResultRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error()})
-		return
-	}
-
-	// 创建结果
-	result, err := h.resultService.CreateResult(req.ConversationID, req.ResultData)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"message": i18n.T(lang, "task_conversation.result_create_success"),
-		"data":    result,
-	})
-}
-
-// ProcessResultFromJSON 从JSON字符串处理结果
-func (h *TaskConversationResultHandlers) ProcessResultFromJSON(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	var req ProcessResultFromJSONRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error()})
-		return
-	}
-
-	// 处理JSON结果
-	result, err := h.resultService.ProcessResultFromJSON(req.JSONData, req.ConversationID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"message": i18n.T(lang, "task_conversation.result_process_success"),
-		"data":    result,
-	})
 }
 
 // GetResult 获取结果详情

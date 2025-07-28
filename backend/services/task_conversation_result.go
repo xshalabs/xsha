@@ -248,23 +248,6 @@ func (s *taskConversationResultService) GetProjectStats(projectID uint) (map[str
 	return stats, nil
 }
 
-// ProcessResultFromJSON 从JSON字符串处理结果
-func (s *taskConversationResultService) ProcessResultFromJSON(jsonStr string, conversationID uint) (*database.TaskConversationResult, error) {
-	// 解析JSON
-	var resultData map[string]interface{}
-	if err := json.Unmarshal([]byte(jsonStr), &resultData); err != nil {
-		return nil, fmt.Errorf("failed to parse JSON: %w", err)
-	}
-
-	// 检查type字段是否为"result"
-	if typeVal, ok := resultData["type"].(string); !ok || typeVal != "result" {
-		return nil, errors.New("invalid result type: must be 'result'")
-	}
-
-	// 创建结果
-	return s.CreateResult(conversationID, resultData)
-}
-
 // ExistsForConversation 检查对话是否已有结果
 func (s *taskConversationResultService) ExistsForConversation(conversationID uint) (bool, error) {
 	return s.repo.ExistsByConversationID(conversationID)

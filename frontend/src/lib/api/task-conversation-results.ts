@@ -1,9 +1,5 @@
 import { request } from './request';
 import type {
-  CreateResultRequest,
-  CreateResultResponse,
-  ProcessResultFromJSONRequest,
-  ProcessResultResponse,
   UpdateResultRequest,
   ResultListResponse,
   ResultDetailResponse,
@@ -14,22 +10,6 @@ import type {
 } from '@/types/task-conversation-result';
 
 export const taskConversationResultsApi = {
-  // 创建结果
-  create: async (data: CreateResultRequest): Promise<CreateResultResponse> => {
-    return request<CreateResultResponse>('/conversation-results', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  // 从JSON处理结果
-  processFromJSON: async (data: ProcessResultFromJSONRequest): Promise<ProcessResultResponse> => {
-    return request<ProcessResultResponse>('/conversation-results/process-json', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
   // 根据任务ID获取结果列表
   listByTask: async (params: ResultListByTaskParams): Promise<ResultListResponse> => {
     const searchParams = new URLSearchParams();

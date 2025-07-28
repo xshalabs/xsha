@@ -167,7 +167,6 @@ type TaskConversationResultService interface {
 	GetProjectStats(projectID uint) (map[string]interface{}, error)
 
 	// 业务操作
-	ProcessResultFromJSON(jsonStr string, conversationID uint) (*database.TaskConversationResult, error)
 	ExistsForConversation(conversationID uint) (bool, error)
 
 	// 验证操作

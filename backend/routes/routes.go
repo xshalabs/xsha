@@ -113,8 +113,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		// 任务对话结果管理
 		results := api.Group("/conversation-results")
 		{
-			results.POST("", taskConvResultHandlers.CreateResult)                                              // 创建结果
-			results.POST("/process-json", taskConvResultHandlers.ProcessResultFromJSON)                        // 从JSON处理结果
 			results.GET("", taskConvResultHandlers.ListResultsByTaskID)                                        // 根据任务ID获取结果列表
 			results.GET("/by-project", taskConvResultHandlers.ListResultsByProjectID)                          // 根据项目ID获取结果列表
 			results.GET("/:id", taskConvResultHandlers.GetResult)                                              // 获取单个结果
