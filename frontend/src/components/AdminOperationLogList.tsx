@@ -4,6 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ChevronLeft,
   ChevronRight,
@@ -116,14 +124,9 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">
-            {t("adminLogs.operationLogs.title")}
-          </h2>
-          <p className="text-muted-foreground">
-            {t("adminLogs.operationLogs.description")}
-          </p>
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-foreground">
+          {t("adminLogs.common.total")} {total} {t("adminLogs.common.items")}
         </div>
         <div className="flex gap-2">
           <Button
@@ -189,98 +192,100 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
                 <Label htmlFor="operation">
                   {t("adminLogs.operationLogs.filters.operation")}
                 </Label>
-                <select
-                  id="operation"
-                  className="w-full p-2 border rounded-md"
-                  value={localFilters.operation || ""}
-                  onChange={(e) =>
+                <Select
+                  value={localFilters.operation || "all"}
+                  onValueChange={(value) =>
                     handleFilterChange(
                       "operation",
-                      e.target.value as AdminOperationType
+                      value === "all" ? undefined : (value as AdminOperationType)
                     )
                   }
                 >
-                  <option value="">
-                    {t("adminLogs.operationLogs.filters.all")}
-                  </option>
-                  <option value="create">
-                    {t("adminLogs.operationLogs.operations.create")}
-                  </option>
-                  <option value="read">
-                    {t("adminLogs.operationLogs.operations.read")}
-                  </option>
-                  <option value="update">
-                    {t("adminLogs.operationLogs.operations.update")}
-                  </option>
-                  <option value="delete">
-                    {t("adminLogs.operationLogs.operations.delete")}
-                  </option>
-                  <option value="login">
-                    {t("adminLogs.operationLogs.operations.login")}
-                  </option>
-                  <option value="logout">
-                    {t("adminLogs.operationLogs.operations.logout")}
-                  </option>
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t("adminLogs.operationLogs.filters.all")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      {t("adminLogs.operationLogs.filters.all")}
+                    </SelectItem>
+                    <SelectItem value="create">
+                      {t("adminLogs.operationLogs.operations.create")}
+                    </SelectItem>
+                    <SelectItem value="read">
+                      {t("adminLogs.operationLogs.operations.read")}
+                    </SelectItem>
+                    <SelectItem value="update">
+                      {t("adminLogs.operationLogs.operations.update")}
+                    </SelectItem>
+                    <SelectItem value="delete">
+                      {t("adminLogs.operationLogs.operations.delete")}
+                    </SelectItem>
+                    <SelectItem value="login">
+                      {t("adminLogs.operationLogs.operations.login")}
+                    </SelectItem>
+                    <SelectItem value="logout">
+                      {t("adminLogs.operationLogs.operations.logout")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <Label htmlFor="success">
                   {t("adminLogs.operationLogs.filters.success")}
                 </Label>
-                <select
-                  id="success"
-                  className="w-full p-2 border rounded-md"
+                <Select
                   value={
                     localFilters.success === undefined
-                      ? ""
+                      ? "all"
                       : localFilters.success.toString()
                   }
-                  onChange={(e) =>
+                  onValueChange={(value) =>
                     handleFilterChange(
                       "success",
-                      e.target.value === ""
+                      value === "all"
                         ? undefined
-                        : e.target.value === "true"
+                        : value === "true"
                     )
                   }
                 >
-                  <option value="">
-                    {t("adminLogs.operationLogs.filters.all")}
-                  </option>
-                  <option value="true">
-                    {t("adminLogs.operationLogs.status.success")}
-                  </option>
-                  <option value="false">
-                    {t("adminLogs.operationLogs.status.failed")}
-                  </option>
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t("adminLogs.operationLogs.filters.all")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      {t("adminLogs.operationLogs.filters.all")}
+                    </SelectItem>
+                    <SelectItem value="true">
+                      {t("adminLogs.operationLogs.status.success")}
+                    </SelectItem>
+                    <SelectItem value="false">
+                      {t("adminLogs.operationLogs.status.failed")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
-                <Label htmlFor="start_time">
-                  {t("adminLogs.operationLogs.filters.startDate")}
-                </Label>
-                <Input
+                <DatePicker
                   id="start_time"
-                  type="date"
-                  value={localFilters.start_time || ""}
-                  onChange={(e) =>
-                    handleFilterChange("start_time", e.target.value)
+                  label={t("adminLogs.operationLogs.filters.startDate")}
+                  placeholder={t("adminLogs.operationLogs.filters.startDate")}
+                  value={localFilters.start_time ? new Date(localFilters.start_time) : undefined}
+                  onChange={(date) =>
+                    handleFilterChange("start_time", date ? date.toISOString().split('T')[0] : "")
                   }
                 />
               </div>
 
               <div>
-                <Label htmlFor="end_time">
-                  {t("adminLogs.operationLogs.filters.endDate")}
-                </Label>
-                <Input
+                <DatePicker
                   id="end_time"
-                  type="date"
-                  value={localFilters.end_time || ""}
-                  onChange={(e) =>
-                    handleFilterChange("end_time", e.target.value)
+                  label={t("adminLogs.operationLogs.filters.endDate")}
+                  placeholder={t("adminLogs.operationLogs.filters.endDate")}
+                  value={localFilters.end_time ? new Date(localFilters.end_time) : undefined}
+                  onChange={(date) =>
+                    handleFilterChange("end_time", date ? date.toISOString().split('T')[0] : "")
                   }
                 />
               </div>
@@ -297,10 +302,6 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
           </CardContent>
         </Card>
       )}
-
-      <div className="text-sm text-gray-600">
-        {t("adminLogs.common.total")} {total} {t("adminLogs.common.items")}
-      </div>
 
       <div className="space-y-2">
         {logs.length === 0 ? (

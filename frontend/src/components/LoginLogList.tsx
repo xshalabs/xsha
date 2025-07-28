@@ -95,24 +95,29 @@ export const LoginLogList: React.FC<LoginLogListProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* 头部操作栏 */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">{t('adminLogs.loginLogs.title')}</h2>
-          <p className="text-gray-600">{t('adminLogs.loginLogs.description')}</p>
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-foreground">
+          {t("adminLogs.common.total")} {total} {t("adminLogs.common.items")}
         </div>
         <div className="flex gap-2">
           <Button
-            variant="outline"
             size="sm"
+            variant="ghost"
+            className="text-foreground"
             onClick={() => setShowFilters(!showFilters)}
           >
             <Filter className="w-4 h-4 mr-2" />
-            {t('adminLogs.common.search')}
+            {t("adminLogs.common.search")}
           </Button>
-          <Button variant="outline" onClick={onRefresh} disabled={loading}>
+          <Button
+            onClick={onRefresh}
+            disabled={loading}
+            size="sm"
+            variant="ghost"
+            className="text-foreground"
+          >
             <RefreshCw className="w-4 h-4 mr-2" />
-            {t('adminLogs.common.refresh')}
+            {t("adminLogs.common.refresh")}
           </Button>
         </div>
       </div>
@@ -147,49 +152,6 @@ export const LoginLogList: React.FC<LoginLogListProps> = ({
           </CardContent>
         </Card>
       )}
-
-      {/* 统计信息 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Shield className="w-8 h-8 text-blue-500" />
-              <div>
-                <p className="text-2xl font-bold">{total}</p>
-                <p className="text-sm text-gray-600">{t('adminLogs.common.total')}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-8 h-8 text-green-500" />
-              <div>
-                <p className="text-2xl font-bold text-green-600">
-                  {logs.filter(log => log.success).length}
-                </p>
-                <p className="text-sm text-gray-600">{t('adminLogs.loginLogs.status.success')}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <XCircle className="w-8 h-8 text-red-500" />
-              <div>
-                <p className="text-2xl font-bold text-red-600">
-                  {logs.filter(log => !log.success).length}
-                </p>
-                <p className="text-sm text-gray-600">{t('adminLogs.loginLogs.status.failed')}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* 日志列表 */}
       <div className="space-y-2">

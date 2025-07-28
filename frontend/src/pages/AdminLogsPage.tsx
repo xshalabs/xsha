@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AdminOperationLogList } from "@/components/AdminOperationLogList";
 import { LoginLogList } from "@/components/LoginLogList";
 import { apiService } from "@/lib/api/index";
@@ -47,7 +48,7 @@ export const AdminLogsPage: React.FC = () => {
   const [stats, setStats] = useState<AdminOperationStatsResponse | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
-  const pageSize = 20;
+  const pageSize = 10;
 
   const loadOperationLogs = async (params?: AdminOperationLogListParams) => {
     try {
@@ -179,130 +180,6 @@ export const AdminLogsPage: React.FC = () => {
     }
   }, [activeTab]);
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case "operationLogs":
-        return (
-          <AdminOperationLogList
-            logs={operationLogs}
-            loading={operationLoading}
-            currentPage={operationCurrentPage}
-            totalPages={operationTotalPages}
-            total={operationTotal}
-            filters={operationFilters}
-            onPageChange={handleOperationPageChange}
-            onFiltersChange={handleOperationFiltersChange}
-            onRefresh={() => loadOperationLogs()}
-            onViewDetail={handleViewOperationDetail}
-          />
-        );
-
-      case "loginLogs":
-        return (
-          <LoginLogList
-            logs={loginLogs}
-            loading={loginLoading}
-            currentPage={loginCurrentPage}
-            totalPages={loginTotalPages}
-            total={loginTotal}
-            filters={loginFilters}
-            onPageChange={handleLoginPageChange}
-            onFiltersChange={handleLoginFiltersChange}
-            onRefresh={() => loadLoginLogs()}
-          />
-        );
-
-      case "stats":
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold">
-                {t("adminLogs.stats.title")}
-              </h2>
-              <p className="text-muted-foreground">
-                {t("adminLogs.stats.description")}
-              </p>
-            </div>
-
-            {statsLoading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-muted-foreground">
-                  {t("common.loading")}
-                </div>
-              </div>
-            ) : stats ? (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t("adminLogs.stats.operationStats")}</CardTitle>
-                    <CardDescription>
-                      {t("adminLogs.stats.timeRange")}: {stats.start_time} ~{" "}
-                      {stats.end_time}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                      {Object.entries(stats.operation_stats).map(
-                        ([operation, count]) => (
-                          <div
-                            key={operation}
-                            className="text-center p-4 bg-muted rounded-lg"
-                          >
-                            <div className="text-2xl font-bold text-primary">
-                              {count}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {t(
-                                `adminLogs.operationLogs.operations.${operation}`
-                              )}
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t("adminLogs.stats.resourceStats")}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {Object.entries(stats.resource_stats).map(
-                        ([resource, count]) => (
-                          <div
-                            key={resource}
-                            className="text-center p-4 bg-muted rounded-lg"
-                          >
-                            <div className="text-2xl font-bold text-accent">
-                              {count}
-                            </div>
-                            <div className="text-sm text-muted-foreground capitalize">
-                              {resource}
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
-                  {t("adminLogs.stats.noStatsAvailable")}
-                </p>
-              </div>
-            )}
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -320,47 +197,140 @@ export const AdminLogsPage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div className="px-4 sm:px-0">
-          <div className="border-b border-border mb-6">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab("operationLogs")}
-                className={`py-2 px-1 border-b-2 font-medium text-sm text-foreground ${
-                  activeTab === "operationLogs"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted"
-                }`}
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as TabType)}
+          >
+            <TabsList className="mb-6">
+              <TabsTrigger
+                value="operationLogs"
+                className="flex items-center gap-2"
               >
-                <FileText className="w-4 h-4 inline mr-2" />
+                <FileText className="w-4 h-4" />
                 {t("adminLogs.operationLogs.title")}
-              </button>
-
-              <button
-                onClick={() => setActiveTab("loginLogs")}
-                className={`py-2 px-1 border-b-2 font-medium text-sm text-foreground ${
-                  activeTab === "loginLogs"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted"
-                }`}
+              </TabsTrigger>
+              <TabsTrigger
+                value="loginLogs"
+                className="flex items-center gap-2"
               >
-                <Shield className="w-4 h-4 inline mr-2" />
+                <Shield className="w-4 h-4" />
                 {t("adminLogs.loginLogs.title")}
-              </button>
-
-              <button
-                onClick={() => setActiveTab("stats")}
-                className={`py-2 px-1 border-b-2 font-medium text-sm text-foreground ${
-                  activeTab === "stats"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted"
-                }`}
-              >
-                <TrendingUp className="w-4 h-4 inline mr-2" />
+              </TabsTrigger>
+              <TabsTrigger value="stats" className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
                 {t("adminLogs.stats.title")}
-              </button>
-            </nav>
-          </div>
+              </TabsTrigger>
+            </TabsList>
 
-          {renderTabContent()}
+            <TabsContent value="operationLogs">
+              <AdminOperationLogList
+                logs={operationLogs}
+                loading={operationLoading}
+                currentPage={operationCurrentPage}
+                totalPages={operationTotalPages}
+                total={operationTotal}
+                filters={operationFilters}
+                onPageChange={handleOperationPageChange}
+                onFiltersChange={handleOperationFiltersChange}
+                onRefresh={() => loadOperationLogs()}
+                onViewDetail={handleViewOperationDetail}
+              />
+            </TabsContent>
+
+            <TabsContent value="loginLogs">
+              <LoginLogList
+                logs={loginLogs}
+                loading={loginLoading}
+                currentPage={loginCurrentPage}
+                totalPages={loginTotalPages}
+                total={loginTotal}
+                filters={loginFilters}
+                onPageChange={handleLoginPageChange}
+                onFiltersChange={handleLoginFiltersChange}
+                onRefresh={() => loadLoginLogs()}
+              />
+            </TabsContent>
+
+            <TabsContent value="stats">
+              <div className="space-y-6">
+                {statsLoading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-muted-foreground">
+                      {t("common.loading")}
+                    </div>
+                  </div>
+                ) : stats ? (
+                  <div className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>
+                          {t("adminLogs.stats.operationStats")}
+                        </CardTitle>
+                        <CardDescription>
+                          {t("adminLogs.stats.timeRange")}: {stats.start_time} ~{" "}
+                          {stats.end_time}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                          {Object.entries(stats.operation_stats).map(
+                            ([operation, count]) => (
+                              <div
+                                key={operation}
+                                className="text-center p-4 bg-muted rounded-lg"
+                              >
+                                <div className="text-2xl font-bold text-primary">
+                                  {count}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {t(
+                                    `adminLogs.operationLogs.operations.${operation}`
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>
+                          {t("adminLogs.stats.resourceStats")}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {Object.entries(stats.resource_stats).map(
+                            ([resource, count]) => (
+                              <div
+                                key={resource}
+                                className="text-center p-4 bg-muted rounded-lg"
+                              >
+                                <div className="text-2xl font-bold text-accent">
+                                  {count}
+                                </div>
+                                <div className="text-sm text-muted-foreground capitalize">
+                                  {resource}
+                                </div>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">
+                      {t("adminLogs.stats.noStatsAvailable")}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
