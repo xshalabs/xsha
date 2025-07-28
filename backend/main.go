@@ -33,6 +33,7 @@ import (
 	"xsha-backend/routes"
 	"xsha-backend/scheduler"
 	"xsha-backend/services"
+	"xsha-backend/services/executor"
 	"xsha-backend/utils"
 
 	_ "xsha-backend/docs" // 自动生成的swagger docs
@@ -87,7 +88,7 @@ func main() {
 	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, workspaceManager)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo)
 	taskConvResultService := services.NewTaskConversationResultService(taskConvResultRepo, taskConvRepo, taskRepo, projectRepo)
-	aiTaskExecutor := services.NewAITaskExecutorService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, gitCredService, taskConvResultService, cfg, logBroadcaster)
+	aiTaskExecutor := executor.NewAITaskExecutorService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, gitCredService, taskConvResultService, cfg, logBroadcaster)
 
 	// Initialize scheduler
 	taskProcessor := scheduler.NewTaskProcessor(aiTaskExecutor)
