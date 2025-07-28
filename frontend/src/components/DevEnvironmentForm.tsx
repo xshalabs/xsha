@@ -1,58 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, Save, X } from 'lucide-react';
-import { toast } from 'sonner';
-import { apiService } from '@/lib/api/index';
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Plus, Trash2, Save, X } from "lucide-react";
+import { toast } from "sonner";
+import { apiService } from "@/lib/api/index";
 import type {
   DevEnvironmentDisplay,
   CreateDevEnvironmentRequest,
   UpdateDevEnvironmentRequest,
   DevEnvironmentType,
-} from '@/types/dev-environment';
+} from "@/types/dev-environment";
 
 interface DevEnvironmentFormProps {
   onClose: () => void;
   onSuccess: () => void;
   initialData?: DevEnvironmentDisplay | null;
-  mode: 'create' | 'edit';
+  mode: "create" | "edit";
 }
 
-// 默认资源配置
 const defaultResources = {
-  claude_code: { cpu: 2.0, memory: 4096 },
-  gemini_cli: { cpu: 1.0, memory: 2048 },
-  opencode: { cpu: 1.5, memory: 3072 },
+  claude_code: { cpu: 1.0, memory: 1024 },
+  gemini_cli: { cpu: 1.0, memory: 1024 },
+  opencode: { cpu: 1.0, memory: 1024 },
 };
 
-// 环境类型选项 - 使用国际化
 const getEnvironmentTypes = (t: (key: string) => string) => [
   {
-    value: 'claude_code' as DevEnvironmentType,
-    label: t('dev_environments.types.claude_code.label'),
-    description: t('dev_environments.types.claude_code.description'),
+    value: "claude_code" as DevEnvironmentType,
+    label: t("dev_environments.types.claude_code.label"),
+    description: t("dev_environments.types.claude_code.description"),
   },
   {
-    value: 'gemini_cli' as DevEnvironmentType,
-    label: t('dev_environments.types.gemini_cli.label'),
-    description: t('dev_environments.types.gemini_cli.description'),
+    value: "gemini_cli" as DevEnvironmentType,
+    label: t("dev_environments.types.gemini_cli.label"),
+    description: t("dev_environments.types.gemini_cli.description"),
   },
   {
-    value: 'opencode' as DevEnvironmentType,
-    label: t('dev_environments.types.opencode.label'),
-    description: t('dev_environments.types.opencode.description'),
+    value: "opencode" as DevEnvironmentType,
+    label: t("dev_environments.types.opencode.label"),
+    description: t("dev_environments.types.opencode.description"),
   },
 ];
 
@@ -63,31 +62,28 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
   mode,
 }) => {
   const { t } = useTranslation();
-  
-  // 环境类型选项
-  const environmentTypes = getEnvironmentTypes(t);
-  
-  // 表单状态
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    type: 'claude_code' as DevEnvironmentType,
-    cpu_limit: 2.0,
-    memory_limit: 4096,
-  });
-  
-  // 环境变量状态
-  const [envVars, setEnvVars] = useState<Record<string, string>>({});
-  const [newEnvKey, setNewEnvKey] = useState('');
-  const [newEnvValue, setNewEnvValue] = useState('');
-  
-  // 加载状态
-  const [loading, setLoading] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  // 初始化表单数据
+  const environmentTypes = getEnvironmentTypes(t);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    type: "claude_code" as DevEnvironmentType,
+    cpu_limit: 1.0,
+    memory_limit: 1024,
+  });
+
+  const [envVars, setEnvVars] = useState<Record<string, string>>({});
+  const [newEnvKey, setNewEnvKey] = useState("");
+  const [newEnvValue, setNewEnvValue] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
+
   useEffect(() => {
-    if (initialData && mode === 'edit') {
+    if (initialData && mode === "edit") {
       setFormData({
         name: initialData.name,
         description: initialData.description,
@@ -97,48 +93,46 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
       });
       setEnvVars(initialData.env_vars_map || {});
     } else {
-      // 重置为默认值
       setFormData({
-        name: '',
-        description: '',
-        type: 'claude_code',
-        cpu_limit: 2.0,
-        memory_limit: 4096,
+        name: "",
+        description: "",
+        type: "claude_code",
+        cpu_limit: 1.0,
+        memory_limit: 1024,
       });
       setEnvVars({});
     }
     setValidationErrors({});
-    setNewEnvKey('');
-    setNewEnvValue('');
+    setNewEnvKey("");
+    setNewEnvValue("");
   }, [initialData, mode]);
 
-  // 表单验证
   const validateForm = () => {
     const errors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      errors.name = t('dev_environments.validation.name_required');
+      errors.name = t("dev_environments.validation.name_required");
     }
 
     if (formData.cpu_limit <= 0 || formData.cpu_limit > 16) {
-      errors.cpu_limit = t('dev_environments.validation.cpu_limit_invalid');
+      errors.cpu_limit = t("dev_environments.validation.cpu_limit_invalid");
     }
 
     if (formData.memory_limit <= 0 || formData.memory_limit > 32768) {
-      errors.memory_limit = t('dev_environments.validation.memory_limit_invalid');
+      errors.memory_limit = t(
+        "dev_environments.validation.memory_limit_invalid"
+      );
     }
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  // 处理表单字段变化
   const handleFieldChange = (field: keyof typeof formData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // 清除相关验证错误
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
     if (validationErrors[field]) {
-      setValidationErrors(prev => {
+      setValidationErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[field];
         return newErrors;
@@ -146,10 +140,9 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
     }
   };
 
-  // 处理环境类型变化
   const handleTypeChange = (type: DevEnvironmentType) => {
     const defaults = defaultResources[type];
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       type,
       cpu_limit: defaults.cpu,
@@ -157,44 +150,40 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
     }));
   };
 
-  // 添加环境变量
   const addEnvVar = () => {
     if (!newEnvKey.trim()) {
-      toast.error(t('dev_environments.env_vars.key_required'));
+      toast.error(t("dev_environments.env_vars.key_required"));
       return;
     }
 
     if (envVars[newEnvKey]) {
-      toast.error(t('dev_environments.env_vars.key_exists'));
+      toast.error(t("dev_environments.env_vars.key_exists"));
       return;
     }
 
-    setEnvVars(prev => ({
+    setEnvVars((prev) => ({
       ...prev,
       [newEnvKey]: newEnvValue,
     }));
-    setNewEnvKey('');
-    setNewEnvValue('');
+    setNewEnvKey("");
+    setNewEnvValue("");
   };
 
-  // 删除环境变量
   const removeEnvVar = (key: string) => {
-    setEnvVars(prev => {
+    setEnvVars((prev) => {
       const newVars = { ...prev };
       delete newVars[key];
       return newVars;
     });
   };
 
-  // 更新环境变量值
   const updateEnvVar = (key: string, value: string) => {
-    setEnvVars(prev => ({
+    setEnvVars((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
 
-  // 提交表单
   const handleSubmit = async () => {
     if (!validateForm()) {
       return;
@@ -202,13 +191,13 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 
     setLoading(true);
     try {
-      if (mode === 'create') {
+      if (mode === "create") {
         const requestData: CreateDevEnvironmentRequest = {
           ...formData,
           env_vars: envVars,
         };
         await apiService.devEnvironments.create(requestData);
-        toast.success(t('dev_environments.create_success'));
+        toast.success(t("dev_environments.create_success"));
       } else {
         const requestData: UpdateDevEnvironmentRequest = {
           name: formData.name,
@@ -218,16 +207,16 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
           env_vars: envVars,
         };
         await apiService.devEnvironments.update(initialData!.id, requestData);
-        toast.success(t('dev_environments.update_success'));
+        toast.success(t("dev_environments.update_success"));
       }
-      
+
       onSuccess();
     } catch (error: any) {
-      console.error('Failed to save environment:', error);
+      console.error("Failed to save environment:", error);
       toast.error(
-        mode === 'create' 
-          ? t('dev_environments.create_failed')
-          : t('dev_environments.update_failed')
+        mode === "create"
+          ? t("dev_environments.create_failed")
+          : t("dev_environments.update_failed")
       );
     } finally {
       setLoading(false);
@@ -238,52 +227,58 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
     <Card>
       <CardHeader>
         <CardTitle>
-          {mode === 'create' 
-            ? t('dev_environments.create') 
-            : t('dev_environments.edit')}
+          {mode === "create"
+            ? t("dev_environments.create")
+            : t("dev_environments.edit")}
         </CardTitle>
         <p className="text-muted-foreground">
-          {mode === 'create'
-            ? t('dev_environments.create_description')
-            : t('dev_environments.edit_description')}
+          {mode === "create"
+            ? t("dev_environments.create_description")
+            : t("dev_environments.edit_description")}
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-6">
-          {/* 基本信息 */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">{t('dev_environments.form.name')} *</Label>
+              <Label htmlFor="name">{t("dev_environments.form.name")} *</Label>
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => handleFieldChange('name', e.target.value)}
-                placeholder={t('dev_environments.form.name_placeholder')}
-                className={validationErrors.name ? 'border-destructive' : ''}
+                onChange={(e) => handleFieldChange("name", e.target.value)}
+                placeholder={t("dev_environments.form.name_placeholder")}
+                className={validationErrors.name ? "border-destructive" : ""}
               />
               {validationErrors.name && (
-                <p className="text-sm text-destructive">{validationErrors.name}</p>
+                <p className="text-sm text-destructive">
+                  {validationErrors.name}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">{t('dev_environments.form.description')}</Label>
-              <textarea
+              <Label htmlFor="description">
+                {t("dev_environments.form.description")}
+              </Label>
+              <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleFieldChange('description', e.target.value)}
-                placeholder={t('dev_environments.form.description_placeholder')}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  handleFieldChange("description", e.target.value)
+                }
+                placeholder={t("dev_environments.form.description_placeholder")}
                 rows={3}
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
 
             <div className="space-y-2">
-              <Label>{t('dev_environments.form.type')} *</Label>
+              <Label>{t("dev_environments.form.type")} *</Label>
               <Select
                 value={formData.type}
-                onValueChange={(value) => handleTypeChange(value as DevEnvironmentType)}
-                disabled={mode === 'edit'} // 编辑模式下不允许修改类型
+                onValueChange={(value) =>
+                  handleTypeChange(value as DevEnvironmentType)
+                }
+                disabled={mode === "edit"}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -291,10 +286,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                 <SelectContent>
                   {environmentTypes.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
-                      <div>
-                        <div className="font-medium">{type.label}</div>
-                        <div className="text-sm text-muted-foreground">{type.description}</div>
-                      </div>
+                      {type.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -304,14 +296,16 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 
           <Separator />
 
-          {/* 资源配置 */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">{t('dev_environments.form.resources')}</h3>
-            
+            <h3 className="text-lg font-medium">
+              {t("dev_environments.form.resources")}
+            </h3>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="cpu_limit">
-                  {t('dev_environments.form.cpu_limit')} * (0.1-16 {t('dev_environments.stats.cores')})
+                  {t("dev_environments.form.cpu_limit")} * (0.1-16{" "}
+                  {t("dev_environments.stats.cores")})
                 </Label>
                 <Input
                   id="cpu_limit"
@@ -320,17 +314,23 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                   min="0.1"
                   max="16"
                   value={formData.cpu_limit}
-                  onChange={(e) => handleFieldChange('cpu_limit', parseFloat(e.target.value))}
-                  className={validationErrors.cpu_limit ? 'border-destructive' : ''}
+                  onChange={(e) =>
+                    handleFieldChange("cpu_limit", parseFloat(e.target.value))
+                  }
+                  className={
+                    validationErrors.cpu_limit ? "border-destructive" : ""
+                  }
                 />
                 {validationErrors.cpu_limit && (
-                  <p className="text-sm text-destructive">{validationErrors.cpu_limit}</p>
+                  <p className="text-sm text-destructive">
+                    {validationErrors.cpu_limit}
+                  </p>
                 )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="memory_limit">
-                  {t('dev_environments.form.memory_limit')} * (128-32768 MB)
+                  {t("dev_environments.form.memory_limit")} * (128-32768 MB)
                 </Label>
                 <Input
                   id="memory_limit"
@@ -338,11 +338,17 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                   min="128"
                   max="32768"
                   value={formData.memory_limit}
-                  onChange={(e) => handleFieldChange('memory_limit', parseInt(e.target.value))}
-                  className={validationErrors.memory_limit ? 'border-destructive' : ''}
+                  onChange={(e) =>
+                    handleFieldChange("memory_limit", parseInt(e.target.value))
+                  }
+                  className={
+                    validationErrors.memory_limit ? "border-destructive" : ""
+                  }
                 />
                 {validationErrors.memory_limit && (
-                  <p className="text-sm text-destructive">{validationErrors.memory_limit}</p>
+                  <p className="text-sm text-destructive">
+                    {validationErrors.memory_limit}
+                  </p>
                 )}
               </div>
             </div>
@@ -350,19 +356,21 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 
           <Separator />
 
-          {/* 环境变量 */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">{t('dev_environments.form.env_vars')}</h3>
-            
-            {/* 添加新环境变量 */}
+            <h3 className="text-lg font-medium">
+              {t("dev_environments.form.env_vars")}
+            </h3>
+
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">{t('dev_environments.env_vars.add_new')}</CardTitle>
+                <CardTitle className="text-base">
+                  {t("dev_environments.env_vars.add_new")}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t('dev_environments.env_vars.key')}</Label>
+                    <Label>{t("dev_environments.env_vars.key")}</Label>
                     <Input
                       value={newEnvKey}
                       onChange={(e) => setNewEnvKey(e.target.value)}
@@ -370,7 +378,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t('dev_environments.env_vars.value')}</Label>
+                    <Label>{t("dev_environments.env_vars.value")}</Label>
                     <Input
                       value={newEnvValue}
                       onChange={(e) => setNewEnvValue(e.target.value)}
@@ -385,22 +393,26 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                   disabled={!newEnvKey.trim()}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  {t('dev_environments.env_vars.add')}
+                  {t("dev_environments.env_vars.add")}
                 </Button>
               </CardContent>
             </Card>
 
-            {/* 现有环境变量列表 */}
             {Object.keys(envVars).length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">{t('dev_environments.env_vars.current')}</CardTitle>
+                  <CardTitle className="text-base">
+                    {t("dev_environments.env_vars.current")}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {Object.entries(envVars).map(([key, value]) => (
                       <div key={key} className="flex items-center gap-3">
-                        <Badge variant="outline" className="min-w-0 flex-shrink-0">
+                        <Badge
+                          variant="outline"
+                          className="min-w-0 flex-shrink-0"
+                        >
                           {key}
                         </Badge>
                         <Input
@@ -429,11 +441,11 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
         <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={onClose} disabled={loading}>
             <X className="h-4 w-4 mr-2" />
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={loading}>
             <Save className="h-4 w-4 mr-2" />
-            {loading ? t('common.saving') : t('common.save')}
+            {loading ? t("common.saving") : t("common.save")}
           </Button>
         </div>
       </CardContent>
@@ -441,4 +453,4 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
   );
 };
 
-export default DevEnvironmentForm; 
+export default DevEnvironmentForm;
