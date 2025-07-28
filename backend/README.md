@@ -1,4 +1,4 @@
-# Sleep0 Backend
+# XSHA Backend
 
 基于 Golang + Gin 框架的后端项目，采用清洁架构设计，支持 SQLite 和 MySQL 数据库，使用 JWT 进行用户认证。项目实现了完整的项目管理、Git 凭据管理、开发环境管理、任务管理，以及基于定时器的 AI 自动化编程任务执行系统。
 
@@ -119,27 +119,27 @@ Task N:1 DevEnvironment
 
 ```bash
 # 基础配置
-export SLEEP0_PORT="8080"
-export SLEEP0_ENVIRONMENT="development"
+export XSHA_PORT="8080"
+export XSHA_ENVIRONMENT="development"
 
 # 数据库配置
-export SLEEP0_DATABASE_TYPE="sqlite"  # sqlite 或 mysql
-export SLEEP0_SQLITE_PATH="app.db"
-export SLEEP0_MYSQL_DSN="user:password@tcp(localhost:3306)/sleep0?charset=utf8mb4&parseTime=True&loc=Local"
+export XSHA_DATABASE_TYPE="sqlite"  # sqlite 或 mysql
+export XSHA_SQLITE_PATH="app.db"
+export XSHA_MYSQL_DSN="user:password@tcp(localhost:3306)/xsha?charset=utf8mb4&parseTime=True&loc=Local"
 
 # 认证配置
-export SLEEP0_ADMIN_USER="admin"
-export SLEEP0_ADMIN_PASS="admin123"
-export SLEEP0_JWT_SECRET="your-strong-jwt-secret-key-here"
-export SLEEP0_AES_KEY="your-32-byte-aes-encryption-key-here"  # 用于Git凭据加密
+export XSHA_ADMIN_USER="admin"
+export XSHA_ADMIN_PASS="admin123"
+export XSHA_JWT_SECRET="your-strong-jwt-secret-key-here"
+export XSHA_AES_KEY="your-32-byte-aes-encryption-key-here"  # 用于Git凭据加密
 
 # Git配置 🆕
-export SLEEP0_GIT_SSL_VERIFY="false"                    # Git SSL验证开关（默认禁用以解决兼容性问题）
+export XSHA_GIT_SSL_VERIFY="false"                    # Git SSL验证开关（默认禁用以解决兼容性问题）
 
 # 定时器配置 🆕
-export SLEEP0_SCHEDULER_INTERVAL="30s"              # 定时器扫描间隔
-export SLEEP0_WORKSPACE_BASE_DIR="/tmp/sleep0-workspaces"  # AI任务工作目录
-export SLEEP0_DOCKER_TIMEOUT="30m"                  # Docker执行超时时间
+export XSHA_SCHEDULER_INTERVAL="30s"              # 定时器扫描间隔
+export XSHA_WORKSPACE_BASE_DIR="/tmp/xsha-workspaces"  # AI任务工作目录
+export XSHA_DOCKER_TIMEOUT="30m"                  # Docker执行超时时间
 ```
 
 ### 2. 安装依赖
@@ -233,10 +233,10 @@ go run main.go
 #### 环境变量配置
 ```bash
 # 禁用 SSL 验证（推荐用于解决 TLS 连接问题）
-export SLEEP0_GIT_SSL_VERIFY=false
+export XSHA_GIT_SSL_VERIFY=false
 
 # 启用 SSL 验证（推荐用于生产环境）
-export SLEEP0_GIT_SSL_VERIFY=true
+export XSHA_GIT_SSL_VERIFY=true
 ```
 
 #### 配置说明
@@ -255,7 +255,7 @@ TLS connect error: error:0A000126:SSL routines::unexpected eof while reading
 
 **解决方案:**
 ```bash
-export SLEEP0_GIT_SSL_VERIFY=false
+export XSHA_GIT_SSL_VERIFY=false
 # 重启应用
 ```
 
@@ -267,7 +267,7 @@ export SLEEP0_GIT_SSL_VERIFY=false
 **解决方案:**
 ```bash
 # 临时禁用 SSL 验证
-export SLEEP0_GIT_SSL_VERIFY=false
+export XSHA_GIT_SSL_VERIFY=false
 
 # 或者更新系统证书（推荐）
 # macOS:
@@ -279,7 +279,7 @@ sudo apt-get update && sudo apt-get install ca-certificates
 #### 支持的 Git 服务器
 - ✅ **GitHub**: 支持 SSL 验证
 - ✅ **GitLab**: 支持 SSL 验证  
-- ⚠️ **Gitee**: 建议禁用 SSL 验证（`SLEEP0_GIT_SSL_VERIFY=false`）
+- ⚠️ **Gitee**: 建议禁用 SSL 验证（`XSHA_GIT_SSL_VERIFY=false`）
 - ✅ **Bitbucket**: 支持 SSL 验证
 - ⚠️ **自建 Git 服务器**: 根据证书配置情况选择
 
@@ -287,7 +287,7 @@ sudo apt-get update && sudo apt-get install ca-certificates
 当启用 SSL 验证且遇到相关错误时，系统会自动提供解决建议：
 ```
 仓库访问验证失败: [具体错误信息]
-建议: 可尝试设置环境变量 SLEEP0_GIT_SSL_VERIFY=false 禁用SSL验证
+建议: 可尝试设置环境变量 XSHA_GIT_SSL_VERIFY=false 禁用SSL验证
 ```
 
 #### 安全性考虑
@@ -307,7 +307,7 @@ sudo apt-get update && sudo apt-get install ca-certificates
 
 ### 并发执行管理 🆕
 - **执行管理器**: 统一管理所有并发任务的生命周期
-- **资源控制**: 通过配置限制最大并发数（`SLEEP0_MAX_CONCURRENT_TASKS`）
+- **资源控制**: 通过配置限制最大并发数（`XSHA_MAX_CONCURRENT_TASKS`）
 - **状态跟踪**: 实时跟踪每个任务的执行状态和进度
 - **强制取消**: 支持强制取消正在运行的任务
 
@@ -335,20 +335,20 @@ sudo apt-get update && sudo apt-get install ca-certificates
 
 | 变量名 | 描述 | 默认值 | 类型 |
 |--------|------|--------|------|
-| `SLEEP0_PORT` | 服务器端口 | 8080 | string |
-| `SLEEP0_ENVIRONMENT` | 运行环境 | development | string |
-| `SLEEP0_DATABASE_TYPE` | 数据库类型 | sqlite | string |
-| `SLEEP0_SQLITE_PATH` | SQLite 数据库文件路径 | app.db | string |
-| `SLEEP0_MYSQL_DSN` | MySQL 数据库连接字符串 | - | string |
-| `SLEEP0_ADMIN_USER` | 管理员用户名 | admin | string |
-| `SLEEP0_ADMIN_PASS` | 管理员密码 | admin123 | string |
-| `SLEEP0_JWT_SECRET` | JWT 密钥 | your-jwt-secret-key-change-this-in-production | string |
-| `SLEEP0_AES_KEY` | AES 加密密钥（用于Git凭据） | default-aes-key-change-in-production | string |
-| `SLEEP0_SCHEDULER_INTERVAL` | 定时器间隔 🆕 | 30s | duration |
-| `SLEEP0_WORKSPACE_BASE_DIR` | 工作目录基础路径 🆕 | /tmp/sleep0-workspaces | string |
-| `SLEEP0_DOCKER_TIMEOUT` | Docker 执行超时时间 🆕 | 30m | duration |
-| `SLEEP0_MAX_CONCURRENT_TASKS` | 最大并发任务数 🆕 | 5 | int |
-| `SLEEP0_GIT_SSL_VERIFY` | Git SSL验证开关 🆕 | false | boolean |
+| `XSHA_PORT` | 服务器端口 | 8080 | string |
+| `XSHA_ENVIRONMENT` | 运行环境 | development | string |
+| `XSHA_DATABASE_TYPE` | 数据库类型 | sqlite | string |
+| `XSHA_SQLITE_PATH` | SQLite 数据库文件路径 | app.db | string |
+| `XSHA_MYSQL_DSN` | MySQL 数据库连接字符串 | - | string |
+| `XSHA_ADMIN_USER` | 管理员用户名 | admin | string |
+| `XSHA_ADMIN_PASS` | 管理员密码 | admin123 | string |
+| `XSHA_JWT_SECRET` | JWT 密钥 | your-jwt-secret-key-change-this-in-production | string |
+| `XSHA_AES_KEY` | AES 加密密钥（用于Git凭据） | default-aes-key-change-in-production | string |
+| `XSHA_SCHEDULER_INTERVAL` | 定时器间隔 🆕 | 30s | duration |
+| `XSHA_WORKSPACE_BASE_DIR` | 工作目录基础路径 🆕 | /tmp/xsha-workspaces | string |
+| `XSHA_DOCKER_TIMEOUT` | Docker 执行超时时间 🆕 | 30m | duration |
+| `XSHA_MAX_CONCURRENT_TASKS` | 最大并发任务数 🆕 | 5 | int |
+| `XSHA_GIT_SSL_VERIFY` | Git SSL验证开关 🆕 | false | boolean |
 
 ## 🏗️ 架构设计
 
@@ -409,18 +409,18 @@ sudo apt-get update && sudo apt-get install ca-certificates
 ### Docker 部署
 ```bash
 # 构建镜像
-docker build -t sleep0-backend .
+docker build -t xsha-backend .
 
 # 运行容器
 docker run -d \
-  --name sleep0-backend \
+  --name xsha-backend \
   -p 8080:8080 \
-  -e SLEEP0_ENVIRONMENT=production \
-  -e SLEEP0_JWT_SECRET=your-production-secret \
-  -e SLEEP0_AES_KEY=your-production-aes-key \
-  -e SLEEP0_GIT_SSL_VERIFY=true \
-  -v /data/sleep0:/data \
-  sleep0-backend
+  -e XSHA_ENVIRONMENT=production \
+  -e XSHA_JWT_SECRET=your-production-secret \
+  -e XSHA_AES_KEY=your-production-aes-key \
+  -e XSHA_GIT_SSL_VERIFY=true \
+  -v /data/xsha:/data \
+  xsha-backend
 ```
 
 ### 生产环境建议
@@ -428,7 +428,7 @@ docker run -d \
 2. **强密钥**: 使用强随机密钥作为 JWT 和 AES 密钥
 3. **HTTPS**: 配置 HTTPS 传输加密
 4. **反向代理**: 使用 Nginx 作为反向代理
-5. **Git SSL 验证**: 生产环境启用 SSL 验证 (`SLEEP0_GIT_SSL_VERIFY=true`) 🆕
+5. **Git SSL 验证**: 生产环境启用 SSL 验证 (`XSHA_GIT_SSL_VERIFY=true`) 🆕
 6. **监控**: 配置应用监控和日志收集
 7. **备份**: 定期备份数据库
 
@@ -467,4 +467,4 @@ go tool cover -html=coverage.out
 
 ---
 
-**Sleep0 Backend** - 构建智能化的开发工作流 🚀 
+**XSHA Backend** - 构建智能化的开发工作流 🚀 

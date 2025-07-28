@@ -11,7 +11,7 @@ export const usePageTitle = (titleKey: string, fallback?: string) => {
 
   useEffect(() => {
     const title = t(titleKey, fallback || titleKey);
-    const appName = t("common.app.name", "Sleep0");
+    const appName = t("common.app.name", "XSHA");
 
     // 设置页面标题格式：页面标题 - 应用名称
     document.title =
@@ -36,7 +36,7 @@ export const useDirectPageTitle = (title: string) => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    const appName = t("common.app.name", "Sleep0");
+    const appName = t("common.app.name", "XSHA");
     document.title = `${title} - ${appName}`;
 
     return () => {

@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"net/http"
-	"sleep0-backend/i18n"
-	"sleep0-backend/middleware"
+	"xsha-backend/i18n"
+	"xsha-backend/middleware"
 
 	"github.com/gin-gonic/gin"
 )

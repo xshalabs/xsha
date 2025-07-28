@@ -33,10 +33,10 @@ make docker-compose-down
 
 ```bash
 # Build image
-docker build -t sleep0-backend:latest .
+docker build -t xsha-backend:latest .
 
 # Run container
-docker run --rm -p 8080:8080 sleep0-backend:latest
+docker run --rm -p 8080:8080 xsha-backend:latest
 ```
 
 ### 3. Using Docker Compose
@@ -151,7 +151,7 @@ make health
    lsof -i :8080
    
    # Modify port (in .env or docker-compose.yml)
-   SLEEP0_PORT=8081
+   XSHA_PORT=8081
    ```
 
 2. **Permission Issues**
@@ -196,7 +196,7 @@ docker-compose logs -f
 - **phpMyAdmin**: http://localhost:8081 (Username: root, Password: password)
 - **Direct MySQL Connection**:
   ```bash
-  docker-compose exec mysql mysql -u root -p sleep0
+  docker-compose exec mysql mysql -u root -p xsha
   ```
 
 ## Performance Optimization

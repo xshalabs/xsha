@@ -357,7 +357,7 @@ func FetchRepositoryBranchesWithConfig(repoURL string, credential *GitCredential
 			if sslVerify && (strings.Contains(errorMessage, "SSL") || strings.Contains(errorMessage, "TLS") || strings.Contains(errorMessage, "certificate")) {
 				return &GitAccessResult{
 					CanAccess:    false,
-					ErrorMessage: fmt.Sprintf("仓库访问验证失败: %s\n建议: 可尝试设置环境变量 SLEEP0_GIT_SSL_VERIFY=false 禁用SSL验证", errorMessage),
+					ErrorMessage: fmt.Sprintf("仓库访问验证失败: %s\n建议: 可尝试设置环境变量 XSHA_GIT_SSL_VERIFY=false 禁用SSL验证", errorMessage),
 				}, nil
 			}
 			return &GitAccessResult{

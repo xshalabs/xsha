@@ -1,10 +1,10 @@
 package routes
 
 import (
-	"sleep0-backend/config"
-	"sleep0-backend/handlers"
-	"sleep0-backend/middleware"
-	"sleep0-backend/services"
+	"xsha-backend/config"
+	"xsha-backend/handlers"
+	"xsha-backend/middleware"
+	"xsha-backend/services"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"

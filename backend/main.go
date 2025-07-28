@@ -1,6 +1,6 @@
-// @title Sleep0 Backend API
+// @title XSHA Backend API
 // @version 1.0
-// @description Sleep0 Backend API服务，提供用户认证、项目管理、Git凭据管理等功能
+// @description XSHA Backend API服务，提供用户认证、项目管理、Git凭据管理等功能
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support
@@ -23,19 +23,19 @@ package main
 import (
 	"os"
 	"os/signal"
-	"sleep0-backend/config"
-	"sleep0-backend/database"
-	"sleep0-backend/handlers"
-	"sleep0-backend/i18n"
-	"sleep0-backend/repository"
-	"sleep0-backend/routes"
-	"sleep0-backend/scheduler"
-	"sleep0-backend/services"
-	"sleep0-backend/utils"
 	"syscall"
 	"time"
+	"xsha-backend/config"
+	"xsha-backend/database"
+	"xsha-backend/handlers"
+	"xsha-backend/i18n"
+	"xsha-backend/repository"
+	"xsha-backend/routes"
+	"xsha-backend/scheduler"
+	"xsha-backend/services"
+	"xsha-backend/utils"
 
-	_ "sleep0-backend/docs" // 自动生成的swagger docs
+	_ "xsha-backend/docs" // 自动生成的swagger docs
 
 	"github.com/gin-gonic/gin"
 )

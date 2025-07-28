@@ -36,7 +36,7 @@ volumes:
 
 ```yaml
 environment:
-  - SLEEP0_WORKSPACE_BASE_DIR=/app/workspaces
+  - XSHA_WORKSPACE_BASE_DIR=/app/workspaces
 ```
 
 ## 使用步骤

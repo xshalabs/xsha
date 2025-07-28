@@ -2,8 +2,8 @@ package config
 
 import (
 	"os"
-	"sleep0-backend/utils"
 	"strconv"
+	"xsha-backend/utils"
 
 	"github.com/joho/godotenv"
 )
@@ -45,32 +45,32 @@ func Load() *Config {
 	}
 
 	// 获取AES密钥（仅用于Git凭据加密）
-	aesKey := normalizeAESKey(getEnv("SLEEP0_AES_KEY", "default-aes-key-change-in-production"))
+	aesKey := normalizeAESKey(getEnv("XSHA_AES_KEY", "default-aes-key-change-in-production"))
 
 	config := &Config{
-		Port:         getEnv("SLEEP0_PORT", "8080"),
-		Environment:  getEnv("SLEEP0_ENVIRONMENT", "development"),
-		DatabaseType: getEnv("SLEEP0_DATABASE_TYPE", "sqlite"),
-		SQLitePath:   getEnv("SLEEP0_SQLITE_PATH", "app.db"),
-		MySQLDSN:     getEnv("SLEEP0_MYSQL_DSN", ""),
-		AdminUser:    getEnv("SLEEP0_ADMIN_USER", "admin"),
-		AdminPass:    getEnv("SLEEP0_ADMIN_PASS", "admin123"), // 直接读取明文密码
-		JWTSecret:    getEnv("SLEEP0_JWT_SECRET", "your-jwt-secret-key-change-this-in-production"),
+		Port:         getEnv("XSHA_PORT", "8080"),
+		Environment:  getEnv("XSHA_ENVIRONMENT", "development"),
+		DatabaseType: getEnv("XSHA_DATABASE_TYPE", "sqlite"),
+		SQLitePath:   getEnv("XSHA_SQLITE_PATH", "app.db"),
+		MySQLDSN:     getEnv("XSHA_MYSQL_DSN", ""),
+		AdminUser:    getEnv("XSHA_ADMIN_USER", "admin"),
+		AdminPass:    getEnv("XSHA_ADMIN_PASS", "admin123"), // 直接读取明文密码
+		JWTSecret:    getEnv("XSHA_JWT_SECRET", "your-jwt-secret-key-change-this-in-production"),
 		AESKey:       aesKey,
 
 		// 定时器配置
-		SchedulerInterval:      getEnv("SLEEP0_SCHEDULER_INTERVAL", "30s"),
-		WorkspaceBaseDir:       getEnv("SLEEP0_WORKSPACE_BASE_DIR", "/tmp/sleep0-workspaces"),
-		DockerExecutionTimeout: getEnv("SLEEP0_DOCKER_TIMEOUT", "30m"),
-		MaxConcurrentTasks:     getEnvInt("SLEEP0_MAX_CONCURRENT_TASKS", 5),
+		SchedulerInterval:      getEnv("XSHA_SCHEDULER_INTERVAL", "30s"),
+		WorkspaceBaseDir:       getEnv("XSHA_WORKSPACE_BASE_DIR", "/tmp/xsha-workspaces"),
+		DockerExecutionTimeout: getEnv("XSHA_DOCKER_TIMEOUT", "30m"),
+		MaxConcurrentTasks:     getEnvInt("XSHA_MAX_CONCURRENT_TASKS", 5),
 
 		// Git配置 - 默认禁用SSL验证以解决兼容性问题
-		GitSSLVerify: getEnvBool("SLEEP0_GIT_SSL_VERIFY", false),
+		GitSSLVerify: getEnvBool("XSHA_GIT_SSL_VERIFY", false),
 
 		// 日志配置
-		LogLevel:  utils.LogLevel(getEnv("SLEEP0_LOG_LEVEL", "INFO")),
-		LogFormat: utils.LogFormat(getEnv("SLEEP0_LOG_FORMAT", "JSON")),
-		LogOutput: getEnv("SLEEP0_LOG_OUTPUT", "stdout"),
+		LogLevel:  utils.LogLevel(getEnv("XSHA_LOG_LEVEL", "INFO")),
+		LogFormat: utils.LogFormat(getEnv("XSHA_LOG_FORMAT", "JSON")),
+		LogOutput: getEnv("XSHA_LOG_OUTPUT", "stdout"),
 	}
 
 	return config

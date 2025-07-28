@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"sleep0-backend/database"
 	"time"
+	"xsha-backend/database"
 
 	"gorm.io/gorm"
 )

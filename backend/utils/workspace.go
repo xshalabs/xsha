@@ -20,7 +20,7 @@ type WorkspaceManager struct {
 // NewWorkspaceManager 创建工作目录管理器
 func NewWorkspaceManager(baseDir string) *WorkspaceManager {
 	if baseDir == "" {
-		baseDir = "/tmp/sleep0-workspaces"
+		baseDir = "/tmp/xsha-workspaces"
 	}
 	return &WorkspaceManager{baseDir: baseDir}
 }
@@ -129,13 +129,13 @@ func (w *WorkspaceManager) CommitChanges(workspacePath, message string) (string,
 	defer cancel()
 
 	// 配置Git用户信息（临时）
-	configCmd1 := exec.CommandContext(ctx, "git", "config", "user.name", "Sleep0 AI")
+	configCmd1 := exec.CommandContext(ctx, "git", "config", "user.name", "XSHA AI")
 	configCmd1.Dir = workspacePath
 	if err := configCmd1.Run(); err != nil {
 		return "", fmt.Errorf("配置Git用户名失败: %v", err)
 	}
 
-	configCmd2 := exec.CommandContext(ctx, "git", "config", "user.email", "ai@sleep0.dev")
+	configCmd2 := exec.CommandContext(ctx, "git", "config", "user.email", "ai@xsha.dev")
 	configCmd2.Dir = workspacePath
 	if err := configCmd2.Run(); err != nil {
 		return "", fmt.Errorf("配置Git邮箱失败: %v", err)

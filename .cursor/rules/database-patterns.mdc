@@ -1,6 +1,6 @@
 # Database Patterns and GORM Conventions
 
-Database layer patterns for the Sleep0 project using GORM ORM.
+Database layer patterns for the XSHA project using GORM ORM.
 
 ## Model Definition ([backend/database/models.go](mdc:backend/database/models.go))
 

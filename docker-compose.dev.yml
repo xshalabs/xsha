@@ -6,21 +6,21 @@ services:
       context: .
       dockerfile: Dockerfile.dev
       target: development
-    container_name: sleep0-backend-dev
+    container_name: xsha-backend-dev
     ports:
       - "8080:8080"
     environment:
-      - SLEEP0_PORT=8080
-      - SLEEP0_ENVIRONMENT=development
-      - SLEEP0_DATABASE_TYPE=sqlite
-      - SLEEP0_SQLITE_PATH=/app/data/app.db
-      - SLEEP0_ADMIN_USER=admin
-      - SLEEP0_ADMIN_PASS=admin123
-      - SLEEP0_JWT_SECRET=dev-jwt-secret
-      - SLEEP0_WORKSPACE_BASE_DIR=/app/workspaces
-      - SLEEP0_SCHEDULER_INTERVAL=3s
-      - SLEEP0_DOCKER_TIMEOUT=30m
-      - SLEEP0_GIT_SSL_VERIFY=false
+      - XSHA_PORT=8080
+      - XSHA_ENVIRONMENT=development
+      - XSHA_DATABASE_TYPE=sqlite
+      - XSHA_SQLITE_PATH=/app/data/app.db
+      - XSHA_ADMIN_USER=admin
+      - XSHA_ADMIN_PASS=admin123
+      - XSHA_JWT_SECRET=dev-jwt-secret
+      - XSHA_WORKSPACE_BASE_DIR=/app/workspaces
+      - XSHA_SCHEDULER_INTERVAL=3s
+      - XSHA_DOCKER_TIMEOUT=30m
+      - XSHA_GIT_SSL_VERIFY=false
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./backend:/app:cached

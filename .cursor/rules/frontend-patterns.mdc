@@ -1,6 +1,6 @@
 # Frontend Patterns and Conventions
 
-React + TypeScript patterns used in the Sleep0 frontend application.
+React + TypeScript patterns used in the XSHA frontend application.
 
 ## Project Structure and Organization
 
@@ -195,7 +195,7 @@ export const usePageTitle = (titleKey: string) => {
     const { t } = useTranslation();
     
     useEffect(() => {
-        document.title = `${t(titleKey)} - Sleep0`;
+        document.title = `${t(titleKey)} - XSHA`;
     }, [titleKey, t]);
 };
 ```

@@ -1,13 +1,13 @@
 // 应用配置常量
 export const APP_CONFIG = {
-  name: import.meta.env.VITE_APP_NAME || 'Sleep0',
+  name: import.meta.env.VITE_APP_NAME || 'XSHA',
   version: import.meta.env.VITE_APP_VERSION || '1.0.0',
 } as const;
 
 // 本地存储键
 export const STORAGE_KEYS = {
-  authToken: 'sleep0_auth_token',
-  language: 'sleep0_language',
+  authToken: 'xsha_auth_token',
+  language: 'xsha_language',
 } as const;
 
 // API配置常量

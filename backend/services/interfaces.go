@@ -1,9 +1,9 @@
 package services
 
 import (
-	"sleep0-backend/database"
-	"sleep0-backend/utils"
 	"time"
+	"xsha-backend/database"
+	"xsha-backend/utils"
 )
 
 // AuthService 定义认证服务接口

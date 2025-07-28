@@ -31,7 +31,7 @@ export function SiteHeader() {
       case "/login":
         return t("common.pageTitle.login");
       default:
-        return t("common.app.name", "Sleep0");
+        return t("common.app.name", "XSHA");
     }
   };
 

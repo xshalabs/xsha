@@ -6,7 +6,7 @@ help: ## Show help information
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 # Project configuration
-APP_NAME=sleep0-backend
+APP_NAME=xsha-backend
 BUILD_DIR=./build
 BACKEND_DIR=./backend
 BINARY_NAME=$(APP_NAME)

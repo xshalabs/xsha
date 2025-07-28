@@ -6,23 +6,23 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: sleep0-backend
+    container_name: xsha-backend
     ports:
       - "8080:8080"
     environment:
-      - SLEEP0_PORT=8080
-      - SLEEP0_ENVIRONMENT=development
-      - SLEEP0_DATABASE_TYPE=mysql
-      - SLEEP0_MYSQL_DSN=root:password@tcp(mysql:3306)/sleep0?charset=utf8mb4&parseTime=True&loc=Local
-      - SLEEP0_ADMIN_USER=admin
-      - SLEEP0_ADMIN_PASS=admin123
-      - SLEEP0_JWT_SECRET=your-jwt-secret-key-change-this-in-production
-      - SLEEP0_WORKSPACE_BASE_DIR=/app/workspaces
+      - XSHA_PORT=8080
+      - XSHA_ENVIRONMENT=development
+      - XSHA_DATABASE_TYPE=mysql
+      - XSHA_MYSQL_DSN=root:password@tcp(mysql:3306)/xsha?charset=utf8mb4&parseTime=True&loc=Local
+      - XSHA_ADMIN_USER=admin
+      - XSHA_ADMIN_PASS=admin123
+      - XSHA_JWT_SECRET=your-jwt-secret-key-change-this-in-production
+      - XSHA_WORKSPACE_BASE_DIR=/app/workspaces
     depends_on:
       mysql:
         condition: service_healthy
     networks:
-      - sleep0-network
+      - xsha-network
     restart: unless-stopped
     volumes:
       # Mount code directory for development
@@ -41,19 +41,19 @@ services:
   # MySQL database service
   mysql:
     image: mysql:8.0
-    container_name: sleep0-mysql
+    container_name: xsha-mysql
     environment:
       - MYSQL_ROOT_PASSWORD=password
-      - MYSQL_DATABASE=sleep0
-      - MYSQL_USER=sleep0
-      - MYSQL_PASSWORD=sleep0pass
+      - MYSQL_DATABASE=xsha
+      - MYSQL_USER=xsha
+      - MYSQL_PASSWORD=xshapass
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
-      - sleep0-network
+      - xsha-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
@@ -65,7 +65,7 @@ services:
   # phpMyAdmin (optional, for database management)
   phpmyadmin:
     image: phpmyadmin:latest
-    container_name: sleep0-phpmyadmin
+    container_name: xsha-phpmyadmin
     environment:
       - PMA_HOST=mysql
       - PMA_PORT=3306
@@ -77,14 +77,14 @@ services:
       mysql:
         condition: service_healthy
     networks:
-      - sleep0-network
+      - xsha-network
     restart: unless-stopped
     profiles:
       - tools
 
 # Network configuration
 networks:
-  sleep0-network:
+  xsha-network:
     driver: bridge
 
 # Data volumes

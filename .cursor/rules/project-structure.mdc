@@ -2,7 +2,7 @@
 alwaysApply: true
 ---
 
-# Sleep0 Project Structure Guide
+# XSHA Project Structure Guide
 
 This is a full-stack Go + React application with clean architecture principles.
 

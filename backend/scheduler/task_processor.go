@@ -1,8 +1,8 @@
 package scheduler
 
 import (
-	"sleep0-backend/services"
-	"sleep0-backend/utils"
+	"xsha-backend/services"
+	"xsha-backend/utils"
 )
 
 type taskProcessor struct {

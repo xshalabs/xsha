@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"net/http"
-	"sleep0-backend/i18n"
+	"xsha-backend/i18n"
 
 	"github.com/gin-gonic/gin"
 )

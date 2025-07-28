@@ -2,8 +2,8 @@ package database
 
 import (
 	"fmt"
-	"sleep0-backend/config"
-	"sleep0-backend/utils"
+	"xsha-backend/config"
+	"xsha-backend/utils"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
@@ -24,7 +24,7 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 	case "mysql":
 		if cfg.MySQLDSN == "" {
 			utils.Error("MySQL DSN not configured")
-			panic("MySQL DSN not configured, please set SLEEP0_MYSQL_DSN environment variable")
+			panic("MySQL DSN not configured, please set XSHA_MYSQL_DSN environment variable")
 		}
 		db, err = gorm.Open(mysql.Open(cfg.MySQLDSN), &gorm.Config{})
 		if err != nil {

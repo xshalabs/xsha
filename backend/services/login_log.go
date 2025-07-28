@@ -1,8 +1,8 @@
 package services
 
 import (
-	"sleep0-backend/database"
-	"sleep0-backend/repository"
+	"xsha-backend/database"
+	"xsha-backend/repository"
 )
 
 type loginLogService struct {

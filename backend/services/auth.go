@@ -1,9 +1,9 @@
 package services
 
 import (
-	"sleep0-backend/config"
-	"sleep0-backend/repository"
-	"sleep0-backend/utils"
+	"xsha-backend/config"
+	"xsha-backend/repository"
+	"xsha-backend/utils"
 )
 
 type authService struct {

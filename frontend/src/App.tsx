@@ -50,7 +50,7 @@ function NotFoundPage() {
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="sleep0-ui-theme">
+    <ThemeProvider defaultTheme="system" storageKey="xsha-ui-theme">
       <Router>
         <AuthProvider>
         <Routes>

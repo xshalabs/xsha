@@ -6,6 +6,6 @@ WORKDIR /app
 
 RUN npm install -g opencode-ai@latest
 
-RUN useradd -m sleep0
+RUN useradd -m xsha
 
-USER sleep0
+USER xsha

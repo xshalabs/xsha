@@ -1,11 +1,11 @@
 package main
 
 import (
-	"sleep0-backend/config"
-	"sleep0-backend/database"
-	"sleep0-backend/repository"
-	"sleep0-backend/services"
-	"sleep0-backend/utils"
+	"xsha-backend/config"
+	"xsha-backend/database"
+	"xsha-backend/repository"
+	"xsha-backend/services"
+	"xsha-backend/utils"
 )
 
 func main() {

@@ -1,6 +1,6 @@
 # Docker Deployment Patterns
 
-Multi-service containerized deployment for the Sleep0 application.
+Multi-service containerized deployment for the XSHA application.
 
 ## Project Docker Architecture
 
@@ -12,7 +12,7 @@ services:
   phpmyadmin:    # Database administration (optional)
 ```
 
-**Network Configuration**: All services communicate via `sleep0-network` bridge network
+**Network Configuration**: All services communicate via `xsha-network` bridge network
 
 ## Application Container ([Dockerfile](mdc:Dockerfile))
 
@@ -58,11 +58,11 @@ COPY --from=frontend-builder /app/dist ./static
 **Environment Variables**:
 ```yaml
 environment:
-  - SLEEP0_PORT=8080
-  - SLEEP0_ENVIRONMENT=development
-  - SLEEP0_DATABASE_TYPE=mysql
-  - SLEEP0_MYSQL_DSN=root:password@tcp(mysql:3306)/sleep0?charset=utf8mb4&parseTime=True&loc=Local
-  - SLEEP0_WORKSPACE_BASE_DIR=/app/workspaces
+  - XSHA_PORT=8080
+  - XSHA_ENVIRONMENT=development
+  - XSHA_DATABASE_TYPE=mysql
+  - XSHA_MYSQL_DSN=root:password@tcp(mysql:3306)/xsha?charset=utf8mb4&parseTime=True&loc=Local
+  - XSHA_WORKSPACE_BASE_DIR=/app/workspaces
 ```
 
 **Volume Mounts**:
@@ -83,9 +83,9 @@ mysql:
   image: mysql:8.0
   environment:
     - MYSQL_ROOT_PASSWORD=password
-    - MYSQL_DATABASE=sleep0
-    - MYSQL_USER=sleep0  
-    - MYSQL_PASSWORD=sleep0pass
+    - MYSQL_DATABASE=xsha
+    - MYSQL_USER=xsha  
+    - MYSQL_PASSWORD=xshapass
   volumes:
     - mysql_data:/var/lib/mysql           # Persistent data
     - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql  # Initialization
@@ -118,8 +118,8 @@ services:
     volumes:
       - ./backend:/app:rw                 # Read-write for development
     environment:
-      - SLEEP0_ENVIRONMENT=development
-      - SLEEP0_LOG_LEVEL=debug
+      - XSHA_ENVIRONMENT=development
+      - XSHA_LOG_LEVEL=debug
 ```
 
 ### Production Optimizations
@@ -188,7 +188,7 @@ deploy:
 
 ```yaml
 networks:
-  sleep0-network:
+  xsha-network:
     driver: bridge
     ipam:
       config:
@@ -234,7 +234,7 @@ docker-compose up -d --scale app=2
 
 ```bash
 # Database backup
-docker-compose exec mysql mysqldump -u root -p sleep0 > backup.sql
+docker-compose exec mysql mysqldump -u root -p xsha > backup.sql
 
 # View service health
 docker-compose ps

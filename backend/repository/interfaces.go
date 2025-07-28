@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"sleep0-backend/database"
 	"time"
+	"xsha-backend/database"
 )
 
 // TokenBlacklistRepository 定义Token黑名单仓库接口

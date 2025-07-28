@@ -1,9 +1,9 @@
 -- MySQL database initialization script
 -- Create database (if not exists)
-CREATE DATABASE IF NOT EXISTS sleep0 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS xsha CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Use database
-USE sleep0;
+USE xsha;
 
 -- Set timezone
 SET time_zone = '+08:00';
@@ -17,7 +17,7 @@ SET time_zone = '+08:00';
 -- ('admin', 'admin@example.com', NOW(), NOW());
 
 -- Set permissions
-GRANT ALL PRIVILEGES ON sleep0.* TO 'sleep0'@'%';
+GRANT ALL PRIVILEGES ON xsha.* TO 'xsha'@'%';
 FLUSH PRIVILEGES;
 
 -- Show created databases

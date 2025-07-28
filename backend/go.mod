@@ -1,4 +1,4 @@
-module sleep0-backend
+module xsha-backend
 
 go 1.23.1
 

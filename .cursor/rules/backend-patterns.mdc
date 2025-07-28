@@ -1,6 +1,6 @@
 # Backend Architecture Patterns
 
-The Sleep0 backend follows clean architecture with strict layer separation.
+The XSHA backend follows clean architecture with strict layer separation.
 
 ## Layer Structure
 
@@ -118,8 +118,8 @@ Use environment variables with sensible defaults:
 
 ```go
 type Config struct {
-    Port        string `mapstructure:"SLEEP0_PORT" default:"8080"`
-    Environment string `mapstructure:"SLEEP0_ENVIRONMENT" default:"development"`
+    Port        string `mapstructure:"XSHA_PORT" default:"8080"`
+    Environment string `mapstructure:"XSHA_ENVIRONMENT" default:"development"`
     // ...
 }
 

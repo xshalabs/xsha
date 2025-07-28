@@ -13,7 +13,7 @@ export const LoginPage: React.FC = () => {
           <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
             <GalleryVerticalEnd className="size-4" />
           </div>
-          Sleep0.AI
+          XSHA.AI
         </a>
         <LoginForm />
       </div>

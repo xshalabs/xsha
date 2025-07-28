@@ -1,9 +1,9 @@
 package services
 
 import (
-	"sleep0-backend/database"
-	"sleep0-backend/repository"
 	"time"
+	"xsha-backend/database"
+	"xsha-backend/repository"
 )
 
 type adminOperationLogService struct {

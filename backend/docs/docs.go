@@ -3556,8 +3556,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "Sleep0 Backend API",
-	Description:      "Sleep0 Backend API服务，提供用户认证、项目管理、Git凭据管理等功能",
+	Title:            "XSHA Backend API",
+	Description:      "XSHA Backend API服务，提供用户认证、项目管理、Git凭据管理等功能",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

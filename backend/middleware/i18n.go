@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"sleep0-backend/i18n"
 	"strings"
+	"xsha-backend/i18n"
 
 	"github.com/gin-gonic/gin"
 )

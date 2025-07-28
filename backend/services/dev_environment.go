@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"sleep0-backend/database"
-	"sleep0-backend/repository"
 	"strings"
+	"xsha-backend/database"
+	"xsha-backend/repository"
 )
 
 type devEnvironmentService struct {

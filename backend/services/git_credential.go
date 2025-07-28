@@ -3,11 +3,11 @@ package services
 import (
 	"errors"
 	"fmt"
-	"sleep0-backend/config"
-	"sleep0-backend/database"
-	"sleep0-backend/repository"
-	"sleep0-backend/utils"
 	"strings"
+	"xsha-backend/config"
+	"xsha-backend/database"
+	"xsha-backend/repository"
+	"xsha-backend/utils"
 )
 
 type gitCredentialService struct {

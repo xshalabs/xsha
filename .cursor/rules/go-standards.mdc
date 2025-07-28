@@ -4,7 +4,7 @@ globs: *.go
 
 # Go Standards and Conventions
 
-Follow these Go conventions used throughout the Sleep0 backend.
+Follow these Go conventions used throughout the XSHA backend.
 
 ## Package Organization
 
