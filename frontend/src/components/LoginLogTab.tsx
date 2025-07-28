@@ -17,11 +17,14 @@ export const LoginLogTab: React.FC = () => {
   const loadLogs = async (params?: LoginLogListParams) => {
     try {
       setLoading(true);
+      
+      // 使用传入的 params，如果没有则使用当前的 filters
+      const requestParams = params ?? filters;
+      
       const response = await apiService.adminLogs.getLoginLogs({
-        page: currentPage,
+        page: params?.page ?? currentPage,
         page_size: pageSize,
-        ...filters,
-        ...params,
+        ...requestParams,
       });
 
       setLogs(response.logs);
