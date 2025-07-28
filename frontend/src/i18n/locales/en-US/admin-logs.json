@@ -28,7 +28,7 @@
       "failed": "Failed"
     },
     "filters": {
-      "all": "All",
+      "all": "Filter Options",
       "username": "Username",
       "resource": "Resource Type",
       "operation": "Operation Type",
@@ -64,7 +64,7 @@
       "token_generation_failed": "Token Generation Failed"
     },
     "filters": {
-      "all": "All",
+      "all": "Filter Options",
       "username": "Username",
       "success": "Status"
     },
@@ -86,7 +86,7 @@
     "refresh": "Refresh",
     "export": "Export",
     "detail": "Detail",
-    "search": "Search",
+    "search": "Filter",
     "reset": "Reset",
     "apply": "Apply",
     "page": "Page",
