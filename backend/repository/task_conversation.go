@@ -121,3 +121,10 @@ func (r *taskConversationRepository) HasPendingOrRunningConversations(taskID uin
 	}
 	return count > 0, nil
 }
+
+// UpdateCommitHash 更新对话的提交哈希
+func (r *taskConversationRepository) UpdateCommitHash(id uint, commitHash string) error {
+	return r.db.Model(&database.TaskConversation{}).
+		Where("id = ?", id).
+		Update("commit_hash", commitHash).Error
+}

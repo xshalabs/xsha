@@ -248,6 +248,9 @@ type TaskConversation struct {
 	Content string             `gorm:"type:text;not null" json:"content"` // 对话内容
 	Status  ConversationStatus `gorm:"not null;index" json:"status"`      // 对话状态
 
+	// 执行结果
+	CommitHash string `gorm:"default:''" json:"commit_hash"` // 提交的hash（成功时）
+
 	// 元数据
 	CreatedBy string `gorm:"not null;index" json:"created_by"` // 创建者
 }
@@ -267,7 +270,6 @@ type TaskExecutionLog struct {
 	DockerCommand string `gorm:"type:text" json:"docker_command"`     // 执行的Docker命令
 	ExecutionLogs string `gorm:"type:longtext" json:"execution_logs"` // 执行日志（实时追加）
 	ErrorMessage  string `gorm:"type:text" json:"error_message"`      // 错误信息
-	CommitHash    string `gorm:"default:''" json:"commit_hash"`       // 提交的hash（成功时）
 
 	// 时间信息
 	StartedAt   *time.Time `json:"started_at"`   // 开始执行时间

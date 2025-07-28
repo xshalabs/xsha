@@ -5,7 +5,6 @@ export interface TaskExecutionLog {
   docker_command: string;
   execution_logs: string;
   error_message: string;
-  commit_hash: string;
   started_at: string | null;
   completed_at: string | null;
   created_at: string;

@@ -20,17 +20,19 @@ import {
 } from "lucide-react";
 import { taskExecutionLogsApi } from "@/lib/api/task-execution-logs";
 import type { TaskExecutionLog } from "@/types/task-execution-log";
-import type { ConversationStatus } from "@/types/task-conversation";
+import type { ConversationStatus, TaskConversation } from "@/types/task-conversation";
 
 interface TaskExecutionLogProps {
   conversationId: number;
   conversationStatus: ConversationStatus;
+  conversation?: TaskConversation;
   onStatusChange?: (newStatus: ConversationStatus) => void;
 }
 
 export function TaskExecutionLog({
   conversationId,
   conversationStatus,
+  conversation,
   onStatusChange,
 }: TaskExecutionLogProps) {
   const { t } = useTranslation();
@@ -294,7 +296,7 @@ export function TaskExecutionLog({
         )}
 
         {/* 提交哈希 */}
-        {executionLog.commit_hash && (
+        {conversation?.commit_hash && (
           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-center mb-2">
               <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
@@ -303,7 +305,7 @@ export function TaskExecutionLog({
               </span>
             </div>
             <span className="text-sm text-green-600 font-mono">
-              {executionLog.commit_hash}
+              {conversation.commit_hash}
             </span>
           </div>
         )}

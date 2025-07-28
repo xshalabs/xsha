@@ -203,6 +203,7 @@ const TaskConversationPage: React.FC = () => {
                 <TaskExecutionLog
                   conversationId={selectedConversation.id}
                   conversationStatus={selectedConversation.status}
+                  conversation={selectedConversation}
                   onStatusChange={(newStatus) => 
                     handleConversationStatusChange(selectedConversation.id, newStatus)
                   }

@@ -362,14 +362,18 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 			}
 		}
 
+		// 更新对话的 commit hash（如果成功）
+		if commitHash != "" {
+			if err := s.taskConvRepo.UpdateCommitHash(conv.ID, commitHash); err != nil {
+				utils.Error("更新对话commit hash失败", "error", err)
+			}
+		}
+
 		// 准备执行日志元数据更新
 		updates := make(map[string]interface{})
 
 		if errorMsg != "" {
 			updates["error_message"] = errorMsg
-		}
-		if commitHash != "" {
-			updates["commit_hash"] = commitHash
 		}
 
 		// 更新完成时间

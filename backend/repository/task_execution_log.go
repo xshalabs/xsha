@@ -57,7 +57,6 @@ func (r *taskExecutionLogRepository) UpdateMetadata(id uint, updates map[string]
 	// 明确排除 execution_logs 字段，避免意外覆盖
 	allowedFields := map[string]bool{
 		"error_message":  true,
-		"commit_hash":    true,
 		"started_at":     true,
 		"completed_at":   true,
 		"docker_command": true,

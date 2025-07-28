@@ -112,6 +112,8 @@ type TaskConversationRepository interface {
 	GetPendingConversationsWithDetails() ([]database.TaskConversation, error)
 	// 检查任务是否有pending或running状态的对话
 	HasPendingOrRunningConversations(taskID uint, createdBy string) (bool, error)
+	// 更新对话的提交哈希
+	UpdateCommitHash(id uint, commitHash string) error
 }
 
 // TaskExecutionLogRepository 定义任务执行日志仓库接口

@@ -7,6 +7,7 @@ export interface TaskConversation {
   task_id: number;
   content: string;
   status: ConversationStatus;
+  commit_hash: string;
   created_by: string;
   created_at: string;
   updated_at: string;

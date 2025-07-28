@@ -115,6 +115,10 @@ db-reset: ## Reset database (delete SQLite file)
 	@echo "Resetting database..."
 	rm -f $(BACKEND_DIR)/app.db
 
+migrate-commit-hash: ## Migrate CommitHash from TaskExecutionLog to TaskConversation
+	@echo "Running CommitHash migration..."
+	cd $(BACKEND_DIR) && go run cmd/migrate-commit-hash/main.go
+
 # Install development tools
 install-tools: ## Install development tools
 	@echo "Installing development tools..."
