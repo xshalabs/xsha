@@ -61,8 +61,6 @@ type GitCredential struct {
 	PrivateKey   string `gorm:"type:text" json:"-"`          // 加密的SSH私钥
 	PublicKey    string `gorm:"type:text" json:"public_key"` // SSH公钥（不敏感，可显示）
 
-	// 元数据
-
 	// 关联用户
 	CreatedBy string `gorm:"not null;index;uniqueIndex:idx_name_user" json:"created_by"` // 创建者用户名
 }

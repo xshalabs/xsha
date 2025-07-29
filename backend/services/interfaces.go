@@ -58,13 +58,8 @@ type ProjectService interface {
 	UpdateProject(id uint, createdBy string, updates map[string]interface{}) error
 	DeleteProject(id uint, createdBy string) error
 
-	// 项目操作
-
-	// 凭据相关
 	ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint, createdBy string) error
 	GetCompatibleCredentials(protocol database.GitProtocolType, createdBy string) ([]database.GitCredential, error)
-
-	// Git操作
 	FetchRepositoryBranches(repoURL string, credentialID *uint, createdBy string) (*utils.GitAccessResult, error)
 	ValidateRepositoryAccess(repoURL string, credentialID *uint, createdBy string) error
 }
