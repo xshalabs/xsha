@@ -109,8 +109,7 @@ export function TaskList({
 }: TaskListProps) {
   const { t } = useTranslation();
   const [showFilters, setShowFilters] = useState(false);
-  
-  // 本地筛选状态
+
   const [localFilters, setLocalFilters] = useState({
     status: statusFilter,
     project: projectFilter,
@@ -119,7 +118,6 @@ export function TaskList({
     devEnvironment: devEnvironmentFilter,
   });
 
-  // 同步外部筛选状态到本地状态
   React.useEffect(() => {
     setLocalFilters({
       status: statusFilter,
@@ -128,7 +126,13 @@ export function TaskList({
       branch: branchFilter,
       devEnvironment: devEnvironmentFilter,
     });
-  }, [statusFilter, projectFilter, titleFilter, branchFilter, devEnvironmentFilter]);
+  }, [
+    statusFilter,
+    projectFilter,
+    titleFilter,
+    branchFilter,
+    devEnvironmentFilter,
+  ]);
 
   const handleLocalFilterChange = (
     key: keyof typeof localFilters,
@@ -142,7 +146,6 @@ export function TaskList({
 
   const applyFilters = () => {
     if (onFiltersApply) {
-      // 使用新的统一回调函数
       onFiltersApply({
         status: localFilters.status,
         project: localFilters.project,
@@ -151,7 +154,6 @@ export function TaskList({
         devEnvironment: localFilters.devEnvironment,
       });
     } else {
-      // 兼容旧的回调方式
       onStatusFilterChange(localFilters.status);
       onProjectFilterChange(localFilters.project);
       onTitleFilterChange(localFilters.title);
@@ -170,10 +172,8 @@ export function TaskList({
     };
     setLocalFilters(emptyFilters);
     if (onFiltersApply) {
-      // 使用新的统一回调函数
       onFiltersApply(emptyFilters);
     } else {
-      // 兼容旧的回调方式
       onStatusFilterChange(emptyFilters.status);
       onProjectFilterChange(emptyFilters.project);
       onTitleFilterChange(emptyFilters.title);
@@ -223,7 +223,6 @@ export function TaskList({
   };
 
   const handleRefresh = () => {
-    // 通过重新应用当前过滤器来刷新数据
     applyFilters();
   };
 
@@ -240,7 +239,6 @@ export function TaskList({
 
   return (
     <div className="space-y-6">
-      {/* 顶部工具栏 */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-foreground">
           {t("common.total")} {total} {t("common.items")}
@@ -268,7 +266,6 @@ export function TaskList({
         </div>
       </div>
 
-      {/* 过滤器 */}
       {showFilters && (
         <Card>
           <CardHeader>
@@ -278,7 +275,6 @@ export function TaskList({
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* 项目筛选 */}
               {!hideProjectFilter && (
                 <div className="flex flex-col gap-3">
                   <Label htmlFor="project">{t("tasks.filters.project")}</Label>
@@ -309,7 +305,6 @@ export function TaskList({
                 </div>
               )}
 
-              {/* 状态筛选 */}
               <div className="flex flex-col gap-3">
                 <Label htmlFor="status">{t("tasks.filters.status")}</Label>
                 <Select
@@ -342,7 +337,6 @@ export function TaskList({
                 </Select>
               </div>
 
-              {/* 标题筛选 */}
               <div className="flex flex-col gap-3">
                 <Label htmlFor="title">{t("tasks.filters.taskTitle")}</Label>
                 <Input
@@ -350,12 +344,13 @@ export function TaskList({
                   type="text"
                   placeholder={t("tasks.filters.titlePlaceholder")}
                   value={localFilters.title || ""}
-                  onChange={(e) => handleLocalFilterChange("title", e.target.value)}
+                  onChange={(e) =>
+                    handleLocalFilterChange("title", e.target.value)
+                  }
                   className="w-full"
                 />
               </div>
 
-              {/* 分支筛选 */}
               <div className="flex flex-col gap-3">
                 <Label htmlFor="branch">{t("tasks.filters.branch")}</Label>
                 <Input
@@ -363,14 +358,17 @@ export function TaskList({
                   type="text"
                   placeholder={t("tasks.filters.branchPlaceholder")}
                   value={localFilters.branch || ""}
-                  onChange={(e) => handleLocalFilterChange("branch", e.target.value)}
+                  onChange={(e) =>
+                    handleLocalFilterChange("branch", e.target.value)
+                  }
                   className="w-full"
                 />
               </div>
 
-              {/* 开发环境筛选 */}
               <div className="flex flex-col gap-3">
-                <Label htmlFor="devEnvironment">{t("tasks.filters.devEnvironment")}</Label>
+                <Label htmlFor="devEnvironment">
+                  {t("tasks.filters.devEnvironment")}
+                </Label>
                 <Select
                   value={localFilters.devEnvironment?.toString() || "all"}
                   onValueChange={(value) =>
@@ -386,10 +384,7 @@ export function TaskList({
                   <SelectContent>
                     <SelectItem value="all">{t("common.all")}</SelectItem>
                     {devEnvironments.map((env) => (
-                      <SelectItem
-                        key={env.id}
-                        value={env.id.toString()}
-                      >
+                      <SelectItem key={env.id} value={env.id.toString()}>
                         {env.name} ({env.type})
                       </SelectItem>
                     ))}
@@ -408,7 +403,6 @@ export function TaskList({
         </Card>
       )}
 
-      {/* 任务表格 */}
       <Card>
         <CardHeader>
           <CardTitle>{t("tasks.list")}</CardTitle>
@@ -497,20 +491,6 @@ export function TaskList({
                             <span className="text-sm">
                               {task.dev_environment.name}
                             </span>
-                            <Badge
-                              variant="outline"
-                              className={`text-xs ${
-                                task.dev_environment.status === "running"
-                                  ? "bg-green-100 text-green-800 border-green-300"
-                                  : task.dev_environment.status === "stopped"
-                                  ? "bg-gray-100 text-gray-800 border-gray-300"
-                                  : task.dev_environment.status === "error"
-                                  ? "bg-red-100 text-red-800 border-red-300"
-                                  : "bg-yellow-100 text-yellow-800 border-yellow-300"
-                              }`}
-                            >
-                              {task.dev_environment.status}
-                            </Badge>
                           </div>
                         ) : (
                           <span className="text-xs text-muted-foreground">
@@ -567,7 +547,6 @@ export function TaskList({
                 </TableBody>
               </Table>
 
-              {/* 分页 */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-muted-foreground">
