@@ -1,6 +1,6 @@
 // @title XSHA Backend API
 // @version 1.0
-// @description XSHA Backend API服务，提供用户认证、项目管理、Git凭据管理等功能
+// @description XSHA Backend API service, providing user authentication, project management, Git credential management and other functions
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support
@@ -36,7 +36,7 @@ import (
 	"xsha-backend/services/executor"
 	"xsha-backend/utils"
 
-	_ "xsha-backend/docs" // 自动生成的swagger docs
+	_ "xsha-backend/docs" // Auto-generated swagger docs
 
 	"github.com/gin-gonic/gin"
 )
@@ -93,10 +93,10 @@ func main() {
 	// Initialize scheduler
 	taskProcessor := scheduler.NewTaskProcessor(aiTaskExecutor)
 
-	// 解析定时器间隔
+	// Parse scheduler interval
 	schedulerInterval, err := time.ParseDuration(cfg.SchedulerInterval)
 	if err != nil {
-		utils.Warn("解析定时器间隔失败，使用默认值30秒", "error", err)
+		utils.Warn("Failed to parse scheduler interval, using default value of 30 seconds", "error", err)
 		schedulerInterval = 30 * time.Second
 	}
 
@@ -122,26 +122,26 @@ func main() {
 	// Create gin engine
 	r := gin.Default()
 
-	// Setup routes - 传递所有处理器实例
+	// Setup routes - Pass all handler instances
 	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvResultHandlers, taskExecLogHandlers, sseLogHandlers)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {
-		utils.Error("启动定时器失败", "error", err)
+		utils.Error("Failed to start scheduler", "error", err)
 		os.Exit(1)
 	}
 
-	// 设置优雅关闭
+	// Setup graceful shutdown
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
 		<-sigChan
-		utils.Info("收到关闭信号，正在停止服务...")
+		utils.Info("Received shutdown signal, stopping service...")
 
-		// 停止定时器
+		// Stop scheduler
 		if err := schedulerManager.Stop(); err != nil {
-			utils.Error("停止定时器失败", "error", err)
+			utils.Error("Failed to stop scheduler", "error", err)
 		}
 
 		os.Exit(0)

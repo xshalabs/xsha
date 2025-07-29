@@ -38,16 +38,16 @@ type UpdateEnvironmentRequest struct {
 	EnvVars     map[string]string `json:"env_vars"`
 }
 
-// CreateEnvironment 创建开发环境
-// @Summary 创建开发环境
-// @Description 创建一个新的开发环境
-// @Tags 开发环境
+// CreateEnvironment creates a development environment
+// @Summary Create development environment
+// @Description Create a new development environment
+// @Tags Development Environment
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param environment body CreateEnvironmentRequest true "环境信息"
-// @Success 201 {object} object{message=string,environment=object} "环境创建成功"
-// @Failure 400 {object} object{error=string} "请求参数错误"
+// @Param environment body CreateEnvironmentRequest true "Environment information"
+// @Success 201 {object} object{message=string,environment=object} "Environment created successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
 // @Router /dev-environments [post]
 func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -82,16 +82,16 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 	})
 }
 
-// GetEnvironment 获取单个开发环境
-// @Summary 获取环境详情
-// @Description 根据环境ID获取开发环境详细信息
-// @Tags 开发环境
+// GetEnvironment gets a single development environment
+// @Summary Get environment details
+// @Description Get detailed information of a development environment by ID
+// @Tags Development Environment
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "环境ID"
-// @Success 200 {object} object{environment=object} "环境详情"
-// @Failure 404 {object} object{error=string} "环境不存在"
+// @Param id path int true "Environment ID"
+// @Success 200 {object} object{environment=object} "Environment details"
+// @Failure 404 {object} object{error=string} "Environment not found"
 // @Router /dev-environments/{id} [get]
 func (h *DevEnvironmentHandlers) GetEnvironment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -119,18 +119,18 @@ func (h *DevEnvironmentHandlers) GetEnvironment(c *gin.Context) {
 	})
 }
 
-// ListEnvironments 获取开发环境列表
-// @Summary 获取环境列表
-// @Description 获取当前用户的开发环境列表，支持分页和筛选
-// @Tags 开发环境
+// ListEnvironments gets development environment list
+// @Summary Get environment list
+// @Description Get current user's development environment list with pagination and filtering
+// @Tags Development Environment
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param page query int false "页码，默认为1"
-// @Param page_size query int false "每页数量，默认为10"
-// @Param type query string false "环境类型筛选"
-// @Param name query string false "环境名称筛选"
-// @Success 200 {object} object{environments=[]object,total=number} "环境列表"
+// @Param page query int false "Page number, default is 1"
+// @Param page_size query int false "Page size, default is 10"
+// @Param type query string false "Environment type filter"
+// @Param name query string false "Environment name filter"
+// @Success 200 {object} object{environments=[]object,total=number} "Environment list"
 // @Router /dev-environments [get]
 func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)

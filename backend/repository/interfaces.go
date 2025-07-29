@@ -5,23 +5,23 @@ import (
 	"xsha-backend/database"
 )
 
-// TokenBlacklistRepository 定义Token黑名单仓库接口
+// TokenBlacklistRepository defines Token blacklist repository interface
 type TokenBlacklistRepository interface {
 	Add(token string, username string, expiresAt time.Time, reason string) error
 	IsBlacklisted(token string) (bool, error)
 	CleanExpired() error
 }
 
-// LoginLogRepository 定义登录日志仓库接口
+// LoginLogRepository defines login log repository interface
 type LoginLogRepository interface {
 	Add(username, ip, userAgent, reason string, success bool) error
 	GetLogs(username string, page, pageSize int) ([]database.LoginLog, int64, error)
 	CleanOld(days int) error
 }
 
-// GitCredentialRepository 定义Git凭据仓库接口
+// GitCredentialRepository defines Git credential repository interface
 type GitCredentialRepository interface {
-	// 基本CRUD操作
+	// Basic CRUD operations
 	Create(credential *database.GitCredential) error
 	GetByID(id uint, createdBy string) (*database.GitCredential, error)
 	GetByName(name, createdBy string) (*database.GitCredential, error)
@@ -29,12 +29,12 @@ type GitCredentialRepository interface {
 	Update(credential *database.GitCredential) error
 	Delete(id uint, createdBy string) error
 
-	// 业务操作
+	// Business operations
 }
 
-// ProjectRepository 定义项目仓库接口
+// ProjectRepository defines project repository interface
 type ProjectRepository interface {
-	// 基本CRUD操作
+	// Basic CRUD operations
 	Create(project *database.Project) error
 	GetByID(id uint, createdBy string) (*database.Project, error)
 	GetByName(name, createdBy string) (*database.Project, error)
@@ -42,32 +42,32 @@ type ProjectRepository interface {
 	Update(project *database.Project) error
 	Delete(id uint, createdBy string) error
 
-	// 业务操作
+	// Business operations
 	UpdateLastUsed(id uint, createdBy string) error
 	GetByCredentialID(credentialID uint, createdBy string) ([]database.Project, error)
 }
 
-// AdminOperationLogRepository 定义管理员操作日志仓库接口
+// AdminOperationLogRepository defines admin operation log repository interface
 type AdminOperationLogRepository interface {
-	// 基本操作
+	// Basic operations
 	Add(log *database.AdminOperationLog) error
 	GetByID(id uint) (*database.AdminOperationLog, error)
 
-	// 查询操作
+	// Query operations
 	List(username string, operation *database.AdminOperationType, resource string,
 		success *bool, startTime, endTime *time.Time, page, pageSize int) ([]database.AdminOperationLog, int64, error)
 
-	// 统计操作
+	// Statistics operations
 	GetOperationStats(username string, startTime, endTime time.Time) (map[string]int64, error)
 	GetResourceStats(username string, startTime, endTime time.Time) (map[string]int64, error)
 
-	// 清理操作
+	// Cleanup operations
 	CleanOld(days int) error
 }
 
-// DevEnvironmentRepository 定义开发环境仓库接口
+// DevEnvironmentRepository defines development environment repository interface
 type DevEnvironmentRepository interface {
-	// 基本CRUD操作
+	// Basic CRUD operations
 	Create(env *database.DevEnvironment) error
 	GetByID(id uint, createdBy string) (*database.DevEnvironment, error)
 	GetByName(name, createdBy string) (*database.DevEnvironment, error)
@@ -76,43 +76,43 @@ type DevEnvironmentRepository interface {
 	Delete(id uint, createdBy string) error
 }
 
-// TaskRepository 定义任务仓库接口
+// TaskRepository defines task repository interface
 type TaskRepository interface {
-	// 基本CRUD操作
+	// Basic CRUD operations
 	Create(task *database.Task) error
 	GetByID(id uint, createdBy string) (*database.Task, error)
 	List(projectID *uint, createdBy string, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error)
 	Update(task *database.Task) error
 	Delete(id uint, createdBy string) error
 
-	// 业务操作
+	// Business operations
 	ListByProject(projectID uint, createdBy string) ([]database.Task, error)
 }
 
-// TaskConversationRepository 定义任务对话仓库接口
+// TaskConversationRepository defines task conversation repository interface
 type TaskConversationRepository interface {
-	// 基本CRUD操作
+	// Basic CRUD operations
 	Create(conversation *database.TaskConversation) error
 	GetByID(id uint, createdBy string) (*database.TaskConversation, error)
 	List(taskID uint, createdBy string, page, pageSize int) ([]database.TaskConversation, int64, error)
 	Update(conversation *database.TaskConversation) error
 	Delete(id uint, createdBy string) error
 
-	// 业务操作
+	// Business operations
 	ListByTask(taskID uint, createdBy string) ([]database.TaskConversation, error)
 	GetLatestByTask(taskID uint, createdBy string) (*database.TaskConversation, error)
 
-	// 新增方法：根据状态查询对话
+	// New methods: query by status
 	ListByStatus(status database.ConversationStatus) ([]database.TaskConversation, error)
-	// 获取待处理的对话（带完整关联信息）
+	// Get pending conversations with complete association information
 	GetPendingConversationsWithDetails() ([]database.TaskConversation, error)
-	// 检查任务是否有pending或running状态的对话
+	// Check if task has pending or running conversations
 	HasPendingOrRunningConversations(taskID uint, createdBy string) (bool, error)
-	// 更新对话的提交哈希
+	// Update conversation commit hash
 	UpdateCommitHash(id uint, commitHash string) error
 }
 
-// TaskExecutionLogRepository 定义任务执行日志仓库接口
+// TaskExecutionLogRepository defines task execution log repository interface
 type TaskExecutionLogRepository interface {
 	Create(log *database.TaskExecutionLog) error
 	GetByID(id uint) (*database.TaskExecutionLog, error)
@@ -123,25 +123,25 @@ type TaskExecutionLogRepository interface {
 	DeleteByConversationID(conversationID uint) error
 }
 
-// TaskConversationResultRepository 定义任务对话结果仓库接口
+// TaskConversationResultRepository defines task conversation result repository interface
 type TaskConversationResultRepository interface {
-	// 基本CRUD操作
+	// Basic CRUD operations
 	Create(result *database.TaskConversationResult) error
 	GetByID(id uint) (*database.TaskConversationResult, error)
 	GetByConversationID(conversationID uint) (*database.TaskConversationResult, error)
 	Update(result *database.TaskConversationResult) error
 	Delete(id uint) error
 
-	// 查询操作
+	// Query operations
 	ListByTaskID(taskID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error)
 	ListByProjectID(projectID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error)
 
-	// 统计操作
+	// Statistics operations
 	GetSuccessRate(taskID uint) (float64, error)
 	GetTotalCost(taskID uint) (float64, error)
 	GetAverageDuration(taskID uint) (float64, error)
 
-	// 业务操作
+	// Business operations
 	ExistsByConversationID(conversationID uint) (bool, error)
 	DeleteByConversationID(conversationID uint) error
 }

@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// LogLevel 日志级别类型
+// LogLevel log level type
 type LogLevel string
 
 const (
@@ -20,7 +20,7 @@ const (
 	LevelError LogLevel = "ERROR"
 )
 
-// LogFormat 日志格式类型
+// LogFormat log format type
 type LogFormat string
 
 const (
@@ -28,7 +28,7 @@ const (
 	FormatText LogFormat = "TEXT"
 )
 
-// LogConfig 日志配置
+// LogConfig log configuration
 type LogConfig struct {
 	Level  LogLevel  `json:"level" env:"LOG_LEVEL" default:"INFO"`
 	Format LogFormat `json:"format" env:"LOG_FORMAT" default:"JSON"`
@@ -37,9 +37,9 @@ type LogConfig struct {
 
 var defaultLogger *slog.Logger
 
-// InitLogger 初始化全局日志记录器
+// InitLogger initializes the global logger
 func InitLogger(config LogConfig) error {
-	// 解析日志级别
+	// Parse log level
 	var level slog.Level
 	switch strings.ToUpper(string(config.Level)) {
 	case "DEBUG":
@@ -54,12 +54,12 @@ func InitLogger(config LogConfig) error {
 		level = slog.LevelInfo
 	}
 
-	// 配置选项
+	// Configure options
 	opts := &slog.HandlerOptions{
 		Level:     level,
-		AddSource: false, // 我们手动添加源码位置信息
+		AddSource: false, // We manually add source location information
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-			// 自定义时间格式
+			// Custom time format
 			if a.Key == slog.TimeKey {
 				return slog.String("timestamp", a.Value.Time().Format("2006-01-02T15:04:05.000Z07:00"))
 			}
@@ -67,7 +67,7 @@ func InitLogger(config LogConfig) error {
 		},
 	}
 
-	// 确定输出目标
+	// Determine output target
 	var output *os.File
 	switch config.Output {
 	case "stdout", "":
@@ -75,7 +75,7 @@ func InitLogger(config LogConfig) error {
 	case "stderr":
 		output = os.Stderr
 	default:
-		// 文件输出
+		// File output
 		file, err := os.OpenFile(config.Output, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 		if err != nil {
 			return err
@@ -83,7 +83,7 @@ func InitLogger(config LogConfig) error {
 		output = file
 	}
 
-	// 创建Handler
+	// Create Handler
 	var handler slog.Handler
 	switch config.Format {
 	case FormatJSON:
@@ -94,17 +94,17 @@ func InitLogger(config LogConfig) error {
 		handler = slog.NewJSONHandler(output, opts)
 	}
 
-	// 设置全局日志记录器
+	// Set global logger
 	defaultLogger = slog.New(handler)
 	slog.SetDefault(defaultLogger)
 
 	return nil
 }
 
-// GetLogger 获取默认日志记录器
+// GetLogger gets the default logger
 func GetLogger() *slog.Logger {
 	if defaultLogger == nil {
-		// 如果没有初始化，使用默认配置
+		// If not initialized, use default configuration
 		InitLogger(LogConfig{
 			Level:  LevelInfo,
 			Format: FormatJSON,
@@ -114,7 +114,7 @@ func GetLogger() *slog.Logger {
 	return defaultLogger
 }
 
-// WithContext 创建带上下文的日志记录器
+// WithContext creates a logger with context
 func WithContext(ctx context.Context) *slog.Logger {
 	logger := GetLogger()
 
@@ -132,7 +132,7 @@ func WithContext(ctx context.Context) *slog.Logger {
 	return logger
 }
 
-// WithFields 创建带字段的日志记录器
+// WithFields creates a logger with fields
 func WithFields(fields map[string]interface{}) *slog.Logger {
 	logger := GetLogger()
 	args := make([]interface{}, 0, len(fields)*2)
