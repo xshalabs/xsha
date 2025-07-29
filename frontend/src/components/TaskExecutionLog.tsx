@@ -20,7 +20,10 @@ import {
 } from "lucide-react";
 import { taskExecutionLogsApi } from "@/lib/api/task-execution-logs";
 import type { TaskExecutionLog } from "@/types/task-execution-log";
-import type { ConversationStatus, TaskConversation } from "@/types/task-conversation";
+import type {
+  ConversationStatus,
+  TaskConversation,
+} from "@/types/task-conversation";
 
 interface TaskExecutionLogProps {
   conversationId: number;
@@ -46,19 +49,16 @@ export function TaskExecutionLog({
   const [showLogs, setShowLogs] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 检查是否可以取消 - 基于对话状态
   const canCancel = (conversationStatus: ConversationStatus) => {
     return conversationStatus === "pending" || conversationStatus === "running";
   };
 
-  // 检查是否可以重试 - 基于对话状态
   const canRetry = (conversationStatus: ConversationStatus) => {
     return (
       conversationStatus === "failed" || conversationStatus === "cancelled"
     );
   };
 
-  // 加载执行日志
   const loadExecutionLog = async () => {
     if (!conversationId) return;
 
@@ -70,13 +70,12 @@ export function TaskExecutionLog({
       setExecutionLog(log);
     } catch (error) {
       console.error("Failed to load execution log:", error);
-      setError(t('errors.execution_log_load_failed'));
+      setError(t("errors.execution_log_load_failed"));
     } finally {
       setLoading(false);
     }
   };
 
-  // 取消执行
   const handleCancel = async () => {
     if (!conversationId) return;
 
@@ -87,13 +86,12 @@ export function TaskExecutionLog({
       onStatusChange?.("cancelled");
     } catch (error) {
       console.error("Failed to cancel execution:", error);
-      setError(t('errors.execution_cancel_failed'));
+      setError(t("errors.execution_cancel_failed"));
     } finally {
       setActionLoading(null);
     }
   };
 
-  // 重试执行
   const handleRetry = async () => {
     if (!conversationId) return;
 
@@ -104,19 +102,17 @@ export function TaskExecutionLog({
       onStatusChange?.("running");
     } catch (error) {
       console.error("Failed to retry execution:", error);
-      setError(t('errors.execution_retry_failed'));
+      setError(t("errors.execution_retry_failed"));
     } finally {
       setActionLoading(null);
     }
   };
 
-  // 格式化时间
   const formatTime = (dateString: string | null) => {
     if (!dateString) return "-";
     return new Date(dateString).toLocaleString();
   };
 
-  // 格式化持续时间
   const formatDuration = (startTime: string | null, endTime: string | null) => {
     if (!startTime) return "-";
     const start = new Date(startTime);
@@ -135,14 +131,12 @@ export function TaskExecutionLog({
     }
   };
 
-  // 初始加载
   useEffect(() => {
     if (conversationStatus !== "pending") {
       loadExecutionLog();
     }
   }, [conversationId, conversationStatus]);
 
-  // 如果对话状态是 pending，不显示执行日志
   if (conversationStatus === "pending") {
     return null;
   }
@@ -206,7 +200,6 @@ export function TaskExecutionLog({
           </div>
 
           <div className="flex items-center space-x-2">
-            {/* 操作按钮 */}
             {canCancel(conversationStatus) && (
               <Button
                 variant="outline"
@@ -235,7 +228,6 @@ export function TaskExecutionLog({
       </CardHeader>
 
       <CardContent className="space-y-4 flex-1 overflow-y-auto">
-        {/* 执行信息 */}
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-gray-500">
@@ -262,10 +254,8 @@ export function TaskExecutionLog({
               )}
             </span>
           </div>
-
         </div>
 
-        {/* 错误信息 */}
         {executionLog.error_message && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center mb-2">
@@ -280,7 +270,6 @@ export function TaskExecutionLog({
           </div>
         )}
 
-        {/* Docker 命令 */}
         {executionLog.docker_command && (
           <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
             <div className="flex items-center mb-2">
@@ -295,7 +284,6 @@ export function TaskExecutionLog({
           </div>
         )}
 
-        {/* 提交哈希 */}
         {conversation?.commit_hash && (
           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-center mb-2">
@@ -310,11 +298,10 @@ export function TaskExecutionLog({
           </div>
         )}
 
-        {/* 执行日志 */}
         {executionLog.execution_logs && (
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-gray-700">
+              <span className="font-medium text-foreground">
                 {t("taskConversation.execution.info.executionLogs")}
               </span>
               <Button
