@@ -10,6 +10,14 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { apiService } from "@/lib/api/index";
 import type {
   GitCredential,
@@ -45,7 +53,6 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
 
   const isEditing = !!credential;
 
-  // 初始化表单数据
   useEffect(() => {
     if (credential) {
       setFormData({
@@ -61,12 +68,10 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
     }
   }, [credential]);
 
-  // 表单字段更新
   const updateField = (field: keyof GitCredentialFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // 表单验证
   const validateForm = (): string | null => {
     if (!formData.name.trim())
       return t("gitCredentials.validation.nameRequired");
@@ -92,7 +97,6 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
     return null;
   };
 
-  // 构建提交数据
   const buildSubmitData = () => {
     const secretData: Record<string, string> = {};
 
@@ -101,7 +105,7 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
         if (formData.password) secretData.password = formData.password;
         break;
       case CredentialTypes.TOKEN:
-        if (formData.token) secretData.password = formData.token; // token存储在password字段
+        if (formData.token) secretData.password = formData.token;
         break;
       case CredentialTypes.SSH_KEY:
         if (formData.private_key) secretData.private_key = formData.private_key;
@@ -118,7 +122,6 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
     };
   };
 
-  // 提交表单
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -135,10 +138,8 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
       const submitData = buildSubmitData();
 
       if (isEditing && credential) {
-        // 编辑模式
         await apiService.gitCredentials.update(credential.id, submitData);
       } else {
-        // 创建模式
         await apiService.gitCredentials.create(submitData);
       }
 
@@ -183,7 +184,7 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
           )}
 
           <div className="space-y-4">
-            <div>
+            <div className="flex flex-col gap-3">
               <Label htmlFor="name">{t("gitCredentials.name")} *</Label>
               <Input
                 id="name"
@@ -195,7 +196,7 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
               />
             </div>
 
-            <div>
+            <div className="flex flex-col gap-3">
               <Label htmlFor="description">
                 {t("gitCredentials.description")}
               </Label>
@@ -208,31 +209,33 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
               />
             </div>
 
-            <div>
+            <div className="flex flex-col gap-3">
               <Label htmlFor="type">{t("gitCredentials.type")} *</Label>
-              <select
-                id="type"
+              <Select
                 value={formData.type}
-                onChange={(e) =>
-                  updateField("type", e.target.value as GitCredentialType)
+                onValueChange={(value) =>
+                  updateField("type", value as GitCredentialType)
                 }
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-                disabled={isEditing} // 编辑时不允许修改类型
+                disabled={isEditing}
               >
-                <option value={CredentialTypes.PASSWORD}>
-                  {t("gitCredentials.types.password")}
-                </option>
-                <option value={CredentialTypes.TOKEN}>
-                  {t("gitCredentials.types.token")}
-                </option>
-                <option value={CredentialTypes.SSH_KEY}>
-                  {t("gitCredentials.types.ssh_key")}
-                </option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t("gitCredentials.type")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={CredentialTypes.PASSWORD}>
+                    {t("gitCredentials.types.password")}
+                  </SelectItem>
+                  <SelectItem value={CredentialTypes.TOKEN}>
+                    {t("gitCredentials.types.token")}
+                  </SelectItem>
+                  <SelectItem value={CredentialTypes.SSH_KEY}>
+                    {t("gitCredentials.types.ssh_key")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
+            <div className="flex flex-col gap-3">
               <Label htmlFor="username">{t("gitCredentials.username")} *</Label>
               <Input
                 id="username"
@@ -251,7 +254,7 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
             </h3>
 
             {formData.type === CredentialTypes.PASSWORD && (
-              <div>
+              <div className="flex flex-col gap-3">
                 <Label htmlFor="password">
                   {t("gitCredentials.password")} *
                 </Label>
@@ -267,7 +270,7 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
             )}
 
             {formData.type === CredentialTypes.TOKEN && (
-              <div>
+              <div className="flex flex-col gap-3">
                 <Label htmlFor="token">{t("gitCredentials.token")} *</Label>
                 <Input
                   id="token"
@@ -282,29 +285,29 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
 
             {formData.type === CredentialTypes.SSH_KEY && (
               <>
-                <div>
+                <div className="flex flex-col gap-3">
                   <Label htmlFor="private_key">
                     {t("gitCredentials.privateKey")} *
                   </Label>
-                  <textarea
+                  <Textarea
                     id="private_key"
                     value={formData.private_key}
                     onChange={(e) => updateField("private_key", e.target.value)}
                     placeholder={t("gitCredentials.placeholders.privateKey")}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[120px] font-mono text-sm"
+                    className="min-h-[120px] font-mono text-sm"
                     required
                   />
                 </div>
-                <div>
+                <div className="flex flex-col gap-3">
                   <Label htmlFor="public_key">
                     {t("gitCredentials.publicKey")}
                   </Label>
-                  <textarea
+                  <Textarea
                     id="public_key"
                     value={formData.public_key}
                     onChange={(e) => updateField("public_key", e.target.value)}
                     placeholder={t("gitCredentials.placeholders.publicKey")}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[80px] font-mono text-sm"
+                    className="min-h-[80px] font-mono text-sm"
                   />
                 </div>
               </>
