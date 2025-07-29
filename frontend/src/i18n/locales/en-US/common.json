@@ -48,7 +48,7 @@
     "projects": "Projects Management",
     "projectTasks": "Tasks Management",
     "gitCredentials": "Git Credentials",
-    "adminLogs": "System Logs",
+    "adminLogs": "Audit Logs",
     "notFound": "Page Not Found"
   },
   "theme": {

@@ -1,5 +1,5 @@
 {
-  "title": "System Logs",
+  "title": "Audit Logs",
   "description": "View system operation logs, login records and statistics",
   "operationLogs": {
     "title": "Operation Logs",

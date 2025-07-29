@@ -4,7 +4,7 @@
   "tasks": "Tasks",
   "gitCredentials": "Git Credentials",
   "dev_environments": "Dev Environments",
-  "adminLogs": "Admin Logs",
+  "adminLogs": "Audit Logs",
   "settings": "Settings", 
   "profile": "Profile",
   "language": "Language",

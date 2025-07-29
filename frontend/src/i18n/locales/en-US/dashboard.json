@@ -13,7 +13,7 @@
     "manage": "Manage Credentials"
   },
   "adminLogs": {
-    "title": "System Logs",
+    "title": "Audit Logs",
     "description": "View system operation and login logs",
     "content": "Monitor system activities, operation records and login status.",
     "manage": "View Logs"
