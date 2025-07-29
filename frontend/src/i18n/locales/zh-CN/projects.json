@@ -1,8 +1,9 @@
 {
   "title": "项目管理",
-  "create": "创建项目",
-  "edit": "编辑项目",
-  "delete": "删除项目",
+  "page_description": "管理您的项目仓库",
+  "create": "创建",
+  "edit": "编辑",
+  "delete": "删除",
   "tasksManagement": "任务管理",
   "refresh": "刷新",
   "backToList": "返回列表",
@@ -12,7 +13,6 @@
   "description": "项目描述",
   "repoUrl": "仓库地址",
   "protocol": "协议类型",
-
   "credential": "访问凭据",
   "createdAt": "创建时间",
   "lastUsed": "上次使用",

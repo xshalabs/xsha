@@ -41,27 +41,33 @@ const ProjectListPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">{t("navigation.projects")}</h1>
-          <p className="text-muted-foreground">
-            {t("projects.page_description")}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleCreateNew}>
-            <Plus className="h-4 w-4 mr-2" />
-            {t("projects.create")}
-          </Button>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center py-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">
+              {t("navigation.projects")}
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {t("projects.page_description")}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={handleCreateNew}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t("projects.create")}
+            </Button>
+          </div>
         </div>
       </div>
 
-      <ProjectList
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onCreateNew={handleCreateNew}
-      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ProjectList
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onCreateNew={handleCreateNew}
+        />
+      </div>
     </div>
   );
 };
