@@ -124,11 +124,13 @@ func (h *ProjectHandlers) GetProject(c *gin.Context) {
 
 // ListProjects 获取项目列表
 // @Summary 获取项目列表
-// @Description 获取当前用户的项目列表，支持分页
+// @Description 获取当前用户的项目列表，支持分页和名称筛选
 // @Tags 项目
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Param name query string false "项目名称筛选（模糊匹配）"
+// @Param protocol query string false "协议类型筛选 (https/ssh)"
 // @Param page query int false "页码，默认为1"
 // @Param page_size query int false "每页数量，默认为20"
 // @Success 200 {object} object{projects=[]object,total=number,page=number,page_size=number} "项目列表"
@@ -142,6 +144,7 @@ func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 	page := 1
 	pageSize := 20
 	var protocol *database.GitProtocolType
+	name := c.Query("name")
 
 	if p := c.Query("page"); p != "" {
 		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
@@ -158,7 +161,7 @@ func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 		protocol = &protocolValue
 	}
 
-	projects, total, err := h.projectService.ListProjects(username.(string), protocol, page, pageSize)
+	projects, total, err := h.projectService.ListProjects(username.(string), name, protocol, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "common.internal_error"),

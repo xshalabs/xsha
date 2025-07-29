@@ -26,6 +26,7 @@ export const projectsApi = {
   // 获取项目列表
   list: async (params?: ProjectListParams): Promise<ProjectListResponse> => {
     const searchParams = new URLSearchParams();
+    if (params?.name) searchParams.set('name', params.name);
     if (params?.protocol) searchParams.set('protocol', params.protocol);
     if (params?.page) searchParams.set('page', params.page.toString());
     if (params?.page_size) searchParams.set('page_size', params.page_size.toString());

@@ -42,11 +42,16 @@ func (r *projectRepository) GetByName(name, createdBy string) (*database.Project
 }
 
 // List 分页获取项目列表
-func (r *projectRepository) List(createdBy string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error) {
+func (r *projectRepository) List(createdBy string, name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error) {
 	var projects []database.Project
 	var total int64
 
 	query := r.db.Model(&database.Project{}).Where("created_by = ?", createdBy)
+
+	// 如果提供了名称筛选条件，添加模糊查询
+	if name != "" {
+		query = query.Where("name LIKE ?", "%"+name+"%")
+	}
 
 	if protocol != nil {
 		query = query.Where("protocol = ?", *protocol)

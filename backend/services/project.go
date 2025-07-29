@@ -76,8 +76,8 @@ func (s *projectService) GetProject(id uint, createdBy string) (*database.Projec
 }
 
 // ListProjects 获取项目列表
-func (s *projectService) ListProjects(createdBy string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error) {
-	return s.repo.List(createdBy, protocol, page, pageSize)
+func (s *projectService) ListProjects(createdBy string, name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error) {
+	return s.repo.List(createdBy, name, protocol, page, pageSize)
 }
 
 // UpdateProject 更新项目

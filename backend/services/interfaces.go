@@ -54,7 +54,7 @@ type ProjectService interface {
 	CreateProject(name, description, repoURL, protocol, createdBy string, credentialID *uint) (*database.Project, error)
 	GetProject(id uint, createdBy string) (*database.Project, error)
 
-	ListProjects(createdBy string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
+	ListProjects(createdBy string, name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
 	UpdateProject(id uint, createdBy string, updates map[string]interface{}) error
 	DeleteProject(id uint, createdBy string) error
 
