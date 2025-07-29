@@ -29,6 +29,7 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
+  RefreshCw,
 } from "lucide-react";
 
 interface GitCredentialListProps {
@@ -56,7 +57,7 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
   onTypeFilterChange: _onTypeFilterChange,
   onEdit,
   onDelete,
-  onRefresh: _onRefresh,
+  onRefresh,
 }) => {
   const { t } = useTranslation();
 
@@ -122,7 +123,18 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
         <div className="text-sm text-foreground">
           {t("common.total")} {total} {t("common.items")}
         </div>
-        <div className="flex gap-2"></div>
+        <div className="flex gap-2">
+          <Button
+            onClick={onRefresh}
+            disabled={loading}
+            size="sm"
+            variant="ghost"
+            className="text-foreground"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            {t("common.refresh")}
+          </Button>
+        </div>
       </div>
 
       <Card>
