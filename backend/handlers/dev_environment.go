@@ -11,19 +11,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// DevEnvironmentHandlers 开发环境处理器结构体
 type DevEnvironmentHandlers struct {
 	devEnvService services.DevEnvironmentService
 }
 
-// NewDevEnvironmentHandlers 创建开发环境处理器实例
 func NewDevEnvironmentHandlers(devEnvService services.DevEnvironmentService) *DevEnvironmentHandlers {
 	return &DevEnvironmentHandlers{
 		devEnvService: devEnvService,
 	}
 }
 
-// CreateEnvironmentRequest 创建开发环境请求结构
 type CreateEnvironmentRequest struct {
 	Name        string            `json:"name" binding:"required"`
 	Description string            `json:"description"`
@@ -33,7 +30,6 @@ type CreateEnvironmentRequest struct {
 	EnvVars     map[string]string `json:"env_vars"`
 }
 
-// UpdateEnvironmentRequest 更新开发环境请求结构
 type UpdateEnvironmentRequest struct {
 	Name        string            `json:"name"`
 	Description string            `json:"description"`
@@ -139,9 +135,8 @@ func (h *DevEnvironmentHandlers) GetEnvironment(c *gin.Context) {
 func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 	username, _ := c.Get("username")
 
-	// 解析查询参数
 	page := 1
-	pageSize := 10 // 默认改为10
+	pageSize := 10
 	var envType *database.DevEnvironmentType
 	var name *string
 
@@ -215,7 +210,6 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 		return
 	}
 
-	// 构建更新数据
 	updates := make(map[string]interface{})
 	if req.Name != "" {
 		updates["name"] = req.Name
@@ -238,7 +232,6 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 		return
 	}
 
-	// 如果有环境变量更新
 	if req.EnvVars != nil {
 		err = h.devEnvService.UpdateEnvironmentVars(uint(id), username.(string), req.EnvVars)
 		if err != nil {

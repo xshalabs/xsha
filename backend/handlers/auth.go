@@ -11,13 +11,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AuthHandlers 认证处理器结构体
 type AuthHandlers struct {
 	authService     services.AuthService
 	loginLogService services.LoginLogService
 }
 
-// NewAuthHandlers 创建认证处理器实例
 func NewAuthHandlers(authService services.AuthService, loginLogService services.LoginLogService) *AuthHandlers {
 	return &AuthHandlers{
 		authService:     authService,
@@ -52,11 +50,9 @@ func (h *AuthHandlers) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	// 获取客户端信息用于日志记录
 	clientIP := c.ClientIP()
 	userAgent := c.GetHeader("User-Agent")
 
-	// 使用authService进行登录验证和日志记录
 	loginSuccess, token, err := h.authService.Login(loginData.Username, loginData.Password, clientIP, userAgent)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -93,7 +89,6 @@ func (h *AuthHandlers) LoginHandler(c *gin.Context) {
 func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	// Get token from Authorization header
 	authHeader := c.GetHeader("Authorization")
 	token, err := utils.ExtractTokenFromAuthHeader(authHeader)
 	if err != nil {
@@ -103,7 +98,6 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 		return
 	}
 
-	// Validate token and get user information
 	claims, err := utils.ValidateJWT(token, "")
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -112,7 +106,6 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 		return
 	}
 
-	// 使用认证服务进行登出
 	if err := h.authService.Logout(token, claims.Username); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "logout.failed"),
@@ -138,7 +131,6 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	// Get user information from context (set by auth middleware)
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -170,12 +162,10 @@ func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
 func (h *AuthHandlers) GetLoginLogsHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	// 获取查询参数
 	username := c.Query("username")
 	page := 1
 	pageSize := 20
 
-	// 解析分页参数
 	if p := c.Query("page"); p != "" {
 		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
 			page = parsed
@@ -188,7 +178,6 @@ func (h *AuthHandlers) GetLoginLogsHandler(c *gin.Context) {
 		}
 	}
 
-	// 使用登录日志服务获取日志
 	logs, total, err := h.loginLogService.GetLogs(username, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

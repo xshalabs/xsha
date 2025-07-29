@@ -10,12 +10,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// DatabaseManager 数据库管理器
 type DatabaseManager struct {
 	db *gorm.DB
 }
 
-// NewDatabaseManager 创建数据库管理器实例
 func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 	var db *gorm.DB
 	var err error
@@ -44,7 +42,6 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 		panic(fmt.Sprintf("Unsupported database type: %s", cfg.DatabaseType))
 	}
 
-	// Auto-migrate database tables
 	if err := db.AutoMigrate(&TokenBlacklist{}, &LoginLog{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}); err != nil {
 		return nil, err
 	}
@@ -53,12 +50,10 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 	return &DatabaseManager{db: db}, nil
 }
 
-// GetDB 获取数据库连接
 func (dm *DatabaseManager) GetDB() *gorm.DB {
 	return dm.db
 }
 
-// Close 关闭数据库连接
 func (dm *DatabaseManager) Close() error {
 	sqlDB, err := dm.db.DB()
 	if err != nil {
@@ -67,7 +62,6 @@ func (dm *DatabaseManager) Close() error {
 	return sqlDB.Close()
 }
 
-// 保持向后兼容的全局变量和函数
 var (
 	DB *gorm.DB
 )
@@ -84,7 +78,6 @@ func InitDatabase() {
 	DB = dm.GetDB()
 }
 
-// Maintain backward compatibility
 func InitSQLite() {
 	InitDatabase()
 }

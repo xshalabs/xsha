@@ -15,36 +15,30 @@ type Config struct {
 	SQLitePath   string
 	MySQLDSN     string
 	AdminUser    string
-	AdminPass    string // 管理员密码（明文）
+	AdminPass    string
 	JWTSecret    string
-	AESKey       string // AES密钥（用于Git凭据加密）
+	AESKey       string
 
-	// 定时器配置
-	SchedulerInterval      string // 定时器间隔
-	WorkspaceBaseDir       string // 工作目录基础路径
-	DockerExecutionTimeout string // Docker执行超时时间
-	MaxConcurrentTasks     int    // 最大并发任务数
+	SchedulerInterval      string
+	WorkspaceBaseDir       string
+	DockerExecutionTimeout string
+	MaxConcurrentTasks     int
 
-	// Git配置
-	GitSSLVerify bool // Git SSL验证开关
+	GitSSLVerify bool
 
-	// 日志配置
-	LogLevel  utils.LogLevel  // 日志级别
-	LogFormat utils.LogFormat // 日志格式
-	LogOutput string          // 日志输出
+	LogLevel  utils.LogLevel
+	LogFormat utils.LogFormat
+	LogOutput string
 }
 
 func Load() *Config {
-	// 尝试加载 .env 文件
-	// godotenv.Load() 不会覆盖已存在的环境变量，确保环境变量优先级高于 .env 文件
+
 	if err := godotenv.Load(); err != nil {
-		// .env 文件不存在或加载失败时不报错，继续使用环境变量和默认值
-		utils.Info("未找到 .env 文件或加载失败，将使用环境变量和默认值", "error", err.Error())
+		utils.Info("No .env file found or failed to load, using environment variables and default values", "error", err.Error())
 	} else {
-		utils.Info("成功加载 .env 文件")
+		utils.Info("Successfully loaded .env file")
 	}
 
-	// 获取AES密钥（仅用于Git凭据加密）
 	aesKey := normalizeAESKey(getEnv("XSHA_AES_KEY", "default-aes-key-change-in-production"))
 
 	config := &Config{
@@ -54,20 +48,17 @@ func Load() *Config {
 		SQLitePath:   getEnv("XSHA_SQLITE_PATH", "app.db"),
 		MySQLDSN:     getEnv("XSHA_MYSQL_DSN", ""),
 		AdminUser:    getEnv("XSHA_ADMIN_USER", "admin"),
-		AdminPass:    getEnv("XSHA_ADMIN_PASS", "admin123"), // 直接读取明文密码
+		AdminPass:    getEnv("XSHA_ADMIN_PASS", "admin123"),
 		JWTSecret:    getEnv("XSHA_JWT_SECRET", "your-jwt-secret-key-change-this-in-production"),
 		AESKey:       aesKey,
 
-		// 定时器配置
 		SchedulerInterval:      getEnv("XSHA_SCHEDULER_INTERVAL", "30s"),
 		WorkspaceBaseDir:       getEnv("XSHA_WORKSPACE_BASE_DIR", "/tmp/xsha-workspaces"),
 		DockerExecutionTimeout: getEnv("XSHA_DOCKER_TIMEOUT", "30m"),
 		MaxConcurrentTasks:     getEnvInt("XSHA_MAX_CONCURRENT_TASKS", 5),
 
-		// Git配置 - 默认禁用SSL验证以解决兼容性问题
 		GitSSLVerify: getEnvBool("XSHA_GIT_SSL_VERIFY", false),
 
-		// 日志配置
 		LogLevel:  utils.LogLevel(getEnv("XSHA_LOG_LEVEL", "INFO")),
 		LogFormat: utils.LogFormat(getEnv("XSHA_LOG_FORMAT", "JSON")),
 		LogOutput: getEnv("XSHA_LOG_OUTPUT", "stdout"),
@@ -88,7 +79,7 @@ func getEnvInt(key string, defaultValue int) int {
 		if intValue, err := strconv.Atoi(value); err == nil {
 			return intValue
 		}
-		utils.Warn("警告：无法解析环境变量的值为整数，使用默认值", "key", key, "value", value, "default", defaultValue)
+		utils.Warn("Warning: Failed to parse environment variable as integer, using default value", "key", key, "value", value, "default", defaultValue)
 	}
 	return defaultValue
 }
@@ -98,12 +89,11 @@ func getEnvBool(key string, defaultValue bool) bool {
 		if boolValue, err := strconv.ParseBool(value); err == nil {
 			return boolValue
 		}
-		utils.Warn("警告：无法解析环境变量的值为布尔值，使用默认值", "key", key, "value", value, "default", defaultValue)
+		utils.Warn("Warning: Failed to parse environment variable as boolean, using default value", "key", key, "value", value, "default", defaultValue)
 	}
 	return defaultValue
 }
 
-// normalizeAESKey 标准化AES密钥为32字节
 func normalizeAESKey(key string) string {
 	if len(key) >= 32 {
 		return key[:32]

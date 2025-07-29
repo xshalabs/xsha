@@ -12,12 +12,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AdminOperationLogHandlers 管理员操作日志处理器结构体
 type AdminOperationLogHandlers struct {
 	OperationLogService services.AdminOperationLogService
 }
 
-// NewAdminOperationLogHandlers 创建管理员操作日志处理器实例
 func NewAdminOperationLogHandlers(operationLogService services.AdminOperationLogService) *AdminOperationLogHandlers {
 	return &AdminOperationLogHandlers{
 		OperationLogService: operationLogService,
@@ -45,7 +43,6 @@ func NewAdminOperationLogHandlers(operationLogService services.AdminOperationLog
 func (h *AdminOperationLogHandlers) GetOperationLogs(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	// 获取查询参数
 	username := c.Query("username")
 	resource := c.Query("resource")
 	operationStr := c.Query("operation")
@@ -56,7 +53,6 @@ func (h *AdminOperationLogHandlers) GetOperationLogs(c *gin.Context) {
 	page := 1
 	pageSize := 20
 
-	// 解析分页参数
 	if p := c.Query("page"); p != "" {
 		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
 			page = parsed
@@ -69,14 +65,12 @@ func (h *AdminOperationLogHandlers) GetOperationLogs(c *gin.Context) {
 		}
 	}
 
-	// 解析操作类型
 	var operation *database.AdminOperationType
 	if operationStr != "" {
 		op := database.AdminOperationType(operationStr)
 		operation = &op
 	}
 
-	// 解析成功状态
 	var success *bool
 	if successStr != "" {
 		if parsed, err := strconv.ParseBool(successStr); err == nil {
@@ -84,7 +78,6 @@ func (h *AdminOperationLogHandlers) GetOperationLogs(c *gin.Context) {
 		}
 	}
 
-	// 解析时间范围
 	var startTime, endTime *time.Time
 	if startTimeStr != "" {
 		if parsed, err := time.Parse("2006-01-02", startTimeStr); err == nil {
@@ -93,13 +86,11 @@ func (h *AdminOperationLogHandlers) GetOperationLogs(c *gin.Context) {
 	}
 	if endTimeStr != "" {
 		if parsed, err := time.Parse("2006-01-02", endTimeStr); err == nil {
-			// 设置为当天的23:59:59
 			endOfDay := parsed.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
 			endTime = &endOfDay
 		}
 	}
 
-	// 使用操作日志服务获取日志
 	logs, total, err := h.OperationLogService.GetLogs(username, operation, resource, success,
 		startTime, endTime, page, pageSize)
 	if err != nil {
@@ -136,7 +127,6 @@ func (h *AdminOperationLogHandlers) GetOperationLogs(c *gin.Context) {
 func (h *AdminOperationLogHandlers) GetOperationLog(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	// 解析ID参数
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
@@ -146,7 +136,6 @@ func (h *AdminOperationLogHandlers) GetOperationLog(c *gin.Context) {
 		return
 	}
 
-	// 获取操作日志
 	log, err := h.OperationLogService.GetLog(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -177,16 +166,13 @@ func (h *AdminOperationLogHandlers) GetOperationLog(c *gin.Context) {
 func (h *AdminOperationLogHandlers) GetOperationStats(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	// 获取查询参数
 	username := c.Query("username")
 	startTimeStr := c.Query("start_time")
 	endTimeStr := c.Query("end_time")
 
-	// 设置默认时间范围（最近30天）
 	endTime := time.Now()
 	startTime := endTime.AddDate(0, 0, -30)
 
-	// 解析时间参数
 	if startTimeStr != "" {
 		if parsed, err := time.Parse("2006-01-02", startTimeStr); err == nil {
 			startTime = parsed
@@ -198,7 +184,6 @@ func (h *AdminOperationLogHandlers) GetOperationStats(c *gin.Context) {
 		}
 	}
 
-	// 获取操作统计
 	operationStats, err := h.OperationLogService.GetOperationStats(username, startTime, endTime)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -207,7 +192,6 @@ func (h *AdminOperationLogHandlers) GetOperationStats(c *gin.Context) {
 		return
 	}
 
-	// 获取资源统计
 	resourceStats, err := h.OperationLogService.GetResourceStats(username, startTime, endTime)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
