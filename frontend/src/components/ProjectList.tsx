@@ -1,14 +1,44 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  FolderOpen,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  Settings,
+} from "lucide-react";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import { ROUTES } from "@/lib/constants";
@@ -37,28 +67,24 @@ export function ProjectList({
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [protocolFilter, setProtocolFilter] = useState<
-    GitProtocolType | undefined
-  >();
+  const [showFilters, setShowFilters] = useState(false);
+  const [localFilters, setLocalFilters] = useState<ProjectListParams>({
+    page: 1,
+    page_size: 20,
+  });
 
   const pageSize = 20;
 
-  const loadProjects = async (page = 1, protocol?: GitProtocolType) => {
+  const loadProjects = async (params: ProjectListParams) => {
     try {
       setLoading(true);
       setError(null);
-
-      const params: ProjectListParams = {
-        page,
-        page_size: pageSize,
-        ...(protocol && { protocol }),
-      };
 
       const response = await apiService.projects.list(params);
       setProjects(response.projects);
       setTotalPages(response.total_pages);
       setTotal(response.total);
-      setCurrentPage(page);
+      setCurrentPage(params.page || 1);
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -72,16 +98,39 @@ export function ProjectList({
   };
 
   useEffect(() => {
-    loadProjects(1, protocolFilter);
-  }, [protocolFilter]);
+    loadProjects(localFilters);
+  }, []);
 
   const handlePageChange = (page: number) => {
-    loadProjects(page, protocolFilter);
+    const newFilters = { ...localFilters, page };
+    setLocalFilters(newFilters);
+    loadProjects(newFilters);
   };
 
-  const handleProtocolFilterChange = (protocol?: GitProtocolType) => {
-    setProtocolFilter(protocol);
-    setCurrentPage(1);
+  const handleFilterChange = (
+    key: keyof ProjectListParams,
+    value: string | number | undefined
+  ) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      [key]: value === "" ? undefined : value,
+    }));
+  };
+
+  const applyFilters = () => {
+    const filtersWithPage = { ...localFilters, page: 1 };
+    setLocalFilters(filtersWithPage);
+    loadProjects(filtersWithPage);
+  };
+
+  const resetFilters = () => {
+    const emptyFilters: ProjectListParams = { page: 1, page_size: pageSize };
+    setLocalFilters(emptyFilters);
+    loadProjects(emptyFilters);
+  };
+
+  const handleRefresh = () => {
+    loadProjects(localFilters);
   };
 
   const handleTasksManagement = (projectId: number) => {
@@ -94,8 +143,8 @@ export function ProjectList({
 
   const getProtocolBadgeColor = (protocol: GitProtocolType) => {
     return protocol === "https"
-      ? "bg-blue-100 text-blue-800"
-      : "bg-green-100 text-green-800";
+      ? "text-blue-600"
+      : "text-green-600";
   };
 
   if (loading && projects.length === 0) {
@@ -108,30 +157,90 @@ export function ProjectList({
 
   return (
     <div className="space-y-6">
-      {/* 筛选器 */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant={protocolFilter === undefined ? "default" : "outline"}
-          size="sm"
-          onClick={() => handleProtocolFilterChange(undefined)}
-        >
-          {t("projects.filter.all")}
-        </Button>
-        <Button
-          variant={protocolFilter === "https" ? "default" : "outline"}
-          size="sm"
-          onClick={() => handleProtocolFilterChange("https")}
-        >
-          HTTPS
-        </Button>
-        <Button
-          variant={protocolFilter === "ssh" ? "default" : "outline"}
-          size="sm"
-          onClick={() => handleProtocolFilterChange("ssh")}
-        >
-          SSH
-        </Button>
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-foreground">
+          {t("common.total")} {total} {t("common.items")}
+        </div>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-foreground"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            {t("common.filter")}
+          </Button>
+          <Button
+            onClick={handleRefresh}
+            disabled={loading}
+            size="sm"
+            variant="ghost"
+            className="text-foreground"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            {t("common.refresh")}
+          </Button>
+        </div>
       </div>
+
+      {showFilters && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">
+              {t("projects.filter.title")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="name">
+                  {t("projects.name")}
+                </Label>
+                <Input
+                  id="name"
+                  value={localFilters.name || ""}
+                  onChange={(e) => handleFilterChange("name", e.target.value)}
+                  placeholder={t("projects.filter.name_placeholder")}
+                />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="protocol">
+                  {t("projects.protocol")}
+                </Label>
+                <Select
+                  value={localFilters.protocol || "all"}
+                  onValueChange={(value) =>
+                    handleFilterChange(
+                      "protocol",
+                      value === "all"
+                        ? undefined
+                        : (value as GitProtocolType)
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t("common.all")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("common.all")}</SelectItem>
+                    <SelectItem value="https">HTTPS</SelectItem>
+                    <SelectItem value="ssh">SSH</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-4">
+              <Button onClick={applyFilters}>{t("common.apply")}</Button>
+              <Button variant="outline" onClick={resetFilters}>
+                {t("common.reset")}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 错误显示 */}
       {error && (
@@ -140,169 +249,168 @@ export function ProjectList({
         </div>
       )}
 
-      {/* 项目列表 */}
-      {projects.length === 0 && !loading ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <div className="text-gray-500 mb-4">
-              {protocolFilter
-                ? t("projects.messages.noMatchingProjects")
-                : t("projects.messages.noProjects")}
-            </div>
-            {protocolFilter ? (
-              <Button
-                variant="outline"
-                onClick={() => handleProtocolFilterChange(undefined)}
-              >
-                {t("projects.messages.clearFilter")}
-              </Button>
-            ) : (
-              onCreateNew && (
-                <div>
-                  <p className="text-gray-400 mb-4">
-                    {t("projects.messages.noProjectsDesc")}
-                  </p>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("projects.list")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {projects.length === 0 ? (
+            <div className="text-center py-8">
+              <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                {localFilters.protocol || localFilters.name
+                  ? t("projects.messages.noMatchingProjects")
+                  : t("projects.messages.noProjects")}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {localFilters.protocol || localFilters.name
+                  ? t("projects.messages.clearFilter")
+                  : t("projects.messages.noProjectsDesc")}
+              </p>
+              {localFilters.protocol || localFilters.name ? (
+                <Button variant="outline" onClick={resetFilters}>
+                  {t("projects.messages.clearFilter")}
+                </Button>
+              ) : (
+                onCreateNew && (
                   <Button onClick={onCreateNew}>{t("projects.create")}</Button>
-                </div>
-              )
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {projects.map((project) => (
-            <Card key={project.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="flex items-center gap-2">
-                      {project.name}
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getProtocolBadgeColor(
-                          project.protocol
-                        )}`}
-                      >
-                        {project.protocol.toUpperCase()}
-                      </span>
-                    </CardTitle>
-                    <CardDescription>{project.description}</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleTasksManagement(project.id)}
-                    >
-                      {t("projects.tasksManagement")}
-                    </Button>
-                    {onEdit && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onEdit(project)}
-                      >
-                        {t("common.edit")}
-                      </Button>
-                    )}
-                    {onDelete && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onDelete(project.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        {t("common.delete")}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-700">
-                      {t("projects.repoUrl")}:
-                    </span>
-                    <div className="text-blue-600 truncate">
-                      {project.repo_url}
-                    </div>
-                  </div>
-                  <div></div>
-                  {project.credential && (
-                    <div>
-                      <span className="font-medium text-gray-700">
-                        {t("projects.credential")}:
-                      </span>
-                      <div>{project.credential.name}</div>
-                    </div>
-                  )}
-                  <div>
-                    <span className="font-medium text-gray-700">
-                      {t("projects.createdAt")}:
-                    </span>
-                    <div>{formatDate(project.created_at)}</div>
-                  </div>
-                  {project.last_used && (
-                    <div>
-                      <span className="font-medium text-gray-700">
-                        {t("projects.lastUsed")}:
-                      </span>
-                      <div>{formatDate(project.last_used)}</div>
-                    </div>
-                  )}
-                  <div>
-                    <span className="font-medium text-gray-700">
-                      {t("projects.createdBy")}:
-                    </span>
-                    <div>{project.created_by}</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                )
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("projects.name")}</TableHead>
+                    <TableHead>{t("projects.protocol")}</TableHead>
+                    <TableHead>{t("projects.repoUrl")}</TableHead>
+                    <TableHead>{t("projects.credential")}</TableHead>
+                    <TableHead>{t("projects.lastUsed")}</TableHead>
+                    <TableHead className="text-right">
+                      {t("common.actions")}
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {projects.map((project) => (
+                    <TableRow key={project.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{project.name}</div>
+                          {project.description && (
+                            <div className="text-sm text-muted-foreground">
+                              {project.description}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={getProtocolBadgeColor(project.protocol)}
+                        >
+                          {project.protocol.toUpperCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-blue-600 truncate max-w-xs">
+                          {project.repo_url}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {project.credential ? (
+                          <div className="text-sm">{project.credential.name}</div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {project.last_used ? (
+                          <div className="text-sm">
+                            {formatDate(project.last_used)}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">
+                                {t("common.open_menu")}
+                              </span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>
+                              {t("common.actions")}
+                            </DropdownMenuLabel>
 
-      {/* 分页 */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-600">
-            {t("projects.pagination.showing")}{" "}
-            {(currentPage - 1) * pageSize + 1} {t("projects.pagination.to")}{" "}
-            {Math.min(currentPage * pageSize, total)}{" "}
-            {t("projects.pagination.of")} {total}{" "}
-            {t("projects.pagination.items")}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              {t("common.previous")}
-            </Button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                variant={page === currentPage ? "default" : "outline"}
-                size="sm"
-                onClick={() => handlePageChange(page)}
-              >
-                {page}
-              </Button>
-            ))}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              {t("common.next")}
-            </Button>
-          </div>
-        </div>
-      )}
+                            <DropdownMenuItem
+                              onClick={() => handleTasksManagement(project.id)}
+                            >
+                              <Settings className="h-4 w-4 mr-2" />
+                              {t("projects.tasksManagement")}
+                            </DropdownMenuItem>
+
+                            {onEdit && (
+                              <DropdownMenuItem
+                                onClick={() => onEdit(project)}
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                {t("common.edit")}
+                              </DropdownMenuItem>
+                            )}
+
+                            {onDelete && (
+                              <DropdownMenuItem
+                                onClick={() => onDelete(project.id)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {t("common.delete")}
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    {t("common.page")} {currentPage} / {totalPages}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage <= 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage >= totalPages}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

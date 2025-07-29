@@ -55,8 +55,11 @@
     "total": "Total Projects"
   },
   "filter": {
-    "all": "All"
+    "all": "All",
+    "title": "Filter Projects",
+    "name_placeholder": "Search by project name"
   },
+  "list": "Project List",
   "pagination": {
     "showing": "Showing",
     "to": "to",

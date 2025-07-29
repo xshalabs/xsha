@@ -55,8 +55,11 @@
     "total": "总项目数"
   },
   "filter": {
-    "all": "全部"
+    "all": "全部",
+    "title": "筛选项目",
+    "name_placeholder": "按项目名称搜索"
   },
+  "list": "项目列表",
   "pagination": {
     "showing": "显示第",
     "to": "-",

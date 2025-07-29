@@ -81,6 +81,7 @@ export interface CompatibleCredentialsResponse {
 
 // 列表查询参数
 export interface ProjectListParams {
+  name?: string;
   protocol?: GitProtocolType;
   page?: number;
   page_size?: number;
