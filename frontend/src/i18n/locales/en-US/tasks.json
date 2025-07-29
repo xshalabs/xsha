@@ -60,8 +60,18 @@
     "devEnvironmentRequired": "Please select a development environment"
   },
   "filters": {
+    "title": "Filters",
     "project": "Project",
     "status": "Status"
+  },
+  "list": "Task List",
+  "table": {
+    "title": "Title",
+    "project": "Project",
+    "status": "Status",
+    "branch": "Branch",
+    "environment": "Environment",
+    "updated": "Updated"
   },
   "messages": {
     "createSuccess": "Task created successfully",

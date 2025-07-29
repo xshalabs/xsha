@@ -1,12 +1,22 @@
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -14,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useTranslation } from "react-i18next";
 import {
   Edit,
@@ -30,6 +41,7 @@ import {
   Filter,
   X,
   MessageSquare,
+  MoreHorizontal,
 } from "lucide-react";
 import type { Task, TaskStatus } from "@/types/task";
 import type { Project } from "@/types/project";
@@ -72,6 +84,7 @@ export function TaskList({
   onCreateNew,
 }: TaskListProps) {
   const { t } = useTranslation();
+  const [showFilters, setShowFilters] = useState(false);
 
   const getStatusColor = (status: TaskStatus) => {
     switch (status) {
@@ -113,6 +126,12 @@ export function TaskList({
     }
   };
 
+  const handleRefresh = () => {
+    // 通过重新应用当前过滤器来刷新数据
+    onStatusFilterChange(statusFilter);
+    onProjectFilterChange(projectFilter);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -126,273 +145,299 @@ export function TaskList({
 
   return (
     <div className="space-y-6">
-      {/* 筛选器 */}
-      <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-        <Filter className="w-4 h-4 text-gray-600" />
-
-        {/* 项目筛选 */}
-        {!hideProjectFilter && (
-          <div className="flex items-center space-x-2">
-            <label className="text-sm font-medium text-gray-700">
-              {t("tasks.filters.project")}:
-            </label>
-            <Select
-              value={projectFilter?.toString() || "all"}
-              onValueChange={(value) =>
-                onProjectFilterChange(
-                  value === "all" ? undefined : parseInt(value)
-                )
-              }
-            >
-              <SelectTrigger className="w-[200px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("common.all")}</SelectItem>
-                {projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id.toString()}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {/* 状态筛选 */}
-        <div className="flex items-center space-x-2">
-          <label className="text-sm font-medium text-gray-700">
-            {t("tasks.filters.status")}:
-          </label>
-          <Select
-            value={statusFilter || "all"}
-            onValueChange={(value) =>
-              onStatusFilterChange(
-                value === "all" ? undefined : (value as TaskStatus)
-              )
-            }
+      {/* 顶部工具栏 */}
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-foreground">
+          {t("common.total")} {total} {t("common.items")}
+        </div>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-foreground"
+            onClick={() => setShowFilters(!showFilters)}
           >
-            <SelectTrigger className="w-[150px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("common.all")}</SelectItem>
-              <SelectItem value="todo">{t("tasks.status.todo")}</SelectItem>
-              <SelectItem value="in_progress">
-                {t("tasks.status.in_progress")}
-              </SelectItem>
-              <SelectItem value="done">{t("tasks.status.done")}</SelectItem>
-              <SelectItem value="cancelled">
-                {t("tasks.status.cancelled")}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+            <Filter className="w-4 h-4 mr-2" />
+            {t("common.filter")}
+          </Button>
+          <Button
+            onClick={handleRefresh}
+            disabled={loading}
+            size="sm"
+            variant="ghost"
+            className="text-foreground"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            {t("common.refresh")}
+          </Button>
         </div>
       </div>
 
-      {/* 任务列表 */}
-      {tasks.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-gray-500 mb-4">
-            <Clock className="w-16 h-16 mx-auto mb-4 opacity-50" />
-            <p className="text-lg">{t("tasks.empty.title")}</p>
-            <p className="text-sm">{t("tasks.empty.description")}</p>
-          </div>
-          <Button onClick={onCreateNew}>
-            <Plus className="w-4 h-4 mr-2" />
-            {t("tasks.actions.create")}
-          </Button>
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {tasks.map((task) => (
-            <Card key={task.id} className="relative">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">{task.title}</CardTitle>
-                    <CardDescription className="text-sm">
-                      {task.project?.name && (
-                        <span className="text-blue-600">
-                          {task.project.name}
-                        </span>
-                      )}
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Badge
-                      variant="outline"
-                      className={`text-xs ${getStatusColor(task.status)}`}
-                    >
-                      {getStatusIcon(task.status)}
-                      <span className="ml-1">
-                        {t(`tasks.status.${task.status}`)}
-                      </span>
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                {/* 分支信息 */}
-                <div className="flex items-center text-sm text-gray-500">
-                  <GitBranch className="w-4 h-4 mr-1" />
-                  <span>{task.start_branch}</span>
-                  {task.has_pull_request && (
-                    <div className="ml-auto">
-                      <Badge variant="outline" className="text-xs">
-                        <GitPullRequest className="w-3 h-3 mr-1" />
-                        PR
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-
-                {/* 开发环境信息 */}
-                {task.dev_environment && (
-                  <div className="flex items-center text-sm text-gray-500">
-                    <div className="w-4 h-4 mr-1 rounded-full bg-blue-500 flex items-center justify-center">
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
-                    </div>
-                    <span>{task.dev_environment.name}</span>
-                    <Badge
-                      variant="outline"
-                      className={`text-xs ml-2 ${
-                        task.dev_environment.status === "running"
-                          ? "bg-green-100 text-green-800 border-green-300"
-                          : task.dev_environment.status === "stopped"
-                          ? "bg-gray-100 text-gray-800 border-gray-300"
-                          : task.dev_environment.status === "error"
-                          ? "bg-red-100 text-red-800 border-red-300"
-                          : "bg-yellow-100 text-yellow-800 border-yellow-300"
-                      }`}
-                    >
-                      {task.dev_environment.status}
-                    </Badge>
-                  </div>
-                )}
-
-                {/* 时间信息 */}
-                <div className="text-xs text-gray-500">
-                  <div>
-                    {t("common.createdAt")}: {formatDate(task.created_at)}
-                  </div>
-                  <div>
-                    {t("common.updatedAt")}: {formatDate(task.updated_at)}
-                  </div>
-                </div>
-
-                {/* 操作按钮 */}
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <div className="flex items-center space-x-1">
-                    {/* 显示状态 - 只读 */}
-                    <Badge
-                      variant="outline"
-                      className={`text-xs ${getStatusColor(task.status)}`}
-                    >
-                      {getStatusIcon(task.status)}
-                      <span className="ml-1">
-                        {t(`tasks.status.${task.status}`)}
-                      </span>
-                    </Badge>
-
-                    {/* 显示PR状态 - 只读 */}
-                    {task.has_pull_request && (
-                      <Badge variant="secondary" className="text-xs">
-                        <GitPullRequest className="w-3 h-3 mr-1" />
-                        PR
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="flex items-center space-x-1">
-                    {onViewConversation && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onViewConversation(task)}
-                        className="h-8 px-2"
-                        title={t("tasks.actions.viewConversation")}
-                      >
-                        <MessageSquare className="w-3 h-3" />
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEdit(task)}
-                      className="h-8 px-2"
-                    >
-                      <Edit className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteClick(task)}
-                      className="h-8 px-2 text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* 分页 */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-700">
-            {t("common.pagination.info", {
-              start: (currentPage - 1) * 20 + 1,
-              end: Math.min(currentPage * 20, total),
-              total,
-            })}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage <= 1}
-            >
-              <ChevronLeft className="w-4 h-4" />
-              {t("common.pagination.previous")}
-            </Button>
-
-            <div className="flex items-center space-x-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const page = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
-                if (page > totalPages) return null;
-
-                return (
-                  <Button
-                    key={page}
-                    variant={page === currentPage ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => onPageChange(page)}
-                    className="w-8 h-8 p-0"
+      {/* 过滤器 */}
+      {showFilters && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">
+              {t("tasks.filters.title")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* 项目筛选 */}
+              {!hideProjectFilter && (
+                <div className="flex flex-col gap-3">
+                  <Label htmlFor="project">{t("tasks.filters.project")}</Label>
+                  <Select
+                    value={projectFilter?.toString() || "all"}
+                    onValueChange={(value) =>
+                      onProjectFilterChange(
+                        value === "all" ? undefined : parseInt(value)
+                      )
+                    }
                   >
-                    {page}
-                  </Button>
-                );
-              })}
-            </div>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={t("common.all")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t("common.all")}</SelectItem>
+                      {projects.map((project) => (
+                        <SelectItem
+                          key={project.id}
+                          value={project.id.toString()}
+                        >
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage >= totalPages}
-            >
-              {t("common.pagination.next")}
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+              {/* 状态筛选 */}
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="status">{t("tasks.filters.status")}</Label>
+                <Select
+                  value={statusFilter || "all"}
+                  onValueChange={(value) =>
+                    onStatusFilterChange(
+                      value === "all" ? undefined : (value as TaskStatus)
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t("common.all")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("common.all")}</SelectItem>
+                    <SelectItem value="todo">
+                      {t("tasks.status.todo")}
+                    </SelectItem>
+                    <SelectItem value="in_progress">
+                      {t("tasks.status.in_progress")}
+                    </SelectItem>
+                    <SelectItem value="done">
+                      {t("tasks.status.done")}
+                    </SelectItem>
+                    <SelectItem value="cancelled">
+                      {t("tasks.status.cancelled")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
+
+      {/* 任务表格 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("tasks.list")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {tasks.length === 0 ? (
+            <div className="text-center py-8">
+              <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                {t("tasks.empty.title")}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {t("tasks.empty.description")}
+              </p>
+              <Button onClick={onCreateNew}>
+                <Plus className="w-4 h-4 mr-2" />
+                {t("tasks.actions.create")}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("tasks.table.title")}</TableHead>
+                    {!hideProjectFilter && (
+                      <TableHead>{t("tasks.table.project")}</TableHead>
+                    )}
+                    <TableHead>{t("tasks.table.status")}</TableHead>
+                    <TableHead>{t("tasks.table.branch")}</TableHead>
+                    <TableHead>{t("tasks.table.environment")}</TableHead>
+                    <TableHead>{t("tasks.table.updated")}</TableHead>
+                    <TableHead className="text-right">
+                      {t("common.actions")}
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tasks.map((task) => (
+                    <TableRow key={task.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{task.title}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {t("common.createdAt")}:{" "}
+                            {formatDate(task.created_at)}
+                          </div>
+                        </div>
+                      </TableCell>
+                      {!hideProjectFilter && (
+                        <TableCell>
+                          {task.project?.name && (
+                            <span className="text-blue-600">
+                              {task.project.name}
+                            </span>
+                          )}
+                        </TableCell>
+                      )}
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${getStatusColor(task.status)}`}
+                        >
+                          {getStatusIcon(task.status)}
+                          <span className="ml-1">
+                            {t(`tasks.status.${task.status}`)}
+                          </span>
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <GitBranch className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm">{task.start_branch}</span>
+                          {task.has_pull_request && (
+                            <Badge variant="outline" className="text-xs">
+                              <GitPullRequest className="w-3 h-3 mr-1" />
+                              PR
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {task.dev_environment ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                            <span className="text-sm">
+                              {task.dev_environment.name}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className={`text-xs ${
+                                task.dev_environment.status === "running"
+                                  ? "bg-green-100 text-green-800 border-green-300"
+                                  : task.dev_environment.status === "stopped"
+                                  ? "bg-gray-100 text-gray-800 border-gray-300"
+                                  : task.dev_environment.status === "error"
+                                  ? "bg-red-100 text-red-800 border-red-300"
+                                  : "bg-yellow-100 text-yellow-800 border-yellow-300"
+                              }`}
+                            >
+                              {task.dev_environment.status}
+                            </Badge>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            -
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-xs text-muted-foreground">
+                          {formatDate(task.updated_at)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">
+                                {t("common.open_menu")}
+                              </span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>
+                              {t("common.actions")}
+                            </DropdownMenuLabel>
+
+                            {onViewConversation && (
+                              <DropdownMenuItem
+                                onClick={() => onViewConversation(task)}
+                              >
+                                <MessageSquare className="h-4 w-4 mr-2" />
+                                {t("tasks.actions.viewConversation")}
+                              </DropdownMenuItem>
+                            )}
+
+                            <DropdownMenuItem onClick={() => onEdit(task)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              {t("common.edit")}
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteClick(task)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {t("common.delete")}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* 分页 */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    {t("common.page")} {currentPage} / {totalPages}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onPageChange(currentPage - 1)}
+                      disabled={currentPage <= 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onPageChange(currentPage + 1)}
+                      disabled={currentPage >= totalPages}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

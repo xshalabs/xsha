@@ -60,8 +60,18 @@
     "devEnvironmentRequired": "请选择一个开发环境"
   },
   "filters": {
+    "title": "筛选条件",
     "project": "项目",
     "status": "状态"
+  },
+  "list": "任务列表",
+  "table": {
+    "title": "任务标题",
+    "project": "项目",
+    "status": "状态",
+    "branch": "分支",
+    "environment": "开发环境",
+    "updated": "更新时间"
   },
   "messages": {
     "createSuccess": "任务创建成功",
