@@ -85,7 +85,6 @@ const TaskConversationPage: React.FC = () => {
       setConversations(response.data.conversations);
 
       if (response.data.conversations.length > 0 && !selectedConversationId) {
-        // 选择最近的对话（数组最后一个元素）
         const latestConversation =
           response.data.conversations[response.data.conversations.length - 1];
         setSelectedConversationId(latestConversation.id);
@@ -263,7 +262,6 @@ const TaskConversationPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
           <div className="flex flex-col">
             <TaskConversation
-              taskTitle={task.title}
               conversations={conversations}
               selectedConversationId={selectedConversationId}
               loading={conversationsLoading}

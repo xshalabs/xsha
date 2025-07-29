@@ -31,7 +31,6 @@ export function ModeToggle() {
 
     updateActualTheme();
 
-    // 监听系统主题变化
     if (theme === "system") {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
       mediaQuery.addEventListener("change", updateActualTheme);

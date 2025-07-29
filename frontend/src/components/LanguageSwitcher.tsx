@@ -1,24 +1,21 @@
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import { SUPPORTED_LANGUAGES } from '@/lib/constants';
-import { apiService } from '@/lib/api/index';
-import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { SUPPORTED_LANGUAGES } from "@/lib/constants";
+import { apiService } from "@/lib/api/index";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();
   const { isAuthenticated } = useAuth();
 
   const handleLanguageChange = async (languageCode: string) => {
-    // 切换前端语言
     i18n.changeLanguage(languageCode);
-    
-    // 如果用户已登录，同步设置后端语言偏好
+
     if (isAuthenticated) {
       try {
         await apiService.setLanguagePreference(languageCode);
       } catch (error) {
-        console.warn('Failed to sync language preference with backend:', error);
-        // 不阻止前端语言切换，即使后端同步失败
+        console.warn("Failed to sync language preference with backend:", error);
       }
     }
   };
@@ -39,4 +36,4 @@ export function LanguageSwitcher() {
       ))}
     </div>
   );
-} 
+}

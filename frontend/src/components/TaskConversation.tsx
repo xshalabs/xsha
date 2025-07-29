@@ -23,7 +23,6 @@ import type {
 } from "@/types/task-conversation";
 
 interface TaskConversationProps {
-  taskTitle: string;
   conversations: TaskConversationInterface[];
   selectedConversationId: number | null;
   loading: boolean;
@@ -38,7 +37,6 @@ interface TaskConversationProps {
 }
 
 export function TaskConversation({
-  taskTitle,
   conversations,
   selectedConversationId,
   loading,

@@ -1,4 +1,3 @@
-// API 响应类型定义
 export interface LoginRequest {
   username: string;
   password: string;
@@ -24,4 +23,4 @@ export interface LanguagesResponse {
   message: string;
   languages: string[];
   current: string;
-} 
+}

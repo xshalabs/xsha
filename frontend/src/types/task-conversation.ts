@@ -1,7 +1,10 @@
-// 对话状态类型
-export type ConversationStatus = 'pending' | 'running' | 'success' | 'failed' | 'cancelled';
+export type ConversationStatus =
+  | "pending"
+  | "running"
+  | "success"
+  | "failed"
+  | "cancelled";
 
-// 任务对话基础接口
 export interface TaskConversation {
   id: number;
   task_id: number;
@@ -17,27 +20,21 @@ export interface TaskConversation {
   };
 }
 
-// 创建对话请求
 export interface CreateConversationRequest {
   task_id: number;
   content: string;
 }
 
-// 更新对话请求
 export interface UpdateConversationRequest {
   content?: string;
 }
 
-
-
-// 对话列表查询参数
 export interface ConversationListParams {
   task_id: number;
   page?: number;
   page_size?: number;
 }
 
-// API响应类型
 export interface CreateConversationResponse {
   message: string;
   data: TaskConversation;
@@ -63,7 +60,6 @@ export interface LatestConversationResponse {
   data: TaskConversation;
 }
 
-// 对话表单数据
 export interface ConversationFormData {
   content: string;
-} 
+}

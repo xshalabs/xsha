@@ -1,10 +1,6 @@
-// 结果类型
-export type ResultType = 'result';
+export type ResultType = "result";
+export type ResultSubtype = "success" | "error";
 
-// 结果子类型
-export type ResultSubtype = 'success' | 'error';
-
-// 使用统计接口
 export interface UsageStats {
   input_tokens: number;
   cache_creation_input_tokens: number;
@@ -16,7 +12,6 @@ export interface UsageStats {
   service_tier?: string;
 }
 
-// 任务对话结果基础接口
 export interface TaskConversationResult {
   id: number;
   conversation_id: number;
@@ -29,7 +24,7 @@ export interface TaskConversationResult {
   result: string;
   session_id: string;
   total_cost_usd: number;
-  usage: string; // JSON字符串，包含UsageStats
+  usage: string;
   created_at: string;
   updated_at: string;
   conversation?: {
@@ -46,12 +41,11 @@ export interface TaskConversationResult {
   };
 }
 
-// 解析后的使用统计
-export interface ParsedTaskConversationResult extends Omit<TaskConversationResult, 'usage'> {
+export interface ParsedTaskConversationResult
+  extends Omit<TaskConversationResult, "usage"> {
   usage: UsageStats;
 }
 
-// 更新结果请求
 export interface UpdateResultRequest {
   updates: {
     type?: string;
@@ -67,7 +61,6 @@ export interface UpdateResultRequest {
   };
 }
 
-// 结果列表查询参数
 export interface ResultListByTaskParams {
   task_id: number;
   page?: number;
@@ -80,7 +73,6 @@ export interface ResultListByProjectParams {
   page_size?: number;
 }
 
-// 统计信息接口
 export interface TaskStats {
   success_rate: number;
   total_cost_usd: number;
@@ -96,7 +88,6 @@ export interface ProjectStats {
   average_duration_ms: number;
 }
 
-// API响应类型
 export interface ResultListResponse {
   message: string;
   data: {
@@ -122,7 +113,6 @@ export interface ProjectStatsResponse {
   data: ProjectStats;
 }
 
-// 表单数据接口
 export interface ResultFormData {
   type: ResultType;
   subtype: ResultSubtype;
@@ -136,10 +126,9 @@ export interface ResultFormData {
   usage: UsageStats;
 }
 
-// 工具函数类型
 export interface ResultUtils {
   parseUsage: (usageString: string) => UsageStats | null;
   formatDuration: (ms: number) => string;
   formatCost: (cost: number) => string;
   getSuccessRateColor: (rate: number) => string;
-} 
+}

@@ -1,4 +1,3 @@
-// 任务执行日志接口
 export interface TaskExecutionLog {
   id: number;
   conversation_id: number;
@@ -17,14 +16,12 @@ export interface TaskExecutionLog {
   };
 }
 
-// 执行状态响应
 export interface ExecutionStatusResponse {
   running_count: number;
   max_concurrency: number;
   can_execute: boolean;
 }
 
-// API响应类型
 export interface ExecutionLogResponse {
   message: string;
   data: TaskExecutionLog;
@@ -34,14 +31,12 @@ export interface ExecutionActionResponse {
   message: string;
 }
 
-// 执行日志操作类型
-export type ExecutionAction = 'cancel' | 'retry';
+export type ExecutionAction = "cancel" | "retry";
 
-// 执行日志统计接口
 export interface ExecutionStats {
   total_logs: number;
   running_count: number;
   success_count: number;
   failed_count: number;
   cancelled_count: number;
-} 
+}

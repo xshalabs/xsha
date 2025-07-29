@@ -57,7 +57,7 @@ export const LoginLogList: React.FC<LoginLogListProps> = ({
   const applyFilters = () => {
     onFiltersChange({
       ...localFilters,
-      page: 1, // 重置到第一页
+      page: 1,
     });
   };
 
@@ -123,7 +123,6 @@ export const LoginLogList: React.FC<LoginLogListProps> = ({
         </div>
       </div>
 
-      {/* 筛选器 */}
       {showFilters && (
         <Card>
           <CardHeader>
@@ -160,7 +159,6 @@ export const LoginLogList: React.FC<LoginLogListProps> = ({
         </Card>
       )}
 
-      {/* 日志列表 */}
       <div className="space-y-2">
         {logs.length === 0 ? (
           <Card>
@@ -198,7 +196,9 @@ export const LoginLogList: React.FC<LoginLogListProps> = ({
 
                     <div className="flex items-center space-x-2">
                       <Globe className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-600 break-all">{log.ip}</span>
+                      <span className="text-sm text-gray-600 break-all">
+                        {log.ip}
+                      </span>
                     </div>
 
                     <div className="flex items-center space-x-2">
@@ -231,7 +231,6 @@ export const LoginLogList: React.FC<LoginLogListProps> = ({
         )}
       </div>
 
-      {/* 分页 */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600">

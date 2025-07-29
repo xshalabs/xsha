@@ -21,7 +21,6 @@ const ProjectEditPage: React.FC = () => {
     project ? `${t("projects.edit")} - ${project.name}` : t("projects.edit")
   );
 
-  // 加载项目数据
   useEffect(() => {
     const loadProject = async () => {
       if (!id) {

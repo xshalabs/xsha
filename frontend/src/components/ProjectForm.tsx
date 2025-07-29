@@ -109,7 +109,9 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
       });
 
       if (!validateResponse.can_access) {
-        setAccessError(validateResponse.error || "无法访问仓库");
+        setAccessError(
+          validateResponse.error || t("projects.messages.accessFailed")
+        );
         setBranches([]);
         return;
       }
@@ -124,13 +126,16 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         setAccessValidated(true);
       } else {
         setAccessError(
-          branchesResponse.result.error_message || "获取分支列表失败"
+          branchesResponse.result.error_message ||
+            t("projects.messages.fetchBranchesFailed")
         );
         setBranches([]);
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "验证仓库访问失败";
+        error instanceof Error
+          ? error.message
+          : t("projects.messages.validateAccessFailed");
       setAccessError(errorMessage);
       setBranches([]);
       logError(error as Error, "Failed to validate repository access");
@@ -314,8 +319,6 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
       setLoading(false);
     }
   };
-
-
 
   return (
     <Card className="w-full max-w-2xl mx-auto">

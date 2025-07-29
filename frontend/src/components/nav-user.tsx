@@ -43,32 +43,26 @@ export function NavUser() {
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
-      // 即使登出失败，也要跳转到登录页面，因为logout函数会清除本地状态
       navigate("/login");
     }
   };
 
   const handleLanguageChange = async (languageCode: string) => {
-    // 切换前端语言
     i18n.changeLanguage(languageCode);
 
-    // 如果用户已登录，同步设置后端语言偏好
     if (isAuthenticated) {
       try {
         await apiService.setLanguagePreference(languageCode);
       } catch (error) {
         console.warn("Failed to sync language preference with backend:", error);
-        // 不阻止前端语言切换，即使后端同步失败
       }
     }
   };
 
-  // 如果没有用户信息，不渲染组件
   if (!user) {
     return null;
   }
 
-  // 生成用户名首字母作为头像备用显示
   const userInitials = user.charAt(0).toUpperCase();
 
   return (

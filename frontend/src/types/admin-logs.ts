@@ -1,16 +1,15 @@
-// 管理员操作类型
 export const AdminOperationType = {
-  CREATE: 'create',
-  READ: 'read', 
-  UPDATE: 'update',
-  DELETE: 'delete',
-  LOGIN: 'login',
-  LOGOUT: 'logout'
+  CREATE: "create",
+  READ: "read",
+  UPDATE: "update",
+  DELETE: "delete",
+  LOGIN: "login",
+  LOGOUT: "logout",
 } as const;
 
-export type AdminOperationType = typeof AdminOperationType[keyof typeof AdminOperationType];
+export type AdminOperationType =
+  (typeof AdminOperationType)[keyof typeof AdminOperationType];
 
-// 管理员操作日志接口
 export interface AdminOperationLog {
   id: number;
   created_at: string;
@@ -30,7 +29,6 @@ export interface AdminOperationLog {
   operation_time: string;
 }
 
-// 登录日志接口
 export interface LoginLog {
   id: number;
   created_at: string;
@@ -43,7 +41,6 @@ export interface LoginLog {
   login_time: string;
 }
 
-// 操作日志列表请求参数
 export interface AdminOperationLogListParams {
   username?: string;
   resource?: string;
@@ -55,14 +52,12 @@ export interface AdminOperationLogListParams {
   page_size?: number;
 }
 
-// 登录日志列表请求参数
 export interface LoginLogListParams {
   username?: string;
   page?: number;
   page_size?: number;
 }
 
-// 操作日志列表响应
 export interface AdminOperationLogListResponse {
   message: string;
   logs: AdminOperationLog[];
@@ -72,7 +67,6 @@ export interface AdminOperationLogListResponse {
   total_pages: number;
 }
 
-// 登录日志列表响应
 export interface LoginLogListResponse {
   message: string;
   logs: LoginLog[];
@@ -82,13 +76,11 @@ export interface LoginLogListResponse {
   total_pages: number;
 }
 
-// 操作日志详情响应
 export interface AdminOperationLogDetailResponse {
   message: string;
   log: AdminOperationLog;
 }
 
-// 操作统计响应
 export interface AdminOperationStatsResponse {
   message: string;
   operation_stats: Record<string, number>;
@@ -97,9 +89,8 @@ export interface AdminOperationStatsResponse {
   end_time: string;
 }
 
-// 操作统计请求参数
 export interface AdminOperationStatsParams {
   username?: string;
   start_time?: string;
   end_time?: string;
-} 
+}

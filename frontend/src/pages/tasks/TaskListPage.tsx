@@ -26,13 +26,17 @@ const TaskListPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<TaskStatus | undefined>();
   const [titleFilter, setTitleFilter] = useState<string | undefined>();
   const [branchFilter, setBranchFilter] = useState<string | undefined>();
-  const [devEnvironmentFilter, setDevEnvironmentFilter] = useState<number | undefined>();
+  const [devEnvironmentFilter, setDevEnvironmentFilter] = useState<
+    number | undefined
+  >();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [devEnvironments, setDevEnvironments] = useState<DevEnvironment[]>([]);
 
   usePageTitle(
-    currentProject ? `${currentProject.name} - ${t("tasks.title")}` : t("tasks.title")
+    currentProject
+      ? `${currentProject.name} - ${t("tasks.title")}`
+      : t("tasks.title")
   );
 
   const pageSize = 20;
@@ -89,7 +93,14 @@ const TaskListPage: React.FC = () => {
   useEffect(() => {
     loadProjects();
     loadDevEnvironments();
-    loadTasks(1, statusFilter, projectId ? parseInt(projectId, 10) : undefined, titleFilter, branchFilter, devEnvironmentFilter);
+    loadTasks(
+      1,
+      statusFilter,
+      projectId ? parseInt(projectId, 10) : undefined,
+      titleFilter,
+      branchFilter,
+      devEnvironmentFilter
+    );
     if (projectId) {
       apiService.projects
         .get(parseInt(projectId, 10))
@@ -149,26 +160,54 @@ const TaskListPage: React.FC = () => {
 
   const handleStatusFilterChange = (status: TaskStatus | undefined) => {
     setStatusFilter(status);
-    loadTasks(1, status, projectId ? parseInt(projectId, 10) : undefined, titleFilter, branchFilter, devEnvironmentFilter);
+    loadTasks(
+      1,
+      status,
+      projectId ? parseInt(projectId, 10) : undefined,
+      titleFilter,
+      branchFilter,
+      devEnvironmentFilter
+    );
   };
 
   const handleTitleFilterChange = (title: string | undefined) => {
     setTitleFilter(title);
-    loadTasks(1, statusFilter, projectId ? parseInt(projectId, 10) : undefined, title, branchFilter, devEnvironmentFilter);
+    loadTasks(
+      1,
+      statusFilter,
+      projectId ? parseInt(projectId, 10) : undefined,
+      title,
+      branchFilter,
+      devEnvironmentFilter
+    );
   };
 
   const handleBranchFilterChange = (branch: string | undefined) => {
     setBranchFilter(branch);
-    loadTasks(1, statusFilter, projectId ? parseInt(projectId, 10) : undefined, titleFilter, branch, devEnvironmentFilter);
+    loadTasks(
+      1,
+      statusFilter,
+      projectId ? parseInt(projectId, 10) : undefined,
+      titleFilter,
+      branch,
+      devEnvironmentFilter
+    );
   };
 
   const handleDevEnvironmentFilterChange = (envId: number | undefined) => {
     setDevEnvironmentFilter(envId);
-    loadTasks(1, statusFilter, projectId ? parseInt(projectId, 10) : undefined, titleFilter, branchFilter, envId);
+    loadTasks(
+      1,
+      statusFilter,
+      projectId ? parseInt(projectId, 10) : undefined,
+      titleFilter,
+      branchFilter,
+      envId
+    );
   };
 
   const handleProjectFilterChange = (_projectId: number | undefined) => {
-    // This function is no longer needed as project filtering is handled by URL param
+    // This function is no longer needed as project filtering is handled by URL param.
     // Keeping it for now, but it will not be called from the TaskList component
     // as the project filter is now a URL param.
   };
@@ -180,13 +219,11 @@ const TaskListPage: React.FC = () => {
     branch?: string;
     devEnvironment?: number;
   }) => {
-    // 同时更新所有筛选状态
     setStatusFilter(filters.status);
     setTitleFilter(filters.title);
     setBranchFilter(filters.branch);
     setDevEnvironmentFilter(filters.devEnvironment);
-    
-    // 只发送一次API请求
+
     loadTasks(
       1,
       filters.status,

@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
-import { apiService, tokenManager } from '@/lib/api/index';
-import type { UserResponse } from '@/lib/api/index';
-import { handleApiError } from '@/lib/errors';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import { apiService, tokenManager } from "@/lib/api/index";
+import type { UserResponse } from "@/lib/api/index";
+import { handleApiError } from "@/lib/errors";
 
 interface AuthContextType {
   user: string | null;
@@ -18,7 +18,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -32,7 +32,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 检查认证状态
   const checkAuth = async () => {
     try {
       if (!tokenManager.isTokenPresent()) {
@@ -45,16 +44,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(response.user);
       setIsAuthenticated(true);
     } catch (error) {
-      console.error('Auth check failed:', handleApiError(error));
+      console.error("Auth check failed:", handleApiError(error));
       setIsAuthenticated(false);
       setUser(null);
-      tokenManager.removeToken(); // 清除无效token
+      tokenManager.removeToken();
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 登录函数
   const login = async (username: string, password: string) => {
     setIsLoading(true);
     try {
@@ -64,21 +62,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       setIsAuthenticated(false);
       setUser(null);
-      // 抛出带有后端国际化消息的错误
       throw new Error(handleApiError(error));
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 登出函数
   const logout = async () => {
     setIsLoading(true);
     try {
       await apiService.logout();
     } catch (error) {
-      console.error('Logout failed:', handleApiError(error));
-      // 即使API调用失败，也要清除本地状态
+      console.error("Logout failed:", handleApiError(error));
     } finally {
       setIsAuthenticated(false);
       setUser(null);
@@ -86,7 +81,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // 组件挂载时检查认证状态
   useEffect(() => {
     checkAuth();
   }, []);
@@ -100,9 +94,5 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuth,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-}; 
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};

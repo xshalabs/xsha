@@ -68,11 +68,9 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
     }
   }, [credential]);
 
-  // 当凭据类型改变时，清理相关字段
   useEffect(() => {
     if (formData.type === CredentialTypes.SSH_KEY) {
-      // 切换到 SSH key 时清空 username
-      setFormData(prev => ({ ...prev, username: "" }));
+      setFormData((prev) => ({ ...prev, username: "" }));
     }
   }, [formData.type]);
 
@@ -85,11 +83,9 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
       return t("gitCredentials.validation.nameRequired");
     if (!formData.type) return t("gitCredentials.validation.typeRequired");
 
-    // Username is only required for password and token types, not for SSH key
     if (formData.type !== CredentialTypes.SSH_KEY && !formData.username.trim())
       return t("gitCredentials.validation.usernameRequired");
 
-    // In editing mode, credential information is optional
     if (!isEditing) {
       switch (formData.type) {
         case CredentialTypes.PASSWORD:
@@ -130,7 +126,10 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
       name: formData.name.trim(),
       description: formData.description.trim(),
       type: formData.type,
-      username: formData.type === CredentialTypes.SSH_KEY ? "" : formData.username.trim(),
+      username:
+        formData.type === CredentialTypes.SSH_KEY
+          ? ""
+          : formData.username.trim(),
       secret_data: secretData,
     };
   };
