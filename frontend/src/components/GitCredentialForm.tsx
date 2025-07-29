@@ -68,6 +68,14 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
     }
   }, [credential]);
 
+  // 当凭据类型改变时，清理相关字段
+  useEffect(() => {
+    if (formData.type === CredentialTypes.SSH_KEY) {
+      // 切换到 SSH key 时清空 username
+      setFormData(prev => ({ ...prev, username: "" }));
+    }
+  }, [formData.type]);
+
   const updateField = (field: keyof GitCredentialFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -76,7 +84,9 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
     if (!formData.name.trim())
       return t("gitCredentials.validation.nameRequired");
     if (!formData.type) return t("gitCredentials.validation.typeRequired");
-    if (!formData.username.trim())
+
+    // Username is only required for password and token types, not for SSH key
+    if (formData.type !== CredentialTypes.SSH_KEY && !formData.username.trim())
       return t("gitCredentials.validation.usernameRequired");
 
     // In editing mode, credential information is optional
@@ -120,7 +130,7 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
       name: formData.name.trim(),
       description: formData.description.trim(),
       type: formData.type,
-      username: formData.username.trim(),
+      username: formData.type === CredentialTypes.SSH_KEY ? "" : formData.username.trim(),
       secret_data: secretData,
     };
   };
@@ -238,17 +248,21 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
               </Select>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="username">{t("gitCredentials.username")} *</Label>
-              <Input
-                id="username"
-                type="text"
-                value={formData.username}
-                onChange={(e) => updateField("username", e.target.value)}
-                placeholder={t("gitCredentials.placeholders.username")}
-                required
-              />
-            </div>
+            {formData.type !== CredentialTypes.SSH_KEY && (
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="username">
+                  {t("gitCredentials.username")} *
+                </Label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) => updateField("username", e.target.value)}
+                  placeholder={t("gitCredentials.placeholders.username")}
+                  required
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-4">
@@ -256,7 +270,12 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
               {t("gitCredentials.credentialInfo", "Credential Information")}
               {isEditing && (
                 <span className="text-sm font-normal text-gray-500 ml-2">
-                  ({t("gitCredentials.optionalWhenEditing", "Optional when editing - leave blank to keep current")})
+                  (
+                  {t(
+                    "gitCredentials.optionalWhenEditing",
+                    "Optional when editing - leave blank to keep current"
+                  )}
+                  )
                 </span>
               )}
             </h3>
@@ -264,7 +283,8 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
             {formData.type === CredentialTypes.PASSWORD && (
               <div className="flex flex-col gap-3">
                 <Label htmlFor="password">
-                  {t("gitCredentials.password")}{!isEditing && " *"}
+                  {t("gitCredentials.password")}
+                  {!isEditing && " *"}
                 </Label>
                 <Input
                   id="password"
@@ -272,8 +292,11 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
                   value={formData.password}
                   onChange={(e) => updateField("password", e.target.value)}
                   placeholder={
-                    isEditing 
-                      ? t("gitCredentials.placeholders.passwordOptional", "Leave blank to keep current password")
+                    isEditing
+                      ? t(
+                          "gitCredentials.placeholders.passwordOptional",
+                          "Leave blank to keep current password"
+                        )
                       : t("gitCredentials.placeholders.password")
                   }
                   required={!isEditing}
@@ -284,7 +307,8 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
             {formData.type === CredentialTypes.TOKEN && (
               <div className="flex flex-col gap-3">
                 <Label htmlFor="token">
-                  {t("gitCredentials.token")}{!isEditing && " *"}
+                  {t("gitCredentials.token")}
+                  {!isEditing && " *"}
                 </Label>
                 <Input
                   id="token"
@@ -292,8 +316,11 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
                   value={formData.token}
                   onChange={(e) => updateField("token", e.target.value)}
                   placeholder={
-                    isEditing 
-                      ? t("gitCredentials.placeholders.tokenOptional", "Leave blank to keep current token")
+                    isEditing
+                      ? t(
+                          "gitCredentials.placeholders.tokenOptional",
+                          "Leave blank to keep current token"
+                        )
                       : t("gitCredentials.placeholders.token")
                   }
                   required={!isEditing}
@@ -305,15 +332,19 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
               <>
                 <div className="flex flex-col gap-3">
                   <Label htmlFor="private_key">
-                    {t("gitCredentials.privateKey")}{!isEditing && " *"}
+                    {t("gitCredentials.privateKey")}
+                    {!isEditing && " *"}
                   </Label>
                   <Textarea
                     id="private_key"
                     value={formData.private_key}
                     onChange={(e) => updateField("private_key", e.target.value)}
                     placeholder={
-                      isEditing 
-                        ? t("gitCredentials.placeholders.privateKeyOptional", "Leave blank to keep current private key")
+                      isEditing
+                        ? t(
+                            "gitCredentials.placeholders.privateKeyOptional",
+                            "Leave blank to keep current private key"
+                          )
                         : t("gitCredentials.placeholders.privateKey")
                     }
                     className="min-h-[120px] font-mono text-sm"
@@ -329,8 +360,11 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
                     value={formData.public_key}
                     onChange={(e) => updateField("public_key", e.target.value)}
                     placeholder={
-                      isEditing 
-                        ? t("gitCredentials.placeholders.publicKeyOptional", "Leave blank to keep current public key")
+                      isEditing
+                        ? t(
+                            "gitCredentials.placeholders.publicKeyOptional",
+                            "Leave blank to keep current public key"
+                          )
                         : t("gitCredentials.placeholders.publicKey")
                     }
                     className="min-h-[80px] font-mono text-sm"
@@ -345,9 +379,7 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
               {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading
-                ? t("common.saving", "Saving...")
-                : t("common.save")}
+              {loading ? t("common.saving", "Saving...") : t("common.save")}
             </Button>
           </div>
         </form>
