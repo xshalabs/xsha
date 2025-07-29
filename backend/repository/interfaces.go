@@ -87,7 +87,6 @@ type TaskRepository interface {
 
 	// 业务操作
 	ListByProject(projectID uint, createdBy string) ([]database.Task, error)
-	CountByStatus(projectID uint, createdBy string) (map[database.TaskStatus]int64, error)
 }
 
 // TaskConversationRepository 定义任务对话仓库接口

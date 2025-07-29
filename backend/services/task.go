@@ -176,11 +176,6 @@ func (s *taskService) DeleteTask(id uint, createdBy string) error {
 	return nil
 }
 
-// GetTaskStats 获取任务统计
-func (s *taskService) GetTaskStats(projectID uint, createdBy string) (map[database.TaskStatus]int64, error) {
-	return s.repo.CountByStatus(projectID, createdBy)
-}
-
 // ValidateTaskData 验证任务数据
 func (s *taskService) ValidateTaskData(title, startBranch string, projectID uint, createdBy string) error {
 	// 验证标题

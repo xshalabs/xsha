@@ -313,39 +313,3 @@ func (h *TaskHandlers) DeleteTask(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task.delete_success")})
 }
-
-// GetTaskStats 获取任务统计
-func (h *TaskHandlers) GetTaskStats(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	projectIDStr := c.Query("project_id")
-	if projectIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "task.project_id_required")})
-		return
-	}
-
-	projectID, err := strconv.ParseUint(projectIDStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
-		return
-	}
-
-	// 获取当前用户
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	// 获取任务统计
-	stats, err := h.taskService.GetTaskStats(uint(projectID), username.(string))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "task.get_success"),
-		"data":    stats,
-	})
-}

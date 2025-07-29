@@ -5,7 +5,6 @@ import type {
   UpdateTaskRequest,
   TaskListResponse,
   TaskDetailResponse,
-  TaskStatsResponse,
   TaskListParams
 } from '@/types/task';
 
@@ -50,12 +49,5 @@ export const tasksApi = {
     return request<{ message: string }>(`/tasks/${id}`, {
       method: 'DELETE',
     });
-  },
-
-
-
-  // 获取任务统计
-  getStats: async (projectId: number): Promise<TaskStatsResponse> => {
-    return request<TaskStatsResponse>(`/tasks/stats?project_id=${projectId}`);
   },
 }; 

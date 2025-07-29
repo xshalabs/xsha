@@ -77,29 +77,3 @@ func (r *taskRepository) ListByProject(projectID uint, createdBy string) ([]data
 		Order("created_at DESC").Find(&tasks).Error
 	return tasks, err
 }
-
-// CountByStatus 统计各状态的任务数量
-func (r *taskRepository) CountByStatus(projectID uint, createdBy string) (map[database.TaskStatus]int64, error) {
-	type StatusCount struct {
-		Status database.TaskStatus
-		Count  int64
-	}
-
-	var results []StatusCount
-	err := r.db.Model(&database.Task{}).
-		Select("status, count(*) as count").
-		Where("project_id = ? AND created_by = ?", projectID, createdBy).
-		Group("status").
-		Scan(&results).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	counts := make(map[database.TaskStatus]int64)
-	for _, result := range results {
-		counts[result.Status] = result.Count
-	}
-
-	return counts, nil
-}

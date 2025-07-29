@@ -120,9 +120,6 @@ type TaskService interface {
 	UpdateTaskStatus(id uint, createdBy string, status database.TaskStatus) error
 	DeleteTask(id uint, createdBy string) error
 
-	// 任务统计
-	GetTaskStats(projectID uint, createdBy string) (map[database.TaskStatus]int64, error)
-
 	// 验证操作
 	ValidateTaskData(title, startBranch string, projectID uint, createdBy string) error
 }

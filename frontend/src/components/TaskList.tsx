@@ -50,7 +50,6 @@ interface TaskListProps {
   onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
   onViewConversation?: (task: Task) => void;
-  onRefresh: () => void;
   onCreateNew: () => void;
 }
 
@@ -70,7 +69,6 @@ export function TaskList({
   onEdit,
   onDelete,
   onViewConversation,
-  onRefresh,
   onCreateNew,
 }: TaskListProps) {
   const { t } = useTranslation();

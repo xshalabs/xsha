@@ -92,7 +92,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		{
 			tasks.POST("", taskHandlers.CreateTask)                 // 创建任务
 			tasks.GET("", taskHandlers.ListTasks)                   // 获取任务列表
-			tasks.GET("/stats", taskHandlers.GetTaskStats)          // 获取任务统计
 			tasks.GET("/:id", taskHandlers.GetTask)                 // 获取单个任务
 			tasks.PUT("/:id", taskHandlers.UpdateTask)              // 更新任务
 			tasks.PUT("/:id/status", taskHandlers.UpdateTaskStatus) // 更新任务状态

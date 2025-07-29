@@ -43,7 +43,7 @@ const TaskConversationPage: React.FC = () => {
       try {
         setLoading(true);
         const response = await apiService.tasks.get(parseInt(taskId, 10));
-        setTask(response.data);
+        setTask(response.task);
       } catch (error) {
         logError(error as Error, 'Failed to load task');
         alert(error instanceof Error ? error.message : t('tasks.messages.loadFailed'));

@@ -51,43 +51,23 @@ export interface TaskListParams {
   status?: TaskStatus;
 }
 
-// 任务统计
-export interface TaskStats {
-  total: number;
-  todo: number;
-  in_progress: number;
-  done: number;
-  cancelled: number;
-}
-
-// API响应类型
-export interface CreateTaskResponse {
-  message: string;
-  data: {
-    task: Task;
-    project_branches?: string[]; // 项目分支列表
-    branch_error?: string;       // 获取分支时的错误信息
-  };
-}
-
+// 任务列表响应接口
 export interface TaskListResponse {
-  message: string;
   data: {
     tasks: Task[];
     total: number;
-    page: number;
-    page_size: number;
   };
 }
 
+// 任务详情响应接口
 export interface TaskDetailResponse {
-  message: string;
-  data: Task;
+  task: Task;
 }
 
-export interface TaskStatsResponse {
+// 创建任务响应接口
+export interface CreateTaskResponse {
+  task: Task;
   message: string;
-  data: TaskStats;
 }
 
 // 任务表单数据

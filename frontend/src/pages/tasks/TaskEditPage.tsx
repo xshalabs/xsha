@@ -33,7 +33,7 @@ const TaskEditPage: React.FC = () => {
         
         // 加载任务
         const taskResponse = await apiService.tasks.get(parseInt(taskId, 10));
-        setTask(taskResponse.data);
+        setTask(taskResponse.task);
       } catch (error) {
         logError(error as Error, 'Failed to load task');
         alert(error instanceof Error ? error.message : t('tasks.messages.loadFailed'));
