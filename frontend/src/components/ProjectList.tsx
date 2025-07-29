@@ -16,15 +16,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -42,11 +34,7 @@ import {
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import { ROUTES } from "@/lib/constants";
-import type {
-  Project,
-  ProjectListParams,
-  GitProtocolType,
-} from "@/types/project";
+import type { Project, ProjectListParams } from "@/types/project";
 
 interface ProjectListProps {
   onEdit?: (project: Project) => void;
@@ -141,12 +129,6 @@ export function ProjectList({
     return new Date(dateString).toLocaleString();
   };
 
-  const getProtocolBadgeColor = (protocol: GitProtocolType) => {
-    return protocol === "https"
-      ? "text-blue-600"
-      : "text-green-600";
-  };
-
   if (loading && projects.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -192,43 +174,15 @@ export function ProjectList({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div className="flex flex-col gap-3">
-                <Label htmlFor="name">
-                  {t("projects.name")}
-                </Label>
+                <Label htmlFor="name">{t("projects.name")}</Label>
                 <Input
                   id="name"
                   value={localFilters.name || ""}
                   onChange={(e) => handleFilterChange("name", e.target.value)}
                   placeholder={t("projects.filter.name_placeholder")}
                 />
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="protocol">
-                  {t("projects.protocol")}
-                </Label>
-                <Select
-                  value={localFilters.protocol || "all"}
-                  onValueChange={(value) =>
-                    handleFilterChange(
-                      "protocol",
-                      value === "all"
-                        ? undefined
-                        : (value as GitProtocolType)
-                    )
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t("common.all")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("common.all")}</SelectItem>
-                    <SelectItem value="https">HTTPS</SelectItem>
-                    <SelectItem value="ssh">SSH</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 
@@ -258,16 +212,16 @@ export function ProjectList({
             <div className="text-center py-8">
               <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">
-                {localFilters.protocol || localFilters.name
+                {localFilters.name
                   ? t("projects.messages.noMatchingProjects")
                   : t("projects.messages.noProjects")}
               </h3>
               <p className="text-muted-foreground mb-4">
-                {localFilters.protocol || localFilters.name
+                {localFilters.name
                   ? t("projects.messages.clearFilter")
                   : t("projects.messages.noProjectsDesc")}
               </p>
-              {localFilters.protocol || localFilters.name ? (
+              {localFilters.name ? (
                 <Button variant="outline" onClick={resetFilters}>
                   {t("projects.messages.clearFilter")}
                 </Button>
@@ -283,10 +237,8 @@ export function ProjectList({
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t("projects.name")}</TableHead>
-                    <TableHead>{t("projects.protocol")}</TableHead>
                     <TableHead>{t("projects.repoUrl")}</TableHead>
                     <TableHead>{t("projects.credential")}</TableHead>
-                    <TableHead>{t("projects.lastUsed")}</TableHead>
                     <TableHead className="text-right">
                       {t("common.actions")}
                     </TableHead>
@@ -306,29 +258,14 @@ export function ProjectList({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={getProtocolBadgeColor(project.protocol)}
-                        >
-                          {project.protocol.toUpperCase()}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
                         <div className="text-blue-600 truncate max-w-xs">
                           {project.repo_url}
                         </div>
                       </TableCell>
                       <TableCell>
                         {project.credential ? (
-                          <div className="text-sm">{project.credential.name}</div>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {project.last_used ? (
                           <div className="text-sm">
-                            {formatDate(project.last_used)}
+                            {project.credential.name}
                           </div>
                         ) : (
                           <span className="text-muted-foreground">-</span>
@@ -357,9 +294,7 @@ export function ProjectList({
                             </DropdownMenuItem>
 
                             {onEdit && (
-                              <DropdownMenuItem
-                                onClick={() => onEdit(project)}
-                              >
+                              <DropdownMenuItem onClick={() => onEdit(project)}>
                                 <Edit className="h-4 w-4 mr-2" />
                                 {t("common.edit")}
                               </DropdownMenuItem>
