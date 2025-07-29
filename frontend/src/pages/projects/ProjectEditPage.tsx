@@ -82,7 +82,7 @@ const ProjectEditPage: React.FC = () => {
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
           <Button
-            variant="outline"
+            variant="default"
             onClick={() => navigate("/projects")}
             className="mb-4"
           >

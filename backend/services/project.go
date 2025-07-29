@@ -106,8 +106,17 @@ func (s *projectService) UpdateProject(id uint, createdBy string, updates map[st
 		if credentialID == nil {
 			project.CredentialID = nil
 		} else {
-			id := credentialID.(uint)
-			project.CredentialID = &id
+			// credentialID is already *uint from the request struct
+			if idPtr, ok := credentialID.(*uint); ok {
+				project.CredentialID = idPtr
+			} else {
+				// Fallback for other types (should not happen with proper request binding)
+				if id, ok := credentialID.(uint); ok {
+					project.CredentialID = &id
+				} else {
+					return fmt.Errorf("invalid credential_id type")
+				}
+			}
 		}
 		// 验证协议和凭据的兼容性
 		if err := s.ValidateProtocolCredential(project.Protocol, project.CredentialID, createdBy); err != nil {
