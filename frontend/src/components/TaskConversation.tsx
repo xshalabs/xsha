@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from 'react-i18next';
 import { 
   Send, 
@@ -253,8 +254,8 @@ export function TaskConversation({
               <label className="text-sm font-medium">
                 {t('taskConversation.content')}:
               </label>
-              <textarea
-                className="w-full min-h-[120px] p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <Textarea
+                className="min-h-[120px] resize-none"
                 placeholder={t('taskConversation.contentPlaceholder')}
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
