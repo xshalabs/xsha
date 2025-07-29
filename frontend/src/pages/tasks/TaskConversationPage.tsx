@@ -234,21 +234,29 @@ const TaskConversationPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/projects/${projectId}/tasks`)}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {t("common.back")}
-          </Button>
-          <h1 className="text-2xl font-bold">{t("tasks.conversation")}</h1>
-          <p className="text-muted-foreground mt-2">{task.title}</p>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center py-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">
+              {task.project?.name} - {t("tasks.conversation")}
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">{task.title}</p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="default"
+              onClick={() => navigate(`/projects/${projectId}/tasks`)}
+              className="mb-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {t("common.back")}
+            </Button>
+          </div>
         </div>
+      </div>
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
           <div className="flex flex-col">
             <TaskConversation

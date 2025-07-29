@@ -96,7 +96,7 @@
   },
   "create": "Create Task",
   "edit": "Edit Task", 
-  "conversation": "Task Conversation",
+  "conversation": "Task Conversations",
   "create_description": "Create a new development task",
   "edit_description": "Edit task information",
   "loadFailed": "Failed to load task"
