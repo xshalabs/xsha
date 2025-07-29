@@ -5,6 +5,7 @@ import (
 	"strings"
 	"xsha-backend/database"
 	"xsha-backend/repository"
+	"xsha-backend/utils"
 )
 
 type taskConversationService struct {
@@ -129,6 +130,22 @@ func (s *taskConversationService) DeleteConversation(id uint, createdBy string) 
 	// 验证只有最新对话才能删除
 	if conversation.ID != latestConversation.ID {
 		return errors.New("only the latest conversation can be deleted")
+	}
+
+	// 如果对话有 commit_hash，则需要将关联任务的工作空间仓库重置到前一个提交
+	if conversation.CommitHash != "" && conversation.Task != nil && conversation.Task.WorkspacePath != "" {
+		if err := utils.GitResetToPreviousCommit(conversation.Task.WorkspacePath, conversation.CommitHash); err != nil {
+			utils.Error("Failed to reset git repository to previous commit",
+				"conversation_id", id,
+				"commit_hash", conversation.CommitHash,
+				"workspace_path", conversation.Task.WorkspacePath,
+				"error", err)
+			return errors.New("failed to reset git repository to previous commit: " + err.Error())
+		}
+		utils.Info("Successfully reset git repository to previous commit",
+			"conversation_id", id,
+			"commit_hash", conversation.CommitHash,
+			"workspace_path", conversation.Task.WorkspacePath)
 	}
 
 	// 先删除关联的任务执行日志

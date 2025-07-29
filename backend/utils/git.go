@@ -418,3 +418,56 @@ func ValidateRepositoryAccess(repoURL string, credential *GitCredentialInfo) err
 
 	return nil
 }
+
+// GitResetToPreviousCommit 将仓库重置到指定 commit 的前一个提交
+func GitResetToPreviousCommit(workspacePath, commitHash string) error {
+	if workspacePath == "" {
+		return fmt.Errorf("workspace path cannot be empty")
+	}
+
+	if commitHash == "" {
+		return fmt.Errorf("commit hash cannot be empty")
+	}
+
+	// 检查工作空间目录是否存在
+	if _, err := os.Stat(workspacePath); os.IsNotExist(err) {
+		return fmt.Errorf("workspace directory does not exist: %s", workspacePath)
+	}
+
+	// 设置超时上下文
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// 首先获取指定 commit 的前一个提交
+	getPrevCmd := exec.CommandContext(ctx, "git", "rev-parse", commitHash+"^")
+	getPrevCmd.Dir = workspacePath
+
+	prevCommitOutput, err := getPrevCmd.Output()
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			errorMessage := string(exitError.Stderr)
+			return fmt.Errorf("failed to get previous commit: %s", errorMessage)
+		}
+		return fmt.Errorf("failed to execute git rev-parse command: %v", err)
+	}
+
+	prevCommitHash := strings.TrimSpace(string(prevCommitOutput))
+	if prevCommitHash == "" {
+		return fmt.Errorf("failed to get previous commit hash")
+	}
+
+	// 执行 git reset --hard 到前一个提交
+	resetCmd := exec.CommandContext(ctx, "git", "reset", "--hard", prevCommitHash)
+	resetCmd.Dir = workspacePath
+
+	_, err = resetCmd.Output()
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			errorMessage := string(exitError.Stderr)
+			return fmt.Errorf("failed to reset to previous commit: %s", errorMessage)
+		}
+		return fmt.Errorf("failed to execute git reset command: %v", err)
+	}
+
+	return nil
+}
