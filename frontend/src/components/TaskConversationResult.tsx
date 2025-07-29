@@ -193,7 +193,7 @@ export function TaskConversationResult({
             <MessageSquare className="h-4 w-4" />
             {t("taskConversation.result.content")}
           </h4>
-          <div className="bg-foreground/5 p-3 rounded-md">
+          <div className="bg-foreground/5 p-3 rounded-md max-h-[400px] overflow-auto">
             <pre className="text-sm whitespace-pre-wrap">{result.result}</pre>
           </div>
         </div>

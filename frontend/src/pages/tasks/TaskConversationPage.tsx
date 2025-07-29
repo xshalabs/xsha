@@ -86,7 +86,8 @@ const TaskConversationPage: React.FC = () => {
 
       if (response.data.conversations.length > 0 && !selectedConversationId) {
         // 选择最近的对话（数组最后一个元素）
-        const latestConversation = response.data.conversations[response.data.conversations.length - 1];
+        const latestConversation =
+          response.data.conversations[response.data.conversations.length - 1];
         setSelectedConversationId(latestConversation.id);
       }
     } catch (error) {
@@ -274,7 +275,7 @@ const TaskConversationPage: React.FC = () => {
             />
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex flex-col pb-6">
             {selectedConversation ? (
               <Tabs
                 value={activeTab}
@@ -308,8 +309,11 @@ const TaskConversationPage: React.FC = () => {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="result" className="flex-1 mt-2">
-                  <div className="h-full overflow-auto">
+                <TabsContent
+                  value="result"
+                  className="flex-1 mt-2 overflow-hidden"
+                >
+                  <div className="h-full overflow-y-auto">
                     <TaskConversationResult
                       conversationId={selectedConversation.id}
                       showHeader={false}
