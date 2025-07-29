@@ -27,6 +27,7 @@
     "createSuccess": "Project created successfully",
     "updateSuccess": "Project updated successfully",
     "deleteConfirm": "Are you sure you want to delete this project?",
+    "deleteSuccess": "Project deleted successfully",
     "deleteFailed": "Failed to delete project",
     "clearFilter": "Clear Filter"
   },

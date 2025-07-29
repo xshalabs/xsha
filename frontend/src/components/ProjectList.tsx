@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
@@ -42,11 +42,15 @@ interface ProjectListProps {
   onCreateNew?: () => void;
 }
 
-export function ProjectList({
+export interface ProjectListRef {
+  refreshData: () => void;
+}
+
+export const ProjectList = forwardRef<ProjectListRef, ProjectListProps>(({
   onEdit,
   onDelete,
   onCreateNew,
-}: ProjectListProps) {
+}, ref) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -84,6 +88,12 @@ export function ProjectList({
       setLoading(false);
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    refreshData: () => {
+      loadProjects(localFilters);
+    }
+  }));
 
   useEffect(() => {
     loadProjects(localFilters);
@@ -123,10 +133,6 @@ export function ProjectList({
 
   const handleTasksManagement = (projectId: number) => {
     navigate(`${ROUTES.projects}/${projectId}/tasks`);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
   };
 
   if (loading && projects.length === 0) {
@@ -348,4 +354,4 @@ export function ProjectList({
       </Card>
     </div>
   );
-}
+});

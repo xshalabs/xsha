@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -8,10 +9,12 @@ import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import { ProjectList } from "@/components/ProjectList";
 import type { Project } from "@/types/project";
+import type { ProjectListRef } from "@/components/ProjectList";
 
 const ProjectListPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const projectListRef = useRef<ProjectListRef>(null);
 
   usePageTitle(t("common.pageTitle.projects"));
 
@@ -26,9 +29,14 @@ const ProjectListPage: React.FC = () => {
 
     try {
       await apiService.projects.delete(id);
+      toast.success(t("projects.messages.deleteSuccess"));
+      // 刷新项目列表数据
+      if (projectListRef.current) {
+        projectListRef.current.refreshData();
+      }
     } catch (error) {
       logError(error as Error, "Failed to delete project");
-      alert(
+      toast.error(
         error instanceof Error
           ? error.message
           : t("projects.messages.deleteFailed")
@@ -66,6 +74,7 @@ const ProjectListPage: React.FC = () => {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onCreateNew={handleCreateNew}
+          ref={projectListRef}
         />
       </div>
     </div>
