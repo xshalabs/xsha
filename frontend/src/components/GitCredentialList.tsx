@@ -1,7 +1,15 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { GitCredential, GitCredentialType } from "@/types/git-credentials";
 import { GitCredentialType as CredentialTypes } from "@/types/git-credentials";
 import {
@@ -23,7 +31,9 @@ interface GitCredentialListProps {
   currentPage: number;
   totalPages: number;
   total: number;
+  typeFilter?: GitCredentialType;
   onPageChange: (page: number) => void;
+  onTypeFilterChange: (type: GitCredentialType | undefined) => void;
   onEdit: (credential: GitCredential) => void;
   onDelete: (id: number) => void;
   onRefresh: () => void;
@@ -35,7 +45,9 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
   currentPage,
   totalPages,
   total,
+  typeFilter: _typeFilter,
   onPageChange,
+  onTypeFilterChange: _onTypeFilterChange,
   onEdit,
   onDelete,
   onRefresh: _onRefresh,
@@ -72,66 +84,81 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
     return new Date(dateString).toLocaleString();
   };
 
-  const startItem = (currentPage - 1) * 10 + 1;
-  const endItem = Math.min(currentPage * 10, total);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500">{t("common.loading")}</div>
+      </div>
+    );
+  }
+
+  if (credentials.length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center py-8">
+            <Key className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {t("gitCredentials.messages.noCredentials")}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {t("gitCredentials.messages.noCredentialsDesc")}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {loading ? (
-        <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-48"></div>
-                    <div className="h-3 bg-gray-200 rounded w-32"></div>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="h-8 bg-gray-200 rounded w-16"></div>
-                    <div className="h-8 bg-gray-200 rounded w-16"></div>
-                    <div className="h-8 bg-gray-200 rounded w-16"></div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : credentials.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center py-8">
-              <Key className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {t("gitCredentials.messages.noCredentials")}
-              </h3>
-              <p className="text-gray-600 mb-4">
-                {t("gitCredentials.messages.noCredentialsDesc")}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {credentials.map((credential) => (
-            <Card
-              key={credential.id}
-              className={credential.is_active ? "" : "opacity-60"}
-            >
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+      <div className="text-sm text-foreground">
+        {t("gitCredentials.pagination.total")} {total}{" "}
+        {t("gitCredentials.pagination.items")}
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">
+            {t("gitCredentials.filter.title")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("gitCredentials.name")}</TableHead>
+                  <TableHead>{t("gitCredentials.type")}</TableHead>
+                  <TableHead>{t("gitCredentials.status")}</TableHead>
+                  <TableHead>{t("gitCredentials.username")}</TableHead>
+                  <TableHead>{t("gitCredentials.description")}</TableHead>
+                  <TableHead>{t("gitCredentials.createdAt")}</TableHead>
+                  <TableHead>{t("gitCredentials.lastUsed")}</TableHead>
+                  <TableHead className="text-right">
+                    {t("gitCredentials.actions")}
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {credentials.map((credential) => (
+                  <TableRow
+                    key={credential.id}
+                    className={credential.is_active ? "" : "opacity-60"}
+                  >
+                    <TableCell>
                       <div className="flex items-center gap-2">
                         {getTypeIcon(credential.type)}
-                        <h3 className="font-medium text-gray-900">
-                          {credential.name}
-                        </h3>
+                        <span className="font-medium">{credential.name}</span>
                       </div>
+                    </TableCell>
+                    <TableCell>
                       <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
                         {getTypeName(credential.type)}
                       </span>
-                      <div className="flex items-center gap-1">
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
                         {credential.is_active ? (
                           <Eye className="w-4 h-4 text-green-500" />
                         ) : (
@@ -149,128 +176,87 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                             : t("gitCredentials.inactive")}
                         </span>
                       </div>
-                    </div>
-
-                    {credential.description && (
-                      <p className="text-gray-600 text-sm mb-2">
-                        {credential.description}
-                      </p>
-                    )}
-
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <User className="w-3 h-3" />
-                        <span>{credential.username}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">{credential.username}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-gray-600">
+                        {credential.description || "-"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-sm text-gray-500">
                         <Clock className="w-3 h-3" />
-                        <span>
-                          {t("gitCredentials.createdAt")}:{" "}
-                          {formatDate(credential.created_at)}
-                        </span>
+                        <span>{formatDate(credential.created_at)}</span>
                       </div>
-                      {credential.last_used && (
-                        <div className="flex items-center gap-1">
+                    </TableCell>
+                    <TableCell>
+                      {credential.last_used ? (
+                        <div className="flex items-center gap-1 text-sm text-gray-500">
                           <Clock className="w-3 h-3" />
-                          <span>
-                            {t("gitCredentials.lastUsed")}:{" "}
-                            {formatDate(credential.last_used)}
-                          </span>
+                          <span>{formatDate(credential.last_used)}</span>
                         </div>
+                      ) : (
+                        <span className="text-sm text-gray-400">-</span>
                       )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEdit(credential)}
-                      title={t("gitCredentials.edit")}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onDelete(credential.id)}
-                      className="text-red-600 hover:text-red-700 hover:border-red-300"
-                      title={t("gitCredentials.delete")}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {!loading && credentials.length > 0 && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                {t("gitCredentials.pagination.showing")} {startItem}{" "}
-                {t("gitCredentials.pagination.to")} {endItem}{" "}
-                {t("gitCredentials.pagination.of")} {total}{" "}
-                {t("gitCredentials.pagination.items")}
-              </div>
-
-              {totalPages > 1 && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onPageChange(currentPage - 1)}
-                    disabled={currentPage <= 1}
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                      let pageNum;
-                      if (totalPages <= 5) {
-                        pageNum = i + 1;
-                      } else if (currentPage <= 3) {
-                        pageNum = i + 1;
-                      } else if (currentPage >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i;
-                      } else {
-                        pageNum = currentPage - 2 + i;
-                      }
-
-                      return (
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
                         <Button
-                          key={pageNum}
-                          variant={
-                            currentPage === pageNum ? "default" : "outline"
-                          }
+                          variant="outline"
                           size="sm"
-                          onClick={() => onPageChange(pageNum)}
-                          className="w-8 h-8 p-0"
+                          onClick={() => onEdit(credential)}
+                          title={t("gitCredentials.edit")}
                         >
-                          {pageNum}
+                          <Edit className="w-4 h-4" />
                         </Button>
-                      );
-                    })}
-                  </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onDelete(credential.id)}
+                          className="text-red-600 hover:text-red-700 hover:border-red-300"
+                          title={t("gitCredentials.delete")}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onPageChange(currentPage + 1)}
-                    disabled={currentPage >= totalPages}
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+      {/* 分页 */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            {t("gitCredentials.pagination.page")} {currentPage} / {totalPages}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-foreground"
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage <= 1}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-foreground"
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );
