@@ -240,7 +240,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
       <CardContent className="space-y-6">
         <div className="space-y-6">
           <div className="space-y-4">
-            <div className="space-y-2">
+            <div className="flex flex-col gap-3">
               <Label htmlFor="name">{t("dev_environments.form.name")} *</Label>
               <Input
                 id="name"
@@ -256,7 +256,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
               )}
             </div>
 
-            <div className="space-y-2">
+            <div className="flex flex-col gap-3">
               <Label htmlFor="description">
                 {t("dev_environments.form.description")}
               </Label>
@@ -271,7 +271,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="flex flex-col gap-3">
               <Label>{t("dev_environments.form.type")} *</Label>
               <Select
                 value={formData.type}
@@ -302,7 +302,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="flex flex-col gap-3">
                 <Label htmlFor="cpu_limit">
                   {t("dev_environments.form.cpu_limit")} * (0.1-16{" "}
                   {t("dev_environments.stats.cores")})
@@ -328,7 +328,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="flex flex-col gap-3">
                 <Label htmlFor="memory_limit">
                   {t("dev_environments.form.memory_limit")} * (128-32768 MB)
                 </Label>
@@ -369,7 +369,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-3">
                     <Label>{t("dev_environments.env_vars.key")}</Label>
                     <Input
                       value={newEnvKey}
@@ -377,7 +377,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                       placeholder="VARIABLE_NAME"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-3">
                     <Label>{t("dev_environments.env_vars.value")}</Label>
                     <Input
                       value={newEnvValue}
@@ -406,7 +406,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="flex flex-col gap-3">
                     {Object.entries(envVars).map(([key, value]) => (
                       <div key={key} className="flex items-center gap-3">
                         <Badge

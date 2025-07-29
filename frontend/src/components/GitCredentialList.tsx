@@ -95,11 +95,11 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
       <Card>
         <CardContent className="pt-6">
           <div className="text-center py-8">
-            <Key className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <Key className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">
               {t("gitCredentials.messages.noCredentials")}
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               {t("gitCredentials.messages.noCredentialsDesc")}
             </p>
           </div>
@@ -138,9 +138,7 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
               </TableHeader>
               <TableBody>
                 {credentials.map((credential) => (
-                  <TableRow
-                    key={credential.id}
-                  >
+                  <TableRow key={credential.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {getTypeIcon(credential.type)}
@@ -148,26 +146,24 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                      <span className="px-2 py-1 bg-muted text-foreground text-xs rounded-full">
                         {getTypeName(credential.type)}
                       </span>
                     </TableCell>
-
                     <TableCell>
                       <span className="text-sm">{credential.username}</span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-foreground">
                         {credential.description || "-"}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
+                      <div className="flex items-center gap-1 text-sm text-foreground">
                         <Clock className="w-3 h-3" />
                         <span>{formatDate(credential.created_at)}</span>
                       </div>
                     </TableCell>
-
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button

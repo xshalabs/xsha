@@ -11,7 +11,6 @@ import {
   RefreshCw,
   Calendar,
   User,
-  Shield,
   CheckCircle,
   XCircle,
   Globe,
