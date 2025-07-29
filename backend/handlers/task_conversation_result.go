@@ -41,12 +41,12 @@ func (h *TaskConversationResultHandlers) GetResult(c *gin.Context) {
 	// 获取结果
 	result, err := h.resultService.GetResult(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "task_conversation.result_not_found")})
+		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.result_not_found")})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "task_conversation.result_get_success"),
+		"message": i18n.T(lang, "taskConversation.result_get_success"),
 		"data":    result,
 	})
 }
@@ -65,12 +65,12 @@ func (h *TaskConversationResultHandlers) GetResultByConversationID(c *gin.Contex
 	// 获取结果
 	result, err := h.resultService.GetResultByConversationID(uint(conversationID))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "task_conversation.result_not_found")})
+		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.result_not_found")})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "task_conversation.result_get_success"),
+		"message": i18n.T(lang, "taskConversation.result_get_success"),
 		"data":    result,
 	})
 }
@@ -109,7 +109,7 @@ func (h *TaskConversationResultHandlers) ListResultsByTaskID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "task_conversation.result_list_success"),
+		"message": i18n.T(lang, "taskConversation.result_list_success"),
 		"data": gin.H{
 			"items":     results,
 			"total":     total,
@@ -153,7 +153,7 @@ func (h *TaskConversationResultHandlers) ListResultsByProjectID(c *gin.Context) 
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "task_conversation.result_list_success"),
+		"message": i18n.T(lang, "taskConversation.result_list_success"),
 		"data": gin.H{
 			"items":     results,
 			"total":     total,
@@ -188,7 +188,7 @@ func (h *TaskConversationResultHandlers) UpdateResult(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "task_conversation.result_update_success"),
+		"message": i18n.T(lang, "taskConversation.result_update_success"),
 	})
 }
 
@@ -211,7 +211,7 @@ func (h *TaskConversationResultHandlers) DeleteResult(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "task_conversation.result_delete_success"),
+		"message": i18n.T(lang, "taskConversation.result_delete_success"),
 	})
 }
 
@@ -234,7 +234,7 @@ func (h *TaskConversationResultHandlers) GetTaskStats(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "task_conversation.stats_get_success"),
+		"message": i18n.T(lang, "taskConversation.stats_get_success"),
 		"data":    stats,
 	})
 }
@@ -258,7 +258,7 @@ func (h *TaskConversationResultHandlers) GetProjectStats(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "task_conversation.stats_get_success"),
+		"message": i18n.T(lang, "taskConversation.stats_get_success"),
 		"data":    stats,
 	})
 }

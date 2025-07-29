@@ -283,10 +283,10 @@ const TaskConversationPage: React.FC = () => {
               >
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="log">
-                    {t("task_conversation.execution_log")}
+                    {t("taskConversation.execution_log")}
                   </TabsTrigger>
                   <TabsTrigger value="result">
-                    {t("task_conversation.execution_result")}
+                    {t("taskConversation.execution_result")}
                   </TabsTrigger>
                 </TabsList>
 

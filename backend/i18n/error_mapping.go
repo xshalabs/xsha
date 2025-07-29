@@ -54,11 +54,11 @@ var ErrorMapping = map[string]string{
 
 	// Task conversation related errors
 	"task not found or access denied":                                                 "task.not_found",
-	"failed to check conversation status":                                             "task_conversation.get_failed",
-	"cannot create new conversation while there are pending or running conversations": "task_conversation.create_failed",
+	"failed to check conversation status":                                             "taskConversation.get_failed",
+	"cannot create new conversation while there are pending or running conversations": "taskConversation.create_failed",
 	"conversation content cannot be empty":                                            "validation.required",
-	"cannot delete conversation while it is running":                                  "task_conversation.create_failed",
-	"failed to delete related execution logs":                                         "task_conversation.create_failed",
+	"cannot delete conversation while it is running":                                  "taskConversation.create_failed",
+	"failed to delete related execution logs":                                         "taskConversation.create_failed",
 	"conversation content is required":                                                "validation.required",
 	"conversation content too long":                                                   "validation.too_long",
 	"task ID is required":                                                             "validation.required",

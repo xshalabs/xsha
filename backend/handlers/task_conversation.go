@@ -58,7 +58,7 @@ func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": i18n.T(lang, "task_conversation.create_success"),
+		"message": i18n.T(lang, "taskConversation.create_success"),
 		"data":    conversation,
 	})
 }
@@ -84,12 +84,12 @@ func (h *TaskConversationHandlers) GetConversation(c *gin.Context) {
 	// 获取对话
 	conversation, err := h.conversationService.GetConversation(uint(id), username.(string))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "task_conversation.not_found")})
+		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.not_found")})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "task_conversation.get_success"),
+		"message": i18n.T(lang, "taskConversation.get_success"),
 		"data":    conversation,
 	})
 }
@@ -129,7 +129,7 @@ func (h *TaskConversationHandlers) ListConversations(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "task_conversation.get_success"),
+		"message": i18n.T(lang, "taskConversation.get_success"),
 		"data": gin.H{
 			"conversations": conversations,
 			"total":         total,
@@ -175,7 +175,7 @@ func (h *TaskConversationHandlers) UpdateConversation(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task_conversation.update_success")})
+	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "taskConversation.update_success")})
 }
 
 // DeleteConversation 删除对话
@@ -202,7 +202,7 @@ func (h *TaskConversationHandlers) DeleteConversation(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task_conversation.update_success")})
+	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "taskConversation.update_success")})
 }
 
 // GetLatestConversation 获取最新对话
@@ -231,12 +231,12 @@ func (h *TaskConversationHandlers) GetLatestConversation(c *gin.Context) {
 	// 获取最新对话
 	conversation, err := h.conversationService.GetLatestConversation(uint(taskID), username.(string))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "task_conversation.not_found")})
+		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.not_found")})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "task_conversation.get_success"),
+		"message": i18n.T(lang, "taskConversation.get_success"),
 		"data":    conversation,
 	})
 }
