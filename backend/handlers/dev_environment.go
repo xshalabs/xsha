@@ -71,13 +71,13 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "创建环境失败: " + err.Error(),
+			"error": i18n.T(lang, "dev_environment.create_failed") + ": " + err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message":     "环境创建成功",
+		"message":     i18n.T(lang, "dev_environment.create_success"),
 		"environment": env,
 	})
 }
@@ -109,7 +109,7 @@ func (h *DevEnvironmentHandlers) GetEnvironment(c *gin.Context) {
 	env, err := h.devEnvService.GetEnvironment(uint(id), username.(string))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": "环境不存在",
+			"error": i18n.T(lang, "dev_environment.not_found"),
 		})
 		return
 	}
@@ -133,6 +133,7 @@ func (h *DevEnvironmentHandlers) GetEnvironment(c *gin.Context) {
 // @Success 200 {object} object{environments=[]object,total=number} "环境列表"
 // @Router /dev-environments [get]
 func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
 
 	page := 1
@@ -161,7 +162,7 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 	environments, total, err := h.devEnvService.ListEnvironments(username.(string), envType, name, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "获取环境列表失败",
+			"error": i18n.T(lang, "dev_environment.list_failed"),
 		})
 		return
 	}
@@ -169,7 +170,7 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 	totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":      "获取成功",
+		"message":      i18n.T(lang, "dev_environment.list_success"),
 		"environments": environments,
 		"total":        total,
 		"page":         page,
@@ -191,13 +192,14 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 // @Failure 400 {object} object{error=string} "请求参数错误"
 // @Router /dev-environments/{id} [put]
 func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的环境ID",
+			"error": i18n.T(lang, "dev_environment.invalid_id"),
 		})
 		return
 	}
@@ -205,7 +207,7 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	var req UpdateEnvironmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误: " + err.Error(),
+			"error": i18n.T(lang, "dev_environment.invalid_request") + ": " + err.Error(),
 		})
 		return
 	}
@@ -227,7 +229,7 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	err = h.devEnvService.UpdateEnvironment(uint(id), username.(string), updates)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "更新环境失败: " + err.Error(),
+			"error": i18n.T(lang, "dev_environment.update_failed") + ": " + err.Error(),
 		})
 		return
 	}
@@ -236,14 +238,14 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 		err = h.devEnvService.UpdateEnvironmentVars(uint(id), username.(string), req.EnvVars)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "更新环境变量失败: " + err.Error(),
+				"error": i18n.T(lang, "dev_environment.env_vars_update_failed") + ": " + err.Error(),
 			})
 			return
 		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "环境更新成功",
+		"message": i18n.T(lang, "dev_environment.update_success"),
 	})
 }
 
@@ -259,13 +261,14 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 // @Failure 400 {object} object{error=string} "删除失败"
 // @Router /dev-environments/{id} [delete]
 func (h *DevEnvironmentHandlers) DeleteEnvironment(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的环境ID",
+			"error": i18n.T(lang, "dev_environment.invalid_id"),
 		})
 		return
 	}
@@ -273,13 +276,13 @@ func (h *DevEnvironmentHandlers) DeleteEnvironment(c *gin.Context) {
 	err = h.devEnvService.DeleteEnvironment(uint(id), username.(string))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "删除环境失败: " + err.Error(),
+			"error": i18n.T(lang, "dev_environment.delete_failed") + ": " + err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "环境删除成功",
+		"message": i18n.T(lang, "dev_environment.delete_success"),
 	})
 }
 
@@ -295,13 +298,14 @@ func (h *DevEnvironmentHandlers) DeleteEnvironment(c *gin.Context) {
 // @Failure 400 {object} object{error=string} "获取失败"
 // @Router /dev-environments/{id}/env-vars [get]
 func (h *DevEnvironmentHandlers) GetEnvironmentVars(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的环境ID",
+			"error": i18n.T(lang, "dev_environment.invalid_id"),
 		})
 		return
 	}
@@ -309,7 +313,7 @@ func (h *DevEnvironmentHandlers) GetEnvironmentVars(c *gin.Context) {
 	envVars, err := h.devEnvService.GetEnvironmentVars(uint(id), username.(string))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "获取环境变量失败: " + err.Error(),
+			"error": i18n.T(lang, "dev_environment.env_vars_get_failed") + ": " + err.Error(),
 		})
 		return
 	}
@@ -332,13 +336,14 @@ func (h *DevEnvironmentHandlers) GetEnvironmentVars(c *gin.Context) {
 // @Failure 400 {object} object{error=string} "更新失败"
 // @Router /dev-environments/{id}/env-vars [put]
 func (h *DevEnvironmentHandlers) UpdateEnvironmentVars(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的环境ID",
+			"error": i18n.T(lang, "dev_environment.invalid_id"),
 		})
 		return
 	}
@@ -346,7 +351,7 @@ func (h *DevEnvironmentHandlers) UpdateEnvironmentVars(c *gin.Context) {
 	var envVars map[string]string
 	if err := c.ShouldBindJSON(&envVars); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误: " + err.Error(),
+			"error": i18n.T(lang, "dev_environment.invalid_request") + ": " + err.Error(),
 		})
 		return
 	}
@@ -354,12 +359,12 @@ func (h *DevEnvironmentHandlers) UpdateEnvironmentVars(c *gin.Context) {
 	err = h.devEnvService.UpdateEnvironmentVars(uint(id), username.(string), envVars)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "更新环境变量失败: " + err.Error(),
+			"error": i18n.T(lang, "dev_environment.env_vars_update_failed") + ": " + err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "环境变量更新成功",
+		"message": i18n.T(lang, "dev_environment.env_vars_update_success"),
 	})
 }
