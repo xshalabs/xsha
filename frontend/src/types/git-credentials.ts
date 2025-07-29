@@ -15,11 +15,9 @@ export interface GitCredential {
   type: GitCredentialType;
   username: string;
   created_by: string;
-  is_active: boolean;
   public_key?: string;
   created_at: string;
   updated_at: string;
-  last_used?: string;
 }
 
 // 创建 Git 凭据请求

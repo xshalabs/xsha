@@ -42,7 +42,6 @@ func (s *gitCredentialService) CreateCredential(name, description, credType, use
 		Type:        database.GitCredentialType(credType),
 		Username:    username,
 		CreatedBy:   createdBy,
-		IsActive:    true,
 	}
 
 	// 加密敏感数据
@@ -137,9 +136,11 @@ func (s *gitCredentialService) DeleteCredential(id uint, createdBy string) error
 	return s.repo.Delete(id, createdBy)
 }
 
-// ListActiveCredentials 获取激活的凭据列表
+// ListActiveCredentials 获取凭据列表（现在返回所有凭据，因为不再区分激活状态）
 func (s *gitCredentialService) ListActiveCredentials(createdBy string, credType *database.GitCredentialType) ([]database.GitCredential, error) {
-	return s.repo.ListActive(createdBy, credType)
+	// 使用一个较大的页面大小来获取所有凭据
+	credentials, _, err := s.repo.List(createdBy, credType, 1, 1000)
+	return credentials, err
 }
 
 // DecryptCredentialSecret 解密凭据敏感信息

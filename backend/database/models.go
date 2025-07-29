@@ -62,8 +62,6 @@ type GitCredential struct {
 	PublicKey    string `gorm:"type:text" json:"public_key"` // SSH公钥（不敏感，可显示）
 
 	// 元数据
-	LastUsed *time.Time `json:"last_used"`                           // 最后使用时间
-	IsActive bool       `gorm:"default:true;index" json:"is_active"` // 是否激活
 
 	// 关联用户
 	CreatedBy string `gorm:"not null;index;uniqueIndex:idx_name_user" json:"created_by"` // 创建者用户名

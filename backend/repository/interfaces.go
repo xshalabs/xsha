@@ -30,9 +30,6 @@ type GitCredentialRepository interface {
 	Delete(id uint, createdBy string) error
 
 	// 业务操作
-	UpdateLastUsed(id uint, createdBy string) error
-	SetActive(id uint, createdBy string, isActive bool) error
-	ListActive(createdBy string, credType *database.GitCredentialType) ([]database.GitCredential, error)
 }
 
 // ProjectRepository 定义项目仓库接口

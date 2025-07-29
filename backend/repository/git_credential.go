@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"time"
 	"xsha-backend/database"
 
 	"gorm.io/gorm"
@@ -74,32 +73,4 @@ func (r *gitCredentialRepository) Update(credential *database.GitCredential) err
 // Delete 删除Git凭据
 func (r *gitCredentialRepository) Delete(id uint, createdBy string) error {
 	return r.db.Where("id = ? AND created_by = ?", id, createdBy).Delete(&database.GitCredential{}).Error
-}
-
-// UpdateLastUsed 更新最后使用时间
-func (r *gitCredentialRepository) UpdateLastUsed(id uint, createdBy string) error {
-	now := time.Now()
-	return r.db.Model(&database.GitCredential{}).
-		Where("id = ? AND created_by = ?", id, createdBy).
-		Update("last_used", now).Error
-}
-
-// SetActive 设置激活状态
-func (r *gitCredentialRepository) SetActive(id uint, createdBy string, isActive bool) error {
-	return r.db.Model(&database.GitCredential{}).
-		Where("id = ? AND created_by = ?", id, createdBy).
-		Update("is_active", isActive).Error
-}
-
-// ListActive 获取激活的凭据列表
-func (r *gitCredentialRepository) ListActive(createdBy string, credType *database.GitCredentialType) ([]database.GitCredential, error) {
-	var credentials []database.GitCredential
-
-	query := r.db.Where("created_by = ? AND is_active = ?", createdBy, true)
-	if credType != nil {
-		query = query.Where("type = ?", *credType)
-	}
-
-	err := query.Order("created_at DESC").Find(&credentials).Error
-	return credentials, err
 }

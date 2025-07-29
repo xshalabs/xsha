@@ -15,8 +15,6 @@ import { GitCredentialType as CredentialTypes } from "@/types/git-credentials";
 import {
   Edit,
   Trash2,
-  Eye,
-  EyeOff,
   Key,
   Shield,
   User,
@@ -130,11 +128,9 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                 <TableRow>
                   <TableHead>{t("gitCredentials.name")}</TableHead>
                   <TableHead>{t("gitCredentials.type")}</TableHead>
-                  <TableHead>{t("gitCredentials.status")}</TableHead>
                   <TableHead>{t("gitCredentials.username")}</TableHead>
                   <TableHead>{t("gitCredentials.description")}</TableHead>
                   <TableHead>{t("gitCredentials.createdAt")}</TableHead>
-                  <TableHead>{t("gitCredentials.lastUsed")}</TableHead>
                   <TableHead className="text-right">
                     {t("gitCredentials.actions")}
                   </TableHead>
@@ -144,7 +140,6 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                 {credentials.map((credential) => (
                   <TableRow
                     key={credential.id}
-                    className={credential.is_active ? "" : "opacity-60"}
                   >
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -157,26 +152,7 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                         {getTypeName(credential.type)}
                       </span>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {credential.is_active ? (
-                          <Eye className="w-4 h-4 text-green-500" />
-                        ) : (
-                          <EyeOff className="w-4 h-4 text-gray-400" />
-                        )}
-                        <span
-                          className={`text-xs ${
-                            credential.is_active
-                              ? "text-green-600"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          {credential.is_active
-                            ? t("gitCredentials.active")
-                            : t("gitCredentials.inactive")}
-                        </span>
-                      </div>
-                    </TableCell>
+
                     <TableCell>
                       <span className="text-sm">{credential.username}</span>
                     </TableCell>
@@ -191,16 +167,7 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                         <span>{formatDate(credential.created_at)}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {credential.last_used ? (
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
-                          <Clock className="w-3 h-3" />
-                          <span>{formatDate(credential.last_used)}</span>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-gray-400">-</span>
-                      )}
-                    </TableCell>
+
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button

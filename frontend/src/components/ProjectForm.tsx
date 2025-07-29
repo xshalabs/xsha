@@ -410,7 +410,6 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                   {credentials.map((credential) => (
                     <option key={credential.id} value={credential.id}>
                       {credential.name} ({credential.type} - {credential.username})
-                      {!credential.is_active && ` - ${t('projects.status.inactive')}`}
                     </option>
                   ))}
                 </select>

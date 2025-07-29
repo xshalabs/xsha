@@ -136,10 +136,6 @@ func (s *projectService) ValidateProtocolCredential(protocol database.GitProtoco
 		return fmt.Errorf("credential not found: %v", err)
 	}
 
-	if !credential.IsActive {
-		return errors.New("credential is not active")
-	}
-
 	// 验证协议和凭据类型的兼容性
 	switch protocol {
 	case database.GitProtocolHTTPS:
@@ -205,13 +201,6 @@ func (s *projectService) FetchRepositoryBranches(repoURL string, credentialID *u
 			return &utils.GitAccessResult{
 				CanAccess:    false,
 				ErrorMessage: fmt.Sprintf("failed to get credential: %v", err),
-			}, nil
-		}
-
-		if !credential.IsActive {
-			return &utils.GitAccessResult{
-				CanAccess:    false,
-				ErrorMessage: "credential is not active",
 			}, nil
 		}
 
