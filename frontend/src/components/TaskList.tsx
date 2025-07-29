@@ -68,6 +68,13 @@ interface TaskListProps {
   onTitleFilterChange: (title: string | undefined) => void;
   onBranchFilterChange: (branch: string | undefined) => void;
   onDevEnvironmentFilterChange: (envId: number | undefined) => void;
+  onFiltersApply?: (filters: {
+    status?: TaskStatus;
+    project?: number;
+    title?: string;
+    branch?: string;
+    devEnvironment?: number;
+  }) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
   onViewConversation?: (task: Task) => void;
@@ -94,6 +101,7 @@ export function TaskList({
   onTitleFilterChange,
   onBranchFilterChange,
   onDevEnvironmentFilterChange,
+  onFiltersApply,
   onEdit,
   onDelete,
   onViewConversation,
@@ -133,11 +141,23 @@ export function TaskList({
   };
 
   const applyFilters = () => {
-    onStatusFilterChange(localFilters.status);
-    onProjectFilterChange(localFilters.project);
-    onTitleFilterChange(localFilters.title);
-    onBranchFilterChange(localFilters.branch);
-    onDevEnvironmentFilterChange(localFilters.devEnvironment);
+    if (onFiltersApply) {
+      // 使用新的统一回调函数
+      onFiltersApply({
+        status: localFilters.status,
+        project: localFilters.project,
+        title: localFilters.title,
+        branch: localFilters.branch,
+        devEnvironment: localFilters.devEnvironment,
+      });
+    } else {
+      // 兼容旧的回调方式
+      onStatusFilterChange(localFilters.status);
+      onProjectFilterChange(localFilters.project);
+      onTitleFilterChange(localFilters.title);
+      onBranchFilterChange(localFilters.branch);
+      onDevEnvironmentFilterChange(localFilters.devEnvironment);
+    }
   };
 
   const resetFilters = () => {
@@ -149,11 +169,17 @@ export function TaskList({
       devEnvironment: undefined,
     };
     setLocalFilters(emptyFilters);
-    onStatusFilterChange(emptyFilters.status);
-    onProjectFilterChange(emptyFilters.project);
-    onTitleFilterChange(emptyFilters.title);
-    onBranchFilterChange(emptyFilters.branch);
-    onDevEnvironmentFilterChange(emptyFilters.devEnvironment);
+    if (onFiltersApply) {
+      // 使用新的统一回调函数
+      onFiltersApply(emptyFilters);
+    } else {
+      // 兼容旧的回调方式
+      onStatusFilterChange(emptyFilters.status);
+      onProjectFilterChange(emptyFilters.project);
+      onTitleFilterChange(emptyFilters.title);
+      onBranchFilterChange(emptyFilters.branch);
+      onDevEnvironmentFilterChange(emptyFilters.devEnvironment);
+    }
   };
 
   const getStatusColor = (status: TaskStatus) => {

@@ -173,6 +173,30 @@ const TaskListPage: React.FC = () => {
     // as the project filter is now a URL param.
   };
 
+  const handleFiltersApply = (filters: {
+    status?: TaskStatus;
+    project?: number;
+    title?: string;
+    branch?: string;
+    devEnvironment?: number;
+  }) => {
+    // 同时更新所有筛选状态
+    setStatusFilter(filters.status);
+    setTitleFilter(filters.title);
+    setBranchFilter(filters.branch);
+    setDevEnvironmentFilter(filters.devEnvironment);
+    
+    // 只发送一次API请求
+    loadTasks(
+      1,
+      filters.status,
+      projectId ? parseInt(projectId, 10) : undefined,
+      filters.title,
+      filters.branch,
+      filters.devEnvironment
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -215,6 +239,7 @@ const TaskListPage: React.FC = () => {
           onTitleFilterChange={handleTitleFilterChange}
           onBranchFilterChange={handleBranchFilterChange}
           onDevEnvironmentFilterChange={handleDevEnvironmentFilterChange}
+          onFiltersApply={handleFiltersApply}
           onEdit={handleTaskEdit}
           onDelete={handleTaskDelete}
           onViewConversation={handleViewConversation}
