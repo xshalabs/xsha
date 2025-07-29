@@ -10,6 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { GitCredential, GitCredentialType } from "@/types/git-credentials";
 import { GitCredentialType as CredentialTypes } from "@/types/git-credentials";
 import {
@@ -21,6 +28,7 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  MoreHorizontal,
 } from "lucide-react";
 
 interface GitCredentialListProps {
@@ -109,10 +117,12 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="text-sm text-foreground">
-        {t("gitCredentials.pagination.total")} {total}{" "}
-        {t("gitCredentials.pagination.items")}
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-foreground">
+          {t("common.total")} {total} {t("common.items")}
+        </div>
+        <div className="flex gap-2"></div>
       </div>
 
       <Card>
@@ -165,25 +175,32 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onEdit(credential)}
-                          title={t("gitCredentials.edit")}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onDelete(credential.id)}
-                          className="text-red-600 hover:text-red-700 hover:border-red-300"
-                          title={t("gitCredentials.delete")}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">
+                              {t("common.open_menu")}
+                            </span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>
+                            {t("gitCredentials.actions")}
+                          </DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => onEdit(credential)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            {t("gitCredentials.edit")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => onDelete(credential.id)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            {t("gitCredentials.delete")}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -193,7 +210,6 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
         </CardContent>
       </Card>
 
-      {/* 分页 */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600">
