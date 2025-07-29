@@ -62,7 +62,12 @@
   "filters": {
     "title": "筛选条件",
     "project": "项目",
-    "status": "状态"
+    "status": "状态",
+    "taskTitle": "任务标题",
+    "titlePlaceholder": "按标题搜索...",
+    "branch": "分支",
+    "branchPlaceholder": "按分支筛选...",
+    "devEnvironment": "开发环境"
   },
   "list": "任务列表",
   "table": {

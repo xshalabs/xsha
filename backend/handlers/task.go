@@ -178,8 +178,26 @@ func (h *TaskHandlers) ListTasks(c *gin.Context) {
 		status = &taskStatus
 	}
 
+	var title *string
+	if t := c.Query("title"); t != "" {
+		title = &t
+	}
+
+	var branch *string
+	if b := c.Query("branch"); b != "" {
+		branch = &b
+	}
+
+	var devEnvID *uint
+	if envID := c.Query("dev_environment_id"); envID != "" {
+		if id, err := strconv.ParseUint(envID, 10, 32); err == nil {
+			envIDUint := uint(id)
+			devEnvID = &envIDUint
+		}
+	}
+
 	// 获取任务列表
-	tasks, total, err := h.taskService.ListTasks(projectID, username.(string), status, page, pageSize)
+	tasks, total, err := h.taskService.ListTasks(projectID, username.(string), status, title, branch, devEnvID, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
 		return

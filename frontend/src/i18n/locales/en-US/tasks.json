@@ -62,7 +62,12 @@
   "filters": {
     "title": "Filters",
     "project": "Project",
-    "status": "Status"
+    "status": "Status",
+    "taskTitle": "Task Title",
+    "titlePlaceholder": "Search by title...",
+    "branch": "Branch",
+    "branchPlaceholder": "Filter by branch...",
+    "devEnvironment": "Development Environment"
   },
   "list": "Task List",
   "table": {

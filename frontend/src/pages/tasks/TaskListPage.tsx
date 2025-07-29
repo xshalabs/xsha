@@ -8,6 +8,7 @@ import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import type { Task, TaskStatus } from "@/types/task";
 import type { Project } from "@/types/project";
+import type { DevEnvironment } from "@/types/dev-environment";
 import { Plus } from "lucide-react";
 
 const TaskListPage: React.FC = () => {
@@ -23,8 +24,12 @@ const TaskListPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [total, setTotal] = useState(0);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | undefined>();
+  const [titleFilter, setTitleFilter] = useState<string | undefined>();
+  const [branchFilter, setBranchFilter] = useState<string | undefined>();
+  const [devEnvironmentFilter, setDevEnvironmentFilter] = useState<number | undefined>();
 
   const [projects, setProjects] = useState<Project[]>([]);
+  const [devEnvironments, setDevEnvironments] = useState<DevEnvironment[]>([]);
 
   usePageTitle(
     currentProject ? `${currentProject.name} - ${t("tasks.title")}` : t("tasks.title")
@@ -41,10 +46,22 @@ const TaskListPage: React.FC = () => {
     }
   };
 
+  const loadDevEnvironments = async () => {
+    try {
+      const response = await apiService.devEnvironments.list();
+      setDevEnvironments(response.environments);
+    } catch (error) {
+      logError(error as Error, "Failed to load dev environments");
+    }
+  };
+
   const loadTasks = async (
     page = 1,
     status?: TaskStatus,
-    projectId?: number
+    projectId?: number,
+    title?: string,
+    branch?: string,
+    devEnvId?: number
   ) => {
     try {
       setTasksLoading(true);
@@ -53,6 +70,9 @@ const TaskListPage: React.FC = () => {
         page_size: pageSize,
         status,
         project_id: projectId,
+        title,
+        branch,
+        dev_environment_id: devEnvId,
       });
 
       setTasks(response.data.tasks);
@@ -68,7 +88,8 @@ const TaskListPage: React.FC = () => {
 
   useEffect(() => {
     loadProjects();
-    loadTasks(1, statusFilter, projectId ? parseInt(projectId, 10) : undefined);
+    loadDevEnvironments();
+    loadTasks(1, statusFilter, projectId ? parseInt(projectId, 10) : undefined, titleFilter, branchFilter, devEnvironmentFilter);
     if (projectId) {
       apiService.projects
         .get(parseInt(projectId, 10))
@@ -96,7 +117,10 @@ const TaskListPage: React.FC = () => {
       loadTasks(
         currentPage,
         statusFilter,
-        projectId ? parseInt(projectId, 10) : undefined
+        projectId ? parseInt(projectId, 10) : undefined,
+        titleFilter,
+        branchFilter,
+        devEnvironmentFilter
       );
     } catch (error) {
       logError(error as Error, "Failed to delete task");
@@ -116,13 +140,31 @@ const TaskListPage: React.FC = () => {
     loadTasks(
       page,
       statusFilter,
-      projectId ? parseInt(projectId, 10) : undefined
+      projectId ? parseInt(projectId, 10) : undefined,
+      titleFilter,
+      branchFilter,
+      devEnvironmentFilter
     );
   };
 
   const handleStatusFilterChange = (status: TaskStatus | undefined) => {
     setStatusFilter(status);
-    loadTasks(1, status, projectId ? parseInt(projectId, 10) : undefined);
+    loadTasks(1, status, projectId ? parseInt(projectId, 10) : undefined, titleFilter, branchFilter, devEnvironmentFilter);
+  };
+
+  const handleTitleFilterChange = (title: string | undefined) => {
+    setTitleFilter(title);
+    loadTasks(1, statusFilter, projectId ? parseInt(projectId, 10) : undefined, title, branchFilter, devEnvironmentFilter);
+  };
+
+  const handleBranchFilterChange = (branch: string | undefined) => {
+    setBranchFilter(branch);
+    loadTasks(1, statusFilter, projectId ? parseInt(projectId, 10) : undefined, titleFilter, branch, devEnvironmentFilter);
+  };
+
+  const handleDevEnvironmentFilterChange = (envId: number | undefined) => {
+    setDevEnvironmentFilter(envId);
+    loadTasks(1, statusFilter, projectId ? parseInt(projectId, 10) : undefined, titleFilter, branchFilter, envId);
   };
 
   const handleProjectFilterChange = (_projectId: number | undefined) => {
@@ -156,16 +198,23 @@ const TaskListPage: React.FC = () => {
         <TaskList
           tasks={tasks}
           projects={projects}
+          devEnvironments={devEnvironments}
           loading={tasksLoading}
           currentPage={currentPage}
           totalPages={totalPages}
           total={total}
           statusFilter={statusFilter}
           projectFilter={projectId ? parseInt(projectId, 10) : undefined}
+          titleFilter={titleFilter}
+          branchFilter={branchFilter}
+          devEnvironmentFilter={devEnvironmentFilter}
           hideProjectFilter={true}
           onPageChange={handlePageChange}
           onStatusFilterChange={handleStatusFilterChange}
           onProjectFilterChange={handleProjectFilterChange}
+          onTitleFilterChange={handleTitleFilterChange}
+          onBranchFilterChange={handleBranchFilterChange}
+          onDevEnvironmentFilterChange={handleDevEnvironmentFilterChange}
           onEdit={handleTaskEdit}
           onDelete={handleTaskDelete}
           onViewConversation={handleViewConversation}

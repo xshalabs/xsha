@@ -81,7 +81,7 @@ type TaskRepository interface {
 	// 基本CRUD操作
 	Create(task *database.Task) error
 	GetByID(id uint, createdBy string) (*database.Task, error)
-	List(projectID *uint, createdBy string, status *database.TaskStatus, page, pageSize int) ([]database.Task, int64, error)
+	List(projectID *uint, createdBy string, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error)
 	Update(task *database.Task) error
 	Delete(id uint, createdBy string) error
 

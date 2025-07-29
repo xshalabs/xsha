@@ -115,7 +115,7 @@ type TaskService interface {
 	// 任务管理
 	CreateTask(title, startBranch, createdBy string, projectID uint, devEnvironmentID *uint) (*database.Task, error)
 	GetTask(id uint, createdBy string) (*database.Task, error)
-	ListTasks(projectID *uint, createdBy string, status *database.TaskStatus, page, pageSize int) ([]database.Task, int64, error)
+	ListTasks(projectID *uint, createdBy string, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error)
 	UpdateTask(id uint, createdBy string, updates map[string]interface{}) error
 	UpdateTaskStatus(id uint, createdBy string, status database.TaskStatus) error
 	DeleteTask(id uint, createdBy string) error

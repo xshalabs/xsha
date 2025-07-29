@@ -49,6 +49,9 @@ export interface TaskListParams {
   page_size?: number;
   project_id?: number;
   status?: TaskStatus;
+  title?: string;
+  branch?: string;
+  dev_environment_id?: number;
 }
 
 // 任务列表响应接口

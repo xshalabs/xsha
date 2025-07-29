@@ -32,7 +32,7 @@ func (r *taskRepository) GetByID(id uint, createdBy string) (*database.Task, err
 }
 
 // List 分页获取任务列表
-func (r *taskRepository) List(projectID *uint, createdBy string, status *database.TaskStatus, page, pageSize int) ([]database.Task, int64, error) {
+func (r *taskRepository) List(projectID *uint, createdBy string, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error) {
 	var tasks []database.Task
 	var total int64
 
@@ -44,6 +44,18 @@ func (r *taskRepository) List(projectID *uint, createdBy string, status *databas
 
 	if status != nil {
 		query = query.Where("status = ?", *status)
+	}
+
+	if title != nil && *title != "" {
+		query = query.Where("title LIKE ?", "%"+*title+"%")
+	}
+
+	if branch != nil && *branch != "" {
+		query = query.Where("start_branch = ?", *branch)
+	}
+
+	if devEnvID != nil {
+		query = query.Where("dev_environment_id = ?", *devEnvID)
 	}
 
 	// 获取总数

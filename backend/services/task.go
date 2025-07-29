@@ -73,7 +73,7 @@ func (s *taskService) GetTask(id uint, createdBy string) (*database.Task, error)
 }
 
 // ListTasks 获取任务列表
-func (s *taskService) ListTasks(projectID *uint, createdBy string, status *database.TaskStatus, page, pageSize int) ([]database.Task, int64, error) {
+func (s *taskService) ListTasks(projectID *uint, createdBy string, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error) {
 	// 验证分页参数
 	if page < 1 {
 		page = 1
@@ -82,7 +82,7 @@ func (s *taskService) ListTasks(projectID *uint, createdBy string, status *datab
 		pageSize = 20
 	}
 
-	return s.repo.List(projectID, createdBy, status, page, pageSize)
+	return s.repo.List(projectID, createdBy, status, title, branch, devEnvID, page, pageSize)
 }
 
 // UpdateTask 更新任务（只允许更新标题）

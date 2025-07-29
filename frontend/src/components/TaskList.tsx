@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import {
   Edit,
@@ -45,20 +46,28 @@ import {
 } from "lucide-react";
 import type { Task, TaskStatus } from "@/types/task";
 import type { Project } from "@/types/project";
+import type { DevEnvironment } from "@/types/dev-environment";
 
 interface TaskListProps {
   tasks: Task[];
   projects: Project[];
+  devEnvironments: DevEnvironment[];
   loading: boolean;
   currentPage: number;
   totalPages: number;
   total: number;
   statusFilter?: TaskStatus;
   projectFilter?: number;
+  titleFilter?: string;
+  branchFilter?: string;
+  devEnvironmentFilter?: number;
   hideProjectFilter?: boolean;
   onPageChange: (page: number) => void;
   onStatusFilterChange: (status: TaskStatus | undefined) => void;
   onProjectFilterChange: (projectId: number | undefined) => void;
+  onTitleFilterChange: (title: string | undefined) => void;
+  onBranchFilterChange: (branch: string | undefined) => void;
+  onDevEnvironmentFilterChange: (envId: number | undefined) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
   onViewConversation?: (task: Task) => void;
@@ -68,16 +77,23 @@ interface TaskListProps {
 export function TaskList({
   tasks,
   projects,
+  devEnvironments,
   loading,
   currentPage,
   totalPages,
   total,
   statusFilter,
   projectFilter,
+  titleFilter,
+  branchFilter,
+  devEnvironmentFilter,
   hideProjectFilter = false,
   onPageChange,
   onStatusFilterChange,
   onProjectFilterChange,
+  onTitleFilterChange,
+  onBranchFilterChange,
+  onDevEnvironmentFilterChange,
   onEdit,
   onDelete,
   onViewConversation,
@@ -85,6 +101,60 @@ export function TaskList({
 }: TaskListProps) {
   const { t } = useTranslation();
   const [showFilters, setShowFilters] = useState(false);
+  
+  // 本地筛选状态
+  const [localFilters, setLocalFilters] = useState({
+    status: statusFilter,
+    project: projectFilter,
+    title: titleFilter,
+    branch: branchFilter,
+    devEnvironment: devEnvironmentFilter,
+  });
+
+  // 同步外部筛选状态到本地状态
+  React.useEffect(() => {
+    setLocalFilters({
+      status: statusFilter,
+      project: projectFilter,
+      title: titleFilter,
+      branch: branchFilter,
+      devEnvironment: devEnvironmentFilter,
+    });
+  }, [statusFilter, projectFilter, titleFilter, branchFilter, devEnvironmentFilter]);
+
+  const handleLocalFilterChange = (
+    key: keyof typeof localFilters,
+    value: any
+  ) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      [key]: value === "" ? undefined : value,
+    }));
+  };
+
+  const applyFilters = () => {
+    onStatusFilterChange(localFilters.status);
+    onProjectFilterChange(localFilters.project);
+    onTitleFilterChange(localFilters.title);
+    onBranchFilterChange(localFilters.branch);
+    onDevEnvironmentFilterChange(localFilters.devEnvironment);
+  };
+
+  const resetFilters = () => {
+    const emptyFilters = {
+      status: undefined,
+      project: hideProjectFilter ? projectFilter : undefined,
+      title: undefined,
+      branch: undefined,
+      devEnvironment: undefined,
+    };
+    setLocalFilters(emptyFilters);
+    onStatusFilterChange(emptyFilters.status);
+    onProjectFilterChange(emptyFilters.project);
+    onTitleFilterChange(emptyFilters.title);
+    onBranchFilterChange(emptyFilters.branch);
+    onDevEnvironmentFilterChange(emptyFilters.devEnvironment);
+  };
 
   const getStatusColor = (status: TaskStatus) => {
     switch (status) {
@@ -128,8 +198,7 @@ export function TaskList({
 
   const handleRefresh = () => {
     // 通过重新应用当前过滤器来刷新数据
-    onStatusFilterChange(statusFilter);
-    onProjectFilterChange(projectFilter);
+    applyFilters();
   };
 
   if (loading) {
@@ -182,15 +251,16 @@ export function TaskList({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* 项目筛选 */}
               {!hideProjectFilter && (
                 <div className="flex flex-col gap-3">
                   <Label htmlFor="project">{t("tasks.filters.project")}</Label>
                   <Select
-                    value={projectFilter?.toString() || "all"}
+                    value={localFilters.project?.toString() || "all"}
                     onValueChange={(value) =>
-                      onProjectFilterChange(
+                      handleLocalFilterChange(
+                        "project",
                         value === "all" ? undefined : parseInt(value)
                       )
                     }
@@ -217,9 +287,10 @@ export function TaskList({
               <div className="flex flex-col gap-3">
                 <Label htmlFor="status">{t("tasks.filters.status")}</Label>
                 <Select
-                  value={statusFilter || "all"}
+                  value={localFilters.status || "all"}
                   onValueChange={(value) =>
-                    onStatusFilterChange(
+                    handleLocalFilterChange(
+                      "status",
                       value === "all" ? undefined : (value as TaskStatus)
                     )
                   }
@@ -244,6 +315,68 @@ export function TaskList({
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* 标题筛选 */}
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="title">{t("tasks.filters.taskTitle")}</Label>
+                <Input
+                  id="title"
+                  type="text"
+                  placeholder={t("tasks.filters.titlePlaceholder")}
+                  value={localFilters.title || ""}
+                  onChange={(e) => handleLocalFilterChange("title", e.target.value)}
+                  className="w-full"
+                />
+              </div>
+
+              {/* 分支筛选 */}
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="branch">{t("tasks.filters.branch")}</Label>
+                <Input
+                  id="branch"
+                  type="text"
+                  placeholder={t("tasks.filters.branchPlaceholder")}
+                  value={localFilters.branch || ""}
+                  onChange={(e) => handleLocalFilterChange("branch", e.target.value)}
+                  className="w-full"
+                />
+              </div>
+
+              {/* 开发环境筛选 */}
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="devEnvironment">{t("tasks.filters.devEnvironment")}</Label>
+                <Select
+                  value={localFilters.devEnvironment?.toString() || "all"}
+                  onValueChange={(value) =>
+                    handleLocalFilterChange(
+                      "devEnvironment",
+                      value === "all" ? undefined : parseInt(value)
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t("common.all")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("common.all")}</SelectItem>
+                    {devEnvironments.map((env) => (
+                      <SelectItem
+                        key={env.id}
+                        value={env.id.toString()}
+                      >
+                        {env.name} ({env.type})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-4">
+              <Button onClick={applyFilters}>{t("common.apply")}</Button>
+              <Button variant="outline" onClick={resetFilters}>
+                {t("common.reset")}
+              </Button>
             </div>
           </CardContent>
         </Card>

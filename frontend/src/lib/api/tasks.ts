@@ -24,6 +24,9 @@ export const tasksApi = {
     if (params?.page_size) searchParams.set('page_size', params.page_size.toString());
     if (params?.project_id) searchParams.set('project_id', params.project_id.toString());
     if (params?.status) searchParams.set('status', params.status);
+    if (params?.title) searchParams.set('title', params.title);
+    if (params?.branch) searchParams.set('branch', params.branch);
+    if (params?.dev_environment_id) searchParams.set('dev_environment_id', params.dev_environment_id.toString());
     
     const queryString = searchParams.toString();
     const url = queryString ? `/tasks?${queryString}` : '/tasks';
