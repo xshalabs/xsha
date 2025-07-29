@@ -16,7 +16,7 @@ type taskConversationResultService struct {
 	projectRepo      repository.ProjectRepository
 }
 
-// NewTaskConversationResultService 创建任务对话结果服务实例
+// NewTaskConversationResultService creates a new task conversation result service instance
 func NewTaskConversationResultService(
 	repo repository.TaskConversationResultRepository,
 	conversationRepo repository.TaskConversationRepository,
@@ -31,14 +31,14 @@ func NewTaskConversationResultService(
 	}
 }
 
-// CreateResult 创建结果
+// CreateResult creates a result
 func (s *taskConversationResultService) CreateResult(conversationID uint, resultData map[string]interface{}) (*database.TaskConversationResult, error) {
-	// 验证输入数据
+	// Validate input data
 	if err := s.ValidateResultData(resultData); err != nil {
 		return nil, err
 	}
 
-	// 检查是否已存在结果记录
+	// Check if result record already exists
 	exists, err := s.repo.ExistsByConversationID(conversationID)
 	if err != nil {
 		return nil, errors.New("failed to check existing result")
@@ -47,12 +47,12 @@ func (s *taskConversationResultService) CreateResult(conversationID uint, result
 		return nil, errors.New("result already exists for this conversation")
 	}
 
-	// 构建结果对象
+	// Build result object
 	result := &database.TaskConversationResult{
 		ConversationID: conversationID,
 	}
 
-	// 设置基本字段
+	// Set basic fields
 	if typeVal, ok := resultData["type"].(string); ok {
 		result.Type = database.ResultType(typeVal)
 	}
@@ -63,7 +63,7 @@ func (s *taskConversationResultService) CreateResult(conversationID uint, result
 		result.IsError = isErrorVal
 	}
 
-	// 设置时间和性能字段
+	// Set time and performance fields
 	if durationMs, ok := resultData["duration_ms"].(float64); ok {
 		result.DurationMs = int64(durationMs)
 	}
@@ -74,22 +74,22 @@ func (s *taskConversationResultService) CreateResult(conversationID uint, result
 		result.NumTurns = int(numTurns)
 	}
 
-	// 设置结果内容
+	// Set result content
 	if resultStr, ok := resultData["result"].(string); ok {
 		result.Result = resultStr
 	}
 
-	// 设置会话ID
+	// Set session ID
 	if sessionID, ok := resultData["session_id"].(string); ok {
 		result.SessionID = sessionID
 	}
 
-	// 设置成本
+	// Set cost
 	if totalCost, ok := resultData["total_cost_usd"].(float64); ok {
 		result.TotalCostUsd = totalCost
 	}
 
-	// 设置使用统计（JSON字符串）
+	// Set usage statistics (JSON string)
 	if usage, ok := resultData["usage"]; ok {
 		usageBytes, err := json.Marshal(usage)
 		if err != nil {
@@ -99,9 +99,9 @@ func (s *taskConversationResultService) CreateResult(conversationID uint, result
 		}
 	}
 
-	// 创建结果记录
+	// Create result record
 	if err := s.repo.Create(result); err != nil {
-		return nil, fmt.Errorf("failed to create result: %w", err)
+		return nil, fmt.Errorf("failed to create result: %v", err)
 	}
 
 	utils.Info("Task conversation result created successfully",
@@ -111,25 +111,25 @@ func (s *taskConversationResultService) CreateResult(conversationID uint, result
 	return result, nil
 }
 
-// GetResult 获取结果
+// GetResult gets a result
 func (s *taskConversationResultService) GetResult(id uint) (*database.TaskConversationResult, error) {
 	return s.repo.GetByID(id)
 }
 
-// GetResultByConversationID 根据对话ID获取结果
+// GetResultByConversationID gets a result by conversation ID
 func (s *taskConversationResultService) GetResultByConversationID(conversationID uint) (*database.TaskConversationResult, error) {
 	return s.repo.GetByConversationID(conversationID)
 }
 
-// UpdateResult 更新结果
+// UpdateResult updates a result
 func (s *taskConversationResultService) UpdateResult(id uint, updates map[string]interface{}) error {
-	// 检查结果是否存在
+	// Check if result exists
 	result, err := s.repo.GetByID(id)
 	if err != nil {
 		return errors.New("result not found")
 	}
 
-	// 更新字段
+	// Update fields
 	if typeVal, ok := updates["type"].(string); ok {
 		result.Type = database.ResultType(typeVal)
 	}
@@ -164,26 +164,26 @@ func (s *taskConversationResultService) UpdateResult(id uint, updates map[string
 	return s.repo.Update(result)
 }
 
-// DeleteResult 删除结果
+// DeleteResult deletes a result
 func (s *taskConversationResultService) DeleteResult(id uint) error {
 	return s.repo.Delete(id)
 }
 
-// ListResultsByTaskID 根据任务ID获取结果列表
+// ListResultsByTaskID gets a list of results by task ID
 func (s *taskConversationResultService) ListResultsByTaskID(taskID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error) {
 	return s.repo.ListByTaskID(taskID, page, pageSize)
 }
 
-// ListResultsByProjectID 根据项目ID获取结果列表
+// ListResultsByProjectID gets a list of results by project ID
 func (s *taskConversationResultService) ListResultsByProjectID(projectID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error) {
 	return s.repo.ListByProjectID(projectID, page, pageSize)
 }
 
-// GetTaskStats 获取任务统计信息
+// GetTaskStats gets task statistics
 func (s *taskConversationResultService) GetTaskStats(taskID uint) (map[string]interface{}, error) {
 	stats := make(map[string]interface{})
 
-	// 获取成功率
+	// Get success rate
 	successRate, err := s.repo.GetSuccessRate(taskID)
 	if err != nil {
 		utils.Warn("Failed to get success rate", "task_id", taskID, "error", err)
@@ -191,7 +191,7 @@ func (s *taskConversationResultService) GetTaskStats(taskID uint) (map[string]in
 	}
 	stats["success_rate"] = successRate
 
-	// 获取总成本
+	// Get total cost
 	totalCost, err := s.repo.GetTotalCost(taskID)
 	if err != nil {
 		utils.Warn("Failed to get total cost", "task_id", taskID, "error", err)
@@ -199,7 +199,7 @@ func (s *taskConversationResultService) GetTaskStats(taskID uint) (map[string]in
 	}
 	stats["total_cost_usd"] = totalCost
 
-	// 获取平均执行时间
+	// Get average execution time
 	avgDuration, err := s.repo.GetAverageDuration(taskID)
 	if err != nil {
 		utils.Warn("Failed to get average duration", "task_id", taskID, "error", err)
@@ -210,10 +210,10 @@ func (s *taskConversationResultService) GetTaskStats(taskID uint) (map[string]in
 	return stats, nil
 }
 
-// GetProjectStats 获取项目统计信息
+// GetProjectStats gets project statistics
 func (s *taskConversationResultService) GetProjectStats(projectID uint) (map[string]interface{}, error) {
-	// 获取项目下的结果列表（不分页，用于统计）
-	results, _, err := s.repo.ListByProjectID(projectID, 1, 1000000) // 大页面获取所有数据
+	// Get results list under the project (no pagination for statistics)
+	results, _, err := s.repo.ListByProjectID(projectID, 1, 1000000) // Get all data with a large page
 	if err != nil {
 		return nil, fmt.Errorf("failed to get project results: %w", err)
 	}
@@ -248,14 +248,14 @@ func (s *taskConversationResultService) GetProjectStats(projectID uint) (map[str
 	return stats, nil
 }
 
-// ExistsForConversation 检查对话是否已有结果
+// ExistsForConversation checks if a conversation already has a result
 func (s *taskConversationResultService) ExistsForConversation(conversationID uint) (bool, error) {
 	return s.repo.ExistsByConversationID(conversationID)
 }
 
-// ValidateResultData 验证结果数据
+// ValidateResultData validates result data
 func (s *taskConversationResultService) ValidateResultData(resultData map[string]interface{}) error {
-	// 检查必需字段
+	// Check required fields
 	if typeVal, ok := resultData["type"].(string); !ok || typeVal == "" {
 		return errors.New("type is required")
 	}
@@ -276,7 +276,7 @@ func (s *taskConversationResultService) ValidateResultData(resultData map[string
 		return errors.New("session_id is required")
 	}
 
-	// 验证数值字段
+	// Validate numeric fields
 	if durationMs, ok := resultData["duration_ms"]; ok {
 		if _, isFloat := durationMs.(float64); !isFloat {
 			return errors.New("duration_ms must be a number")

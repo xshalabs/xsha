@@ -10,24 +10,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// TaskConversationResultHandlers 任务对话结果处理器结构体
+// TaskConversationResultHandlers task conversation result handlers struct
 type TaskConversationResultHandlers struct {
 	resultService services.TaskConversationResultService
 }
 
-// NewTaskConversationResultHandlers 创建任务对话结果处理器实例
+// NewTaskConversationResultHandlers creates a new task conversation result handlers instance
 func NewTaskConversationResultHandlers(resultService services.TaskConversationResultService) *TaskConversationResultHandlers {
 	return &TaskConversationResultHandlers{
 		resultService: resultService,
 	}
 }
 
-// UpdateResultRequest 更新结果请求结构
+// UpdateResultRequest update result request structure
 type UpdateResultRequest struct {
 	Updates map[string]interface{} `json:"updates"`
 }
 
-// GetResult 获取结果详情
+// GetResult gets result details
 func (h *TaskConversationResultHandlers) GetResult(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -38,7 +38,7 @@ func (h *TaskConversationResultHandlers) GetResult(c *gin.Context) {
 		return
 	}
 
-	// 获取结果
+	// Get result
 	result, err := h.resultService.GetResult(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.result_not_found")})
@@ -51,7 +51,7 @@ func (h *TaskConversationResultHandlers) GetResult(c *gin.Context) {
 	})
 }
 
-// GetResultByConversationID 根据对话ID获取结果
+// GetResultByConversationID gets result by conversation ID
 func (h *TaskConversationResultHandlers) GetResultByConversationID(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -62,7 +62,7 @@ func (h *TaskConversationResultHandlers) GetResultByConversationID(c *gin.Contex
 		return
 	}
 
-	// 获取结果
+	// Get result
 	result, err := h.resultService.GetResultByConversationID(uint(conversationID))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.result_not_found")})
@@ -75,7 +75,7 @@ func (h *TaskConversationResultHandlers) GetResultByConversationID(c *gin.Contex
 	})
 }
 
-// ListResultsByTaskID 根据任务ID获取结果列表
+// ListResultsByTaskID gets result list by task ID
 func (h *TaskConversationResultHandlers) ListResultsByTaskID(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -91,7 +91,7 @@ func (h *TaskConversationResultHandlers) ListResultsByTaskID(c *gin.Context) {
 		return
 	}
 
-	// 解析分页参数
+	// Parse pagination parameters
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 	if page < 1 {
@@ -101,17 +101,17 @@ func (h *TaskConversationResultHandlers) ListResultsByTaskID(c *gin.Context) {
 		pageSize = 10
 	}
 
-	// 获取结果列表
+	// Get results
 	results, total, err := h.resultService.ListResultsByTaskID(uint(taskID), page, pageSize)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": i18n.T(lang, "taskConversation.result_list_success"),
 		"data": gin.H{
-			"items":     results,
+			"results":   results,
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,

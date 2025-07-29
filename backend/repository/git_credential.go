@@ -10,17 +10,17 @@ type gitCredentialRepository struct {
 	db *gorm.DB
 }
 
-// NewGitCredentialRepository 创建Git凭据仓库实例
+// NewGitCredentialRepository creates a new Git credential repository instance
 func NewGitCredentialRepository(db *gorm.DB) GitCredentialRepository {
 	return &gitCredentialRepository{db: db}
 }
 
-// Create 创建Git凭据
+// Create creates a Git credential
 func (r *gitCredentialRepository) Create(credential *database.GitCredential) error {
 	return r.db.Create(credential).Error
 }
 
-// GetByID 根据ID获取Git凭据
+// GetByID gets a Git credential by ID
 func (r *gitCredentialRepository) GetByID(id uint, createdBy string) (*database.GitCredential, error) {
 	var credential database.GitCredential
 	err := r.db.Where("id = ? AND created_by = ?", id, createdBy).First(&credential).Error
@@ -30,7 +30,7 @@ func (r *gitCredentialRepository) GetByID(id uint, createdBy string) (*database.
 	return &credential, nil
 }
 
-// GetByName 根据名称获取Git凭据
+// GetByName gets a Git credential by name
 func (r *gitCredentialRepository) GetByName(name, createdBy string) (*database.GitCredential, error) {
 	var credential database.GitCredential
 	err := r.db.Where("name = ? AND created_by = ?", name, createdBy).First(&credential).Error
@@ -40,7 +40,7 @@ func (r *gitCredentialRepository) GetByName(name, createdBy string) (*database.G
 	return &credential, nil
 }
 
-// List 分页获取Git凭据列表
+// List gets a paginated list of Git credentials
 func (r *gitCredentialRepository) List(createdBy string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error) {
 	var credentials []database.GitCredential
 	var total int64
@@ -51,12 +51,12 @@ func (r *gitCredentialRepository) List(createdBy string, credType *database.GitC
 		query = query.Where("type = ?", *credType)
 	}
 
-	// 获取总数
+	// Get total count
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	// 分页查询
+	// Paginated query
 	offset := (page - 1) * pageSize
 	if err := query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&credentials).Error; err != nil {
 		return nil, 0, err
@@ -65,12 +65,12 @@ func (r *gitCredentialRepository) List(createdBy string, credType *database.GitC
 	return credentials, total, nil
 }
 
-// Update 更新Git凭据
+// Update updates a Git credential
 func (r *gitCredentialRepository) Update(credential *database.GitCredential) error {
 	return r.db.Save(credential).Error
 }
 
-// Delete 删除Git凭据
+// Delete deletes a Git credential
 func (r *gitCredentialRepository) Delete(id uint, createdBy string) error {
 	return r.db.Where("id = ? AND created_by = ?", id, createdBy).Delete(&database.GitCredential{}).Error
 }
