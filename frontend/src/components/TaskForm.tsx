@@ -143,6 +143,14 @@ export function TaskForm({
       if (!formData.start_branch.trim()) {
         newErrors.start_branch = t("tasks.validation.branchRequired");
       }
+
+      if (!formData.requirement_desc?.trim()) {
+        newErrors.requirement_desc = t("tasks.validation.requirementDescRequired");
+      }
+
+      if (!formData.dev_environment_id) {
+        newErrors.dev_environment_id = t("tasks.validation.devEnvironmentRequired");
+      }
     }
 
     setErrors(newErrors);
@@ -224,7 +232,8 @@ export function TaskForm({
             {!isEdit && (
               <div className="flex flex-col gap-3">
                 <Label htmlFor="requirement_desc">
-                  {t("tasks.fields.requirementDesc")}
+                  {t("tasks.fields.requirementDesc")}{" "}
+                  <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
                   id="requirement_desc"
@@ -234,7 +243,11 @@ export function TaskForm({
                   }
                   placeholder={t("tasks.form.requirementDescPlaceholder")}
                   rows={4}
+                  className={errors.requirement_desc ? "border-red-500" : ""}
                 />
+                {errors.requirement_desc && (
+                  <p className="text-sm text-red-500">{errors.requirement_desc}</p>
+                )}
                 <p className="text-sm text-gray-500">
                   {t("tasks.form.requirementDescHint")}
                 </p>
@@ -244,26 +257,24 @@ export function TaskForm({
             {!isEdit && (
               <div className="flex flex-col gap-3">
                 <Label htmlFor="dev_environment">
-                  {t("tasks.fields.devEnvironment")}
+                  {t("tasks.fields.devEnvironment")}{" "}
+                  <span className="text-red-500">*</span>
                 </Label>
                 <Select
-                  value={formData.dev_environment_id?.toString() || "none"}
+                  value={formData.dev_environment_id?.toString() || ""}
                   onValueChange={(value) =>
                     handleChange(
                       "dev_environment_id",
-                      value === "none" ? undefined : parseInt(value)
+                      value ? parseInt(value) : undefined
                     )
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={errors.dev_environment_id ? "border-red-500" : ""}>
                     <SelectValue
                       placeholder={t("tasks.form.selectDevEnvironment")}
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">
-                      {t("tasks.form.noDevEnvironment")}
-                    </SelectItem>
                     {loadingDevEnvs ? (
                       <SelectItem value="loading" disabled>
                         {t("common.loading")}...
@@ -282,6 +293,9 @@ export function TaskForm({
                     )}
                   </SelectContent>
                 </Select>
+                {errors.dev_environment_id && (
+                  <p className="text-sm text-red-500">{errors.dev_environment_id}</p>
+                )}
                 <p className="text-sm text-gray-500">
                   {t("tasks.form.devEnvironmentHint")}
                 </p>

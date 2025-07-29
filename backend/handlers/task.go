@@ -33,9 +33,9 @@ type CreateTaskRequest struct {
 	Title            string `json:"title" binding:"required"`
 	StartBranch      string `json:"start_branch" binding:"required"`
 	ProjectID        uint   `json:"project_id" binding:"required"`
-	DevEnvironmentID *uint  `json:"dev_environment_id"`
-	RequirementDesc  string `json:"requirement_desc"` // 需求描述，用于创建conversation
-	IncludeBranches  bool   `json:"include_branches"` // 是否返回项目分支信息
+	DevEnvironmentID *uint  `json:"dev_environment_id" binding:"required"`
+	RequirementDesc  string `json:"requirement_desc" binding:"required"` // 需求描述，用于创建conversation
+	IncludeBranches  bool   `json:"include_branches"`                    // 是否返回项目分支信息
 }
 
 // CreateTaskResponse 创建任务响应结构

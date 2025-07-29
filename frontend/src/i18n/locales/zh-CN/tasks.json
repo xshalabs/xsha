@@ -55,7 +55,9 @@
   "validation": {
     "titleRequired": "任务标题不能为空",
     "branchRequired": "起始分支不能为空",
-    "projectRequired": "请选择一个项目"
+    "projectRequired": "请选择一个项目",
+    "requirementDescRequired": "需求描述不能为空",
+    "devEnvironmentRequired": "请选择一个开发环境"
   },
   "filters": {
     "project": "项目",

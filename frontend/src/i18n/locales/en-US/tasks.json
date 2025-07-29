@@ -55,7 +55,9 @@
   "validation": {
     "titleRequired": "Task title is required",
     "branchRequired": "Start branch is required",
-    "projectRequired": "Please select a project"
+    "projectRequired": "Please select a project",
+    "requirementDescRequired": "Requirement description is required",
+    "devEnvironmentRequired": "Please select a development environment"
   },
   "filters": {
     "project": "Project",
