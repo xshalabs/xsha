@@ -67,6 +67,8 @@
   "taskConversation.create_success": "对话创建成功",
   "taskConversation.create_failed": "对话创建失败",
   "taskConversation.update_success": "对话更新成功",
+  "taskConversation.delete_failed": "对话删除失败",
+  "taskConversation.delete_latest_only": "只有最新的对话可以删除",
   "taskConversation.not_found": "对话不存在",
   "taskConversation.get_success": "获取对话成功",
   "taskConversation.result_not_found": "结果不存在",

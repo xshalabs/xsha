@@ -120,6 +120,17 @@ func (s *taskConversationService) DeleteConversation(id uint, createdBy string) 
 		return errors.New("cannot delete conversation while it is running")
 	}
 
+	// 获取该任务的最新对话
+	latestConversation, err := s.repo.GetLatestByTask(conversation.TaskID, createdBy)
+	if err != nil {
+		return errors.New("failed to get latest conversation")
+	}
+
+	// 验证只有最新对话才能删除
+	if conversation.ID != latestConversation.ID {
+		return errors.New("only the latest conversation can be deleted")
+	}
+
 	// 先删除关联的任务执行日志
 	if err := s.execLogRepo.DeleteByConversationID(id); err != nil {
 		return errors.New("failed to delete related execution logs")

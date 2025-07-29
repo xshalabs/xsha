@@ -67,6 +67,8 @@
   "taskConversation.create_success": "Conversation created successfully",
   "taskConversation.create_failed": "Failed to create conversation",
   "taskConversation.update_success": "Conversation updated successfully",
+  "taskConversation.delete_failed": "Failed to delete conversation",
+  "taskConversation.delete_latest_only": "Only the latest conversation can be deleted",
   "taskConversation.not_found": "Conversation not found",
   "taskConversation.get_success": "Conversation retrieved successfully",
   "taskConversation.get_failed": "Failed to retrieve conversation",

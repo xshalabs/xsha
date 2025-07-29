@@ -139,6 +139,15 @@ export function TaskConversation({
     }
   };
 
+  const isLatestConversation = (conversationId: number) => {
+    if (conversations.length === 0) return false;
+    // 获取按创建时间排序的最新对话
+    const sortedConversations = [...conversations].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+    return sortedConversations[0]?.id === conversationId;
+  };
+
   return (
     <div className="space-y-6 h-full flex flex-col">
       <Card className="flex-1 flex flex-col">
@@ -193,6 +202,11 @@ export function TaskConversation({
                       <span className="text-xs text-gray-500">
                         {conversation.created_by}
                       </span>
+                      {isLatestConversation(conversation.id) && (
+                        <Badge variant="outline" className="text-xs px-1 py-0">
+                          {t("taskConversation.latest")}
+                        </Badge>
+                      )}
                     </div>
 
                     <div className="flex items-center space-x-2">
@@ -207,6 +221,7 @@ export function TaskConversation({
                         </div>
                       </Badge>
                       {conversation.status !== "running" &&
+                        isLatestConversation(conversation.id) &&
                         onDeleteConversation && (
                           <Button
                             variant="ghost"
@@ -217,6 +232,7 @@ export function TaskConversation({
                             }}
                             disabled={deletingId === conversation.id}
                             className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            title={t("taskConversation.actions.delete")}
                           >
                             <Trash2 className="w-3 h-3" />
                           </Button>

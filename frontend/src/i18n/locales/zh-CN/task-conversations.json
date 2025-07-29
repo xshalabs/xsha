@@ -10,6 +10,7 @@
   "cannotSendWhileProcessing": "有待处理或运行中的对话时无法发送新消息",
   "deleteConfirm": "确定要删除这个对话吗？此操作不可撤销。",
   "message": "消息",
+  "latest": "最新",
   "selectTask": "请选择一个任务来查看对话",
   "empty": {
     "title": "暂无对话",
@@ -54,6 +55,7 @@
     "createFailed": "发送消息失败",
     "loadFailed": "加载对话失败",
     "deleteFailed": "删除对话失败",
+    "deleteLatestOnly": "只有最新的对话可以删除",
     "noConversations": "未找到对话",
     "conversationNotFound": "对话不存在"
   },
