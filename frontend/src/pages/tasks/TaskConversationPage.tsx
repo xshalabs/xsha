@@ -85,7 +85,9 @@ const TaskConversationPage: React.FC = () => {
       setConversations(response.data.conversations);
 
       if (response.data.conversations.length > 0 && !selectedConversationId) {
-        setSelectedConversationId(response.data.conversations[0].id);
+        // 选择最近的对话（数组最后一个元素）
+        const latestConversation = response.data.conversations[response.data.conversations.length - 1];
+        setSelectedConversationId(latestConversation.id);
       }
     } catch (error) {
       logError(error as Error, "Failed to load conversations");
@@ -133,7 +135,7 @@ const TaskConversationPage: React.FC = () => {
         );
         setSelectedConversationId(
           remainingConversations.length > 0
-            ? remainingConversations[0].id
+            ? remainingConversations[remainingConversations.length - 1].id
             : null
         );
       }
