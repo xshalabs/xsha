@@ -99,24 +99,6 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
     );
   }
 
-  if (credentials.length === 0) {
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center py-8">
-            <Key className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">
-              {t("gitCredentials.messages.noCredentials")}
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {t("gitCredentials.messages.noCredentialsDesc")}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -137,117 +119,135 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">
-            {t("gitCredentials.filter.title")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("gitCredentials.name")}</TableHead>
-                  <TableHead>{t("gitCredentials.type")}</TableHead>
-                  <TableHead>{t("gitCredentials.username")}</TableHead>
-                  <TableHead>{t("gitCredentials.description")}</TableHead>
-                  <TableHead>{t("gitCredentials.createdAt")}</TableHead>
-                  <TableHead className="text-right">
-                    {t("gitCredentials.actions")}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {credentials.map((credential) => (
-                  <TableRow key={credential.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getTypeIcon(credential.type)}
-                        <span className="font-medium">{credential.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 bg-muted text-foreground text-xs rounded-full">
-                        {getTypeName(credential.type)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm">{credential.username}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-foreground">
-                        {credential.description || "-"}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-foreground">
-                        <Clock className="w-3 h-3" />
-                        <span>{formatDate(credential.created_at)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">
-                              {t("common.open_menu")}
-                            </span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>
-                            {t("gitCredentials.actions")}
-                          </DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => onEdit(credential)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            {t("gitCredentials.edit")}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => onDelete(credential.id)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            {t("gitCredentials.delete")}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+      {credentials.length === 0 ? (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <Key className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">
+                {t("gitCredentials.messages.noCredentials")}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {t("gitCredentials.messages.noCredentialsDesc")}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">
+                {t("gitCredentials.filter.title")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t("gitCredentials.name")}</TableHead>
+                      <TableHead>{t("gitCredentials.type")}</TableHead>
+                      <TableHead>{t("gitCredentials.username")}</TableHead>
+                      <TableHead>{t("gitCredentials.description")}</TableHead>
+                      <TableHead>{t("gitCredentials.createdAt")}</TableHead>
+                      <TableHead className="text-right">
+                        {t("gitCredentials.actions")}
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {credentials.map((credential) => (
+                      <TableRow key={credential.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getTypeIcon(credential.type)}
+                            <span className="font-medium">{credential.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="px-2 py-1 bg-muted text-foreground text-xs rounded-full">
+                            {getTypeName(credential.type)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm">{credential.username}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-foreground">
+                            {credential.description || "-"}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-sm text-foreground">
+                            <Clock className="w-3 h-3" />
+                            <span>{formatDate(credential.created_at)}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">
+                                  {t("common.open_menu")}
+                                </span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>
+                                {t("gitCredentials.actions")}
+                              </DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => onEdit(credential)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                {t("gitCredentials.edit")}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => onDelete(credential.id)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                {t("gitCredentials.delete")}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-600">
-            {t("gitCredentials.pagination.page")} {currentPage} / {totalPages}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-foreground"
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage <= 1}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-foreground"
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage >= totalPages}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                {t("gitCredentials.pagination.page")} {currentPage} / {totalPages}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-foreground"
+                  onClick={() => onPageChange(currentPage - 1)}
+                  disabled={currentPage <= 1}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-foreground"
+                  onClick={() => onPageChange(currentPage + 1)}
+                  disabled={currentPage >= totalPages}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
