@@ -137,9 +137,7 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
         <>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">
-                {t("gitCredentials.filter.title")}
-              </CardTitle>
+              <CardTitle>{t("gitCredentials.list")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -222,27 +220,25 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                {t("gitCredentials.pagination.page")} {currentPage} / {totalPages}
+              <div className="text-sm text-muted-foreground">
+                {t("common.page")} {currentPage} / {totalPages}
               </div>
-              <div className="flex gap-2">
+              <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-foreground"
                   onClick={() => onPageChange(currentPage - 1)}
                   disabled={currentPage <= 1}
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-foreground"
                   onClick={() => onPageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages}
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
