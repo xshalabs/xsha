@@ -30,7 +30,6 @@ const ProjectListPage: React.FC = () => {
     try {
       await apiService.projects.delete(id);
       toast.success(t("projects.messages.deleteSuccess"));
-      // 刷新项目列表数据
       if (projectListRef.current) {
         projectListRef.current.refreshData();
       }

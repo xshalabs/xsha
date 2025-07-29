@@ -1,27 +1,38 @@
-
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTranslation } from 'react-i18next';
-import { 
-  Edit, 
-  Trash2, 
-  Play, 
-  CheckCircle, 
-  Clock, 
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useTranslation } from "react-i18next";
+import {
+  Edit,
+  Trash2,
+  Play,
+  CheckCircle,
+  Clock,
   GitBranch,
   GitPullRequest,
-  ChevronLeft, 
+  ChevronLeft,
   ChevronRight,
   Plus,
   RefreshCw,
   Filter,
   X,
-  MessageSquare
-} from 'lucide-react';
-import type { Task, TaskStatus } from '@/types/task';
-import type { Project } from '@/types/project';
+  MessageSquare,
+} from "lucide-react";
+import type { Task, TaskStatus } from "@/types/task";
+import type { Project } from "@/types/project";
 
 interface TaskListProps {
   tasks: Task[];
@@ -32,7 +43,7 @@ interface TaskListProps {
   total: number;
   statusFilter?: TaskStatus;
   projectFilter?: number;
-  hideProjectFilter?: boolean; // 新增：是否隐藏项目过滤器
+  hideProjectFilter?: boolean;
   onPageChange: (page: number) => void;
   onStatusFilterChange: (status: TaskStatus | undefined) => void;
   onProjectFilterChange: (projectId: number | undefined) => void;
@@ -60,34 +71,34 @@ export function TaskList({
   onDelete,
   onViewConversation,
   onRefresh,
-  onCreateNew
+  onCreateNew,
 }: TaskListProps) {
   const { t } = useTranslation();
 
   const getStatusColor = (status: TaskStatus) => {
     switch (status) {
-      case 'todo':
-        return 'bg-gray-100 text-gray-800 border-gray-300';
-      case 'in_progress':
-        return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'done':
-        return 'bg-green-100 text-green-800 border-green-300';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-300';
+      case "todo":
+        return "bg-gray-100 text-gray-800 border-gray-300";
+      case "in_progress":
+        return "bg-blue-100 text-blue-800 border-blue-300";
+      case "done":
+        return "bg-green-100 text-green-800 border-green-300";
+      case "cancelled":
+        return "bg-red-100 text-red-800 border-red-300";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-300';
+        return "bg-gray-100 text-gray-800 border-gray-300";
     }
   };
 
   const getStatusIcon = (status: TaskStatus) => {
     switch (status) {
-      case 'todo':
+      case "todo":
         return <Clock className="w-3 h-3" />;
-      case 'in_progress':
+      case "in_progress":
         return <Play className="w-3 h-3" />;
-      case 'done':
+      case "done":
         return <CheckCircle className="w-3 h-3" />;
-      case 'cancelled':
+      case "cancelled":
         return <X className="w-3 h-3" />;
       default:
         return <Clock className="w-3 h-3" />;
@@ -98,10 +109,8 @@ export function TaskList({
     return new Date(dateString).toLocaleString();
   };
 
-
-
   const handleDeleteClick = (task: Task) => {
-    if (confirm(t('tasks.messages.deleteConfirm', { title: task.title }))) {
+    if (confirm(t("tasks.messages.deleteConfirm", { title: task.title }))) {
       onDelete(task.id);
     }
   };
@@ -111,7 +120,7 @@ export function TaskList({
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
-          <p>{t('common.loading')}</p>
+          <p>{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -119,52 +128,29 @@ export function TaskList({
 
   return (
     <div className="space-y-6">
-      {/* 头部工具栏 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <h2 className="text-2xl font-bold">{t('tasks.title')}</h2>
-          <Badge variant="secondary">
-            {t('tasks.totalCount', { count: total })}
-          </Badge>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRefresh}
-            disabled={loading}
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            {t('common.refresh')}
-          </Button>
-          <Button onClick={onCreateNew}>
-            <Plus className="w-4 h-4 mr-2" />
-            {t('tasks.actions.create')}
-          </Button>
-        </div>
-      </div>
-
       {/* 筛选器 */}
       <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
         <Filter className="w-4 h-4 text-gray-600" />
-        
+
         {/* 项目筛选 */}
         {!hideProjectFilter && (
           <div className="flex items-center space-x-2">
             <label className="text-sm font-medium text-gray-700">
-              {t('tasks.filters.project')}:
+              {t("tasks.filters.project")}:
             </label>
             <Select
-              value={projectFilter?.toString() || 'all'}
-              onValueChange={(value) => 
-                onProjectFilterChange(value === 'all' ? undefined : parseInt(value))
+              value={projectFilter?.toString() || "all"}
+              onValueChange={(value) =>
+                onProjectFilterChange(
+                  value === "all" ? undefined : parseInt(value)
+                )
               }
             >
               <SelectTrigger className="w-[200px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('common.all')}</SelectItem>
+                <SelectItem value="all">{t("common.all")}</SelectItem>
                 {projects.map((project) => (
                   <SelectItem key={project.id} value={project.id.toString()}>
                     {project.name}
@@ -178,23 +164,29 @@ export function TaskList({
         {/* 状态筛选 */}
         <div className="flex items-center space-x-2">
           <label className="text-sm font-medium text-gray-700">
-            {t('tasks.filters.status')}:
+            {t("tasks.filters.status")}:
           </label>
           <Select
-            value={statusFilter || 'all'}
-            onValueChange={(value) => 
-              onStatusFilterChange(value === 'all' ? undefined : value as TaskStatus)
+            value={statusFilter || "all"}
+            onValueChange={(value) =>
+              onStatusFilterChange(
+                value === "all" ? undefined : (value as TaskStatus)
+              )
             }
           >
             <SelectTrigger className="w-[150px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('common.all')}</SelectItem>
-              <SelectItem value="todo">{t('tasks.status.todo')}</SelectItem>
-              <SelectItem value="in_progress">{t('tasks.status.in_progress')}</SelectItem>
-              <SelectItem value="done">{t('tasks.status.done')}</SelectItem>
-              <SelectItem value="cancelled">{t('tasks.status.cancelled')}</SelectItem>
+              <SelectItem value="all">{t("common.all")}</SelectItem>
+              <SelectItem value="todo">{t("tasks.status.todo")}</SelectItem>
+              <SelectItem value="in_progress">
+                {t("tasks.status.in_progress")}
+              </SelectItem>
+              <SelectItem value="done">{t("tasks.status.done")}</SelectItem>
+              <SelectItem value="cancelled">
+                {t("tasks.status.cancelled")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -205,12 +197,12 @@ export function TaskList({
         <div className="text-center py-12">
           <div className="text-gray-500 mb-4">
             <Clock className="w-16 h-16 mx-auto mb-4 opacity-50" />
-            <p className="text-lg">{t('tasks.empty.title')}</p>
-            <p className="text-sm">{t('tasks.empty.description')}</p>
+            <p className="text-lg">{t("tasks.empty.title")}</p>
+            <p className="text-sm">{t("tasks.empty.description")}</p>
           </div>
           <Button onClick={onCreateNew}>
             <Plus className="w-4 h-4 mr-2" />
-            {t('tasks.actions.create')}
+            {t("tasks.actions.create")}
           </Button>
         </div>
       ) : (
@@ -230,17 +222,19 @@ export function TaskList({
                     </CardDescription>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className={`text-xs ${getStatusColor(task.status)}`}
                     >
                       {getStatusIcon(task.status)}
-                      <span className="ml-1">{t(`tasks.status.${task.status}`)}</span>
+                      <span className="ml-1">
+                        {t(`tasks.status.${task.status}`)}
+                      </span>
                     </Badge>
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent className="space-y-4">
                 {/* 分支信息 */}
                 <div className="flex items-center text-sm text-gray-500">
@@ -263,13 +257,16 @@ export function TaskList({
                       <div className="w-2 h-2 bg-white rounded-full"></div>
                     </div>
                     <span>{task.dev_environment.name}</span>
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className={`text-xs ml-2 ${
-                        task.dev_environment.status === 'running' ? 'bg-green-100 text-green-800 border-green-300' :
-                        task.dev_environment.status === 'stopped' ? 'bg-gray-100 text-gray-800 border-gray-300' :
-                        task.dev_environment.status === 'error' ? 'bg-red-100 text-red-800 border-red-300' :
-                        'bg-yellow-100 text-yellow-800 border-yellow-300'
+                        task.dev_environment.status === "running"
+                          ? "bg-green-100 text-green-800 border-green-300"
+                          : task.dev_environment.status === "stopped"
+                          ? "bg-gray-100 text-gray-800 border-gray-300"
+                          : task.dev_environment.status === "error"
+                          ? "bg-red-100 text-red-800 border-red-300"
+                          : "bg-yellow-100 text-yellow-800 border-yellow-300"
                       }`}
                     >
                       {task.dev_environment.status}
@@ -279,16 +276,20 @@ export function TaskList({
 
                 {/* 时间信息 */}
                 <div className="text-xs text-gray-500">
-                  <div>{t('common.createdAt')}: {formatDate(task.created_at)}</div>
-                  <div>{t('common.updatedAt')}: {formatDate(task.updated_at)}</div>
+                  <div>
+                    {t("common.createdAt")}: {formatDate(task.created_at)}
+                  </div>
+                  <div>
+                    {t("common.updatedAt")}: {formatDate(task.updated_at)}
+                  </div>
                 </div>
 
                 {/* 操作按钮 */}
                 <div className="flex items-center justify-between pt-2 border-t">
                   <div className="flex items-center space-x-1">
                     {/* 显示状态 - 只读 */}
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className={`text-xs ${getStatusColor(task.status)}`}
                     >
                       {getStatusIcon(task.status)}
@@ -313,7 +314,7 @@ export function TaskList({
                         size="sm"
                         onClick={() => onViewConversation(task)}
                         className="h-8 px-2"
-                        title={t('tasks.actions.viewConversation')}
+                        title={t("tasks.actions.viewConversation")}
                       >
                         <MessageSquare className="w-3 h-3" />
                       </Button>
@@ -346,10 +347,10 @@ export function TaskList({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            {t('common.pagination.info', { 
+            {t("common.pagination.info", {
               start: (currentPage - 1) * 20 + 1,
               end: Math.min(currentPage * 20, total),
-              total 
+              total,
             })}
           </div>
           <div className="flex items-center space-x-2">
@@ -360,14 +361,14 @@ export function TaskList({
               disabled={currentPage <= 1}
             >
               <ChevronLeft className="w-4 h-4" />
-              {t('common.pagination.previous')}
+              {t("common.pagination.previous")}
             </Button>
-            
+
             <div className="flex items-center space-x-1">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 const page = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
                 if (page > totalPages) return null;
-                
+
                 return (
                   <Button
                     key={page}
@@ -388,7 +389,7 @@ export function TaskList({
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
             >
-              {t('common.pagination.next')}
+              {t("common.pagination.next")}
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
@@ -396,4 +397,4 @@ export function TaskList({
       )}
     </div>
   );
-} 
+}
