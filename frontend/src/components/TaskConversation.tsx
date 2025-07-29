@@ -1,12 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "react-i18next";
@@ -141,9 +135,9 @@ export function TaskConversation({
 
   const isLatestConversation = (conversationId: number) => {
     if (conversations.length === 0) return false;
-    // 获取按创建时间排序的最新对话
     const sortedConversations = [...conversations].sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
     return sortedConversations[0]?.id === conversationId;
   };
@@ -156,7 +150,6 @@ export function TaskConversation({
             <CardTitle className="text-xl">
               {t("taskConversation.list.title")}
             </CardTitle>
-           
           </div>
           <Button
             variant="outline"
@@ -171,7 +164,7 @@ export function TaskConversation({
         </CardHeader>
 
         <CardContent className="flex-1 flex flex-col">
-          <div className="space-y-3 flex-1 overflow-y-auto max-h-[400px]">
+          <div className="space-y-3 flex-1 overflow-y-auto max-h-[2000px]">
             {conversations.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
