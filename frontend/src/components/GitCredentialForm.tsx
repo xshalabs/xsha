@@ -321,7 +321,7 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
             <Button type="submit" disabled={loading}>
               {loading
                 ? t("common.saving", "Saving...")
-                : t(isEditing ? "common.save" : "common.submit")}
+                : t("common.save")}
             </Button>
           </div>
         </form>
