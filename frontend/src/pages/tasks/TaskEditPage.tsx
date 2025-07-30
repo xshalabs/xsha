@@ -63,6 +63,7 @@ const TaskEditPage: React.FC = () => {
         parseInt(taskId, 10),
         data as { title: string }
       );
+      toast.success(t("tasks.messages.updateSuccess"));
       navigate(`/projects/${projectId}/tasks`);
     } catch (error) {
       logError(error as Error, "Failed to submit task");

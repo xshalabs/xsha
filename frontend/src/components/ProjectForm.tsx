@@ -19,6 +19,7 @@ import {
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import type {
   Project,
   CreateProjectRequest,
@@ -284,6 +285,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         };
 
         await apiService.projects.update(project.id, updateData);
+        toast.success(t("projects.messages.updateSuccess"));
 
         const response = await apiService.projects.get(project.id);
         result = response.project;
@@ -298,6 +300,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
 
         const response = await apiService.projects.create(createData);
         result = response.project;
+        toast.success(t("projects.messages.createSuccess"));
       }
 
       if (onSubmit) {

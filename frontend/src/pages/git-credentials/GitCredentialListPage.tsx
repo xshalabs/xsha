@@ -5,6 +5,7 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { GitCredentialList } from "@/components/GitCredentialList";
+import { toast } from "sonner";
 import { apiService } from "@/lib/api/index";
 import type {
   GitCredential,
@@ -68,9 +69,12 @@ const GitCredentialListPage: React.FC = () => {
 
     try {
       await apiService.gitCredentials.delete(id);
+      toast.success(t("gitCredentials.messages.deleteSuccess"));
       loadCredentials();
     } catch (err: any) {
-      setError(err.message || t("gitCredentials.messages.deleteFailed"));
+      const errorMessage = err.message || t("gitCredentials.messages.deleteFailed");
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 

@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 import { apiService } from "@/lib/api/index";
 import type {
   GitCredential,
@@ -151,8 +152,10 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
 
       if (isEditing && credential) {
         await apiService.gitCredentials.update(credential.id, submitData);
+        toast.success(t("gitCredentials.messages.updateSuccess"));
       } else {
         await apiService.gitCredentials.create(submitData);
+        toast.success(t("gitCredentials.messages.createSuccess"));
       }
 
       onSuccess();

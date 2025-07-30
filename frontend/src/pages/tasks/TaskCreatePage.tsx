@@ -7,6 +7,7 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 import { TaskForm } from "@/components/TaskForm";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
+import { toast } from "sonner";
 import type { TaskFormData } from "@/types/task";
 import type { Project } from "@/types/project";
 
@@ -45,6 +46,7 @@ const TaskCreatePage: React.FC = () => {
 
       if ("start_branch" in data && "project_id" in data) {
         await apiService.tasks.create({ ...data, project_id: projectIdNum });
+        toast.success(t("tasks.messages.createSuccess"));
       } else {
         throw new Error(t("errors.task_fields_required"));
       }

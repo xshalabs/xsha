@@ -131,6 +131,7 @@ const TaskListPage: React.FC = () => {
   const handleTaskDelete = async (id: number) => {
     try {
       await apiService.tasks.delete(id);
+      toast.success(t("tasks.messages.deleteSuccess"));
       loadTasks(
         currentPage,
         statusFilter,
