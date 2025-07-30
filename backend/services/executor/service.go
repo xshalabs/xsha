@@ -45,6 +45,7 @@ func NewAITaskExecutorService(
 	taskConvResultRepo repository.TaskConversationResultRepository,
 	gitCredService services.GitCredentialService,
 	taskConvResultService services.TaskConversationResultService,
+	systemConfigService services.SystemConfigService,
 	cfg *config.Config,
 	logBroadcaster *services.LogBroadcaster,
 ) services.AITaskExecutorService {
@@ -64,7 +65,7 @@ func NewAITaskExecutorService(
 	}
 
 	executionManager := NewExecutionManager(maxConcurrency)
-	dockerExecutor := NewDockerExecutor(cfg, logAppender)
+	dockerExecutor := NewDockerExecutor(cfg, logAppender, systemConfigService)
 	resultParser := NewResultParser(taskConvResultRepo, taskConvResultService)
 	workspaceCleaner := NewWorkspaceCleaner(workspaceManager)
 	stateManager := NewConversationStateManager(taskConvRepo, execLogRepo)

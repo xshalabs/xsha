@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, GitCompare } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { TaskConversation } from "@/components/TaskConversation";
 import { TaskExecutionLog } from "@/components/TaskExecutionLog";
@@ -160,6 +160,10 @@ const TaskConversationPage: React.FC = () => {
     );
   };
 
+  const handleViewConversationGitDiff = (conversationId: number) => {
+    navigate(`/projects/${projectId}/tasks/${taskId}/conversation/${conversationId}/git-diff`);
+  };
+
   const selectedConversation = conversations.find(
     (c) => c.id === selectedConversationId
   );
@@ -247,13 +251,21 @@ const TaskConversationPage: React.FC = () => {
           </div>
           <div className="flex gap-2">
             <Button
-              variant="default"
+              variant="outline"
               onClick={() => navigate(`/projects/${projectId}/tasks`)}
-              className="mb-4"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t("common.back")}
             </Button>
+            {task.work_branch && (
+              <Button
+                variant="default"
+                onClick={() => navigate(`/projects/${projectId}/tasks/${task.id}/git-diff`)}
+              >
+                <GitCompare className="h-4 w-4 mr-2" />
+                {t("tasks.actions.viewGitDiff")}
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -270,6 +282,7 @@ const TaskConversationPage: React.FC = () => {
               onDeleteConversation={handleDeleteConversation}
               onSelectConversation={setSelectedConversationId}
               onConversationStatusChange={handleConversationStatusChange}
+              onViewConversationGitDiff={handleViewConversationGitDiff}
             />
           </div>
 

@@ -7,6 +7,7 @@ import {
   IconFileText,
   IconInnerShadowTop,
   IconContainer,
+  IconSettings,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -51,6 +52,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: t("navigation.adminLogs"),
         url: "/admin/logs",
         icon: IconFileText,
+      },
+      {
+        title: t("navigation.systemConfigs"),
+        url: "/system-configs",
+        icon: IconSettings,
       },
     ],
     navSecondary: [

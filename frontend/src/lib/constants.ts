@@ -46,6 +46,8 @@ export const ROUTES = {
 
   adminLogs: "/admin/logs",
 
+  systemConfigs: "/system-configs",
+
   settings: "/settings",
   profile: "/profile",
 } as const;

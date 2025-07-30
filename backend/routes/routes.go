@@ -12,7 +12,7 @@ import (
 )
 
 // SetupRoutes sets up routes
-func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskConvResultHandlers *handlers.TaskConversationResultHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, sseLogHandlers *handlers.SSELogHandlers) {
+func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskConvResultHandlers *handlers.TaskConversationResultHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, sseLogHandlers *handlers.SSELogHandlers, systemConfigHandlers *handlers.SystemConfigHandlers) {
 	// Apply global middleware
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
@@ -90,24 +90,28 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		// 任务管理
 		tasks := api.Group("/tasks")
 		{
-			tasks.POST("", taskHandlers.CreateTask)                        // 创建任务
-			tasks.GET("", taskHandlers.ListTasks)                          // 获取任务列表
-			tasks.GET("/:id", taskHandlers.GetTask)                        // 获取单个任务
-			tasks.PUT("/:id", taskHandlers.UpdateTask)                     // 更新任务
-			tasks.PUT("/:id/status", taskHandlers.UpdateTaskStatus)        // 更新任务状态
-			tasks.PUT("/batch/status", taskHandlers.BatchUpdateTaskStatus) // 批量更新任务状态
-			tasks.DELETE("/:id", taskHandlers.DeleteTask)                  // 删除任务
+			tasks.POST("", taskHandlers.CreateTask)                          // 创建任务
+			tasks.GET("", taskHandlers.ListTasks)                            // 获取任务列表
+			tasks.GET("/:id", taskHandlers.GetTask)                          // 获取单个任务
+			tasks.PUT("/:id", taskHandlers.UpdateTask)                       // 更新任务
+			tasks.PUT("/:id/status", taskHandlers.UpdateTaskStatus)          // 更新任务状态
+			tasks.PUT("/batch/status", taskHandlers.BatchUpdateTaskStatus)   // 批量更新任务状态
+			tasks.DELETE("/:id", taskHandlers.DeleteTask)                    // 删除任务
+			tasks.GET("/:id/git-diff", taskHandlers.GetTaskGitDiff)          // 获取任务Git变动
+			tasks.GET("/:id/git-diff/file", taskHandlers.GetTaskGitDiffFile) // 获取任务指定文件Git变动
 		}
 
 		// 任务对话管理
 		conversations := api.Group("/conversations")
 		{
-			conversations.POST("", taskConvHandlers.CreateConversation)          // 创建对话
-			conversations.GET("", taskConvHandlers.ListConversations)            // 获取对话列表
-			conversations.GET("/latest", taskConvHandlers.GetLatestConversation) // 获取最新对话
-			conversations.GET("/:id", taskConvHandlers.GetConversation)          // 获取单个对话
-			conversations.PUT("/:id", taskConvHandlers.UpdateConversation)       // 更新对话
-			conversations.DELETE("/:id", taskConvHandlers.DeleteConversation)    // 删除对话
+			conversations.POST("", taskConvHandlers.CreateConversation)                          // 创建对话
+			conversations.GET("", taskConvHandlers.ListConversations)                            // 获取对话列表
+			conversations.GET("/latest", taskConvHandlers.GetLatestConversation)                 // 获取最新对话
+			conversations.GET("/:id", taskConvHandlers.GetConversation)                          // 获取单个对话
+			conversations.PUT("/:id", taskConvHandlers.UpdateConversation)                       // 更新对话
+			conversations.DELETE("/:id", taskConvHandlers.DeleteConversation)                    // 删除对话
+			conversations.GET("/:id/git-diff", taskConvHandlers.GetConversationGitDiff)          // 获取对话Git变动
+			conversations.GET("/:id/git-diff/file", taskConvHandlers.GetConversationGitDiffFile) // 获取对话指定文件Git变动
 		}
 
 		// 任务对话结果管理
@@ -146,11 +150,22 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		{
 			devEnvs.POST("", devEnvHandlers.CreateEnvironment)                 // 创建环境
 			devEnvs.GET("", devEnvHandlers.ListEnvironments)                   // 获取环境列表
+			devEnvs.GET("/available-types", devEnvHandlers.GetAvailableTypes)  // 获取可用环境类型
 			devEnvs.GET("/:id", devEnvHandlers.GetEnvironment)                 // 获取单个环境
 			devEnvs.PUT("/:id", devEnvHandlers.UpdateEnvironment)              // 更新环境
 			devEnvs.DELETE("/:id", devEnvHandlers.DeleteEnvironment)           // 删除环境
 			devEnvs.GET("/:id/env-vars", devEnvHandlers.GetEnvironmentVars)    // 获取环境变量
 			devEnvs.PUT("/:id/env-vars", devEnvHandlers.UpdateEnvironmentVars) // 更新环境变量
+		}
+
+		// 系统配置管理
+		systemConfigs := api.Group("/system-configs")
+		{
+			systemConfigs.GET("", systemConfigHandlers.ListConfigs)                                     // 获取配置列表
+			systemConfigs.GET("/:id", systemConfigHandlers.GetConfig)                                   // 获取单个配置
+			systemConfigs.PUT("/:id", systemConfigHandlers.UpdateConfig)                                // 更新配置
+			systemConfigs.GET("/dev-environment-types", systemConfigHandlers.GetDevEnvironmentTypes)    // 获取开发环境类型
+			systemConfigs.PUT("/dev-environment-types", systemConfigHandlers.UpdateDevEnvironmentTypes) // 更新开发环境类型
 		}
 	}
 }

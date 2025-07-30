@@ -96,5 +96,17 @@
     "stats_get_success": "Statistics retrieved successfully"
   },
   "execution_log": "Execution Log",
-  "execution_result": "Execution Result"
+  "execution_result": "Execution Result",
+  "git_diff": "Git Changes",
+  "gitDiff": {
+    "noWorkBranch": {
+      "title": "No work branch created yet",
+      "description": "Git changes will be displayed after task execution"
+    }
+  },
+  "actions": {
+    "delete": "Delete",
+    "viewGitDiff": "View Git Diff",
+    "viewChanges": "View Changes"
+  }
 } 

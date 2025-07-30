@@ -11,19 +11,22 @@ import (
 	"time"
 	"xsha-backend/config"
 	"xsha-backend/database"
+	"xsha-backend/services"
 	"xsha-backend/utils"
 )
 
 type dockerExecutor struct {
-	config      *config.Config
-	logAppender LogAppender
+	config        *config.Config
+	logAppender   LogAppender
+	configService services.SystemConfigService
 }
 
 // NewDockerExecutor 创建Docker执行器
-func NewDockerExecutor(cfg *config.Config, logAppender LogAppender) DockerExecutor {
+func NewDockerExecutor(cfg *config.Config, logAppender LogAppender, configService services.SystemConfigService) DockerExecutor {
 	return &dockerExecutor{
-		config:      cfg,
-		logAppender: logAppender,
+		config:        cfg,
+		logAppender:   logAppender,
+		configService: configService,
 	}
 }
 
@@ -71,12 +74,11 @@ func (d *dockerExecutor) BuildCommand(conv *database.TaskConversation, workspace
 	}
 
 	// 根据开发环境类型选择镜像和命令
-	var imageName string
+	imageName := d.getImageNameFromConfig(devEnv.Type)
 	var aiCommand []string
 
 	switch devEnv.Type {
-	case "claude-code":
-		imageName = "claude-code:latest"
+	case "claude_code":
 		aiCommand = []string{
 			"claude",
 			"-p",
@@ -86,14 +88,11 @@ func (d *dockerExecutor) BuildCommand(conv *database.TaskConversation, workspace
 			conv.Content,
 		}
 	case "opencode":
-		imageName = "opencode:latest"
 		aiCommand = []string{conv.Content}
-	case "gemini-cli":
-		imageName = "gemini-cli:latest"
+	case "gemini_cli":
 		aiCommand = []string{conv.Content}
 	default:
-		// 默认使用 claude-code
-		imageName = "claude-code:latest"
+		// 默认使用 claude-code 命令
 		aiCommand = []string{
 			"claude",
 			"-p",
@@ -111,6 +110,28 @@ func (d *dockerExecutor) BuildCommand(conv *database.TaskConversation, workspace
 	cmd = append(cmd, aiCommand...)
 
 	return strings.Join(cmd, " ")
+}
+
+// getImageNameFromConfig 根据开发环境类型从系统配置获取镜像名称
+func (d *dockerExecutor) getImageNameFromConfig(envType database.DevEnvironmentType) string {
+	// 从系统配置获取环境类型映射
+	envTypes, err := d.configService.GetDevEnvironmentTypes()
+	if err != nil {
+		// 如果获取配置失败，使用默认配置
+		return "claude-code:latest"
+	}
+
+	// 根据环境类型配置选择镜像
+	for _, envTypeConfig := range envTypes {
+		if name, ok := envTypeConfig["name"].(string); ok && name == string(envType) {
+			if image, ok := envTypeConfig["image"].(string); ok {
+				return image
+			}
+		}
+	}
+
+	// 如果找不到匹配的配置，使用默认配置
+	return "claude-code:latest"
 }
 
 // BuildCommandForLog 构建用于日志的Docker命令
@@ -144,12 +165,11 @@ func (d *dockerExecutor) BuildCommandForLog(conv *database.TaskConversation, wor
 	}
 
 	// 根据开发环境类型选择镜像和命令
-	var imageName string
+	imageName := d.getImageNameFromConfig(devEnv.Type)
 	var aiCommand []string
 
 	switch devEnv.Type {
-	case "claude-code":
-		imageName = "claude-code:latest"
+	case "claude_code":
 		aiCommand = []string{
 			"claude",
 			"-p",
@@ -159,14 +179,11 @@ func (d *dockerExecutor) BuildCommandForLog(conv *database.TaskConversation, wor
 			conv.Content,
 		}
 	case "opencode":
-		imageName = "opencode:latest"
 		aiCommand = []string{conv.Content}
-	case "gemini-cli":
-		imageName = "gemini-cli:latest"
+	case "gemini_cli":
 		aiCommand = []string{conv.Content}
 	default:
-		// 默认使用 claude-code
-		imageName = "claude-code:latest"
+		// 默认使用 claude-code 命令
 		aiCommand = []string{
 			"claude",
 			"-p",

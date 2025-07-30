@@ -96,5 +96,17 @@
     "stats_get_success": "统计信息获取成功"
   },
   "execution_log": "执行日志",
-  "execution_result": "执行结果"
+  "execution_result": "执行结果",
+  "git_diff": "Git 变动",
+  "gitDiff": {
+    "noWorkBranch": {
+      "title": "尚未创建工作分支",
+      "description": "任务执行后将显示Git变动"
+    }
+  },
+  "actions": {
+    "delete": "删除",
+    "viewGitDiff": "查看Git差异",
+    "viewChanges": "查看变动"
+  }
 } 

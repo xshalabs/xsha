@@ -16,6 +16,8 @@ const loadModularTranslations = async (locale: string) => {
       devEnvironments,
       tasks,
       taskConversations,
+      gitDiff,
+      systemConfig,
     ] = await Promise.all([
       import(`./locales/${locale}/common.json`),
       import(`./locales/${locale}/auth.json`),
@@ -28,6 +30,8 @@ const loadModularTranslations = async (locale: string) => {
       import(`./locales/${locale}/dev-environments.json`),
       import(`./locales/${locale}/tasks.json`),
       import(`./locales/${locale}/task-conversations.json`),
+      import(`./locales/${locale}/git-diff.json`),
+      import(`./locales/${locale}/system-config.json`),
     ]);
 
     return {
@@ -42,6 +46,8 @@ const loadModularTranslations = async (locale: string) => {
       dev_environments: devEnvironments.default,
       tasks: tasks.default,
       taskConversation: taskConversations.default,
+      gitDiff: gitDiff.default,
+      "system-config": systemConfig.default,
     };
   } catch (error) {
     console.error(`Failed to load translations for locale: ${locale}`, error);

@@ -471,3 +471,364 @@ func GitResetToPreviousCommit(workspacePath, commitHash string) error {
 
 	return nil
 }
+
+// GitDiffFile 表示单个文件的变动信息
+type GitDiffFile struct {
+	Path        string `json:"path"`
+	Status      string `json:"status"`       // added, modified, deleted, renamed
+	Additions   int    `json:"additions"`    // 新增行数
+	Deletions   int    `json:"deletions"`    // 删除行数
+	IsBinary    bool   `json:"is_binary"`    // 是否为二进制文件
+	OldPath     string `json:"old_path"`     // 重命名前的路径
+	DiffContent string `json:"diff_content"` // 具体的diff内容
+}
+
+// GitDiffSummary 表示Git差异摘要
+type GitDiffSummary struct {
+	TotalFiles     int           `json:"total_files"`
+	TotalAdditions int           `json:"total_additions"`
+	TotalDeletions int           `json:"total_deletions"`
+	Files          []GitDiffFile `json:"files"`
+	CommitsBehind  int           `json:"commits_behind"` // 落后的提交数
+	CommitsAhead   int           `json:"commits_ahead"`  // 领先的提交数
+}
+
+// GetBranchDiff 获取两个分支之间的差异
+func GetBranchDiff(workspacePath, baseBranch, compareBranch string, includeContent bool) (*GitDiffSummary, error) {
+	if workspacePath == "" {
+		return nil, fmt.Errorf("workspace path cannot be empty")
+	}
+
+	if baseBranch == "" {
+		return nil, fmt.Errorf("base branch cannot be empty")
+	}
+
+	if compareBranch == "" {
+		return nil, fmt.Errorf("compare branch cannot be empty")
+	}
+
+	// 检查工作空间目录是否存在
+	if _, err := os.Stat(workspacePath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("workspace directory does not exist: %s", workspacePath)
+	}
+
+	// 设置超时上下文
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	summary := &GitDiffSummary{
+		Files: []GitDiffFile{},
+	}
+
+	// 1. 获取提交差异统计
+	if err := getBranchCommitDiff(ctx, workspacePath, baseBranch, compareBranch, summary); err != nil {
+		return nil, fmt.Errorf("failed to get commit diff: %v", err)
+	}
+
+	// 2. 获取文件差异统计
+	if err := getBranchFileDiff(ctx, workspacePath, baseBranch, compareBranch, summary, includeContent); err != nil {
+		return nil, fmt.Errorf("failed to get file diff: %v", err)
+	}
+
+	return summary, nil
+}
+
+// getBranchCommitDiff 获取分支间的提交差异
+func getBranchCommitDiff(ctx context.Context, workspacePath, baseBranch, compareBranch string, summary *GitDiffSummary) error {
+	// 获取compare分支相对于base分支的领先提交数
+	aheadCmd := exec.CommandContext(ctx, "git", "rev-list", "--count", fmt.Sprintf("%s..%s", baseBranch, compareBranch))
+	aheadCmd.Dir = workspacePath
+
+	aheadOutput, err := aheadCmd.Output()
+	if err != nil {
+		// 如果命令失败，可能是分支不存在，设置为0
+		summary.CommitsAhead = 0
+	} else {
+		if count, parseErr := fmt.Sscanf(strings.TrimSpace(string(aheadOutput)), "%d", &summary.CommitsAhead); parseErr != nil || count != 1 {
+			summary.CommitsAhead = 0
+		}
+	}
+
+	// 获取compare分支相对于base分支的落后提交数
+	behindCmd := exec.CommandContext(ctx, "git", "rev-list", "--count", fmt.Sprintf("%s..%s", compareBranch, baseBranch))
+	behindCmd.Dir = workspacePath
+
+	behindOutput, err := behindCmd.Output()
+	if err != nil {
+		summary.CommitsBehind = 0
+	} else {
+		if count, parseErr := fmt.Sscanf(strings.TrimSpace(string(behindOutput)), "%d", &summary.CommitsBehind); parseErr != nil || count != 1 {
+			summary.CommitsBehind = 0
+		}
+	}
+
+	return nil
+}
+
+// getBranchFileDiff 获取分支间的文件差异
+func getBranchFileDiff(ctx context.Context, workspacePath, baseBranch, compareBranch string, summary *GitDiffSummary, includeContent bool) error {
+	// 获取文件变动统计
+	statCmd := exec.CommandContext(ctx, "git", "-c", "core.quotepath=false", "diff", "--numstat", fmt.Sprintf("%s..%s", baseBranch, compareBranch))
+	statCmd.Dir = workspacePath
+
+	statOutput, err := statCmd.Output()
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			errorMessage := string(exitError.Stderr)
+			return fmt.Errorf("git diff --numstat failed: %s", errorMessage)
+		}
+		return fmt.Errorf("failed to execute git diff --numstat: %v", err)
+	}
+
+	// 解析numstat输出
+	files, totalAdditions, totalDeletions := parseNumstat(string(statOutput))
+	summary.Files = files
+	summary.TotalFiles = len(files)
+	summary.TotalAdditions = totalAdditions
+	summary.TotalDeletions = totalDeletions
+
+	// 如果需要包含详细内容，获取每个文件的diff内容
+	if includeContent {
+		for i := range summary.Files {
+			content, err := getFileDiffContent(ctx, workspacePath, baseBranch, compareBranch, summary.Files[i].Path)
+			if err != nil {
+				// 记录错误但不中断整个流程
+				Warn("Failed to get diff content for file", "file", summary.Files[i].Path, "error", err)
+				continue
+			}
+			summary.Files[i].DiffContent = content
+		}
+	}
+
+	return nil
+}
+
+// parseNumstat 解析git diff --numstat输出
+func parseNumstat(output string) ([]GitDiffFile, int, int) {
+	var files []GitDiffFile
+	totalAdditions := 0
+	totalDeletions := 0
+
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+
+		parts := strings.Split(line, "\t")
+		if len(parts) < 3 {
+			continue
+		}
+
+		file := GitDiffFile{
+			Path: parts[2],
+		}
+
+		// 解析新增和删除行数
+		if parts[0] == "-" || parts[1] == "-" {
+			// 二进制文件
+			file.IsBinary = true
+		} else {
+			if additions, err := fmt.Sscanf(parts[0], "%d", &file.Additions); err == nil && additions == 1 {
+				totalAdditions += file.Additions
+			}
+			if deletions, err := fmt.Sscanf(parts[1], "%d", &file.Deletions); err == nil && deletions == 1 {
+				totalDeletions += file.Deletions
+			}
+		}
+
+		// 判断文件状态
+		if file.Additions > 0 && file.Deletions == 0 {
+			file.Status = "added"
+		} else if file.Additions == 0 && file.Deletions > 0 {
+			file.Status = "deleted"
+		} else {
+			file.Status = "modified"
+		}
+
+		files = append(files, file)
+	}
+
+	return files, totalAdditions, totalDeletions
+}
+
+// getFileDiffContent 获取单个文件的diff内容
+func getFileDiffContent(ctx context.Context, workspacePath, baseBranch, compareBranch, filePath string) (string, error) {
+	cmd := exec.CommandContext(ctx, "git", "-c", "core.quotepath=false", "diff", fmt.Sprintf("%s..%s", baseBranch, compareBranch), "--", filePath)
+	cmd.Dir = workspacePath
+
+	output, err := cmd.Output()
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			errorMessage := string(exitError.Stderr)
+			return "", fmt.Errorf("git diff failed for file %s: %s", filePath, errorMessage)
+		}
+		return "", fmt.Errorf("failed to execute git diff for file %s: %v", filePath, err)
+	}
+
+	return string(output), nil
+}
+
+// ValidateBranchExists 验证分支是否存在
+func ValidateBranchExists(workspacePath, branchName string) error {
+	if workspacePath == "" {
+		return fmt.Errorf("workspace path cannot be empty")
+	}
+
+	if branchName == "" {
+		return fmt.Errorf("branch name cannot be empty")
+	}
+
+	// 检查工作空间目录是否存在
+	if _, err := os.Stat(workspacePath); os.IsNotExist(err) {
+		return fmt.Errorf("workspace directory does not exist: %s", workspacePath)
+	}
+
+	// 设置超时上下文
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// 检查分支是否存在
+	cmd := exec.CommandContext(ctx, "git", "show-ref", "--verify", "--quiet", fmt.Sprintf("refs/heads/%s", branchName))
+	cmd.Dir = workspacePath
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("branch '%s' does not exist", branchName)
+	}
+
+	return nil
+}
+
+// GetCommitDiff 获取指定提交的变动差异（与其父提交比较）
+func GetCommitDiff(workspacePath, commitHash string, includeContent bool) (*GitDiffSummary, error) {
+	if workspacePath == "" {
+		return nil, fmt.Errorf("workspace path cannot be empty")
+	}
+
+	if commitHash == "" {
+		return nil, fmt.Errorf("commit hash cannot be empty")
+	}
+
+	// 检查工作空间目录是否存在
+	if _, err := os.Stat(workspacePath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("workspace directory does not exist: %s", workspacePath)
+	}
+
+	// 设置超时上下文
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	// 验证 commit hash 是否存在
+	if err := validateCommitExists(ctx, workspacePath, commitHash); err != nil {
+		return nil, fmt.Errorf("commit validation failed: %v", err)
+	}
+
+	summary := &GitDiffSummary{
+		Files: []GitDiffFile{},
+	}
+
+	// 获取文件差异统计（与父提交比较）
+	if err := getCommitFileDiff(ctx, workspacePath, commitHash, summary, includeContent); err != nil {
+		return nil, fmt.Errorf("failed to get commit diff: %v", err)
+	}
+
+	return summary, nil
+}
+
+// validateCommitExists 验证提交是否存在
+func validateCommitExists(ctx context.Context, workspacePath, commitHash string) error {
+	cmd := exec.CommandContext(ctx, "git", "cat-file", "-t", commitHash)
+	cmd.Dir = workspacePath
+
+	output, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("commit '%s' does not exist", commitHash)
+	}
+
+	if strings.TrimSpace(string(output)) != "commit" {
+		return fmt.Errorf("'%s' is not a valid commit", commitHash)
+	}
+
+	return nil
+}
+
+// getCommitFileDiff 获取提交的文件差异
+func getCommitFileDiff(ctx context.Context, workspacePath, commitHash string, summary *GitDiffSummary, includeContent bool) error {
+	// 获取文件变动统计（与父提交比较）
+	statCmd := exec.CommandContext(ctx, "git", "-c", "core.quotepath=false", "diff", "--numstat", commitHash+"^", commitHash)
+	statCmd.Dir = workspacePath
+
+	statOutput, err := statCmd.Output()
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			errorMessage := string(exitError.Stderr)
+			return fmt.Errorf("git diff --numstat failed: %s", errorMessage)
+		}
+		return fmt.Errorf("failed to execute git diff --numstat: %v", err)
+	}
+
+	// 解析numstat输出
+	files, totalAdditions, totalDeletions := parseNumstat(string(statOutput))
+	summary.Files = files
+	summary.TotalFiles = len(files)
+	summary.TotalAdditions = totalAdditions
+	summary.TotalDeletions = totalDeletions
+
+	// 如果需要包含详细内容，获取每个文件的diff内容
+	if includeContent {
+		for i := range summary.Files {
+			content, err := getCommitFileDiffContent(ctx, workspacePath, commitHash, summary.Files[i].Path)
+			if err != nil {
+				// 记录错误但不中断整个流程
+				Warn("Failed to get diff content for file", "file", summary.Files[i].Path, "error", err)
+				continue
+			}
+			summary.Files[i].DiffContent = content
+		}
+	}
+
+	return nil
+}
+
+// getCommitFileDiffContent 获取提交中单个文件的diff内容
+func getCommitFileDiffContent(ctx context.Context, workspacePath, commitHash, filePath string) (string, error) {
+	cmd := exec.CommandContext(ctx, "git", "-c", "core.quotepath=false", "diff", commitHash+"^", commitHash, "--", filePath)
+	cmd.Dir = workspacePath
+
+	output, err := cmd.Output()
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			errorMessage := string(exitError.Stderr)
+			return "", fmt.Errorf("git diff failed for file %s: %s", filePath, errorMessage)
+		}
+		return "", fmt.Errorf("failed to execute git diff for file %s: %v", filePath, err)
+	}
+
+	return string(output), nil
+}
+
+// GetCommitFileDiff 获取提交中指定文件的变动内容
+func GetCommitFileDiff(workspacePath, commitHash, filePath string) (string, error) {
+	if workspacePath == "" {
+		return "", fmt.Errorf("workspace path cannot be empty")
+	}
+
+	if commitHash == "" {
+		return "", fmt.Errorf("commit hash cannot be empty")
+	}
+
+	if filePath == "" {
+		return "", fmt.Errorf("file path cannot be empty")
+	}
+
+	// 设置超时上下文
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// 验证 commit hash 是否存在
+	if err := validateCommitExists(ctx, workspacePath, commitHash); err != nil {
+		return "", err
+	}
+
+	return getCommitFileDiffContent(ctx, workspacePath, commitHash, filePath)
+}

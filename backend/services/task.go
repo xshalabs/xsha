@@ -1,8 +1,10 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"os/exec"
 	"strings"
 	"time"
 	"xsha-backend/database"
@@ -295,4 +297,83 @@ func (s *taskService) UpdateTaskStatusBatch(taskIDs []uint, createdBy string, st
 	}
 
 	return successIDs, failedIDs, nil
+}
+
+// GetTaskGitDiff 获取任务的Git变动差异
+func (s *taskService) GetTaskGitDiff(task *database.Task, includeContent bool) (*utils.GitDiffSummary, error) {
+	if task == nil {
+		return nil, fmt.Errorf("task cannot be nil")
+	}
+
+	// 检查必要的字段
+	if task.WorkspacePath == "" {
+		return nil, fmt.Errorf("task workspace path is empty")
+	}
+
+	if task.StartBranch == "" {
+		return nil, fmt.Errorf("task start branch is empty")
+	}
+
+	if task.WorkBranch == "" {
+		return nil, fmt.Errorf("task work branch is empty")
+	}
+
+	// 验证分支是否存在
+	if err := utils.ValidateBranchExists(task.WorkspacePath, task.StartBranch); err != nil {
+		return nil, fmt.Errorf("start branch validation failed: %v", err)
+	}
+
+	if err := utils.ValidateBranchExists(task.WorkspacePath, task.WorkBranch); err != nil {
+		return nil, fmt.Errorf("work branch validation failed: %v", err)
+	}
+
+	// 获取分支差异
+	diff, err := utils.GetBranchDiff(task.WorkspacePath, task.StartBranch, task.WorkBranch, includeContent)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get branch diff: %v", err)
+	}
+
+	return diff, nil
+}
+
+// GetTaskGitDiffFile 获取任务指定文件的Git变动详情
+func (s *taskService) GetTaskGitDiffFile(task *database.Task, filePath string) (string, error) {
+	if task == nil {
+		return "", fmt.Errorf("task cannot be nil")
+	}
+
+	if filePath == "" {
+		return "", fmt.Errorf("file path cannot be empty")
+	}
+
+	// 检查必要的字段
+	if task.WorkspacePath == "" {
+		return "", fmt.Errorf("task workspace path is empty")
+	}
+
+	if task.StartBranch == "" {
+		return "", fmt.Errorf("task start branch is empty")
+	}
+
+	if task.WorkBranch == "" {
+		return "", fmt.Errorf("task work branch is empty")
+	}
+
+	// 使用utils中的函数获取文件diff内容
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "git", "-c", "core.quotepath=false", "diff", fmt.Sprintf("%s..%s", task.StartBranch, task.WorkBranch), "--", filePath)
+	cmd.Dir = task.WorkspacePath
+
+	output, err := cmd.Output()
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			errorMessage := string(exitError.Stderr)
+			return "", fmt.Errorf("git diff failed for file %s: %s", filePath, errorMessage)
+		}
+		return "", fmt.Errorf("failed to execute git diff for file %s: %v", filePath, err)
+	}
+
+	return string(output), nil
 }

@@ -368,3 +368,28 @@ func (h *DevEnvironmentHandlers) UpdateEnvironmentVars(c *gin.Context) {
 		"message": i18n.T(lang, "dev_environment.env_vars_update_success"),
 	})
 }
+
+// GetAvailableTypes gets available environment types
+// @Summary Get available environment types
+// @Description Get available environment types from system configuration
+// @Tags Development Environment
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} object{types=[]object} "Available environment types"
+// @Router /dev-environments/available-types [get]
+func (h *DevEnvironmentHandlers) GetAvailableTypes(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	types, err := h.devEnvService.GetAvailableEnvironmentTypes()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "dev_environment.get_types_failed") + ": " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"types": types,
+	})
+}

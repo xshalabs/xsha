@@ -70,6 +70,7 @@ func main() {
 	taskConvRepo := repository.NewTaskConversationRepository(dbManager.GetDB())
 	execLogRepo := repository.NewTaskExecutionLogRepository(dbManager.GetDB())
 	taskConvResultRepo := repository.NewTaskConversationResultRepository(dbManager.GetDB())
+	systemConfigRepo := repository.NewSystemConfigRepository(dbManager.GetDB())
 
 	// Initialize log broadcaster
 	logBroadcaster := services.NewLogBroadcaster()
@@ -84,11 +85,12 @@ func main() {
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, cfg)
 	gitCredService := services.NewGitCredentialService(gitCredRepo, cfg)
 	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, cfg)
-	devEnvService := services.NewDevEnvironmentService(devEnvRepo)
+	systemConfigService := services.NewSystemConfigService(systemConfigRepo)
+	devEnvService := services.NewDevEnvironmentService(devEnvRepo, systemConfigService)
 	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, workspaceManager)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo)
 	taskConvResultService := services.NewTaskConversationResultService(taskConvResultRepo, taskConvRepo, taskRepo, projectRepo)
-	aiTaskExecutor := executor.NewAITaskExecutorService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, gitCredService, taskConvResultService, cfg, logBroadcaster)
+	aiTaskExecutor := executor.NewAITaskExecutorService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, gitCredService, taskConvResultService, systemConfigService, cfg, logBroadcaster)
 
 	// Initialize scheduler
 	taskProcessor := scheduler.NewTaskProcessor(aiTaskExecutor)
@@ -113,6 +115,7 @@ func main() {
 	taskConvResultHandlers := handlers.NewTaskConversationResultHandlers(taskConvResultService)
 	taskExecLogHandlers := handlers.NewTaskExecutionLogHandlers(aiTaskExecutor)
 	sseLogHandlers := handlers.NewSSELogHandlers(logBroadcaster)
+	systemConfigHandlers := handlers.NewSystemConfigHandlers(systemConfigService)
 
 	// Set gin mode
 	if cfg.Environment == "production" {
@@ -122,8 +125,14 @@ func main() {
 	// Create gin engine
 	r := gin.Default()
 
+	// Initialize system configuration default values
+	if err := systemConfigService.InitializeDefaultConfigs(); err != nil {
+		utils.Error("Failed to initialize default system configurations", "error", err)
+		os.Exit(1)
+	}
+
 	// Setup routes - Pass all handler instances
-	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvResultHandlers, taskExecLogHandlers, sseLogHandlers)
+	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvResultHandlers, taskExecLogHandlers, sseLogHandlers, systemConfigHandlers)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

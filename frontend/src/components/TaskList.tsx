@@ -52,6 +52,7 @@ import {
   X,
   MessageSquare,
   MoreHorizontal,
+  GitCompare,
 } from "lucide-react";
 import type { Task, TaskStatus } from "@/types/task";
 import type { Project } from "@/types/project";
@@ -87,6 +88,7 @@ interface TaskListProps {
   onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
   onViewConversation?: (task: Task) => void;
+  onViewGitDiff?: (task: Task) => void;
   onCreateNew: () => void;
   onBatchUpdateStatus?: (taskIds: number[], status: TaskStatus) => void;
 }
@@ -115,6 +117,7 @@ export function TaskList({
   onEdit,
   onDelete,
   onViewConversation,
+  onViewGitDiff,
   onCreateNew,
   onBatchUpdateStatus,
 }: TaskListProps) {
@@ -620,6 +623,15 @@ export function TaskList({
                               >
                                 <MessageSquare className="h-4 w-4 mr-2" />
                                 {t("tasks.actions.viewConversation")}
+                              </DropdownMenuItem>
+                            )}
+
+                            {onViewGitDiff && task.work_branch && (
+                              <DropdownMenuItem
+                                onClick={() => onViewGitDiff(task)}
+                              >
+                                <GitCompare className="h-4 w-4 mr-2" />
+                                {t("tasks.actions.viewGitDiff")}
                               </DropdownMenuItem>
                             )}
 

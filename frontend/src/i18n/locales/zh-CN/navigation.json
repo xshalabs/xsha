@@ -5,6 +5,7 @@
   "gitCredentials": "Git凭据",
   "dev_environments": "开发环境",
   "adminLogs": "管理员日志",
+  "systemConfigs": "系统配置",
   "settings": "设置",
   "profile": "个人资料",
   "language": "语言",

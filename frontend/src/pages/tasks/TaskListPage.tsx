@@ -147,6 +147,10 @@ const TaskListPage: React.FC = () => {
     navigate(`/projects/${projectId}/tasks/${task.id}/conversation`);
   };
 
+  const handleViewGitDiff = (task: Task) => {
+    navigate(`/projects/${projectId}/tasks/${task.id}/git-diff`);
+  };
+
   const handlePageChange = (page: number) => {
     loadTasks(
       page,
@@ -325,6 +329,7 @@ const TaskListPage: React.FC = () => {
           onEdit={handleTaskEdit}
           onDelete={handleTaskDelete}
           onViewConversation={handleViewConversation}
+          onViewGitDiff={handleViewGitDiff}
           onCreateNew={handleTaskCreate}
           onBatchUpdateStatus={handleBatchUpdateStatus}
         />

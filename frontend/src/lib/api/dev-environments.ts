@@ -72,4 +72,8 @@ export const devEnvironmentsApi = {
       body: JSON.stringify(envVars),
     });
   },
+
+  getAvailableTypes: async (): Promise<{ types: { name: string; image: string }[] }> => {
+    return request<{ types: { name: string; image: string }[] }>("/dev-environments/available-types");
+  },
 };

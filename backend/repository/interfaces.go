@@ -145,3 +145,22 @@ type TaskConversationResultRepository interface {
 	ExistsByConversationID(conversationID uint) (bool, error)
 	DeleteByConversationID(conversationID uint) error
 }
+
+// SystemConfigRepository defines system configuration repository interface
+type SystemConfigRepository interface {
+	// Basic CRUD operations
+	Create(config *database.SystemConfig) error
+	GetByKey(key string) (*database.SystemConfig, error)
+	GetByID(id uint) (*database.SystemConfig, error)
+	List(category string, page, pageSize int) ([]database.SystemConfig, int64, error)
+	ListByCategory(category string) ([]database.SystemConfig, error)
+	Update(config *database.SystemConfig) error
+	Delete(id uint) error
+
+	// Business operations
+	GetValue(key string) (string, error)
+	SetValue(key, value string) error
+	SetValueWithCategory(key, value, description, category string, isEditable bool) error
+	GetConfigsByCategory(category string) (map[string]string, error)
+	InitializeDefaultConfigs() error
+}

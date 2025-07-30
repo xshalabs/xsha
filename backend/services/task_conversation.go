@@ -180,3 +180,73 @@ func (s *taskConversationService) ValidateConversationData(taskID uint, content 
 
 	return nil
 }
+
+// GetConversationGitDiff 获取对话的Git变动差异
+func (s *taskConversationService) GetConversationGitDiff(conversationID uint, createdBy string, includeContent bool) (*utils.GitDiffSummary, error) {
+	// 获取对话信息
+	conversation, err := s.repo.GetByID(conversationID, createdBy)
+	if err != nil {
+		return nil, errors.New("conversation not found or access denied")
+	}
+
+	// 检查是否有 commit hash
+	if conversation.CommitHash == "" {
+		return nil, errors.New("conversation has no commit hash")
+	}
+
+	// 获取任务信息
+	task, err := s.taskRepo.GetByID(conversation.TaskID, createdBy)
+	if err != nil {
+		return nil, errors.New("task not found or access denied")
+	}
+
+	// 检查工作空间路径
+	if task.WorkspacePath == "" {
+		return nil, errors.New("task workspace path is empty")
+	}
+
+	// 获取提交的Git差异
+	diff, err := utils.GetCommitDiff(task.WorkspacePath, conversation.CommitHash, includeContent)
+	if err != nil {
+		return nil, err
+	}
+
+	return diff, nil
+}
+
+// GetConversationGitDiffFile 获取对话指定文件的Git变动详情
+func (s *taskConversationService) GetConversationGitDiffFile(conversationID uint, createdBy string, filePath string) (string, error) {
+	if filePath == "" {
+		return "", errors.New("file path cannot be empty")
+	}
+
+	// 获取对话信息
+	conversation, err := s.repo.GetByID(conversationID, createdBy)
+	if err != nil {
+		return "", errors.New("conversation not found or access denied")
+	}
+
+	// 检查是否有 commit hash
+	if conversation.CommitHash == "" {
+		return "", errors.New("conversation has no commit hash")
+	}
+
+	// 获取任务信息
+	task, err := s.taskRepo.GetByID(conversation.TaskID, createdBy)
+	if err != nil {
+		return "", errors.New("task not found or access denied")
+	}
+
+	// 检查工作空间路径
+	if task.WorkspacePath == "" {
+		return "", errors.New("task workspace path is empty")
+	}
+
+	// 获取文件的Git差异内容
+	diffContent, err := utils.GetCommitFileDiff(task.WorkspacePath, conversation.CommitHash, filePath)
+	if err != nil {
+		return "", err
+	}
+
+	return diffContent, nil
+}

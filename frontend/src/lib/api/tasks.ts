@@ -75,4 +75,73 @@ export const tasksApi = {
       body: JSON.stringify(data),
     });
   },
+
+  getTaskGitDiff: async (
+    taskId: number,
+    params?: TaskGitDiffParams
+  ): Promise<TaskGitDiffResponse> => {
+    const searchParams = new URLSearchParams();
+    if (params?.include_content) {
+      searchParams.set('include_content', 'true');
+    }
+    
+    const url = `/tasks/${taskId}/git-diff${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    return request<TaskGitDiffResponse>(url, {
+      method: 'GET',
+    });
+  },
+
+  getTaskGitDiffFile: async (
+    taskId: number,
+    params: TaskGitDiffFileParams
+  ): Promise<TaskGitDiffFileResponse> => {
+    const searchParams = new URLSearchParams();
+    searchParams.set('file_path', params.file_path);
+    
+    const url = `/tasks/${taskId}/git-diff/file?${searchParams.toString()}`;
+    return request<TaskGitDiffFileResponse>(url, {
+      method: 'GET',
+    });
+  },
 };
+
+// Git diff types
+export interface GitDiffFile {
+  path: string;
+  status: 'added' | 'modified' | 'deleted' | 'renamed';
+  additions: number;
+  deletions: number;
+  is_binary: boolean;
+  old_path?: string;
+  diff_content?: string;
+}
+
+export interface GitDiffSummary {
+  total_files: number;
+  total_additions: number;
+  total_deletions: number;
+  files: GitDiffFile[];
+  commits_behind: number;
+  commits_ahead: number;
+}
+
+export interface TaskGitDiffParams {
+  include_content?: boolean;
+}
+
+export interface TaskGitDiffFileParams {
+  file_path: string;
+}
+
+export interface TaskGitDiffResponse {
+  data: GitDiffSummary;
+}
+
+export interface TaskGitDiffFileResponse {
+  data: {
+    file_path: string;
+    diff_content: string;
+  };
+}
+
+// Git diff types and interfaces are defined above in the tasksApi object

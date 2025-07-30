@@ -37,7 +37,7 @@ const TaskEditPage: React.FC = () => {
         setLoading(true);
 
         const taskResponse = await apiService.tasks.get(parseInt(taskId, 10));
-        setTask(taskResponse.task);
+        setTask(taskResponse.data);
       } catch (error) {
         logError(error as Error, "Failed to load task");
         alert(

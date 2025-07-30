@@ -10,13 +10,15 @@ import (
 )
 
 type devEnvironmentService struct {
-	repo repository.DevEnvironmentRepository
+	repo          repository.DevEnvironmentRepository
+	configService SystemConfigService
 }
 
 // NewDevEnvironmentService creates a new development environment service instance
-func NewDevEnvironmentService(repo repository.DevEnvironmentRepository) DevEnvironmentService {
+func NewDevEnvironmentService(repo repository.DevEnvironmentRepository, configService SystemConfigService) DevEnvironmentService {
 	return &devEnvironmentService{
-		repo: repo,
+		repo:          repo,
+		configService: configService,
 	}
 }
 
@@ -180,10 +182,34 @@ func (s *devEnvironmentService) validateEnvironmentData(name, envType string, cp
 	if strings.TrimSpace(name) == "" {
 		return errors.New("environment name is required")
 	}
-	if envType != string(database.DevEnvTypeClaude) &&
-		envType != string(database.DevEnvTypeGemini) &&
-		envType != string(database.DevEnvTypeOpenCode) {
-		return errors.New("unsupported environment type")
+
+	// 从系统配置获取支持的环境类型
+	envTypes, err := s.configService.GetDevEnvironmentTypes()
+	if err != nil {
+		// 如果获取配置失败，使用默认验证
+		if envType != string(database.DevEnvTypeClaude) &&
+			envType != string(database.DevEnvTypeGemini) &&
+			envType != string(database.DevEnvTypeOpenCode) {
+			return errors.New("unsupported environment type")
+		}
+	} else {
+		// 验证是否为配置支持的环境类型
+		found := false
+		for _, supportedType := range envTypes {
+			if name, ok := supportedType["name"].(string); ok && name == envType {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return errors.New("unsupported environment type")
+		}
 	}
+
 	return s.ValidateResourceLimits(cpuLimit, memoryLimit)
+}
+
+// GetAvailableEnvironmentTypes gets available environment types from system configuration
+func (s *devEnvironmentService) GetAvailableEnvironmentTypes() ([]map[string]interface{}, error) {
+	return s.configService.GetDevEnvironmentTypes()
 }

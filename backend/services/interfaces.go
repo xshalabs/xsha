@@ -108,6 +108,9 @@ type DevEnvironmentService interface {
 
 	// 资源限制验证
 	ValidateResourceLimits(cpuLimit float64, memoryLimit int64) error
+
+	// 获取可用的环境类型选项
+	GetAvailableEnvironmentTypes() ([]map[string]interface{}, error)
 }
 
 // TaskService 定义任务服务接口
@@ -123,6 +126,10 @@ type TaskService interface {
 
 	// 验证操作
 	ValidateTaskData(title, startBranch string, projectID uint, createdBy string) error
+
+	// Git diff 操作
+	GetTaskGitDiff(task *database.Task, includeContent bool) (*utils.GitDiffSummary, error)
+	GetTaskGitDiffFile(task *database.Task, filePath string) (string, error)
 }
 
 // TaskConversationService 定义任务对话服务接口
@@ -137,6 +144,10 @@ type TaskConversationService interface {
 	// 对话业务操作
 
 	GetLatestConversation(taskID uint, createdBy string) (*database.TaskConversation, error)
+
+	// Git 差异操作
+	GetConversationGitDiff(conversationID uint, createdBy string, includeContent bool) (*utils.GitDiffSummary, error)
+	GetConversationGitDiffFile(conversationID uint, createdBy string, filePath string) (string, error)
 
 	// 验证操作
 	ValidateConversationData(taskID uint, content string, createdBy string) error
@@ -186,4 +197,28 @@ type AITaskExecutorService interface {
 	// 工作空间清理
 	CleanupWorkspaceOnFailure(taskID uint, workspacePath string) error
 	CleanupWorkspaceOnCancel(taskID uint, workspacePath string) error
+}
+
+// SystemConfigService 定义系统配置服务接口
+type SystemConfigService interface {
+	// 配置管理
+	GetConfig(id uint) (*database.SystemConfig, error)
+	GetConfigByKey(key string) (*database.SystemConfig, error)
+	ListConfigs(category string, page, pageSize int) ([]database.SystemConfig, int64, error)
+	UpdateConfig(id uint, updates map[string]interface{}) error
+
+	// 配置值操作
+	GetValue(key string) (string, error)
+	SetValue(key, value string) error
+	GetConfigsByCategory(category string) (map[string]string, error)
+
+	// 开发环境类型配置
+	GetDevEnvironmentTypes() ([]map[string]interface{}, error)
+	UpdateDevEnvironmentTypes(envTypes []map[string]interface{}) error
+
+	// 系统初始化
+	InitializeDefaultConfigs() error
+
+	// 验证操作
+	ValidateConfigData(key, value, category string) error
 }

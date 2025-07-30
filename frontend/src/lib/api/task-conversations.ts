@@ -7,6 +7,10 @@ import type {
   ConversationDetailResponse,
   LatestConversationResponse,
   ConversationListParams,
+  ConversationGitDiffParams,
+  ConversationGitDiffResponse,
+  ConversationGitDiffFileParams,
+  ConversationGitDiffFileResponse,
 } from "@/types/task-conversation";
 
 export const taskConversationsApi = {
@@ -56,5 +60,33 @@ export const taskConversationsApi = {
     return request<LatestConversationResponse>(
       `/conversations/latest?task_id=${taskId}`
     );
+  },
+
+  getGitDiff: async (
+    conversationId: number,
+    params?: ConversationGitDiffParams
+  ): Promise<ConversationGitDiffResponse> => {
+    const searchParams = new URLSearchParams();
+    if (params?.include_content) {
+      searchParams.set('include_content', 'true');
+    }
+    
+    const url = `/conversations/${conversationId}/git-diff${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    return request<ConversationGitDiffResponse>(url, {
+      method: 'GET',
+    });
+  },
+
+  getGitDiffFile: async (
+    conversationId: number,
+    params: ConversationGitDiffFileParams
+  ): Promise<ConversationGitDiffFileResponse> => {
+    const searchParams = new URLSearchParams();
+    searchParams.set('file_path', params.file_path);
+    
+    const url = `/conversations/${conversationId}/git-diff/file?${searchParams.toString()}`;
+    return request<ConversationGitDiffFileResponse>(url, {
+      method: 'GET',
+    });
   },
 };

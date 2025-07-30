@@ -5,6 +5,7 @@
   "gitCredentials": "Git Credentials",
   "dev_environments": "Dev Environments",
   "adminLogs": "Audit Logs",
+  "systemConfigs": "System Config",
   "settings": "Settings", 
   "profile": "Profile",
   "language": "Language",

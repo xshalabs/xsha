@@ -265,3 +265,17 @@ type TaskConversationResult struct {
 
 	Usage string `gorm:"type:text" json:"usage"`
 }
+
+// SystemConfig 系统配置表
+type SystemConfig struct {
+	ID        uint           `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	ConfigKey   string `gorm:"not null;uniqueIndex" json:"config_key"`
+	ConfigValue string `gorm:"type:text;not null" json:"config_value"`
+	Description string `gorm:"type:text" json:"description"`
+	Category    string `gorm:"not null;index;default:'general'" json:"category"`
+	IsEditable  bool   `gorm:"not null;default:true" json:"is_editable"`
+}

@@ -15,6 +15,7 @@ import {
   MessageSquare,
   Play,
   Trash2,
+  GitCommit,
 } from "lucide-react";
 import type {
   TaskConversation as TaskConversationInterface,
@@ -34,6 +35,7 @@ interface TaskConversationProps {
     newStatus: ConversationStatus
   ) => void;
   onDeleteConversation?: (conversationId: number) => Promise<void>;
+  onViewConversationGitDiff?: (conversationId: number) => void;
 }
 
 export function TaskConversation({
@@ -44,6 +46,7 @@ export function TaskConversation({
   onRefresh,
   onSelectConversation,
   onDeleteConversation,
+  onViewConversationGitDiff,
 }: TaskConversationProps) {
   const { t } = useTranslation();
   const [newMessage, setNewMessage] = useState("");
@@ -235,8 +238,32 @@ export function TaskConversation({
                     {conversation.content}
                   </div>
 
-                  <div className="text-xs text-gray-400 mt-2">
-                    {formatTime(conversation.created_at)}
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="text-xs text-gray-400">
+                      {formatTime(conversation.created_at)}
+                    </div>
+                    {conversation.commit_hash && (
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center text-xs text-gray-500">
+                          <GitCommit className="w-3 h-3 mr-1" />
+                          <span className="font-mono">{conversation.commit_hash.substring(0, 8)}</span>
+                        </div>
+                        {onViewConversationGitDiff && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onViewConversationGitDiff(conversation.id);
+                            }}
+                            className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                            title={t("taskConversation.actions.viewGitDiff")}
+                          >
+                            {t("taskConversation.actions.viewChanges")}
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))

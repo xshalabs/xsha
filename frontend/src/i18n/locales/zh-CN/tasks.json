@@ -12,6 +12,7 @@
     "delete": "删除任务",
     "view": "查看任务",
     "viewConversation": "查看对话",
+    "viewGitDiff": "查看Git变动",
     "batchUpdateStatus": "批量修改状态"
   },
   "status": {
@@ -109,7 +110,13 @@
   "create": "创建任务",
   "edit": "编辑任务",
   "conversation": "任务对话",
+  "conversation_git_diff": "对话Git变动",
+  "no_commit_hash": "无提交哈希",
+  "no_commit_hash_desc": "此对话没有关联的提交哈希",
   "create_description": "创建一个新的开发任务",
   "edit_description": "修改任务信息",
-  "loadFailed": "加载任务失败"
+  "loadFailed": "加载任务失败",
+  "gitDiff": {
+    "title": "Git 变动查看"
+  }
 } 

@@ -63,3 +63,43 @@ export interface LatestConversationResponse {
 export interface ConversationFormData {
   content: string;
 }
+
+// Git diff types for conversations
+export interface ConversationGitDiffParams {
+  include_content?: boolean;
+}
+
+export interface ConversationGitDiffFileParams {
+  file_path: string;
+}
+
+export interface ConversationGitDiffResponse {
+  data: GitDiffSummary;
+}
+
+export interface ConversationGitDiffFileResponse {
+  data: {
+    file_path: string;
+    diff_content: string;
+  };
+}
+
+// Import GitDiffSummary type from tasks
+export interface GitDiffFile {
+  path: string;
+  status: 'added' | 'modified' | 'deleted' | 'renamed';
+  additions: number;
+  deletions: number;
+  is_binary: boolean;
+  old_path?: string;
+  diff_content?: string;
+}
+
+export interface GitDiffSummary {
+  total_files: number;
+  total_additions: number;
+  total_deletions: number;
+  files: GitDiffFile[];
+  commits_behind: number;
+  commits_ahead: number;
+}

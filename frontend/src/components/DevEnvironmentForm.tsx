@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Plus, Trash2, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { apiService } from "@/lib/api/index";
+import { devEnvironmentsApi } from "@/lib/api/dev-environments";
 import type {
   DevEnvironmentDisplay,
   CreateDevEnvironmentRequest,
@@ -37,23 +38,12 @@ const defaultResources = {
   opencode: { cpu: 1.0, memory: 1024 },
 };
 
-const getEnvironmentTypes = (t: (key: string) => string) => [
-  {
-    value: "claude_code" as DevEnvironmentType,
-    label: t("dev_environments.types.claude_code.label"),
-    description: t("dev_environments.types.claude_code.description"),
-  },
-  {
-    value: "gemini_cli" as DevEnvironmentType,
-    label: t("dev_environments.types.gemini_cli.label"),
-    description: t("dev_environments.types.gemini_cli.description"),
-  },
-  {
-    value: "opencode" as DevEnvironmentType,
-    label: t("dev_environments.types.opencode.label"),
-    description: t("dev_environments.types.opencode.description"),
-  },
-];
+interface EnvironmentTypeOption {
+  value: string;
+  label: string;
+  description: string;
+  image: string;
+}
 
 const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
   onClose,
@@ -63,7 +53,8 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const environmentTypes = getEnvironmentTypes(t);
+  const [environmentTypes, setEnvironmentTypes] = useState<EnvironmentTypeOption[]>([]);
+  const [loadingTypes, setLoadingTypes] = useState(true);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -81,6 +72,44 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
+
+  // Load available environment types from system configuration
+  useEffect(() => {
+    const loadEnvironmentTypes = async () => {
+      try {
+        setLoadingTypes(true);
+        const response = await devEnvironmentsApi.getAvailableTypes();
+        const types: EnvironmentTypeOption[] = response.types.map((type) => ({
+          value: type.name,
+          label: type.name,
+          description: `Docker Image: ${type.image}`,
+          image: type.image,
+        }));
+        setEnvironmentTypes(types);
+        
+        // If this is a create form and there are types available, set the first one as default
+        if (mode === "create" && types.length > 0) {
+          setFormData(prev => ({
+            ...prev,
+            type: types[0].value as DevEnvironmentType,
+          }));
+        }
+      } catch (error: any) {
+        toast.error(error.message || t("dev_environments.load_types_failed"));
+        // Fallback to default Claude Code type
+        setEnvironmentTypes([{
+          value: "claude_code",
+          label: "Claude Code",
+          description: "Docker Image: claude-code:latest",
+          image: "claude-code:latest",
+        }]);
+      } finally {
+        setLoadingTypes(false);
+      }
+    };
+
+    loadEnvironmentTypes();
+  }, [mode, t]);
 
   useEffect(() => {
     if (initialData && mode === "edit") {
@@ -278,19 +307,31 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                 onValueChange={(value) =>
                   handleTypeChange(value as DevEnvironmentType)
                 }
-                disabled={mode === "edit"}
+                disabled={mode === "edit" || loadingTypes}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue>
+                    {loadingTypes ? t("common.loading") : undefined}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {environmentTypes.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
-                      {type.label}
+                      <div className="flex flex-col">
+                        <span>{type.label}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {type.description}
+                        </span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {mode === "edit" && (
+                <p className="text-xs text-muted-foreground">
+                  {t("dev_environments.form.type_readonly")}
+                </p>
+              )}
             </div>
           </div>
 

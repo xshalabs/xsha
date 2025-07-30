@@ -8,6 +8,7 @@ import (
 	"xsha-backend/i18n"
 	"xsha-backend/middleware"
 	"xsha-backend/services"
+	"xsha-backend/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -396,5 +397,149 @@ func (h *TaskHandlers) BatchUpdateTaskStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": i18n.T(lang, "task.batch_update_success"),
 		"data":    response,
+	})
+}
+
+// GetTaskGitDiff 获取任务Git变动
+func (h *TaskHandlers) GetTaskGitDiff(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	// 获取任务ID
+	taskIDStr := c.Param("id")
+	taskID, err := strconv.ParseUint(taskIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_id"),
+		})
+		return
+	}
+
+	// 获取查询参数
+	includeContent := c.DefaultQuery("include_content", "false") == "true"
+
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+
+	// 获取任务详情
+	task, err := h.taskService.GetTask(uint(taskID), username.(string))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": i18n.T(lang, "tasks.errors.not_found"),
+		})
+		return
+	}
+
+	// 检查权限
+	if task.CreatedBy != username.(string) {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": i18n.T(lang, "common.no_permission"),
+		})
+		return
+	}
+
+	// 检查必要的分支信息
+	if task.StartBranch == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "tasks.errors.no_start_branch"),
+		})
+		return
+	}
+
+	if task.WorkBranch == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "tasks.errors.no_work_branch"),
+		})
+		return
+	}
+
+	// 检查工作空间是否存在
+	if task.WorkspacePath == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "tasks.errors.no_workspace"),
+		})
+		return
+	}
+
+	// 获取Git差异
+	diff, err := h.taskService.GetTaskGitDiff(task, includeContent)
+	if err != nil {
+		utils.Error("获取任务Git差异失败", "taskID", taskID, "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "tasks.errors.git_diff_failed"),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": diff,
+	})
+}
+
+// GetTaskGitDiffFile 获取任务指定文件的Git变动详情
+func (h *TaskHandlers) GetTaskGitDiffFile(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	// 获取任务ID
+	taskIDStr := c.Param("id")
+	taskID, err := strconv.ParseUint(taskIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_id"),
+		})
+		return
+	}
+
+	// 获取文件路径
+	filePath := c.Query("file_path")
+	if filePath == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.file_path_required"),
+		})
+		return
+	}
+
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+
+	// 获取任务详情
+	task, err := h.taskService.GetTask(uint(taskID), username.(string))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": i18n.T(lang, "tasks.errors.not_found"),
+		})
+		return
+	}
+
+	// 检查权限
+	if task.CreatedBy != username.(string) {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": i18n.T(lang, "common.no_permission"),
+		})
+		return
+	}
+
+	// 获取文件的Git差异内容
+	diffContent, err := h.taskService.GetTaskGitDiffFile(task, filePath)
+	if err != nil {
+		utils.Error("获取任务文件Git差异失败", "taskID", taskID, "filePath", filePath, "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "tasks.errors.git_diff_file_failed"),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": gin.H{
+			"file_path":    filePath,
+			"diff_content": diffContent,
+		},
 	})
 }

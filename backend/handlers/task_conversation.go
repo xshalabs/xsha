@@ -6,6 +6,7 @@ import (
 	"xsha-backend/i18n"
 	"xsha-backend/middleware"
 	"xsha-backend/services"
+	"xsha-backend/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -238,5 +239,92 @@ func (h *TaskConversationHandlers) GetLatestConversation(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": i18n.T(lang, "taskConversation.get_success"),
 		"data":    conversation,
+	})
+}
+
+// GetConversationGitDiff 获取对话Git变动
+func (h *TaskConversationHandlers) GetConversationGitDiff(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	// 获取对话ID
+	conversationIDStr := c.Param("id")
+	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_id"),
+		})
+		return
+	}
+
+	// 获取查询参数
+	includeContent := c.DefaultQuery("include_content", "false") == "true"
+
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+
+	// 获取对话Git差异
+	diff, err := h.conversationService.GetConversationGitDiff(uint(conversationID), username.(string), includeContent)
+	if err != nil {
+		utils.Error("获取对话Git差异失败", "conversationID", conversationID, "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "taskConversation.git_diff_failed"),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": diff,
+	})
+}
+
+// GetConversationGitDiffFile 获取对话指定文件的Git变动详情
+func (h *TaskConversationHandlers) GetConversationGitDiffFile(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	// 获取对话ID
+	conversationIDStr := c.Param("id")
+	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_id"),
+		})
+		return
+	}
+
+	// 获取文件路径
+	filePath := c.Query("file_path")
+	if filePath == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.file_path_required"),
+		})
+		return
+	}
+
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+
+	// 获取文件的Git差异内容
+	diffContent, err := h.conversationService.GetConversationGitDiffFile(uint(conversationID), username.(string), filePath)
+	if err != nil {
+		utils.Error("获取对话文件Git差异失败", "conversationID", conversationID, "filePath", filePath, "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "taskConversation.git_diff_file_failed"),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": gin.H{
+			"file_path":    filePath,
+			"diff_content": diffContent,
+		},
 	})
 }

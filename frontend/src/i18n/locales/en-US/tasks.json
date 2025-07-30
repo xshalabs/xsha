@@ -12,7 +12,8 @@
     "delete": "Delete Task",
     "view": "View Task",
     "viewConversation": "View Conversation",
-    "batchUpdateStatus": "Batch Update Status"
+    "batchUpdateStatus": "Batch Update Status",
+    "viewGitDiff": "View Git Diff"
   },
   "status": {
     "todo": "To Do",
@@ -109,6 +110,9 @@
   "create": "Create Task",
   "edit": "Edit Task", 
   "conversation": "Task Conversations",
+  "conversation_git_diff": "Conversation Git Changes",
+  "no_commit_hash": "No Commit Hash",
+  "no_commit_hash_desc": "This conversation has no associated commit hash",
   "create_description": "Create a new development task",
   "edit_description": "Edit task information",
   "loadFailed": "Failed to load task"

@@ -31,6 +31,10 @@ import TaskListPage from "@/pages/tasks/TaskListPage";
 import TaskCreatePage from "@/pages/tasks/TaskCreatePage";
 import TaskEditPage from "@/pages/tasks/TaskEditPage";
 import TaskConversationPage from "@/pages/tasks/TaskConversationPage";
+import TaskConversationGitDiffPage from "@/pages/tasks/TaskConversationGitDiffPage";
+
+import SystemConfigEditPage from "@/pages/system-configs/SystemConfigEditPage";
+import TaskGitDiffPage from "@/pages/tasks/TaskGitDiffPage";
 
 import "./App.css";
 
@@ -203,6 +207,26 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/projects/:projectId/tasks/:taskId/conversation/:conversationId/git-diff"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <TaskConversationGitDiffPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects/:projectId/tasks/:taskId/git-diff"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <TaskGitDiffPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="/admin/logs"
@@ -210,6 +234,17 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <AdminLogsPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/system-configs"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <SystemConfigEditPage />
                   </Layout>
                 </ProtectedRoute>
               }
