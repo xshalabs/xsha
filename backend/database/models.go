@@ -44,7 +44,7 @@ type GitCredential struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
-	Name        string            `gorm:"not null;uniqueIndex:idx_name_user" json:"name"`
+	Name        string            `gorm:"not null" json:"name"`
 	Description string            `gorm:"type:text" json:"description"`
 	Type        GitCredentialType `gorm:"not null;index" json:"type"`
 
@@ -54,7 +54,7 @@ type GitCredential struct {
 	PrivateKey   string `gorm:"type:text" json:"-"`
 	PublicKey    string `gorm:"type:text" json:"public_key"`
 
-	CreatedBy string `gorm:"not null;index;uniqueIndex:idx_name_user" json:"created_by"`
+	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 
 type GitProtocolType string
@@ -70,7 +70,7 @@ type Project struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
-	Name        string `gorm:"not null;uniqueIndex:idx_project_name_user" json:"name"`
+	Name        string `gorm:"not null" json:"name"`
 	Description string `gorm:"type:text" json:"description"`
 
 	RepoURL      string          `gorm:"not null" json:"repo_url"`
@@ -81,7 +81,7 @@ type Project struct {
 	IsActive bool       `gorm:"default:true;index" json:"is_active"`
 	LastUsed *time.Time `json:"last_used"`
 
-	CreatedBy string `gorm:"not null;index;uniqueIndex:idx_project_name_user" json:"created_by"`
+	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 
 type AdminOperationType string
@@ -123,24 +123,22 @@ type AdminOperationLog struct {
 	OperationTime time.Time `gorm:"not null;index" json:"operation_time"`
 }
 
-// DevEnvironmentType 已删除，现在使用 string 类型存储环境类型的 key
-
 type DevEnvironment struct {
 	ID        uint           `gorm:"primarykey" json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
-	Name        string `gorm:"not null;uniqueIndex:idx_env_name_user" json:"name"`
+	Name        string `gorm:"not null" json:"name"`
 	Description string `gorm:"type:text" json:"description"`
-	Type        string `gorm:"not null;index" json:"type"` // 存储环境类型的 key
+	Type        string `gorm:"not null;index" json:"type"`
 
 	CPULimit    float64 `gorm:"default:1.0" json:"cpu_limit"`
 	MemoryLimit int64   `gorm:"default:1024" json:"memory_limit"`
 
 	EnvVars string `gorm:"type:text" json:"env_vars"`
 
-	CreatedBy string `gorm:"not null;index;uniqueIndex:idx_env_name_user" json:"created_by"`
+	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 
 type TaskStatus string
@@ -260,7 +258,6 @@ type TaskConversationResult struct {
 	Usage string `gorm:"type:text" json:"usage"`
 }
 
-// SystemConfig 系统配置表
 type SystemConfig struct {
 	ID        uint           `gorm:"primarykey" json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
