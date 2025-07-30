@@ -20,8 +20,4 @@ export interface ApiErrorResponse {
   details?: string;
 }
 
-export interface LanguagesResponse {
-  message: string;
-  languages: string[];
-  current: string;
-}
+

@@ -27,10 +27,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 	// Health check route
 	r.GET("/health", handlers.HealthHandler)
 
-	// Internationalization related routes (no authentication required)
-	r.GET("/api/v1/languages", handlers.GetLanguagesHandler)
-	r.POST("/api/v1/language", handlers.SetLanguageHandler)
-
 	// Authentication related routes (no authentication required)
 	auth := r.Group("/api/v1/auth")
 	{

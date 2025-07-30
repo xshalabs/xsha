@@ -5,7 +5,6 @@ import type {
   LoginRequest,
   LoginResponse,
   UserResponse,
-  LanguagesResponse,
 } from "./types";
 
 export const authApi = {
@@ -48,16 +47,5 @@ export const authApi = {
     return response.json();
   },
 
-  getSupportedLanguages: async (): Promise<LanguagesResponse> => {
-    return request<LanguagesResponse>("/languages");
-  },
 
-  setLanguagePreference: async (
-    language: string
-  ): Promise<{ message: string; language: string }> => {
-    return request<{ message: string; language: string }>("/language", {
-      method: "POST",
-      body: JSON.stringify({ language }),
-    });
-  },
 };

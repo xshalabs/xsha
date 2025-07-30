@@ -47,20 +47,12 @@ export function NavUser() {
     }
   };
 
-  const handleLanguageChange = async (languageCode: string) => {
+  const handleLanguageChange = (languageCode: string) => {
     // Update i18next language (this will also update localStorage "i18nextLng")
     i18n.changeLanguage(languageCode);
     
     // Also sync to our own storage for backward compatibility
     localStorage.setItem(STORAGE_KEYS.language, languageCode);
-
-    if (isAuthenticated) {
-      try {
-        await apiService.setLanguagePreference(languageCode);
-      } catch (error) {
-        console.warn("Failed to sync language preference with backend:", error);
-      }
-    }
   };
 
   if (!user) {

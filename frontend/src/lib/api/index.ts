@@ -7,7 +7,6 @@ export type {
   LoginResponse,
   UserResponse,
   ApiErrorResponse,
-  LanguagesResponse,
 } from "./types";
 
 import { authApi } from "./auth";
@@ -37,8 +36,6 @@ export const apiService = {
   logout: authApi.logout,
   getCurrentUser: authApi.getCurrentUser,
   healthCheck: authApi.healthCheck,
-  getSupportedLanguages: authApi.getSupportedLanguages,
-  setLanguagePreference: authApi.setLanguagePreference,
 
   gitCredentials: gitCredentialsApi,
 
