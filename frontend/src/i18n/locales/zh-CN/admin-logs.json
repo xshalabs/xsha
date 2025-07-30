@@ -40,6 +40,10 @@
     "messages": {
       "loadFailed": "加载操作日志失败",
       "noLogs": "暂无日志记录"
+    },
+    "detail": {
+      "title": "操作日志详情",
+      "description": "查看操作日志详情"
     }
   },
   "loginLogs": {

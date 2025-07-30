@@ -40,6 +40,10 @@
     "messages": {
       "loadFailed": "Failed to load operation logs",
       "noLogs": "No operation records"
+    },
+    "detail": {
+      "title": "Operation Log Detail",
+      "description": "View operation log detail"
     }
   },
   "loginLogs": {
@@ -94,4 +98,4 @@
     "total": "Total",
     "items": "items"
   }
-} 
+}
