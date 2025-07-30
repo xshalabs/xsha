@@ -134,13 +134,13 @@ func (s *gitCredentialService) UpdateCredential(id uint, createdBy string, updat
 
 // DeleteCredential deletes a credential
 func (s *gitCredentialService) DeleteCredential(id uint, createdBy string) error {
-	// 检查凭据是否存在
+	// Check if credential exists
 	credential, err := s.repo.GetByID(id, createdBy)
 	if err != nil {
 		return err
 	}
 
-	// 检查是否有项目使用此凭据
+	// Check if any projects are using this credential
 	projects, _, err := s.projectRepo.List(createdBy, "", nil, 1, 1000)
 	if err != nil {
 		return fmt.Errorf("failed to check credential usage: %v", err)

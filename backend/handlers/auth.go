@@ -24,16 +24,16 @@ func NewAuthHandlers(authService services.AuthService, loginLogService services.
 }
 
 // LoginHandler handles login
-// @Summary 用户登录
-// @Description 使用用户名和密码进行登录认证
-// @Tags 认证
+// @Summary User login
+// @Description Login authentication using username and password
+// @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param loginData body object{username=string,password=string} true "登录信息"
-// @Success 200 {object} object{token=string,expires_at=string} "登录成功"
-// @Failure 400 {object} object{error=string} "请求参数错误"
-// @Failure 401 {object} object{error=string} "认证失败"
-// @Failure 429 {object} object{error=string} "请求过于频繁"
+// @Param loginData body object{username=string,password=string} true "Login information"
+// @Success 200 {object} object{token=string,expires_at=string} "Login successful"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 429 {object} object{error=string} "Too frequent requests"
 // @Router /auth/login [post]
 func (h *AuthHandlers) LoginHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -75,16 +75,16 @@ func (h *AuthHandlers) LoginHandler(c *gin.Context) {
 }
 
 // LogoutHandler handles logout
-// @Summary 用户登出
-// @Description 登出当前用户，将token加入黑名单
-// @Tags 认证
+// @Summary User logout
+// @Description Logout current user and add token to blacklist
+// @Tags Authentication
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} object{message=string} "登出成功"
-// @Failure 400 {object} object{error=string} "无效的token"
-// @Failure 401 {object} object{error=string} "认证失败"
-// @Failure 500 {object} object{error=string} "登出失败"
+// @Success 200 {object} object{message=string} "Logout successful"
+// @Failure 400 {object} object{error=string} "Invalid token"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 500 {object} object{error=string} "Logout failed"
 // @Router /auth/logout [post]
 func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -119,14 +119,14 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 }
 
 // CurrentUserHandler gets current user information
-// @Summary 获取当前用户信息
-// @Description 获取当前登录用户的信息
-// @Tags 用户
+// @Summary Get current user information
+// @Description Get information of current logged-in user
+// @Tags User
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} object{username=string} "用户信息"
-// @Failure 500 {object} object{error=string} "获取用户信息失败"
+// @Success 200 {object} object{username=string} "User information"
+// @Failure 500 {object} object{error=string} "Failed to get user information"
 // @Router /user/current [get]
 func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -146,18 +146,18 @@ func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
 	})
 }
 
-// GetLoginLogsHandler 获取登录日志（需要管理员权限）
-// @Summary 获取登录日志
-// @Description 获取系统的登录日志记录，支持按用户名筛选和分页
-// @Tags 认证
+// GetLoginLogsHandler gets login logs (requires admin privileges)
+// @Summary Get login logs
+// @Description Get system login log records, supporting filtering by username and pagination
+// @Tags Authentication
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param username query string false "用户名筛选"
-// @Param page query int false "页码，默认为1"
-// @Param page_size query int false "每页数量，默认为20，最大100"
-// @Success 200 {object} object{message=string,logs=[]object,total=number,page=number,page_size=number,total_pages=number} "登录日志列表"
-// @Failure 500 {object} object{error=string} "获取登录日志失败"
+// @Param username query string false "Username filter"
+// @Param page query int false "Page number, defaults to 1"
+// @Param page_size query int false "Page size, defaults to 20, maximum 100"
+// @Success 200 {object} object{message=string,logs=[]object,total=number,page=number,page_size=number,total_pages=number} "Login log list"
+// @Failure 500 {object} object{error=string} "Failed to get login logs"
 // @Router /admin/login-logs [get]
 func (h *AuthHandlers) GetLoginLogsHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)

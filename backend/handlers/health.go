@@ -9,12 +9,12 @@ import (
 )
 
 // HealthHandler handles health check
-// @Summary 健康检查
-// @Description 检查服务器状态
-// @Tags 系统
+// @Summary Health check
+// @Description Check server status
+// @Tags System
 // @Accept json
 // @Produce json
-// @Success 200 {object} object{status=string,message=string,lang=string} "服务器状态正常"
+// @Success 200 {object} object{status=string,message=string,lang=string} "Server status is normal"
 // @Router /health [get]
 func HealthHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)

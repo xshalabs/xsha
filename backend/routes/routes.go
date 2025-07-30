@@ -42,7 +42,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 	api := r.Group("/api/v1")
 	api.Use(middleware.AuthMiddlewareWithService(authService, cfg))
 
-	// 添加操作日志记录中间件（在认证中间件之后）
+	// Add operation log middleware (after authentication middleware)
 	api.Use(middleware.OperationLogMiddleware(operationLogHandlers.OperationLogService))
 
 	{
@@ -52,118 +52,118 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		// Logout (requires token)
 		api.POST("/auth/logout", authHandlers.LogoutHandler)
 
-		// 管理员功能
+		// Admin functions
 		admin := api.Group("/admin")
 		{
 			admin.GET("/login-logs", authHandlers.GetLoginLogsHandler)
 
-			// 新增：操作日志相关路由
-			admin.GET("/operation-logs", operationLogHandlers.GetOperationLogs)    // 获取操作日志列表
-			admin.GET("/operation-logs/:id", operationLogHandlers.GetOperationLog) // 获取单个操作日志
-			admin.GET("/operation-stats", operationLogHandlers.GetOperationStats)  // 获取操作统计
+			// Operation log related routes
+			admin.GET("/operation-logs", operationLogHandlers.GetOperationLogs)    // Get operation log list
+			admin.GET("/operation-logs/:id", operationLogHandlers.GetOperationLog) // Get single operation log
+			admin.GET("/operation-stats", operationLogHandlers.GetOperationStats)  // Get operation statistics
 		}
 
-		// Git凭据管理
+		// Git credential management
 		gitCreds := api.Group("/git-credentials")
 		{
-			gitCreds.POST("", gitCredHandlers.CreateCredential)       // 创建凭据
-			gitCreds.GET("", gitCredHandlers.ListCredentials)         // 获取凭据列表
-			gitCreds.GET("/:id", gitCredHandlers.GetCredential)       // 获取单个凭据
-			gitCreds.PUT("/:id", gitCredHandlers.UpdateCredential)    // 更新凭据
-			gitCreds.DELETE("/:id", gitCredHandlers.DeleteCredential) // 删除凭据
+			gitCreds.POST("", gitCredHandlers.CreateCredential)       // Create credential
+			gitCreds.GET("", gitCredHandlers.ListCredentials)         // Get credential list
+			gitCreds.GET("/:id", gitCredHandlers.GetCredential)       // Get single credential
+			gitCreds.PUT("/:id", gitCredHandlers.UpdateCredential)    // Update credential
+			gitCreds.DELETE("/:id", gitCredHandlers.DeleteCredential) // Delete credential
 		}
 
-		// 项目管理
+		// Project management
 		projects := api.Group("/projects")
 		{
-			projects.POST("", projectHandlers.CreateProject)                            // 创建项目
-			projects.GET("", projectHandlers.ListProjects)                              // 获取项目列表
-			projects.POST("/parse-url", projectHandlers.ParseRepositoryURL)             // 解析仓库URL
-			projects.POST("/branches", projectHandlers.FetchRepositoryBranches)         // 获取仓库分支列表
-			projects.POST("/validate-access", projectHandlers.ValidateRepositoryAccess) // 验证仓库访问权限
-			projects.GET("/credentials", projectHandlers.GetCompatibleCredentials)      // 获取兼容的凭据列表
-			projects.GET("/:id", projectHandlers.GetProject)                            // 获取单个项目
-			projects.PUT("/:id", projectHandlers.UpdateProject)                         // 更新项目
-			projects.DELETE("/:id", projectHandlers.DeleteProject)                      // 删除项目
+			projects.POST("", projectHandlers.CreateProject)                            // Create project
+			projects.GET("", projectHandlers.ListProjects)                              // Get project list
+			projects.POST("/parse-url", projectHandlers.ParseRepositoryURL)             // Parse repository URL
+			projects.POST("/branches", projectHandlers.FetchRepositoryBranches)         // Get repository branch list
+			projects.POST("/validate-access", projectHandlers.ValidateRepositoryAccess) // Validate repository access
+			projects.GET("/credentials", projectHandlers.GetCompatibleCredentials)      // Get compatible credential list
+			projects.GET("/:id", projectHandlers.GetProject)                            // Get single project
+			projects.PUT("/:id", projectHandlers.UpdateProject)                         // Update project
+			projects.DELETE("/:id", projectHandlers.DeleteProject)                      // Delete project
 		}
 
-		// 任务管理
+		// Task management
 		tasks := api.Group("/tasks")
 		{
-			tasks.POST("", taskHandlers.CreateTask)                          // 创建任务
-			tasks.GET("", taskHandlers.ListTasks)                            // 获取任务列表
-			tasks.GET("/:id", taskHandlers.GetTask)                          // 获取单个任务
-			tasks.PUT("/:id", taskHandlers.UpdateTask)                       // 更新任务
-			tasks.PUT("/:id/status", taskHandlers.UpdateTaskStatus)          // 更新任务状态
-			tasks.PUT("/batch/status", taskHandlers.BatchUpdateTaskStatus)   // 批量更新任务状态
-			tasks.DELETE("/:id", taskHandlers.DeleteTask)                    // 删除任务
-			tasks.GET("/:id/git-diff", taskHandlers.GetTaskGitDiff)          // 获取任务Git变动
-			tasks.GET("/:id/git-diff/file", taskHandlers.GetTaskGitDiffFile) // 获取任务指定文件Git变动
-			tasks.POST("/:id/push", taskHandlers.PushTaskBranch)             // 推送任务分支到远程仓库
+			tasks.POST("", taskHandlers.CreateTask)                          // Create task
+			tasks.GET("", taskHandlers.ListTasks)                            // Get task list
+			tasks.GET("/:id", taskHandlers.GetTask)                          // Get single task
+			tasks.PUT("/:id", taskHandlers.UpdateTask)                       // Update task
+			tasks.PUT("/:id/status", taskHandlers.UpdateTaskStatus)          // Update task status
+			tasks.PUT("/batch/status", taskHandlers.BatchUpdateTaskStatus)   // Batch update task status
+			tasks.DELETE("/:id", taskHandlers.DeleteTask)                    // Delete task
+			tasks.GET("/:id/git-diff", taskHandlers.GetTaskGitDiff)          // Get task Git changes
+			tasks.GET("/:id/git-diff/file", taskHandlers.GetTaskGitDiffFile) // Get task specific file Git changes
+			tasks.POST("/:id/push", taskHandlers.PushTaskBranch)             // Push task branch to remote repository
 		}
 
-		// 任务对话管理
+		// Task conversation management
 		conversations := api.Group("/conversations")
 		{
-			conversations.POST("", taskConvHandlers.CreateConversation)                          // 创建对话
-			conversations.GET("", taskConvHandlers.ListConversations)                            // 获取对话列表
-			conversations.GET("/latest", taskConvHandlers.GetLatestConversation)                 // 获取最新对话
-			conversations.GET("/:id", taskConvHandlers.GetConversation)                          // 获取单个对话
-			conversations.PUT("/:id", taskConvHandlers.UpdateConversation)                       // 更新对话
-			conversations.DELETE("/:id", taskConvHandlers.DeleteConversation)                    // 删除对话
-			conversations.GET("/:id/git-diff", taskConvHandlers.GetConversationGitDiff)          // 获取对话Git变动
-			conversations.GET("/:id/git-diff/file", taskConvHandlers.GetConversationGitDiffFile) // 获取对话指定文件Git变动
+			conversations.POST("", taskConvHandlers.CreateConversation)                          // Create conversation
+			conversations.GET("", taskConvHandlers.ListConversations)                            // Get conversation list
+			conversations.GET("/latest", taskConvHandlers.GetLatestConversation)                 // Get latest conversation
+			conversations.GET("/:id", taskConvHandlers.GetConversation)                          // Get single conversation
+			conversations.PUT("/:id", taskConvHandlers.UpdateConversation)                       // Update conversation
+			conversations.DELETE("/:id", taskConvHandlers.DeleteConversation)                    // Delete conversation
+			conversations.GET("/:id/git-diff", taskConvHandlers.GetConversationGitDiff)          // Get conversation Git changes
+			conversations.GET("/:id/git-diff/file", taskConvHandlers.GetConversationGitDiffFile) // Get conversation specific file Git changes
 		}
 
-		// 任务对话结果管理
+		// Task conversation result management
 		results := api.Group("/conversation-results")
 		{
-			results.GET("", taskConvResultHandlers.ListResultsByTaskID)                                        // 根据任务ID获取结果列表
-			results.GET("/by-project", taskConvResultHandlers.ListResultsByProjectID)                          // 根据项目ID获取结果列表
-			results.GET("/:id", taskConvResultHandlers.GetResult)                                              // 获取单个结果
-			results.GET("/by-conversation/:conversation_id", taskConvResultHandlers.GetResultByConversationID) // 根据对话ID获取结果
-			results.PUT("/:id", taskConvResultHandlers.UpdateResult)                                           // 更新结果
-			results.DELETE("/:id", taskConvResultHandlers.DeleteResult)                                        // 删除结果
+			results.GET("", taskConvResultHandlers.ListResultsByTaskID)                                        // Get result list by task ID
+			results.GET("/by-project", taskConvResultHandlers.ListResultsByProjectID)                          // Get result list by project ID
+			results.GET("/:id", taskConvResultHandlers.GetResult)                                              // Get single result
+			results.GET("/by-conversation/:conversation_id", taskConvResultHandlers.GetResultByConversationID) // Get result by conversation ID
+			results.PUT("/:id", taskConvResultHandlers.UpdateResult)                                           // Update result
+			results.DELETE("/:id", taskConvResultHandlers.DeleteResult)                                        // Delete result
 		}
 
-		// 统计信息管理
+		// Statistics management
 		stats := api.Group("/stats")
 		{
-			stats.GET("/tasks/:task_id", taskConvResultHandlers.GetTaskStats)          // 获取任务统计
-			stats.GET("/projects/:project_id", taskConvResultHandlers.GetProjectStats) // 获取项目统计
+			stats.GET("/tasks/:task_id", taskConvResultHandlers.GetTaskStats)          // Get task statistics
+			stats.GET("/projects/:project_id", taskConvResultHandlers.GetProjectStats) // Get project statistics
 		}
 
-		// 任务执行日志管理
+		// Task execution log management
 		api.GET("/task-conversations/:conversationId/execution-log", taskExecLogHandlers.GetExecutionLog)
 		api.POST("/task-conversations/:conversationId/execution/cancel", taskExecLogHandlers.CancelExecution)
 		api.POST("/task-conversations/:conversationId/execution/retry", taskExecLogHandlers.RetryExecution)
 
-		// SSE实时日志管理
+		// SSE real-time log management
 		logs := api.Group("/logs")
 		{
-			logs.GET("/stream", sseLogHandlers.StreamLogs)                     // SSE实时日志流
-			logs.GET("/stats", sseLogHandlers.GetLogStats)                     // 获取连接统计
-			logs.POST("/test/:conversationId", sseLogHandlers.SendTestMessage) // 发送测试消息
+			logs.GET("/stream", sseLogHandlers.StreamLogs)                     // SSE real-time log stream
+			logs.GET("/stats", sseLogHandlers.GetLogStats)                     // Get connection statistics
+			logs.POST("/test/:conversationId", sseLogHandlers.SendTestMessage) // Send test message
 		}
 
-		// 开发环境管理
+		// Development environment management
 		devEnvs := api.Group("/dev-environments")
 		{
-			devEnvs.POST("", devEnvHandlers.CreateEnvironment)                 // 创建环境
-			devEnvs.GET("", devEnvHandlers.ListEnvironments)                   // 获取环境列表
-			devEnvs.GET("/available-types", devEnvHandlers.GetAvailableTypes)  // 获取可用环境类型
-			devEnvs.GET("/:id", devEnvHandlers.GetEnvironment)                 // 获取单个环境
-			devEnvs.PUT("/:id", devEnvHandlers.UpdateEnvironment)              // 更新环境
-			devEnvs.DELETE("/:id", devEnvHandlers.DeleteEnvironment)           // 删除环境
-			devEnvs.GET("/:id/env-vars", devEnvHandlers.GetEnvironmentVars)    // 获取环境变量
-			devEnvs.PUT("/:id/env-vars", devEnvHandlers.UpdateEnvironmentVars) // 更新环境变量
+			devEnvs.POST("", devEnvHandlers.CreateEnvironment)                 // Create environment
+			devEnvs.GET("", devEnvHandlers.ListEnvironments)                   // Get environment list
+			devEnvs.GET("/available-types", devEnvHandlers.GetAvailableTypes)  // Get available environment types
+			devEnvs.GET("/:id", devEnvHandlers.GetEnvironment)                 // Get single environment
+			devEnvs.PUT("/:id", devEnvHandlers.UpdateEnvironment)              // Update environment
+			devEnvs.DELETE("/:id", devEnvHandlers.DeleteEnvironment)           // Delete environment
+			devEnvs.GET("/:id/env-vars", devEnvHandlers.GetEnvironmentVars)    // Get environment variables
+			devEnvs.PUT("/:id/env-vars", devEnvHandlers.UpdateEnvironmentVars) // Update environment variables
 		}
 
-		// 系统配置管理
+		// System configuration management
 		systemConfigs := api.Group("/system-configs")
 		{
-			systemConfigs.GET("", systemConfigHandlers.ListAllConfigs)     // 获取所有配置
-			systemConfigs.PUT("", systemConfigHandlers.BatchUpdateConfigs) // 批量更新配置
+			systemConfigs.GET("", systemConfigHandlers.ListAllConfigs)     // Get all configurations
+			systemConfigs.PUT("", systemConfigHandlers.BatchUpdateConfigs) // Batch update configurations
 		}
 	}
 }

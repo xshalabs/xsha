@@ -11,48 +11,48 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GitCredentialHandlers Git凭据处理器结构体
+// GitCredentialHandlers Git credential handler struct
 type GitCredentialHandlers struct {
 	gitCredService services.GitCredentialService
 }
 
-// NewGitCredentialHandlers 创建Git凭据处理器实例
+// NewGitCredentialHandlers creates a Git credential handler instance
 func NewGitCredentialHandlers(gitCredService services.GitCredentialService) *GitCredentialHandlers {
 	return &GitCredentialHandlers{
 		gitCredService: gitCredService,
 	}
 }
 
-// CreateCredentialRequest 创建凭据请求结构
-// @Description 创建Git凭据的请求参数
+// CreateCredentialRequest request structure for creating credentials
+// @Description Request parameters for creating Git credentials
 type CreateCredentialRequest struct {
-	Name        string            `json:"name" binding:"required" example:"我的GitHub凭据"`
-	Description string            `json:"description" example:"用于GitHub项目的凭据"`
+	Name        string            `json:"name" binding:"required" example:"My GitHub Credential"`
+	Description string            `json:"description" example:"Credential for GitHub projects"`
 	Type        string            `json:"type" binding:"required,oneof=password token ssh_key" example:"password"`
 	Username    string            `json:"username" example:"myusername"`
 	SecretData  map[string]string `json:"secret_data" binding:"required" example:"{\"password\":\"mypassword\"}"`
 }
 
-// UpdateCredentialRequest 更新凭据请求结构
-// @Description 更新Git凭据的请求参数
+// UpdateCredentialRequest request structure for updating credentials
+// @Description Request parameters for updating Git credentials
 type UpdateCredentialRequest struct {
-	Name        string            `json:"name" example:"更新的凭据名称"`
-	Description string            `json:"description" example:"更新的描述"`
+	Name        string            `json:"name" example:"Updated credential name"`
+	Description string            `json:"description" example:"Updated description"`
 	Username    string            `json:"username" example:"newusername"`
 	SecretData  map[string]string `json:"secret_data" example:"{\"password\":\"newpassword\"}"`
 }
 
-// CreateCredential 创建Git凭据
-// @Summary 创建Git凭据
-// @Description 创建新的Git凭据，支持密码、令牌、SSH密钥类型
-// @Tags Git凭据
+// CreateCredential creates a Git credential
+// @Summary Create Git credential
+// @Description Create a new Git credential, supporting password, token, and SSH key types
+// @Tags Git Credentials
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param credential body CreateCredentialRequest true "凭据信息"
-// @Success 201 {object} object{message=string,credential=object} "凭据创建成功"
-// @Failure 400 {object} object{error=string} "请求参数错误"
-// @Failure 500 {object} object{error=string} "创建凭据失败"
+// @Param credential body CreateCredentialRequest true "Credential information"
+// @Success 201 {object} object{message=string,credential=object} "Credential created successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 500 {object} object{error=string} "Failed to create credential"
 // @Router /git-credentials [post]
 func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -83,17 +83,17 @@ func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 	})
 }
 
-// GetCredential 获取单个Git凭据
-// @Summary 获取Git凭据详情
-// @Description 根据ID获取指定Git凭据的详细信息
-// @Tags Git凭据
+// GetCredential gets a single Git credential
+// @Summary Get Git credential details
+// @Description Get detailed information of a specified Git credential by ID
+// @Tags Git Credentials
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "凭据ID"
-// @Success 200 {object} object{credential=object} "凭据详情"
-// @Failure 400 {object} object{error=string} "无效的凭据ID"
-// @Failure 404 {object} object{error=string} "凭据不存在"
+// @Param id path int true "Credential ID"
+// @Success 200 {object} object{credential=object} "Credential details"
+// @Failure 400 {object} object{error=string} "Invalid credential ID"
+// @Failure 404 {object} object{error=string} "Credential not found"
 // @Router /git-credentials/{id} [get]
 func (h *GitCredentialHandlers) GetCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -121,24 +121,24 @@ func (h *GitCredentialHandlers) GetCredential(c *gin.Context) {
 	})
 }
 
-// ListCredentials 获取Git凭据列表
-// @Summary 获取Git凭据列表
-// @Description 获取当前用户的Git凭据列表，支持按类型筛选和分页
-// @Tags Git凭据
+// ListCredentials gets the Git credential list
+// @Summary Get Git credential list
+// @Description Get the current user's Git credential list, supporting filtering by type and pagination
+// @Tags Git Credentials
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param type query string false "凭据类型筛选 (password/token/ssh_key)"
-// @Param page query int false "页码，默认为1"
-// @Param page_size query int false "每页数量，默认为20，最大100"
-// @Success 200 {object} object{message=string,credentials=[]object,total=number,page=number,page_size=number,total_pages=number} "凭据列表"
-// @Failure 500 {object} object{error=string} "获取凭据列表失败"
+// @Param type query string false "Credential type filter (password/token/ssh_key)"
+// @Param page query int false "Page number, defaults to 1"
+// @Param page_size query int false "Page size, defaults to 20, maximum 100"
+// @Success 200 {object} object{message=string,credentials=[]object,total=number,page=number,page_size=number,total_pages=number} "Credential list"
+// @Failure 500 {object} object{error=string} "Failed to get credential list"
 // @Router /git-credentials [get]
 func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
 
-	// 解析查询参数
+	// Parse query parameters
 	page := 1
 	pageSize := 20
 	var credType *database.GitCredentialType
@@ -178,18 +178,18 @@ func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 	})
 }
 
-// UpdateCredential 更新Git凭据
-// @Summary 更新Git凭据
-// @Description 更新指定Git凭据的信息
-// @Tags Git凭据
+// UpdateCredential updates a Git credential
+// @Summary Update Git credential
+// @Description Update information of a specified Git credential
+// @Tags Git Credentials
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "凭据ID"
-// @Param credential body UpdateCredentialRequest true "凭据更新信息"
-// @Success 200 {object} object{message=string} "凭据更新成功"
-// @Failure 400 {object} object{error=string} "请求参数错误"
-// @Failure 404 {object} object{error=string} "凭据不存在"
+// @Param id path int true "Credential ID"
+// @Param credential body UpdateCredentialRequest true "Credential update information"
+// @Success 200 {object} object{message=string} "Credential updated successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 404 {object} object{error=string} "Credential not found"
 // @Router /git-credentials/{id} [put]
 func (h *GitCredentialHandlers) UpdateCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -212,7 +212,7 @@ func (h *GitCredentialHandlers) UpdateCredential(c *gin.Context) {
 		return
 	}
 
-	// 构建更新数据
+	// Build update data
 	updates := make(map[string]interface{})
 	if req.Name != "" {
 		updates["name"] = req.Name
@@ -237,17 +237,17 @@ func (h *GitCredentialHandlers) UpdateCredential(c *gin.Context) {
 	})
 }
 
-// DeleteCredential 删除Git凭据
-// @Summary 删除Git凭据
-// @Description 删除指定的Git凭据
-// @Tags Git凭据
+// DeleteCredential deletes a Git credential
+// @Summary Delete Git credential
+// @Description Delete a specified Git credential
+// @Tags Git Credentials
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "凭据ID"
-// @Success 200 {object} object{message=string} "凭据删除成功"
-// @Failure 400 {object} object{error=string} "无效的凭据ID"
-// @Failure 404 {object} object{error=string} "凭据不存在"
+// @Param id path int true "Credential ID"
+// @Success 200 {object} object{message=string} "Credential deleted successfully"
+// @Failure 400 {object} object{error=string} "Invalid credential ID"
+// @Failure 404 {object} object{error=string} "Credential not found"
 // @Router /git-credentials/{id} [delete]
 func (h *GitCredentialHandlers) DeleteCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)

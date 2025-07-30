@@ -11,30 +11,30 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// TaskConversationHandlers 任务对话处理器结构体
+// TaskConversationHandlers task conversation handler struct
 type TaskConversationHandlers struct {
 	conversationService services.TaskConversationService
 }
 
-// NewTaskConversationHandlers 创建任务对话处理器实例
+// NewTaskConversationHandlers creates a task conversation handler instance
 func NewTaskConversationHandlers(conversationService services.TaskConversationService) *TaskConversationHandlers {
 	return &TaskConversationHandlers{
 		conversationService: conversationService,
 	}
 }
 
-// CreateConversationRequest 创建对话请求结构
+// CreateConversationRequest request structure for creating conversations
 type CreateConversationRequest struct {
 	TaskID  uint   `json:"task_id" binding:"required"`
 	Content string `json:"content" binding:"required"`
 }
 
-// UpdateConversationRequest 更新对话请求结构
+// UpdateConversationRequest request structure for updating conversations
 type UpdateConversationRequest struct {
 	Content string `json:"content"`
 }
 
-// CreateConversation 创建对话
+// CreateConversation creates a conversation
 func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -44,14 +44,14 @@ func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
+	// Get current user
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
-	// 创建对话
+	// Create conversation
 	conversation, err := h.conversationService.CreateConversation(req.TaskID, req.Content, username.(string))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
@@ -64,7 +64,7 @@ func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 	})
 }
 
-// GetConversation 获取对话详情
+// GetConversation gets conversation details
 func (h *TaskConversationHandlers) GetConversation(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -75,7 +75,7 @@ func (h *TaskConversationHandlers) GetConversation(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
+	// Get current user
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
@@ -111,7 +111,7 @@ func (h *TaskConversationHandlers) ListConversations(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
+	// Get current user
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
@@ -157,7 +157,7 @@ func (h *TaskConversationHandlers) UpdateConversation(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
+	// Get current user
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
@@ -190,7 +190,7 @@ func (h *TaskConversationHandlers) DeleteConversation(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
+	// Get current user
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
@@ -222,7 +222,7 @@ func (h *TaskConversationHandlers) GetLatestConversation(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
+	// Get current user
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
@@ -259,7 +259,7 @@ func (h *TaskConversationHandlers) GetConversationGitDiff(c *gin.Context) {
 	// 获取查询参数
 	includeContent := c.DefaultQuery("include_content", "false") == "true"
 
-	// 获取当前用户
+	// Get current user
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
@@ -304,7 +304,7 @@ func (h *TaskConversationHandlers) GetConversationGitDiffFile(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
+	// Get current user
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})

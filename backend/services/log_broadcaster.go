@@ -8,7 +8,7 @@ import (
 	"xsha-backend/utils"
 )
 
-// LogMessage 日志消息结构
+// LogMessage log message structure
 type LogMessage struct {
 	ConversationID uint      `json:"conversation_id"`
 	Content        string    `json:"content"`
@@ -16,16 +16,16 @@ type LogMessage struct {
 	LogType        string    `json:"log_type"` // "log", "status", "error"
 }
 
-// SSEClient SSE客户端连接
+// SSEClient SSE client connection
 type SSEClient struct {
 	ID       string
 	Channel  chan LogMessage
-	UserID   string // 用户ID，用于权限控制
+	UserID   string // User ID for access control
 	CloseCh  chan bool
 	LastSeen time.Time
 }
 
-// LogBroadcaster 日志广播管理器
+// LogBroadcaster log broadcast manager
 type LogBroadcaster struct {
 	clients    map[string]*SSEClient
 	register   chan *SSEClient
@@ -34,23 +34,23 @@ type LogBroadcaster struct {
 	mu         sync.RWMutex
 }
 
-// NewLogBroadcaster 创建日志广播管理器
+// NewLogBroadcaster creates a log broadcast manager
 func NewLogBroadcaster() *LogBroadcaster {
 	return &LogBroadcaster{
 		clients:    make(map[string]*SSEClient),
 		register:   make(chan *SSEClient),
 		unregister: make(chan *SSEClient),
-		broadcast:  make(chan LogMessage, 1000), // 缓冲区大小为1000
+		broadcast:  make(chan LogMessage, 1000), // Buffer size is 1000
 	}
 }
 
-// Start 启动广播管理器
+// Start starts the broadcast manager
 func (lb *LogBroadcaster) Start() {
 	go lb.run()
 	go lb.cleanupInactiveClients()
 }
 
-// run 运行广播循环
+// run runs the broadcast loop
 func (lb *LogBroadcaster) run() {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
@@ -87,7 +87,7 @@ func (lb *LogBroadcaster) run() {
 				case client.Channel <- message:
 					client.LastSeen = time.Now()
 				default:
-					// 通道已满，客户端可能已断开
+					// Channel is full, client may have disconnected
 					utils.Warn("Client channel full, removing client",
 						"client_id", id,
 						"user_id", client.UserID,
@@ -99,13 +99,13 @@ func (lb *LogBroadcaster) run() {
 			lb.mu.RUnlock()
 
 		case <-ticker.C:
-			// 定期检查不活跃的客户端
-			// 这个在cleanupInactiveClients中处理
+			// Periodically check inactive clients
+			// This is handled in cleanupInactiveClients
 		}
 	}
 }
 
-// cleanupInactiveClients 清理不活跃的客户端
+// cleanupInactiveClients cleans up inactive clients
 func (lb *LogBroadcaster) cleanupInactiveClients() {
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
@@ -128,7 +128,7 @@ func (lb *LogBroadcaster) cleanupInactiveClients() {
 	}
 }
 
-// RegisterClient 注册客户端
+// RegisterClient registers a client
 func (lb *LogBroadcaster) RegisterClient(clientID, userID string) *SSEClient {
 	client := &SSEClient{
 		ID:       clientID,
@@ -142,7 +142,7 @@ func (lb *LogBroadcaster) RegisterClient(clientID, userID string) *SSEClient {
 	return client
 }
 
-// UnregisterClient 取消注册客户端
+// UnregisterClient unregisters a client
 func (lb *LogBroadcaster) UnregisterClient(clientID string) {
 	lb.mu.RLock()
 	client, exists := lb.clients[clientID]
@@ -164,7 +164,7 @@ func (lb *LogBroadcaster) BroadcastLog(conversationID uint, content, logType str
 
 	select {
 	case lb.broadcast <- message:
-		// 消息已发送
+		// Message sent
 	default:
 		utils.Warn("Broadcast channel full, dropping message",
 			"conversation_id", conversationID,
@@ -173,7 +173,7 @@ func (lb *LogBroadcaster) BroadcastLog(conversationID uint, content, logType str
 	}
 }
 
-// BroadcastStatus 广播状态消息
+// BroadcastStatus broadcasts status messages
 func (lb *LogBroadcaster) BroadcastStatus(conversationID uint, status string) {
 	message := LogMessage{
 		ConversationID: conversationID,
@@ -184,7 +184,7 @@ func (lb *LogBroadcaster) BroadcastStatus(conversationID uint, status string) {
 
 	select {
 	case lb.broadcast <- message:
-		// 消息已发送
+		// Message sent
 	default:
 		utils.Warn("Broadcast channel full, dropping status message",
 			"conversation_id", conversationID,
@@ -193,14 +193,14 @@ func (lb *LogBroadcaster) BroadcastStatus(conversationID uint, status string) {
 	}
 }
 
-// GetConnectedClientCount 获取连接的客户端数量
+// GetConnectedClientCount gets the number of connected clients
 func (lb *LogBroadcaster) GetConnectedClientCount() int {
 	lb.mu.RLock()
 	defer lb.mu.RUnlock()
 	return len(lb.clients)
 }
 
-// FormatSSEMessage 格式化SSE消息
+// FormatSSEMessage formats SSE messages
 func (client *SSEClient) FormatSSEMessage(message LogMessage) string {
 	data, _ := json.Marshal(message)
 	return fmt.Sprintf("data: %s\n\n", string(data))

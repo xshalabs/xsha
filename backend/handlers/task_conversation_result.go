@@ -119,7 +119,7 @@ func (h *TaskConversationResultHandlers) ListResultsByTaskID(c *gin.Context) {
 	})
 }
 
-// ListResultsByProjectID 根据项目ID获取结果列表
+// ListResultsByProjectID gets result list by project ID
 func (h *TaskConversationResultHandlers) ListResultsByProjectID(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -135,7 +135,7 @@ func (h *TaskConversationResultHandlers) ListResultsByProjectID(c *gin.Context) 
 		return
 	}
 
-	// 解析分页参数
+	// Parse pagination parameters
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 	if page < 1 {
@@ -145,7 +145,7 @@ func (h *TaskConversationResultHandlers) ListResultsByProjectID(c *gin.Context) 
 		pageSize = 10
 	}
 
-	// 获取结果列表
+	// Get result list
 	results, total, err := h.resultService.ListResultsByProjectID(uint(projectID), page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})

@@ -13,14 +13,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// TaskHandlers 任务处理器结构体
+// TaskHandlers task handler struct
 type TaskHandlers struct {
 	taskService         services.TaskService
 	conversationService services.TaskConversationService
 	projectService      services.ProjectService
 }
 
-// NewTaskHandlers 创建任务处理器实例
+// NewTaskHandlers creates a task handler instance
 func NewTaskHandlers(taskService services.TaskService, conversationService services.TaskConversationService, projectService services.ProjectService) *TaskHandlers {
 	return &TaskHandlers{
 		taskService:         taskService,
@@ -29,29 +29,29 @@ func NewTaskHandlers(taskService services.TaskService, conversationService servi
 	}
 }
 
-// CreateTaskRequest 创建任务请求结构
+// CreateTaskRequest request structure for creating tasks
 type CreateTaskRequest struct {
 	Title            string `json:"title" binding:"required"`
 	StartBranch      string `json:"start_branch" binding:"required"`
 	ProjectID        uint   `json:"project_id" binding:"required"`
 	DevEnvironmentID *uint  `json:"dev_environment_id" binding:"required"`
-	RequirementDesc  string `json:"requirement_desc" binding:"required"` // 需求描述，用于创建conversation
-	IncludeBranches  bool   `json:"include_branches"`                    // 是否返回项目分支信息
+	RequirementDesc  string `json:"requirement_desc" binding:"required"` // Requirement description for creating conversation
+	IncludeBranches  bool   `json:"include_branches"`                    // Whether to return project branch information
 }
 
-// CreateTaskResponse 创建任务响应结构
+// CreateTaskResponse response structure for creating tasks
 type CreateTaskResponse struct {
 	Task            *database.Task `json:"task"`
-	ProjectBranches []string       `json:"project_branches,omitempty"` // 项目分支列表
-	BranchError     string         `json:"branch_error,omitempty"`     // 获取分支时的错误信息
+	ProjectBranches []string       `json:"project_branches,omitempty"` // Project branch list
+	BranchError     string         `json:"branch_error,omitempty"`     // Error information when getting branches
 }
 
-// UpdateTaskRequest 更新任务请求结构
+// UpdateTaskRequest request structure for updating tasks
 type UpdateTaskRequest struct {
 	Title string `json:"title" binding:"required"`
 }
 
-// CreateTask 创建任务
+// CreateTask creates a task
 func (h *TaskHandlers) CreateTask(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
