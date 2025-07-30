@@ -283,7 +283,14 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
                   onChange={(date) =>
                     handleFilterChange(
                       "start_time",
-                      date ? date.toISOString().split("T")[0] : ""
+                      date
+                        ? `${date.getFullYear()}-${String(
+                            date.getMonth() + 1
+                          ).padStart(2, "0")}-${String(date.getDate()).padStart(
+                            2,
+                            "0"
+                          )}`
+                        : ""
                     )
                   }
                 />
@@ -302,7 +309,14 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
                   onChange={(date) =>
                     handleFilterChange(
                       "end_time",
-                      date ? date.toISOString().split("T")[0] : ""
+                      date
+                        ? `${date.getFullYear()}-${String(
+                            date.getMonth() + 1
+                          ).padStart(2, "0")}-${String(date.getDate()).padStart(
+                            2,
+                            "0"
+                          )}`
+                        : ""
                     )
                   }
                 />
