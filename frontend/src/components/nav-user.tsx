@@ -28,7 +28,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
-import { SUPPORTED_LANGUAGES } from "@/lib/constants";
+import { SUPPORTED_LANGUAGES, STORAGE_KEYS } from "@/lib/constants";
 import { apiService } from "@/lib/api/index";
 
 export function NavUser() {
@@ -48,7 +48,11 @@ export function NavUser() {
   };
 
   const handleLanguageChange = async (languageCode: string) => {
+    // Update i18next language (this will also update localStorage "i18nextLng")
     i18n.changeLanguage(languageCode);
+    
+    // Also sync to our own storage for backward compatibility
+    localStorage.setItem(STORAGE_KEYS.language, languageCode);
 
     if (isAuthenticated) {
       try {
