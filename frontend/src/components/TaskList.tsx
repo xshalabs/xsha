@@ -26,6 +26,15 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useTranslation } from "react-i18next";
 import {
   Edit,
@@ -79,6 +88,7 @@ interface TaskListProps {
   onDelete: (id: number) => void;
   onViewConversation?: (task: Task) => void;
   onCreateNew: () => void;
+  onBatchUpdateStatus?: (taskIds: number[], status: TaskStatus) => void;
 }
 
 export function TaskList({
@@ -106,9 +116,16 @@ export function TaskList({
   onDelete,
   onViewConversation,
   onCreateNew,
+  onBatchUpdateStatus,
 }: TaskListProps) {
   const { t } = useTranslation();
   const [showFilters, setShowFilters] = useState(false);
+
+  // 批量选择相关状态
+  const [selectedTaskIds, setSelectedTaskIds] = useState<number[]>([]);
+  const [showBatchStatusDialog, setShowBatchStatusDialog] = useState(false);
+  const [batchTargetStatus, setBatchTargetStatus] =
+    useState<TaskStatus>("todo");
 
   const [localFilters, setLocalFilters] = useState({
     status: statusFilter,
@@ -210,6 +227,41 @@ export function TaskList({
       default:
         return <Clock className="w-3 h-3" />;
     }
+  };
+
+  const handleSelectTask = (taskId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedTaskIds((prev) => [...prev, taskId]);
+    } else {
+      setSelectedTaskIds((prev) => prev.filter((id) => id !== taskId));
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedTaskIds(tasks.map((task) => task.id));
+    } else {
+      setSelectedTaskIds([]);
+    }
+  };
+
+  const handleBatchUpdateStatus = () => {
+    if (selectedTaskIds.length === 0) {
+      return;
+    }
+    setShowBatchStatusDialog(true);
+  };
+
+  const confirmBatchUpdateStatus = () => {
+    if (onBatchUpdateStatus && selectedTaskIds.length > 0) {
+      onBatchUpdateStatus(selectedTaskIds, batchTargetStatus);
+      setSelectedTaskIds([]);
+      setShowBatchStatusDialog(false);
+    }
+  };
+
+  const getStatusDisplayName = (status: TaskStatus) => {
+    return t(`tasks.status.${status}`);
   };
 
   const formatDate = (dateString: string) => {
@@ -424,9 +476,45 @@ export function TaskList({
             </div>
           ) : (
             <div className="space-y-4">
+              {selectedTaskIds.length > 0 && (
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-border">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-sm text-blue-700 font-medium">
+                      {t("tasks.batch.selectedCount", {
+                        count: selectedTaskIds.length,
+                      })}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedTaskIds([])}
+                    >
+                      {t("tasks.batch.cancelAll")}
+                    </Button>
+                  </div>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleBatchUpdateStatus}
+                    disabled={selectedTaskIds.length === 0}
+                  >
+                    {t("tasks.batch.updateStatus")}
+                  </Button>
+                </div>
+              )}
+
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={
+                          selectedTaskIds.length === tasks.length &&
+                          tasks.length > 0
+                        }
+                        onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
+                      />
+                    </TableHead>
                     <TableHead>{t("tasks.table.title")}</TableHead>
                     {!hideProjectFilter && (
                       <TableHead>{t("tasks.table.project")}</TableHead>
@@ -443,6 +531,14 @@ export function TaskList({
                 <TableBody>
                   {tasks.map((task) => (
                     <TableRow key={task.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedTaskIds.includes(task.id)}
+                          onCheckedChange={(checked) =>
+                            handleSelectTask(task.id, checked as boolean)
+                          }
+                        />
+                      </TableCell>
                       <TableCell>
                         <div>
                           <div className="font-medium">{task.title}</div>
@@ -576,6 +672,64 @@ export function TaskList({
           )}
         </CardContent>
       </Card>
+
+      {/* 批量状态修改对话框 */}
+      <Dialog
+        open={showBatchStatusDialog}
+        onOpenChange={setShowBatchStatusDialog}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("tasks.batch.updateStatus")}</DialogTitle>
+            <DialogDescription>
+              {t("tasks.batch.confirmUpdate", {
+                count: selectedTaskIds.length,
+                status: getStatusDisplayName(batchTargetStatus),
+              })}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="batch-status">
+                {t("tasks.batch.selectStatus")}
+              </Label>
+              <Select
+                value={batchTargetStatus}
+                onValueChange={(value: TaskStatus) =>
+                  setBatchTargetStatus(value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todo">{t("tasks.status.todo")}</SelectItem>
+                  <SelectItem value="in_progress">
+                    {t("tasks.status.in_progress")}
+                  </SelectItem>
+                  <SelectItem value="done">{t("tasks.status.done")}</SelectItem>
+                  <SelectItem value="cancelled">
+                    {t("tasks.status.cancelled")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowBatchStatusDialog(false)}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button onClick={confirmBatchUpdateStatus}>
+              {t("common.confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

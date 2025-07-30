@@ -234,6 +234,51 @@ const TaskListPage: React.FC = () => {
     );
   };
 
+  const handleBatchUpdateStatus = async (
+    taskIds: number[],
+    status: TaskStatus
+  ) => {
+    try {
+      const response = await apiService.tasks.batchUpdateStatus({
+        task_ids: taskIds,
+        status,
+      });
+
+      const { success_count, failed_count } = response.data;
+      if (failed_count === 0) {
+        alert(
+          t("tasks.messages.batchUpdateSuccess", {
+            success: success_count,
+            failed: failed_count,
+          })
+        );
+      } else {
+        alert(
+          t("tasks.messages.batchUpdateSuccess", {
+            success: success_count,
+            failed: failed_count,
+          })
+        );
+      }
+
+      loadTasks(
+        currentPage,
+        statusFilter,
+        projectId ? parseInt(projectId, 10) : undefined,
+        titleFilter,
+        branchFilter,
+        devEnvironmentFilter
+      );
+    } catch (error) {
+      logError(error as Error, "Failed to batch update task status");
+      alert(
+        error instanceof Error
+          ? error.message
+          : t("tasks.messages.batchUpdateFailed")
+      );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -281,6 +326,7 @@ const TaskListPage: React.FC = () => {
           onDelete={handleTaskDelete}
           onViewConversation={handleViewConversation}
           onCreateNew={handleTaskCreate}
+          onBatchUpdateStatus={handleBatchUpdateStatus}
         />
       </div>
     </div>

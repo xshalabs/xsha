@@ -118,6 +118,7 @@ type TaskService interface {
 	ListTasks(projectID *uint, createdBy string, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error)
 	UpdateTask(id uint, createdBy string, updates map[string]interface{}) error
 	UpdateTaskStatus(id uint, createdBy string, status database.TaskStatus) error
+	UpdateTaskStatusBatch(taskIDs []uint, createdBy string, status database.TaskStatus) ([]uint, []uint, error) // 批量更新状态，返回成功和失败的任务ID
 	DeleteTask(id uint, createdBy string) error
 
 	// 验证操作

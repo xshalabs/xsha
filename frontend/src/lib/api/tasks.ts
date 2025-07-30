@@ -57,4 +57,22 @@ export const tasksApi = {
       method: "DELETE",
     });
   },
+
+  batchUpdateStatus: async (data: {
+    task_ids: number[];
+    status: string;
+  }): Promise<{
+    message: string;
+    data: {
+      success_count: number;
+      failed_count: number;
+      success_ids: number[];
+      failed_ids: number[];
+    };
+  }> => {
+    return request(`/tasks/batch/status`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
 };

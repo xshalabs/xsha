@@ -199,3 +199,56 @@ func (s *taskService) ValidateTaskData(title, startBranch string, projectID uint
 
 	return nil
 }
+
+// UpdateTaskStatusBatch 批量更新任务状态
+func (s *taskService) UpdateTaskStatusBatch(taskIDs []uint, createdBy string, status database.TaskStatus) ([]uint, []uint, error) {
+	if len(taskIDs) == 0 {
+		return nil, nil, errors.New("task IDs cannot be empty")
+	}
+
+	if len(taskIDs) > 100 {
+		return nil, nil, errors.New("cannot update more than 100 tasks at once")
+	}
+
+	var successIDs []uint
+	var failedIDs []uint
+
+	for _, taskID := range taskIDs {
+		// 获取任务
+		task, err := s.repo.GetByID(taskID, createdBy)
+		if err != nil {
+			// 任务不存在或没有权限
+			failedIDs = append(failedIDs, taskID)
+			utils.Warn("Failed to get task for batch status update",
+				"task_id", taskID,
+				"created_by", createdBy,
+				"error", err.Error(),
+			)
+			continue
+		}
+
+		oldStatus := task.Status
+		task.Status = status
+
+		// 更新任务状态
+		if err := s.repo.Update(task); err != nil {
+			failedIDs = append(failedIDs, taskID)
+			utils.Error("Failed to update task status in batch",
+				"task_id", taskID,
+				"created_by", createdBy,
+				"error", err.Error(),
+			)
+			continue
+		}
+
+		successIDs = append(successIDs, taskID)
+		utils.Info("Task status updated in batch",
+			"task_id", taskID,
+			"created_by", createdBy,
+			"old_status", string(oldStatus),
+			"new_status", string(status),
+		)
+	}
+
+	return successIDs, failedIDs, nil
+}

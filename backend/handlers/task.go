@@ -331,3 +331,70 @@ func (h *TaskHandlers) DeleteTask(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task.delete_success")})
 }
+
+// BatchUpdateTaskStatusRequest 批量更新任务状态请求结构
+type BatchUpdateTaskStatusRequest struct {
+	TaskIDs []uint `json:"task_ids" binding:"required,min=1,max=100"`
+	Status  string `json:"status" binding:"required"`
+}
+
+// BatchUpdateTaskStatusResponse 批量更新任务状态响应结构
+type BatchUpdateTaskStatusResponse struct {
+	SuccessCount int    `json:"success_count"`
+	FailedCount  int    `json:"failed_count"`
+	SuccessIDs   []uint `json:"success_ids"`
+	FailedIDs    []uint `json:"failed_ids"`
+}
+
+// BatchUpdateTaskStatus 批量更新任务状态
+func (h *TaskHandlers) BatchUpdateTaskStatus(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	var req BatchUpdateTaskStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error()})
+		return
+	}
+
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+
+	// 验证状态值
+	var status database.TaskStatus
+	switch req.Status {
+	case "todo":
+		status = database.TaskStatusTodo
+	case "in_progress":
+		status = database.TaskStatusInProgress
+	case "done":
+		status = database.TaskStatusDone
+	case "cancelled":
+		status = database.TaskStatusCancelled
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format")})
+		return
+	}
+
+	// 批量更新任务状态
+	successIDs, failedIDs, err := h.taskService.UpdateTaskStatusBatch(req.TaskIDs, username.(string), status)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
+		return
+	}
+
+	response := BatchUpdateTaskStatusResponse{
+		SuccessCount: len(successIDs),
+		FailedCount:  len(failedIDs),
+		SuccessIDs:   successIDs,
+		FailedIDs:    failedIDs,
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "task.batch_update_success"),
+		"data":    response,
+	})
+}

@@ -11,7 +11,8 @@
     "edit": "Edit Task",
     "delete": "Delete Task",
     "view": "View Task",
-    "viewConversation": "View Conversation"
+    "viewConversation": "View Conversation",
+    "batchUpdateStatus": "Batch Update Status"
   },
   "status": {
     "todo": "To Do",
@@ -85,7 +86,18 @@
     "createFailed": "Failed to create task",
     "updateFailed": "Failed to update task",
     "deleteFailed": "Failed to delete task",
-    "deleteConfirm": "Are you sure you want to delete task \"{{title}}\"? This action cannot be undone."
+    "deleteConfirm": "Are you sure you want to delete task \"{{title}}\"? This action cannot be undone.",
+    "batchUpdateSuccess": "Batch status update completed: {{success}} succeeded, {{failed}} failed",
+    "batchUpdateFailed": "Batch status update failed"
+  },
+  "batch": {
+    "selectedCount": "{{count}} tasks selected",
+    "selectAll": "Select All",
+    "cancelAll": "Clear Selection",
+    "updateStatus": "Update Status",
+    "selectStatus": "Select Status",
+    "confirmUpdate": "Are you sure you want to update the status of {{count}} selected tasks to \"{{status}}\"?",
+    "noItemsSelected": "Please select tasks to operate on"
   },
   "errors": {
     "fetchBranchesFailed": "Failed to fetch repository branches"

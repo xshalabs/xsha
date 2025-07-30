@@ -75,3 +75,18 @@ export interface TaskFormData {
   requirement_desc?: string;
   include_branches?: boolean;
 }
+
+export interface BatchUpdateStatusRequest {
+  task_ids: number[];
+  status: TaskStatus;
+}
+
+export interface BatchUpdateStatusResponse {
+  message: string;
+  data: {
+    success_count: number;
+    failed_count: number;
+    success_ids: number[];
+    failed_ids: number[];
+  };
+}

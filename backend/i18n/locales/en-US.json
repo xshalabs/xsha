@@ -53,6 +53,7 @@
   "project.access_validation_success": "Repository access validation successful",
   "task.create_success": "Task created successfully",
   "task.update_success": "Task updated successfully",
+  "task.batch_update_success": "Batch task status update completed successfully",
   "task.delete_success": "Task deleted successfully",
   "task.get_success": "Task retrieved successfully",
   "task.not_found": "Task not found",
