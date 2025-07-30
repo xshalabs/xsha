@@ -306,6 +306,7 @@ const TaskConversationPage: React.FC = () => {
               conversations={conversations}
               selectedConversationId={selectedConversationId}
               loading={conversationsLoading}
+              taskStatus={task.status}
               onSendMessage={handleSendMessage}
               onRefresh={handleConversationRefresh}
               onDeleteConversation={handleDeleteConversation}

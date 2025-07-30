@@ -184,7 +184,7 @@ func (s *devEnvironmentService) validateEnvironmentData(name, envType string, cp
 	}
 
 	// 从系统配置获取支持的环境类型
-	envTypes, err := s.configService.GetDevEnvironmentTypes()
+	envTypesJSON, err := s.configService.GetValue("dev_environment_types")
 	if err != nil {
 		// 如果获取配置失败，使用默认验证
 		if envType != string(database.DevEnvTypeClaude) &&
@@ -193,16 +193,20 @@ func (s *devEnvironmentService) validateEnvironmentData(name, envType string, cp
 			return errors.New("unsupported environment type")
 		}
 	} else {
-		// 验证是否为配置支持的环境类型
-		found := false
-		for _, supportedType := range envTypes {
-			if name, ok := supportedType["name"].(string); ok && name == envType {
-				found = true
-				break
+		// 解析环境类型配置
+		var envTypes []map[string]interface{}
+		if err := json.Unmarshal([]byte(envTypesJSON), &envTypes); err == nil {
+			// 验证是否为配置支持的环境类型
+			found := false
+			for _, supportedType := range envTypes {
+				if name, ok := supportedType["name"].(string); ok && name == envType {
+					found = true
+					break
+				}
 			}
-		}
-		if !found {
-			return errors.New("unsupported environment type")
+			if !found {
+				return errors.New("unsupported environment type")
+			}
 		}
 	}
 
@@ -211,5 +215,15 @@ func (s *devEnvironmentService) validateEnvironmentData(name, envType string, cp
 
 // GetAvailableEnvironmentTypes gets available environment types from system configuration
 func (s *devEnvironmentService) GetAvailableEnvironmentTypes() ([]map[string]interface{}, error) {
-	return s.configService.GetDevEnvironmentTypes()
+	envTypesJSON, err := s.configService.GetValue("dev_environment_types")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get dev environment types config: %v", err)
+	}
+
+	var envTypes []map[string]interface{}
+	if err := json.Unmarshal([]byte(envTypesJSON), &envTypes); err != nil {
+		return nil, fmt.Errorf("failed to parse dev environment types: %v", err)
+	}
+
+	return envTypes, nil
 }

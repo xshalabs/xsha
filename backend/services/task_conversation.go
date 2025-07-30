@@ -36,6 +36,11 @@ func (s *taskConversationService) CreateConversation(taskID uint, content, creat
 		return nil, errors.New("task not found or access denied")
 	}
 
+	// 检查任务状态 - 已结束的任务不能创建对话
+	if task.Status == database.TaskStatusDone || task.Status == database.TaskStatusCancelled {
+		return nil, errors.New("cannot create conversation for completed or cancelled task")
+	}
+
 	// 检查任务是否有pending或running状态的对话
 	hasPendingOrRunning, err := s.repo.HasPendingOrRunningConversations(taskID, createdBy)
 	if err != nil {

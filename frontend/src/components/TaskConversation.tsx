@@ -22,11 +22,13 @@ import type {
   ConversationStatus,
   ConversationFormData,
 } from "@/types/task-conversation";
+import type { TaskStatus } from "@/types/task";
 
 interface TaskConversationProps {
   conversations: TaskConversationInterface[];
   selectedConversationId: number | null;
   loading: boolean;
+  taskStatus?: TaskStatus;
   onSendMessage: (data: ConversationFormData) => Promise<void>;
   onRefresh: () => void;
   onSelectConversation: (conversationId: number) => void;
@@ -42,6 +44,7 @@ export function TaskConversation({
   conversations,
   selectedConversationId,
   loading,
+  taskStatus,
   onSendMessage,
   onRefresh,
   onSelectConversation,
@@ -81,9 +84,27 @@ export function TaskConversation({
     );
   };
 
+  const isTaskCompleted = () => {
+    return taskStatus === "done" || taskStatus === "cancelled";
+  };
+
+  const canSendMessage = () => {
+    return !hasPendingOrRunningConversations() && !isTaskCompleted();
+  };
+
+  const getDisabledReason = () => {
+    if (isTaskCompleted()) {
+      return t("taskConversation.taskCompletedMessage");
+    }
+    if (hasPendingOrRunningConversations()) {
+      return t("taskConversation.hasPendingMessage");
+    }
+    return "";
+  };
+
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
-    if (hasPendingOrRunningConversations()) return;
+    if (!canSendMessage()) return;
 
     setSending(true);
     try {
@@ -309,7 +330,7 @@ export function TaskConversation({
                   disabled={
                     !newMessage.trim() ||
                     sending ||
-                    hasPendingOrRunningConversations()
+                    !canSendMessage()
                   }
                   className="flex items-center space-x-2"
                 >
@@ -321,9 +342,9 @@ export function TaskConversation({
               </div>
             </div>
 
-            {hasPendingOrRunningConversations() && (
+            {!canSendMessage() && (
               <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                {t("taskConversation.cannotSendWhileProcessing")}
+                {getDisabledReason()}
               </div>
             )}
           </div>

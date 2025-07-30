@@ -8,6 +8,8 @@
   "contentPlaceholder": "请输入您的消息...",
   "shortcut": "按 Ctrl/Cmd + Enter 快速发送",
   "cannotSendWhileProcessing": "有待处理或运行中的对话时无法发送新消息",
+  "taskCompletedMessage": "已完成或已取消的任务无法发送新对话",
+  "hasPendingMessage": "有待处理或运行中的对话时无法发送新消息",
   "deleteConfirm": "确定要删除这个对话吗？此操作不可撤销。",
   "message": "消息",
   "latest": "最新",

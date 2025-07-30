@@ -162,11 +162,8 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		// 系统配置管理
 		systemConfigs := api.Group("/system-configs")
 		{
-			systemConfigs.GET("", systemConfigHandlers.ListConfigs)                                     // 获取配置列表
-			systemConfigs.GET("/:id", systemConfigHandlers.GetConfig)                                   // 获取单个配置
-			systemConfigs.PUT("/:id", systemConfigHandlers.UpdateConfig)                                // 更新配置
-			systemConfigs.GET("/dev-environment-types", systemConfigHandlers.GetDevEnvironmentTypes)    // 获取开发环境类型
-			systemConfigs.PUT("/dev-environment-types", systemConfigHandlers.UpdateDevEnvironmentTypes) // 更新开发环境类型
+			systemConfigs.GET("", systemConfigHandlers.ListAllConfigs)     // 获取所有配置
+			systemConfigs.PUT("", systemConfigHandlers.BatchUpdateConfigs) // 批量更新配置
 		}
 	}
 }

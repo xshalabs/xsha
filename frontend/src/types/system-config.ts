@@ -9,45 +9,23 @@ export interface SystemConfig {
   is_editable: boolean;
 }
 
-export interface UpdateSystemConfigRequest {
-  config_value?: string;
+export interface ConfigUpdateItem {
+  config_key: string;
+  config_value: string;
   description?: string;
   category?: string;
   is_editable?: boolean;
 }
 
-export interface SystemConfigDetailResponse {
-  config: SystemConfig;
-}
-
 export interface SystemConfigListResponse {
   message: string;
   configs: SystemConfig[];
-  total: number;
-  page: number;
-  page_size: number;
-  total_pages: number;
 }
 
-export interface UpdateSystemConfigResponse {
-  message: string;
+export interface BatchUpdateConfigsRequest {
+  configs: ConfigUpdateItem[];
 }
 
-
-
-export interface DevEnvironmentType {
-  name: string;
-  image: string;
-}
-
-export interface DevEnvironmentTypesResponse {
-  env_types: DevEnvironmentType[];
-}
-
-export interface UpdateDevEnvironmentTypesRequest {
-  env_types: DevEnvironmentType[];
-}
-
-export interface UpdateDevEnvironmentTypesResponse {
+export interface BatchUpdateConfigsResponse {
   message: string;
 } 

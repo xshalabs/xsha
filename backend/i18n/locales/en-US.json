@@ -81,6 +81,7 @@
   "dev_environment.invalid_request": "Invalid request parameters",
   "taskConversation.create_success": "Conversation created successfully",
   "taskConversation.create_failed": "Failed to create conversation",
+  "taskConversation.task_completed": "Cannot create conversation for completed or cancelled task",
   "taskConversation.update_success": "Conversation updated successfully",
   "taskConversation.delete_failed": "Failed to delete conversation",
   "taskConversation.delete_latest_only": "Only the latest conversation can be deleted",

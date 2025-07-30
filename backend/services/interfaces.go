@@ -202,22 +202,24 @@ type AITaskExecutorService interface {
 	CleanupWorkspaceOnCancel(taskID uint, workspacePath string) error
 }
 
+// ConfigUpdateItem 定义配置更新项结构
+type ConfigUpdateItem struct {
+	ConfigKey   string
+	ConfigValue string
+	Description string
+	Category    string
+	IsEditable  *bool
+}
+
 // SystemConfigService 定义系统配置服务接口
 type SystemConfigService interface {
-	// 配置管理
-	GetConfig(id uint) (*database.SystemConfig, error)
-	GetConfigByKey(key string) (*database.SystemConfig, error)
-	ListConfigs(category string, page, pageSize int) ([]database.SystemConfig, int64, error)
-	UpdateConfig(id uint, updates map[string]interface{}) error
+	// 简化的配置管理
+	ListAllConfigs() ([]database.SystemConfig, error)
+	BatchUpdateConfigs(configs []ConfigUpdateItem) error
 
-	// 配置值操作
+	// 配置值操作 (保留用于其他模块)
 	GetValue(key string) (string, error)
 	SetValue(key, value string) error
-	GetConfigsByCategory(category string) (map[string]string, error)
-
-	// 开发环境类型配置
-	GetDevEnvironmentTypes() ([]map[string]interface{}, error)
-	UpdateDevEnvironmentTypes(envTypes []map[string]interface{}) error
 
 	// 系统初始化
 	InitializeDefaultConfigs() error

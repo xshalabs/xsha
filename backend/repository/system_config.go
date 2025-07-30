@@ -31,56 +31,16 @@ func (r *systemConfigRepository) GetByKey(key string) (*database.SystemConfig, e
 	return &config, nil
 }
 
-// GetByID 根据ID获取配置
-func (r *systemConfigRepository) GetByID(id uint) (*database.SystemConfig, error) {
-	var config database.SystemConfig
-	err := r.db.Where("id = ?", id).First(&config).Error
-	if err != nil {
-		return nil, err
-	}
-	return &config, nil
-}
-
-// List 分页获取配置列表
-func (r *systemConfigRepository) List(category string, page, pageSize int) ([]database.SystemConfig, int64, error) {
+// ListAll 获取所有配置列表
+func (r *systemConfigRepository) ListAll() ([]database.SystemConfig, error) {
 	var configs []database.SystemConfig
-	var total int64
-
-	query := r.db.Model(&database.SystemConfig{})
-
-	if category != "" {
-		query = query.Where("category = ?", category)
-	}
-
-	err := query.Count(&total).Error
-	if err != nil {
-		return nil, 0, err
-	}
-
-	offset := (page - 1) * pageSize
-	err = query.Offset(offset).Limit(pageSize).Order("category, config_key").Find(&configs).Error
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return configs, total, nil
-}
-
-// ListByCategory 根据分类获取所有配置
-func (r *systemConfigRepository) ListByCategory(category string) ([]database.SystemConfig, error) {
-	var configs []database.SystemConfig
-	err := r.db.Where("category = ?", category).Order("config_key").Find(&configs).Error
+	err := r.db.Order("category, config_key").Find(&configs).Error
 	return configs, err
 }
 
 // Update 更新配置
 func (r *systemConfigRepository) Update(config *database.SystemConfig) error {
 	return r.db.Save(config).Error
-}
-
-// Delete 删除配置
-func (r *systemConfigRepository) Delete(id uint) error {
-	return r.db.Delete(&database.SystemConfig{}, id).Error
 }
 
 // GetValue 根据配置键获取配置值
@@ -136,20 +96,6 @@ func (r *systemConfigRepository) SetValueWithCategory(key, value, description, c
 	config.Category = category
 	config.IsEditable = isEditable
 	return r.Update(config)
-}
-
-// GetConfigsByCategory 根据分类获取配置键值对
-func (r *systemConfigRepository) GetConfigsByCategory(category string) (map[string]string, error) {
-	configs, err := r.ListByCategory(category)
-	if err != nil {
-		return nil, err
-	}
-
-	result := make(map[string]string)
-	for _, config := range configs {
-		result[config.ConfigKey] = config.ConfigValue
-	}
-	return result, nil
 }
 
 // InitializeDefaultConfigs 初始化默认配置

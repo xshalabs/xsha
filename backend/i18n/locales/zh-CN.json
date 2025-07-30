@@ -81,6 +81,7 @@
   "dev_environment.invalid_request": "请求参数错误",
   "taskConversation.create_success": "对话创建成功",
   "taskConversation.create_failed": "对话创建失败",
+  "taskConversation.task_completed": "已完成或已取消的任务无法创建新对话",
   "taskConversation.update_success": "对话更新成功",
   "taskConversation.delete_failed": "对话删除失败",
   "taskConversation.delete_latest_only": "只有最新的对话可以删除",

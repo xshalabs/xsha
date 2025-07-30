@@ -1,34 +1,43 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { ConfigCategoryNav } from "@/components/ConfigCategoryNav";
-import { ConfigCard } from "@/components/ConfigCard";
-import { DevEnvironmentTypesEditor } from "@/components/DevEnvironmentTypesEditor";
 import { systemConfigsApi } from "@/lib/api/system-configs";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Settings } from "lucide-react";
-import type {
-  SystemConfig,
-  UpdateSystemConfigRequest,
-  DevEnvironmentType,
-} from "@/types/system-config";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { RefreshCw, Save } from "lucide-react";
+import type { SystemConfig, ConfigUpdateItem } from "@/types/system-config";
 
 export default function SystemConfigEditPage() {
   const { t } = useTranslation();
   usePageTitle(t("system-config.title"));
 
   const [configs, setConfigs] = useState<SystemConfig[]>([]);
+  const [formData, setFormData] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("development");
-  const [devEnvTypes, setDevEnvTypes] = useState<DevEnvironmentType[]>([]);
+  const [saving, setSaving] = useState(false);
 
-  // 获取配置数据
   const fetchConfigs = async () => {
     try {
       setLoading(true);
-      const response = await systemConfigsApi.list();
+      const response = await systemConfigsApi.listAll();
       setConfigs(response.configs);
+
+      const initialFormData: { [key: string]: string } = {};
+      response.configs.forEach((config) => {
+        initialFormData[config.config_key] = config.config_value;
+      });
+      setFormData(initialFormData);
     } catch (error: any) {
       toast.error(error.message || t("api.operation_failed"));
     } finally {
@@ -36,166 +45,178 @@ export default function SystemConfigEditPage() {
     }
   };
 
-  // 获取开发环境类型
-  const fetchDevEnvTypes = async () => {
-    try {
-      const response = await systemConfigsApi.getDevEnvironmentTypes();
-      setDevEnvTypes(response.env_types);
-    } catch (error: any) {
-      toast.error(error.message || t("system-config.get_types_failed"));
-    }
-  };
-
   useEffect(() => {
     fetchConfigs();
-    fetchDevEnvTypes();
   }, []);
 
-  // 按分类分组配置
-  const configsByCategory = useMemo(() => {
-    const grouped: Record<string, SystemConfig[]> = {};
-    configs.forEach((config) => {
-      const category = config.category || "general";
-      if (!grouped[category]) {
-        grouped[category] = [];
-      }
-      grouped[category].push(config);
-    });
-    return grouped;
-  }, [configs]);
-
-  // 生成分类导航数据
-  const categories = useMemo(() => {
-    const categoryKeys = Object.keys(configsByCategory);
-    return categoryKeys.map((key) => ({
-      key,
-      name: t(`system-config.category_${key}`, key),
-      description: t(`system-config.category_${key}_desc`, ""),
-      icon: undefined as any, // 将在组件内部分配
-      count: configsByCategory[key]?.length || 0,
+  const handleInputChange = (configKey: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [configKey]: value,
     }));
-  }, [configsByCategory, t]);
+  };
 
-  // 处理配置更新
-  const handleConfigUpdate = async (id: number, data: UpdateSystemConfigRequest) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     try {
-      await systemConfigsApi.update(id, data);
+      setSaving(true);
+
+      const updateItems: ConfigUpdateItem[] = configs
+        .filter((config) => config.is_editable)
+        .map((config) => ({
+          config_key: config.config_key,
+          config_value: formData[config.config_key] || config.config_value,
+          description: config.description,
+          category: config.category,
+          is_editable: config.is_editable,
+        }));
+
+      await systemConfigsApi.batchUpdate({ configs: updateItems });
       toast.success(t("system-config.update_success"));
-      // 更新本地状态
-      setConfigs((prev) =>
-        prev.map((config) =>
-          config.id === id
-            ? {
-                ...config,
-                ...data,
-                updated_at: new Date().toISOString(),
-              }
-            : config
-        )
-      );
+
+      await fetchConfigs();
     } catch (error: any) {
       toast.error(error.message || t("api.operation_failed"));
-      throw error; // 重新抛出错误以便组件处理
+    } finally {
+      setSaving(false);
     }
   };
 
-  // 处理开发环境类型更新
-  const handleDevEnvTypesUpdate = async (types: DevEnvironmentType[]) => {
-    try {
-      await systemConfigsApi.updateDevEnvironmentTypes({ env_types: types });
-      toast.success(t("system-config.update_dev_env_types_success"));
-      setDevEnvTypes(types);
-    } catch (error: any) {
-      toast.error(error.message || t("system-config.update_dev_env_types_failed"));
-      throw error;
-    }
-  };
-
-  // 刷新数据
   const handleRefresh = () => {
     fetchConfigs();
-    fetchDevEnvTypes();
   };
 
-  // 获取当前分类的配置
-  const currentConfigs = configsByCategory[activeCategory] || [];
+  const configsByCategory = configs.reduce((acc, config) => {
+    const category = config.category || "general";
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(config);
+    return acc;
+  }, {} as Record<string, SystemConfig[]>);
+
+  const categories = Object.keys(configsByCategory).sort();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center h-64">
+            <RefreshCw className="w-8 h-8 animate-spin" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto py-6">
-      {/* 页面头部 */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center py-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-              <Settings className="w-8 h-8" />
+            <h1 className="text-3xl font-bold text-foreground">
               {t("system-config.title")}
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="mt-2 text-sm text-muted-foreground">
               {t("system-config.edit_page_description")}
             </p>
           </div>
-          <Button variant="outline" onClick={handleRefresh} disabled={loading}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            {t("common.refresh")}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="text-foreground hover:text-foreground"
+              onClick={handleRefresh}
+              disabled={loading}
+            >
+              <RefreshCw
+                className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
+              />
+              {t("common.refresh")}
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="flex gap-6">
-        {/* 侧边栏 - 分类导航 */}
-        <div className="flex-shrink-0">
-          <ConfigCategoryNav
-            categories={categories}
-            activeCategory={activeCategory}
-            onCategoryChange={setActiveCategory}
-          />
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {categories.map((category) => (
+            <Card key={category}>
+              <CardHeader>
+                <CardTitle className="capitalize">
+                  {t(`system-config.category_${category}`, category)}
+                </CardTitle>
+                <CardDescription>
+                  {t(`system-config.category_${category}_desc`, "")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {configsByCategory[category].map((config, index) => (
+                  <div key={config.id} className="space-y-2">
+                    {index > 0 && <Separator />}
+                    <div className="pt-4">
+                      <Label
+                        htmlFor={config.config_key}
+                        className="text-sm font-medium"
+                      >
+                        {config.config_key}
+                        {!config.is_editable && (
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            (只读)
+                          </span>
+                        )}
+                      </Label>
+                      {config.description && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {config.description}
+                        </p>
+                      )}
+                      <div className="mt-2">
+                        {config.config_value.length > 100 ? (
+                          <Textarea
+                            id={config.config_key}
+                            value={formData[config.config_key] || ""}
+                            onChange={(e) =>
+                              handleInputChange(
+                                config.config_key,
+                                e.target.value
+                              )
+                            }
+                            disabled={!config.is_editable}
+                            rows={4}
+                            className="resize-none"
+                          />
+                        ) : (
+                          <Input
+                            id={config.config_key}
+                            value={formData[config.config_key] || ""}
+                            onChange={(e) =>
+                              handleInputChange(
+                                config.config_key,
+                                e.target.value
+                              )
+                            }
+                            disabled={!config.is_editable}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ))}
 
-        {/* 主内容区 */}
-        <div className="flex-1 space-y-6">
-          {/* 开发环境类型特殊处理 */}
-          {activeCategory === "development" && devEnvTypes.length > 0 && (
-            <DevEnvironmentTypesEditor
-              types={devEnvTypes}
-              onUpdate={handleDevEnvTypesUpdate}
-              loading={loading}
-            />
-          )}
-
-          {/* 常规配置卡片 */}
-          {currentConfigs.length > 0 ? (
-            <div className="space-y-4">
-              {currentConfigs.map((config) => (
-                <ConfigCard
-                  key={config.id}
-                  config={config}
-                  onUpdate={handleConfigUpdate}
-                  loading={loading}
-                />
-              ))}
-            </div>
-          ) : !loading ? (
-            <div className="text-center py-12">
-              <Settings className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                {t("system-config.no_configs")}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {t("system-config.no_configs_description")}
-              </p>
-            </div>
-          ) : null}
-
-          {/* 加载状态 */}
-          {loading && currentConfigs.length === 0 && (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-48 bg-gray-100 rounded-lg animate-pulse" />
-              ))}
-            </div>
-          )}
-        </div>
+          <div className="flex justify-end">
+            <Button type="submit" disabled={saving}>
+              <Save
+                className={`w-4 h-4 mr-2 ${saving ? "animate-spin" : ""}`}
+              />
+              {saving ? t("common.saving") : t("common.save")}
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );
-} 
+}

@@ -57,6 +57,7 @@ var ErrorMapping = map[string]string{
 	"task not found or access denied":                                                 "task.not_found",
 	"failed to check conversation status":                                             "taskConversation.get_failed",
 	"cannot create new conversation while there are pending or running conversations": "taskConversation.create_failed",
+	"cannot create conversation for completed or cancelled task":                      "taskConversation.task_completed",
 	"conversation content cannot be empty":                                            "validation.required",
 	"cannot delete conversation while it is running":                                  "taskConversation.delete_failed",
 	"failed to get latest conversation":                                               "taskConversation.get_failed",
