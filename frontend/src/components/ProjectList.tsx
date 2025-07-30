@@ -218,11 +218,6 @@ export const ProjectList = forwardRef<ProjectListRef, ProjectListProps>(
                     ? t("projects.messages.noMatchingProjects")
                     : t("projects.messages.noProjects")}
                 </h3>
-                <p className="text-muted-foreground mb-4">
-                  {localFilters.name
-                    ? t("projects.messages.clearFilter")
-                    : t("projects.messages.noProjectsDesc")}
-                </p>
                 {localFilters.name ? (
                   <Button variant="outline" onClick={resetFilters}>
                     {t("projects.messages.clearFilter")}
@@ -243,7 +238,9 @@ export const ProjectList = forwardRef<ProjectListRef, ProjectListProps>(
                       <TableHead>{t("projects.name")}</TableHead>
                       <TableHead>{t("projects.repoUrl")}</TableHead>
                       <TableHead>{t("projects.credential")}</TableHead>
-                      <TableHead className="text-center">{t("projects.taskCount")}</TableHead>
+                      <TableHead className="text-center">
+                        {t("projects.taskCount")}
+                      </TableHead>
                       <TableHead className="text-right">
                         {t("common.actions")}
                       </TableHead>
@@ -280,7 +277,9 @@ export const ProjectList = forwardRef<ProjectListRef, ProjectListProps>(
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => navigate(ROUTES.projectTasks(project.id))}
+                            onClick={() =>
+                              navigate(ROUTES.projectTasks(project.id))
+                            }
                             className="inline-flex items-center justify-center min-w-[2rem] h-6 px-2 text-xs font-medium bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 transition-colors"
                           >
                             {project.task_count ?? 0}

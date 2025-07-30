@@ -7,10 +7,10 @@
     "description": "开始创建您的第一个任务吧"
   },
   "actions": {
-    "create": "创建任务",
-    "edit": "编辑任务",
-    "delete": "删除任务",
-    "view": "查看任务",
+    "create": "创建",
+    "edit": "编辑",
+    "delete": "删除",
+    "view": "查看",
     "viewConversation": "查看对话",
     "viewGitDiff": "查看Git变动",
     "batchUpdateStatus": "批量修改状态",

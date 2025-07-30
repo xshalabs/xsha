@@ -53,7 +53,9 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const [environmentTypes, setEnvironmentTypes] = useState<EnvironmentTypeOption[]>([]);
+  const [environmentTypes, setEnvironmentTypes] = useState<
+    EnvironmentTypeOption[]
+  >([]);
   const [loadingTypes, setLoadingTypes] = useState(true);
 
   const [formData, setFormData] = useState({
@@ -86,10 +88,10 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
           image: type.image,
         }));
         setEnvironmentTypes(types);
-        
+
         // If this is a create form and there are types available, set the first one as default
         if (mode === "create" && types.length > 0) {
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
             type: types[0].value as DevEnvironmentType,
           }));
@@ -97,12 +99,14 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
       } catch (error: any) {
         toast.error(error.message || t("dev_environments.load_types_failed"));
         // Fallback to default Claude Code type
-        setEnvironmentTypes([{
-          value: "claude-code", // 使用新的 key 格式
-          label: "Claude Code",
-          description: "Docker Image: claude-code:latest",
-          image: "claude-code:latest",
-        }]);
+        setEnvironmentTypes([
+          {
+            value: "claude-code", // 使用新的 key 格式
+            label: "Claude Code",
+            description: "Docker Image: claude-code:latest",
+            image: "claude-code:latest",
+          },
+        ]);
       } finally {
         setLoadingTypes(false);
       }
@@ -327,11 +331,6 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                   ))}
                 </SelectContent>
               </Select>
-              {mode === "edit" && (
-                <p className="text-xs text-muted-foreground">
-                  {t("dev_environments.form.type_readonly")}
-                </p>
-              )}
             </div>
           </div>
 

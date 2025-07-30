@@ -7,10 +7,10 @@
     "description": "Create your first task to get started"
   },
   "actions": {
-    "create": "Create Task",
-    "edit": "Edit Task",
-    "delete": "Delete Task",
-    "view": "View Task",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
     "viewConversation": "View Conversation",
     "viewGitDiff": "View Git Diff",
     "batchUpdateStatus": "Batch Update Status",
@@ -136,12 +136,12 @@
     "management": "Task Management",
     "conversations": "Task Conversations"
   },
-  "create": "Create Task",
-  "edit": "Edit Task", 
+  "create": "Create",
+  "edit": "Edit",
   "conversation": "Task Conversations",
   "conversation_git_diff": "Conversation Git Changes",
   "no_commit_hash": "No Commit Hash",
   "no_commit_hash_desc": "This conversation has no associated commit hash",
   "create_description": "Create a new development task",
   "edit_description": "Edit task information"
-} 
+}
