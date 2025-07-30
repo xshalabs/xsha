@@ -3,6 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useTranslation } from "react-i18next";
 import {
   Send,
@@ -55,6 +63,8 @@ export function TaskConversation({
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -119,19 +129,30 @@ export function TaskConversation({
     }
   };
 
-  const handleDeleteConversation = async (conversationId: number) => {
+  const handleDeleteConversation = (conversationId: number) => {
     if (!onDeleteConversation) return;
+    setConversationToDelete(conversationId);
+    setDeleteDialogOpen(true);
+  };
 
-    if (window.confirm(t("taskConversation.deleteConfirm"))) {
-      try {
-        setDeletingId(conversationId);
-        await onDeleteConversation(conversationId);
-      } catch (error) {
-        console.error("Failed to delete conversation:", error);
-      } finally {
-        setDeletingId(null);
-      }
+  const handleConfirmDelete = async () => {
+    if (!onDeleteConversation || !conversationToDelete) return;
+
+    try {
+      setDeletingId(conversationToDelete);
+      await onDeleteConversation(conversationToDelete);
+    } catch (error) {
+      console.error("Failed to delete conversation:", error);
+    } finally {
+      setDeletingId(null);
+      setDeleteDialogOpen(false);
+      setConversationToDelete(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setConversationToDelete(null);
   };
 
   const formatTime = (dateString: string) => {
@@ -350,6 +371,36 @@ export function TaskConversation({
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-foreground">
+              {t("taskConversation.delete_confirm_title")}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {t("taskConversation.deleteConfirm")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="text-foreground hover:text-foreground"
+              onClick={handleCancelDelete}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              className="text-foreground"
+              onClick={handleConfirmDelete}
+              disabled={deletingId === conversationToDelete}
+            >
+              {t("common.confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

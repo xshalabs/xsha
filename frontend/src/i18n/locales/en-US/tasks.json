@@ -91,6 +91,8 @@
     "updateFailed": "Failed to update task",
     "deleteSuccess": "Task deleted successfully",
     "deleteFailed": "Failed to delete task",
+    "deleteConfirm": "Are you sure you want to delete the task \"{{title}}\"? This action cannot be undone.",
+    "delete_confirm_title": "Delete Task",
     "batchUpdateSuccess": "Batch update successful",
     "batchUpdateFailed": "Batch update failed",
     "push_success": "Branch pushed successfully",

@@ -4,6 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { GitCredentialList } from "@/components/GitCredentialList";
 import { toast } from "sonner";
 import { apiService } from "@/lib/api/index";
@@ -25,6 +33,8 @@ const GitCredentialListPage: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [typeFilter, setTypeFilter] = useState<GitCredentialType | undefined>();
   const [error, setError] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [credentialToDelete, setCredentialToDelete] = useState<number | null>(null);
 
   const pageSize = 10;
 
@@ -64,18 +74,31 @@ const GitCredentialListPage: React.FC = () => {
     navigate(`/git-credentials/${credential.id}/edit`);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm(t("gitCredentials.messages.deleteConfirm"))) return;
+  const handleDelete = (id: number) => {
+    setCredentialToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!credentialToDelete) return;
 
     try {
-      await apiService.gitCredentials.delete(id);
+      await apiService.gitCredentials.delete(credentialToDelete);
       toast.success(t("gitCredentials.messages.deleteSuccess"));
-      loadCredentials();
+      await loadCredentials();
     } catch (err: any) {
       const errorMessage = err.message || t("gitCredentials.messages.deleteFailed");
       setError(errorMessage);
       toast.error(errorMessage);
+    } finally {
+      setDeleteDialogOpen(false);
+      setCredentialToDelete(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setCredentialToDelete(null);
   };
 
   const handlePageChange = (page: number) => {
@@ -138,6 +161,35 @@ const GitCredentialListPage: React.FC = () => {
           onRefresh={handleRefresh}
         />
       </div>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-foreground">
+              {t("gitCredentials.messages.delete_confirm_title")}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {t("gitCredentials.messages.deleteConfirm")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="text-foreground hover:text-foreground"
+              onClick={handleCancelDelete}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              className="text-foreground"
+              onClick={handleConfirmDelete}
+            >
+              {t("common.confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

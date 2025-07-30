@@ -131,6 +131,10 @@ export function TaskList({
   const [showBatchStatusDialog, setShowBatchStatusDialog] = useState(false);
   const [batchTargetStatus, setBatchTargetStatus] =
     useState<TaskStatus>("todo");
+  
+  // 删除确认对话框状态
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
 
   const [localFilters, setLocalFilters] = useState({
     status: statusFilter,
@@ -274,9 +278,21 @@ export function TaskList({
   };
 
   const handleDeleteClick = (task: Task) => {
-    if (confirm(t("tasks.messages.deleteConfirm", { title: task.title }))) {
-      onDelete(task.id);
+    setTaskToDelete(task);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (taskToDelete) {
+      onDelete(taskToDelete.id);
+      setDeleteDialogOpen(false);
+      setTaskToDelete(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setTaskToDelete(null);
   };
 
   const handleRefresh = () => {
@@ -745,6 +761,35 @@ export function TaskList({
               {t("common.cancel")}
             </Button>
             <Button onClick={confirmBatchUpdateStatus}>
+              {t("common.confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-foreground">
+              {t("tasks.messages.delete_confirm_title")}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {t("tasks.messages.deleteConfirm", { title: taskToDelete?.title || "" })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="text-foreground hover:text-foreground"
+              onClick={handleCancelDelete}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              className="text-foreground"
+              onClick={handleConfirmDelete}
+            >
               {t("common.confirm")}
             </Button>
           </DialogFooter>

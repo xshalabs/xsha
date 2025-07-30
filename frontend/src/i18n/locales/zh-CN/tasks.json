@@ -90,6 +90,8 @@
     "updateFailed": "任务更新失败",
     "deleteSuccess": "任务删除成功",
     "deleteFailed": "任务删除失败",
+    "deleteConfirm": "确定要删除任务\"{{title}}\"吗？此操作不可撤销。",
+    "delete_confirm_title": "删除任务",
     "batchUpdateSuccess": "批量状态更新成功：{{success}}个成功，{{failed}}个失败",
     "batchUpdateFailed": "批量状态更新失败",
     "push_success": "分支推送成功",

@@ -11,6 +11,7 @@
   "taskCompletedMessage": "已完成或已取消的任务无法发送新对话",
   "hasPendingMessage": "有待处理或运行中的对话时无法发送新消息",
   "deleteConfirm": "确定要删除这个对话吗？此操作不可撤销。",
+  "delete_confirm_title": "删除对话",
   "message": "消息",
   "latest": "最新",
   "selectTask": "请选择一个任务来查看对话",
