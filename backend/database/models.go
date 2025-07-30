@@ -176,6 +176,7 @@ type Task struct {
 
 	Title       string `gorm:"not null" json:"title"`
 	StartBranch string `gorm:"default:'main'" json:"start_branch"`
+	WorkBranch  string `gorm:"not null;default:''" json:"work_branch"`
 
 	Status         TaskStatus `gorm:"not null;index" json:"status"`
 	HasPullRequest bool       `gorm:"default:false" json:"has_pull_request"`

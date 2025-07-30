@@ -4,6 +4,7 @@ export interface Task {
   id: number;
   title: string;
   start_branch: string;
+  work_branch: string;
   status: TaskStatus;
   has_pull_request: boolean;
   workspace_path: string;

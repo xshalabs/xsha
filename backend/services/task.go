@@ -2,7 +2,9 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"strings"
+	"time"
 	"xsha-backend/database"
 	"xsha-backend/repository"
 	"xsha-backend/utils"
@@ -47,10 +49,14 @@ func (s *taskService) CreateTask(title, startBranch, createdBy string, projectID
 		}
 	}
 
+	// 生成工作分支名称
+	workBranch := s.generateWorkBranchName(title, createdBy)
+
 	// 创建任务
 	task := &database.Task{
 		Title:            strings.TrimSpace(title),
 		StartBranch:      strings.TrimSpace(startBranch),
+		WorkBranch:       workBranch,
 		Status:           database.TaskStatusTodo,
 		ProjectID:        projectID,
 		DevEnvironmentID: devEnvironmentID,
@@ -65,6 +71,44 @@ func (s *taskService) CreateTask(title, startBranch, createdBy string, projectID
 	task.Project = project
 	task.DevEnvironment = devEnv
 	return task, nil
+}
+
+// generateWorkBranchName 生成工作分支名称
+func (s *taskService) generateWorkBranchName(title, createdBy string) string {
+	// 清理标题，只保留字母数字和连字符
+	cleanTitle := strings.ToLower(strings.TrimSpace(title))
+
+	// 替换空格和特殊字符为连字符
+	cleanTitle = strings.ReplaceAll(cleanTitle, " ", "-")
+	cleanTitle = strings.ReplaceAll(cleanTitle, "_", "-")
+
+	// 移除非字母数字和连字符的字符
+	var result strings.Builder
+	for _, r := range cleanTitle {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
+			result.WriteRune(r)
+		}
+	}
+	cleanTitle = result.String()
+
+	// 限制长度
+	if len(cleanTitle) > 30 {
+		cleanTitle = cleanTitle[:30]
+	}
+
+	// 去掉开头和结尾的连字符
+	cleanTitle = strings.Trim(cleanTitle, "-")
+
+	// 如果清理后为空，使用默认前缀
+	if cleanTitle == "" {
+		cleanTitle = "task"
+	}
+
+	// 生成时间戳
+	timestamp := time.Now().Format("20060102-150405")
+
+	// 组合分支名: feature/{user}/{clean-title}-{timestamp}
+	return fmt.Sprintf("feature/%s/%s-%s", createdBy, cleanTitle, timestamp)
 }
 
 // GetTask 获取任务

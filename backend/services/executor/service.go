@@ -3,6 +3,7 @@ package executor
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 	"xsha-backend/config"
@@ -425,7 +426,43 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		}
 	}
 
-	// 3. 构建并执行Docker命令
+	// 检查是否被取消
+	select {
+	case <-ctx.Done():
+		finalStatus = database.ConversationStatusCancelled
+		errorMsg = "任务被取消"
+		return
+	default:
+	}
+
+	// 3. 处理工作分支（为已存在的任务生成工作分支）
+	workBranch := conv.Task.WorkBranch
+	if workBranch == "" {
+		// 为已存在的任务生成工作分支名称
+		workBranch = s.generateWorkBranchName(conv.Task.Title, conv.Task.CreatedBy)
+
+		// 更新任务的工作分支字段
+		conv.Task.WorkBranch = workBranch
+		if updateErr := s.taskRepo.Update(conv.Task); updateErr != nil {
+			utils.Error("更新任务工作分支失败", "taskID", conv.Task.ID, "error", updateErr)
+			// 继续执行，不因为更新失败而中断任务
+		} else {
+			utils.Info("为已存在任务生成工作分支", "taskID", conv.Task.ID, "workBranch", workBranch)
+		}
+	}
+
+	// 4. 创建并切换到工作分支
+	if err := s.workspaceManager.CreateAndSwitchToBranch(
+		workspacePath,
+		workBranch,
+		conv.Task.StartBranch,
+	); err != nil {
+		finalStatus = database.ConversationStatusFailed
+		errorMsg = fmt.Sprintf("创建或切换到工作分支失败: %v", err)
+		return
+	}
+
+	// 5. 构建并执行Docker命令
 	dockerCmd := s.dockerExecutor.BuildCommand(conv, workspacePath)
 	// 构建用于记录的安全版本（环境变量值已打码）
 	dockerCmdForLog := s.dockerExecutor.BuildCommandForLog(conv, workspacePath)
@@ -448,7 +485,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		return
 	}
 
-	// 4. 提交更改
+	// 5. 提交更改
 	hash, err := s.workspaceManager.CommitChanges(workspacePath, fmt.Sprintf("AI generated changes for conversation %d", conv.ID))
 	if err != nil {
 		// 不设为失败，因为任务可能已经成功执行
@@ -488,6 +525,44 @@ func (s *aiTaskExecutorService) prepareGitCredential(project *database.Project) 
 	}
 
 	return credential, nil
+}
+
+// generateWorkBranchName 生成工作分支名称（与 task service 中的逻辑保持一致）
+func (s *aiTaskExecutorService) generateWorkBranchName(title, createdBy string) string {
+	// 清理标题，只保留字母数字和连字符
+	cleanTitle := strings.ToLower(strings.TrimSpace(title))
+
+	// 替换空格和特殊字符为连字符
+	cleanTitle = strings.ReplaceAll(cleanTitle, " ", "-")
+	cleanTitle = strings.ReplaceAll(cleanTitle, "_", "-")
+
+	// 移除非字母数字和连字符的字符
+	var result strings.Builder
+	for _, r := range cleanTitle {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
+			result.WriteRune(r)
+		}
+	}
+	cleanTitle = result.String()
+
+	// 限制长度
+	if len(cleanTitle) > 30 {
+		cleanTitle = cleanTitle[:30]
+	}
+
+	// 去掉开头和结尾的连字符
+	cleanTitle = strings.Trim(cleanTitle, "-")
+
+	// 如果清理后为空，使用默认前缀
+	if cleanTitle == "" {
+		cleanTitle = "task"
+	}
+
+	// 生成时间戳
+	timestamp := time.Now().Format("20060102-150405")
+
+	// 组合分支名: feature/{user}/{clean-title}-{timestamp}
+	return fmt.Sprintf("xsha/%s/%s-%s", createdBy, cleanTitle, timestamp)
 }
 
 // CleanupWorkspaceOnFailure 在任务执行失败时清理工作空间

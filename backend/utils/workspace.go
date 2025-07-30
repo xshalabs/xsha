@@ -383,3 +383,171 @@ func (w *WorkspaceManager) CheckWorkspaceIsDirty(workspacePath string) (bool, er
 	// 如果有输出，说明有未提交的更改
 	return len(strings.TrimSpace(string(output))) > 0, nil
 }
+
+// CreateAndSwitchToBranch 创建新分支并切换到该分支
+func (w *WorkspaceManager) CreateAndSwitchToBranch(workspacePath, branchName, baseBranch string) error {
+	if workspacePath == "" {
+		return fmt.Errorf("工作空间路径不能为空")
+	}
+
+	if branchName == "" {
+		return fmt.Errorf("分支名不能为空")
+	}
+
+	if baseBranch == "" {
+		baseBranch = "main" // 默认基于 main 分支
+	}
+
+	// 检查工作空间是否存在
+	if !w.CheckWorkspaceExists(workspacePath) {
+		return fmt.Errorf("工作空间不存在: %s", workspacePath)
+	}
+
+	// 检查是否为 Git 仓库
+	if !w.CheckGitRepositoryExists(workspacePath) {
+		return fmt.Errorf("不是Git仓库: %s", workspacePath)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	// 1. 确保在基础分支上
+	switchCmd := exec.CommandContext(ctx, "git", "checkout", baseBranch)
+	switchCmd.Dir = workspacePath
+	if err := switchCmd.Run(); err != nil {
+		return fmt.Errorf("切换到基础分支 %s 失败: %v", baseBranch, err)
+	}
+
+	// 2. 拉取最新代码
+	pullCmd := exec.CommandContext(ctx, "git", "pull", "origin", baseBranch)
+	pullCmd.Dir = workspacePath
+	if err := pullCmd.Run(); err != nil {
+		// 忽略拉取错误，可能是没有远程分支或网络问题
+		Warn("拉取最新代码失败", "workspace", workspacePath, "baseBranch", baseBranch, "error", err)
+	}
+
+	// 3. 检查分支是否已存在
+	exists, err := w.CheckBranchExists(workspacePath, branchName)
+	if err != nil {
+		return fmt.Errorf("检查分支是否存在失败: %v", err)
+	}
+
+	if exists {
+		// 分支已存在，直接切换
+		switchExistingCmd := exec.CommandContext(ctx, "git", "checkout", branchName)
+		switchExistingCmd.Dir = workspacePath
+		if err := switchExistingCmd.Run(); err != nil {
+			return fmt.Errorf("切换到已存在的分支 %s 失败: %v", branchName, err)
+		}
+		Info("切换到已存在的工作分支", "workspace", workspacePath, "branch", branchName)
+	} else {
+		// 分支不存在，创建新分支并切换
+		createCmd := exec.CommandContext(ctx, "git", "checkout", "-b", branchName)
+		createCmd.Dir = workspacePath
+		if err := createCmd.Run(); err != nil {
+			return fmt.Errorf("创建并切换到分支 %s 失败: %v", branchName, err)
+		}
+		Info("创建并切换到新工作分支", "workspace", workspacePath, "branch", branchName, "baseBranch", baseBranch)
+	}
+
+	return nil
+}
+
+// SwitchBranch 切换到指定分支
+func (w *WorkspaceManager) SwitchBranch(workspacePath, branchName string) error {
+	if workspacePath == "" {
+		return fmt.Errorf("工作空间路径不能为空")
+	}
+
+	if branchName == "" {
+		return fmt.Errorf("分支名不能为空")
+	}
+
+	// 检查工作空间是否存在
+	if !w.CheckWorkspaceExists(workspacePath) {
+		return fmt.Errorf("工作空间不存在: %s", workspacePath)
+	}
+
+	// 检查是否为 Git 仓库
+	if !w.CheckGitRepositoryExists(workspacePath) {
+		return fmt.Errorf("不是Git仓库: %s", workspacePath)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+
+	// 切换分支
+	switchCmd := exec.CommandContext(ctx, "git", "checkout", branchName)
+	switchCmd.Dir = workspacePath
+	if err := switchCmd.Run(); err != nil {
+		return fmt.Errorf("切换到分支 %s 失败: %v", branchName, err)
+	}
+
+	Info("成功切换分支", "workspace", workspacePath, "branch", branchName)
+	return nil
+}
+
+// CheckBranchExists 检查分支是否存在（本地分支）
+func (w *WorkspaceManager) CheckBranchExists(workspacePath, branchName string) (bool, error) {
+	if workspacePath == "" {
+		return false, fmt.Errorf("工作空间路径不能为空")
+	}
+
+	if branchName == "" {
+		return false, fmt.Errorf("分支名不能为空")
+	}
+
+	// 检查工作空间是否存在
+	if !w.CheckWorkspaceExists(workspacePath) {
+		return false, fmt.Errorf("工作空间不存在: %s", workspacePath)
+	}
+
+	// 检查是否为 Git 仓库
+	if !w.CheckGitRepositoryExists(workspacePath) {
+		return false, fmt.Errorf("不是Git仓库: %s", workspacePath)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// 检查本地分支是否存在
+	branchCmd := exec.CommandContext(ctx, "git", "branch", "--list", branchName)
+	branchCmd.Dir = workspacePath
+	output, err := branchCmd.Output()
+	if err != nil {
+		return false, fmt.Errorf("检查分支失败: %v", err)
+	}
+
+	// 如果输出不为空，说明分支存在
+	return len(strings.TrimSpace(string(output))) > 0, nil
+}
+
+// GetCurrentBranch 获取当前分支名
+func (w *WorkspaceManager) GetCurrentBranch(workspacePath string) (string, error) {
+	if workspacePath == "" {
+		return "", fmt.Errorf("工作空间路径不能为空")
+	}
+
+	// 检查工作空间是否存在
+	if !w.CheckWorkspaceExists(workspacePath) {
+		return "", fmt.Errorf("工作空间不存在: %s", workspacePath)
+	}
+
+	// 检查是否为 Git 仓库
+	if !w.CheckGitRepositoryExists(workspacePath) {
+		return "", fmt.Errorf("不是Git仓库: %s", workspacePath)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// 获取当前分支名
+	branchCmd := exec.CommandContext(ctx, "git", "branch", "--show-current")
+	branchCmd.Dir = workspacePath
+	output, err := branchCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("获取当前分支失败: %v", err)
+	}
+
+	return strings.TrimSpace(string(output)), nil
+}
