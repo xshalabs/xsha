@@ -14,20 +14,20 @@ type TaskExecutionLogHandlers struct {
 	aiTaskExecutor services.AITaskExecutorService
 }
 
-// NewTaskExecutionLogHandlers 创建任务执行日志处理器
+// NewTaskExecutionLogHandlers creates task execution log handler
 func NewTaskExecutionLogHandlers(aiTaskExecutor services.AITaskExecutorService) *TaskExecutionLogHandlers {
 	return &TaskExecutionLogHandlers{
 		aiTaskExecutor: aiTaskExecutor,
 	}
 }
 
-// GetExecutionLog 获取执行日志
-// @Summary 获取任务对话的执行日志
-// @Description 根据对话ID获取AI任务执行的详细日志
-// @Tags 任务执行日志
+// GetExecutionLog gets execution log
+// @Summary Get task conversation execution log
+// @Description Get detailed execution log of AI task by conversation ID
+// @Tags Task Execution Log
 // @Accept json
 // @Produce json
-// @Param conversationId path int true "对话ID"
+// @Param conversationId path int true "Conversation ID"
 // @Success 200 {object} database.TaskExecutionLog
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -53,13 +53,13 @@ func (h *TaskExecutionLogHandlers) GetExecutionLog(c *gin.Context) {
 	c.JSON(http.StatusOK, log)
 }
 
-// CancelExecution 取消任务执行
-// @Summary 取消任务执行
-// @Description 取消正在执行或待执行的AI任务
-// @Tags 任务执行日志
+// CancelExecution cancels task execution
+// @Summary Cancel task execution
+// @Description Cancel AI task that is executing or pending
+// @Tags Task Execution Log
 // @Accept json
 // @Produce json
-// @Param conversationId path int true "对话ID"
+// @Param conversationId path int true "Conversation ID"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string

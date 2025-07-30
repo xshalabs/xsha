@@ -163,7 +163,7 @@ func (h *TaskConversationResultHandlers) ListResultsByProjectID(c *gin.Context) 
 	})
 }
 
-// UpdateResult 更新结果
+// UpdateResult updates result
 func (h *TaskConversationResultHandlers) UpdateResult(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -180,7 +180,7 @@ func (h *TaskConversationResultHandlers) UpdateResult(c *gin.Context) {
 		return
 	}
 
-	// 更新结果
+	// Update result
 	err = h.resultService.UpdateResult(uint(id), req.Updates)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
@@ -192,7 +192,7 @@ func (h *TaskConversationResultHandlers) UpdateResult(c *gin.Context) {
 	})
 }
 
-// DeleteResult 删除结果
+// DeleteResult deletes result
 func (h *TaskConversationResultHandlers) DeleteResult(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -203,7 +203,7 @@ func (h *TaskConversationResultHandlers) DeleteResult(c *gin.Context) {
 		return
 	}
 
-	// 删除结果
+	// Delete result
 	err = h.resultService.DeleteResult(uint(id))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
@@ -215,7 +215,7 @@ func (h *TaskConversationResultHandlers) DeleteResult(c *gin.Context) {
 	})
 }
 
-// GetTaskStats 获取任务统计信息
+// GetTaskStats gets task statistics
 func (h *TaskConversationResultHandlers) GetTaskStats(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -226,7 +226,7 @@ func (h *TaskConversationResultHandlers) GetTaskStats(c *gin.Context) {
 		return
 	}
 
-	// 获取统计信息
+	// Get statistics
 	stats, err := h.resultService.GetTaskStats(uint(taskID))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
@@ -239,7 +239,7 @@ func (h *TaskConversationResultHandlers) GetTaskStats(c *gin.Context) {
 	})
 }
 
-// GetProjectStats 获取项目统计信息
+// GetProjectStats gets project statistics
 func (h *TaskConversationResultHandlers) GetProjectStats(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -250,7 +250,7 @@ func (h *TaskConversationResultHandlers) GetProjectStats(c *gin.Context) {
 		return
 	}
 
-	// 获取统计信息
+	// Get statistics
 	stats, err := h.resultService.GetProjectStats(uint(projectID))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
