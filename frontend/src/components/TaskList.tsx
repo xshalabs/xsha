@@ -489,13 +489,6 @@ export function TaskList({
                         count: selectedTaskIds.length,
                       })}
                     </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedTaskIds([])}
-                    >
-                      {t("tasks.batch.cancelAll")}
-                    </Button>
                   </div>
                   <Button
                     variant="default"
@@ -517,7 +510,9 @@ export function TaskList({
                           selectedTaskIds.length === tasks.length &&
                           tasks.length > 0
                         }
-                        onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
+                        onCheckedChange={(checked) =>
+                          handleSelectAll(checked as boolean)
+                        }
                       />
                     </TableHead>
                     <TableHead>{t("tasks.table.title")}</TableHead>
