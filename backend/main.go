@@ -73,7 +73,12 @@ func main() {
 	systemConfigRepo := repository.NewSystemConfigRepository(dbManager.GetDB())
 
 	// Initialize workspace manager
-	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir)
+	gitCloneTimeout, err := time.ParseDuration(cfg.GitCloneTimeout)
+	if err != nil {
+		utils.Warn("Failed to parse git clone timeout, using default 5 minutes", "timeout", cfg.GitCloneTimeout, "error", err)
+		gitCloneTimeout = 5 * time.Minute
+	}
+	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir, gitCloneTimeout)
 
 	// Initialize services
 	loginLogService := services.NewLoginLogService(loginLogRepo)

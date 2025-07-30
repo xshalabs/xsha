@@ -12,31 +12,29 @@ import (
 	"time"
 )
 
-// WorkspaceManager 工作目录管理器
 type WorkspaceManager struct {
-	baseDir string
+	baseDir         string
+	gitCloneTimeout time.Duration
 }
 
-// NewWorkspaceManager 创建工作目录管理器
-func NewWorkspaceManager(baseDir string) *WorkspaceManager {
+func NewWorkspaceManager(baseDir string, gitCloneTimeout time.Duration) *WorkspaceManager {
 	if baseDir == "" {
 		baseDir = "/tmp/xsha-workspaces"
 	}
-	return &WorkspaceManager{baseDir: baseDir}
+	if gitCloneTimeout == 0 {
+		gitCloneTimeout = 5 * time.Minute
+	}
+	return &WorkspaceManager{baseDir: baseDir, gitCloneTimeout: gitCloneTimeout}
 }
 
-// CreateTaskWorkspace 创建任务级工作目录
 func (w *WorkspaceManager) CreateTaskWorkspace(taskID uint) (string, error) {
-	// 创建基础目录
 	if err := os.MkdirAll(w.baseDir, 0755); err != nil {
 		return "", fmt.Errorf("创建基础目录失败: %v", err)
 	}
 
-	// 生成任务工作目录名
 	dirName := fmt.Sprintf("task-%d-%d", taskID, time.Now().Unix())
 	workspacePath := filepath.Join(w.baseDir, dirName)
 
-	// 创建工作目录
 	if err := os.MkdirAll(workspacePath, 0755); err != nil {
 		return "", fmt.Errorf("创建工作目录失败: %v", err)
 	}
@@ -44,18 +42,14 @@ func (w *WorkspaceManager) CreateTaskWorkspace(taskID uint) (string, error) {
 	return workspacePath, nil
 }
 
-// GetOrCreateTaskWorkspace 获取或创建任务工作目录
 func (w *WorkspaceManager) GetOrCreateTaskWorkspace(taskID uint, existingPath string) (string, error) {
-	// 如果已有工作空间路径且目录存在，直接返回
 	if existingPath != "" && w.CheckWorkspaceExists(existingPath) {
 		return existingPath, nil
 	}
 
-	// 否则创建新的工作空间
 	return w.CreateTaskWorkspace(taskID)
 }
 
-// CleanupTaskWorkspace 清理任务工作目录
 func (w *WorkspaceManager) CleanupTaskWorkspace(workspacePath string) error {
 	if workspacePath == "" {
 		return nil
@@ -63,26 +57,22 @@ func (w *WorkspaceManager) CleanupTaskWorkspace(workspacePath string) error {
 	return os.RemoveAll(workspacePath)
 }
 
-// CloneRepositoryWithConfig 克隆仓库到工作目录（带配置）
 func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, branch string, credential *GitCredentialInfo, sslVerify bool) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), w.gitCloneTimeout)
 	defer cancel()
 
 	var cmd *exec.Cmd
 	var envVars []string
 
-	// 设置基础环境变量，禁用交互式输入
 	baseEnv := w.createNonInteractiveGitEnv()
 
 	if credential != nil {
-		// 验证凭据
 		if err := w.validateCredential(credential); err != nil {
 			return fmt.Errorf("凭据验证失败: %v", err)
 		}
 
 		switch credential.Type {
 		case GitCredentialTypePassword, GitCredentialTypeToken:
-			// HTTPS 认证
 			authenticatedURL, err := w.buildAuthenticatedURL(repoURL, credential)
 			if err != nil {
 				return err
@@ -91,7 +81,6 @@ func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, bra
 			cmd.Env = baseEnv
 
 		case GitCredentialTypeSSHKey:
-			// SSH 认证
 			keyFile := filepath.Join(workspacePath, ".ssh_key")
 			if err := ioutil.WriteFile(keyFile, []byte(credential.PrivateKey), 0600); err != nil {
 				return fmt.Errorf("创建SSH密钥文件失败: %v", err)
@@ -105,142 +94,123 @@ func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, bra
 			cmd.Env = envVars
 		}
 	} else {
-		// 无认证
 		cmd = exec.CommandContext(ctx, "git", "clone", "-b", branch, repoURL, workspacePath)
 		cmd.Env = baseEnv
 	}
 
-	// 根据配置决定是否禁用SSL验证
 	if !sslVerify {
 		cmd.Env = append(cmd.Env, "GIT_SSL_NO_VERIFY=true")
 	}
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("克隆仓库失败: %v", err)
+		return fmt.Errorf("clone repository failed: %v", err)
 	}
 
 	return nil
 }
 
-// CloneRepository 克隆仓库到工作目录（保持向后兼容）
 func (w *WorkspaceManager) CloneRepository(workspacePath, repoURL, branch string, credential *GitCredentialInfo) error {
-	// 默认禁用SSL验证以解决兼容性问题
 	return w.CloneRepositoryWithConfig(workspacePath, repoURL, branch, credential, false)
 }
 
-// CommitChanges 提交更改并返回commit hash
 func (w *WorkspaceManager) CommitChanges(workspacePath, message string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	// 配置Git用户信息（临时）
 	configCmd1 := exec.CommandContext(ctx, "git", "config", "user.name", "XSHA AI")
 	configCmd1.Dir = workspacePath
 	if err := configCmd1.Run(); err != nil {
-		return "", fmt.Errorf("配置Git用户名失败: %v", err)
+		return "", fmt.Errorf("failed to configure git user name: %v", err)
 	}
 
 	configCmd2 := exec.CommandContext(ctx, "git", "config", "user.email", "ai@xsha.dev")
 	configCmd2.Dir = workspacePath
 	if err := configCmd2.Run(); err != nil {
-		return "", fmt.Errorf("配置Git邮箱失败: %v", err)
+		return "", fmt.Errorf("failed to configure git email: %v", err)
 	}
 
-	// 添加所有更改
 	addCmd := exec.CommandContext(ctx, "git", "add", ".")
 	addCmd.Dir = workspacePath
 	if err := addCmd.Run(); err != nil {
-		return "", fmt.Errorf("添加更改失败: %v", err)
+		return "", fmt.Errorf("failed to add changes: %v", err)
 	}
 
-	// 检查是否有更改需要提交
 	statusCmd := exec.CommandContext(ctx, "git", "status", "--porcelain")
 	statusCmd.Dir = workspacePath
 	statusOutput, err := statusCmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("检查Git状态失败: %v", err)
+		return "", fmt.Errorf("failed to check git status: %v", err)
 	}
 
 	if len(strings.TrimSpace(string(statusOutput))) == 0 {
-		return "", fmt.Errorf("没有更改需要提交")
+		return "", fmt.Errorf("no changes to commit")
 	}
 
-	// 提交更改
 	commitCmd := exec.CommandContext(ctx, "git", "commit", "-m", message)
 	commitCmd.Dir = workspacePath
 	if err := commitCmd.Run(); err != nil {
-		return "", fmt.Errorf("提交更改失败: %v", err)
+		return "", fmt.Errorf("failed to commit changes: %v", err)
 	}
 
-	// 获取commit hash
 	hashCmd := exec.CommandContext(ctx, "git", "rev-parse", "HEAD")
 	hashCmd.Dir = workspacePath
 	output, err := hashCmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("获取commit hash失败: %v", err)
+		return "", fmt.Errorf("failed to get commit hash: %v", err)
 	}
 
 	return strings.TrimSpace(string(output)), nil
 }
 
-// buildAuthenticatedURL 构建带认证信息的URL
 func (w *WorkspaceManager) buildAuthenticatedURL(repoURL string, credential *GitCredentialInfo) (string, error) {
 	parsedURL, err := url.Parse(repoURL)
 	if err != nil {
-		return "", fmt.Errorf("解析URL失败: %v", err)
+		return "", fmt.Errorf("failed to parse url: %v", err)
 	}
 
-	// 确保是HTTPS协议
 	if parsedURL.Scheme != "https" && parsedURL.Scheme != "http" {
-		return "", fmt.Errorf("URL协议必须是 HTTP 或 HTTPS: %s", parsedURL.Scheme)
+		return "", fmt.Errorf("url scheme must be http or https: %s", parsedURL.Scheme)
 	}
 
 	switch credential.Type {
 	case GitCredentialTypePassword:
 		if credential.Password == "" {
-			return "", fmt.Errorf("密码不能为空")
+			return "", fmt.Errorf("password cannot be empty")
 		}
 		if credential.Username == "" {
-			return "", fmt.Errorf("用户名不能为空")
+			return "", fmt.Errorf("username cannot be empty")
 		}
 		parsedURL.User = url.UserPassword(credential.Username, credential.Password)
 
 	case GitCredentialTypeToken:
 		if credential.Password == "" {
-			return "", fmt.Errorf("Token不能为空")
+			return "", fmt.Errorf("token cannot be empty")
 		}
 
-		// 根据Git平台设置不同的认证格式
 		host := strings.ToLower(parsedURL.Host)
 		switch {
 		case strings.Contains(host, "github.com") || strings.Contains(host, "github"):
-			// GitHub: token作为用户名，密码为空或x-oauth-basic
 			parsedURL.User = url.UserPassword(credential.Password, "x-oauth-basic")
 		case strings.Contains(host, "gitlab.com") || strings.Contains(host, "gitlab"):
-			// GitLab: oauth2作为用户名，token作为密码
 			parsedURL.User = url.UserPassword("oauth2", credential.Password)
 		case strings.Contains(host, "bitbucket.org") || strings.Contains(host, "bitbucket"):
-			// Bitbucket: x-token-auth作为用户名，token作为密码
 			parsedURL.User = url.UserPassword("x-token-auth", credential.Password)
 		case strings.Contains(host, "dev.azure.com") || strings.Contains(host, "visualstudio.com"):
-			// Azure DevOps: 空用户名，token作为密码
 			parsedURL.User = url.UserPassword("", credential.Password)
 		default:
-			// 通用格式：尝试GitHub格式
 			parsedURL.User = url.UserPassword(credential.Password, "x-oauth-basic")
 		}
 
 	default:
-		return "", fmt.Errorf("不支持的凭据类型用于URL构建: %s", credential.Type)
+		return "", fmt.Errorf("unsupported credential type for url building: %s", credential.Type)
 	}
 
 	authenticatedURL := parsedURL.String()
-	Info("构建认证URL成功", "host", parsedURL.Host, "credentialType", string(credential.Type))
+	Info("build authenticated url success", "host", parsedURL.Host, "credentialType", string(credential.Type))
 
 	return authenticatedURL, nil
 }
 
-// CheckWorkspaceExists 检查工作目录是否存在
 func (w *WorkspaceManager) CheckWorkspaceExists(workspacePath string) bool {
 	if workspacePath == "" {
 		return false
@@ -250,19 +220,16 @@ func (w *WorkspaceManager) CheckWorkspaceExists(workspacePath string) bool {
 	return err == nil && info.IsDir()
 }
 
-// CheckGitRepositoryExists 检查工作空间中是否已存在git仓库
 func (w *WorkspaceManager) CheckGitRepositoryExists(workspacePath string) bool {
 	if workspacePath == "" {
 		return false
 	}
 
-	// 检查.git目录是否存在
 	gitDir := filepath.Join(workspacePath, ".git")
 	info, err := os.Stat(gitDir)
 	return err == nil && info.IsDir()
 }
 
-// GetWorkspaceSize 获取工作目录大小（MB）
 func (w *WorkspaceManager) GetWorkspaceSize(workspacePath string) (int64, error) {
 	var size int64
 	err := filepath.Walk(workspacePath, func(path string, info os.FileInfo, err error) error {
@@ -277,14 +244,12 @@ func (w *WorkspaceManager) GetWorkspaceSize(workspacePath string) (int64, error)
 		return 0, err
 	}
 
-	// 转换为MB
 	return size / (1024 * 1024), nil
 }
 
-// CleanupOldWorkspaces 清理超过指定天数的工作目录
 func (w *WorkspaceManager) CleanupOldWorkspaces(days int) error {
 	if days <= 0 {
-		return fmt.Errorf("天数必须大于0")
+		return fmt.Errorf("days must be greater than 0")
 	}
 
 	cutoffTime := time.Now().AddDate(0, 0, -days)
@@ -292,9 +257,9 @@ func (w *WorkspaceManager) CleanupOldWorkspaces(days int) error {
 	entries, err := os.ReadDir(w.baseDir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil // 目录不存在，无需清理
+			return nil
 		}
-		return fmt.Errorf("读取基础目录失败: %v", err)
+		return fmt.Errorf("failed to read base directory: %v", err)
 	}
 
 	for _, entry := range entries {
@@ -302,9 +267,6 @@ func (w *WorkspaceManager) CleanupOldWorkspaces(days int) error {
 			continue
 		}
 
-		// 检查目录是否符合工作空间命名模式
-		// conversation-* : 旧格式，保留用于向后兼容和清理历史数据
-		// task-* : 新格式，当前使用的任务级工作空间
 		if !strings.HasPrefix(entry.Name(), "conversation-") && !strings.HasPrefix(entry.Name(), "task-") {
 			continue
 		}
@@ -315,7 +277,6 @@ func (w *WorkspaceManager) CleanupOldWorkspaces(days int) error {
 			continue
 		}
 
-		// 如果目录修改时间早于截止时间，则删除
 		if info.ModTime().Before(cutoffTime) {
 			if err := os.RemoveAll(dirPath); err != nil {
 				fmt.Printf("Failed to cleanup directory %s: %v\n", dirPath, err)
@@ -326,26 +287,21 @@ func (w *WorkspaceManager) CleanupOldWorkspaces(days int) error {
 	return nil
 }
 
-// ResetWorkspaceToCleanState 重置工作空间到干净状态，清理所有未提交的变更
-// 用于在任务对话被取消或执行失败时防止文件污染
 func (w *WorkspaceManager) ResetWorkspaceToCleanState(workspacePath string) error {
 	if workspacePath == "" {
-		return fmt.Errorf("工作空间路径不能为空")
+		return fmt.Errorf("workspace path cannot be empty")
 	}
 
-	// 检查工作空间是否存在
 	if !w.CheckWorkspaceExists(workspacePath) {
-		return fmt.Errorf("工作空间不存在: %s", workspacePath)
+		return fmt.Errorf("workspace does not exist: %s", workspacePath)
 	}
 
-	// 检查是否为 Git 仓库
 	if !w.CheckGitRepositoryExists(workspacePath) {
-		// 如果不是 Git 仓库，直接清理整个目录并重新创建
 		if err := os.RemoveAll(workspacePath); err != nil {
-			return fmt.Errorf("清理非Git工作空间失败: %v", err)
+			return fmt.Errorf("failed to cleanup non-git workspace: %v", err)
 		}
 		if err := os.MkdirAll(workspacePath, 0755); err != nil {
-			return fmt.Errorf("重新创建工作空间失败: %v", err)
+			return fmt.Errorf("failed to recreate workspace: %v", err)
 		}
 		return nil
 	}
@@ -353,296 +309,257 @@ func (w *WorkspaceManager) ResetWorkspaceToCleanState(workspacePath string) erro
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
-	// 1. 重置所有已暂存的更改
 	resetStagedCmd := exec.CommandContext(ctx, "git", "reset", "HEAD", ".")
 	resetStagedCmd.Dir = workspacePath
 	if err := resetStagedCmd.Run(); err != nil {
-		// 如果没有staged文件，git reset会返回错误，但这是正常的
-		Info("重置暂存区", "workspace", workspacePath, "note", "可能没有暂存的文件")
+		Info("reset staged area", "workspace", workspacePath, "note", "may not have staged files")
 	}
 
-	// 2. 重置工作目录到最后一次提交的状态
 	resetHardCmd := exec.CommandContext(ctx, "git", "reset", "--hard", "HEAD")
 	resetHardCmd.Dir = workspacePath
 	if err := resetHardCmd.Run(); err != nil {
-		return fmt.Errorf("重置工作目录失败: %v", err)
+		return fmt.Errorf("failed to reset workspace: %v", err)
 	}
 
-	// 3. 清理所有未跟踪的文件和目录
 	cleanCmd := exec.CommandContext(ctx, "git", "clean", "-fd")
 	cleanCmd.Dir = workspacePath
 	if err := cleanCmd.Run(); err != nil {
-		return fmt.Errorf("清理未跟踪文件失败: %v", err)
+		return fmt.Errorf("failed to clean untracked files: %v", err)
 	}
 
-	// 4. 清理忽略的文件（可选，更彻底的清理）
 	cleanIgnoredCmd := exec.CommandContext(ctx, "git", "clean", "-fdx")
 	cleanIgnoredCmd.Dir = workspacePath
 	if err := cleanIgnoredCmd.Run(); err != nil {
-		// 清理忽略文件失败不应该中断整个流程，只记录警告
-		Warn("清理忽略文件失败", "workspace", workspacePath, "error", err.Error())
+		Warn("failed to clean ignored files", "workspace", workspacePath, "error", err.Error())
 	}
 
-	Info("工作空间已重置到干净状态", "workspace", workspacePath)
+	Info("workspace has been reset to clean state", "workspace", workspacePath)
 	return nil
 }
 
-// CheckWorkspaceIsDirty 检查工作空间是否有未提交的更改
 func (w *WorkspaceManager) CheckWorkspaceIsDirty(workspacePath string) (bool, error) {
 	if workspacePath == "" {
-		return false, fmt.Errorf("工作空间路径不能为空")
+		return false, fmt.Errorf("workspace path cannot be empty")
 	}
 
-	// 检查工作空间是否存在
 	if !w.CheckWorkspaceExists(workspacePath) {
-		return false, fmt.Errorf("工作空间不存在: %s", workspacePath)
+		return false, fmt.Errorf("workspace does not exist: %s", workspacePath)
 	}
 
-	// 检查是否为 Git 仓库
 	if !w.CheckGitRepositoryExists(workspacePath) {
-		return false, fmt.Errorf("不是Git仓库: %s", workspacePath)
+		return false, fmt.Errorf("not a git repository: %s", workspacePath)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// 检查Git状态
 	statusCmd := exec.CommandContext(ctx, "git", "status", "--porcelain")
 	statusCmd.Dir = workspacePath
 	output, err := statusCmd.Output()
 	if err != nil {
-		return false, fmt.Errorf("检查Git状态失败: %v", err)
+		return false, fmt.Errorf("failed to check git status: %v", err)
 	}
 
-	// 如果有输出，说明有未提交的更改
 	return len(strings.TrimSpace(string(output))) > 0, nil
 }
 
-// CreateAndSwitchToBranch 创建新分支并切换到该分支
 func (w *WorkspaceManager) CreateAndSwitchToBranch(workspacePath, branchName, baseBranch string) error {
 	if workspacePath == "" {
-		return fmt.Errorf("工作空间路径不能为空")
+		return fmt.Errorf("workspace path cannot be empty")
 	}
 
 	if branchName == "" {
-		return fmt.Errorf("分支名不能为空")
+		return fmt.Errorf("branch name cannot be empty")
 	}
 
 	if baseBranch == "" {
-		baseBranch = "main" // 默认基于 main 分支
+		baseBranch = "main"
 	}
 
-	// 检查工作空间是否存在
 	if !w.CheckWorkspaceExists(workspacePath) {
-		return fmt.Errorf("工作空间不存在: %s", workspacePath)
+		return fmt.Errorf("workspace does not exist: %s", workspacePath)
 	}
 
-	// 检查是否为 Git 仓库
 	if !w.CheckGitRepositoryExists(workspacePath) {
-		return fmt.Errorf("不是Git仓库: %s", workspacePath)
+		return fmt.Errorf("not a git repository: %s", workspacePath)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
-	// 1. 确保在基础分支上
 	switchCmd := exec.CommandContext(ctx, "git", "checkout", baseBranch)
 	switchCmd.Dir = workspacePath
 	if err := switchCmd.Run(); err != nil {
-		return fmt.Errorf("切换到基础分支 %s 失败: %v", baseBranch, err)
+		return fmt.Errorf("failed to checkout base branch %s: %v", baseBranch, err)
 	}
 
-	// 2. 拉取最新代码
 	pullCmd := exec.CommandContext(ctx, "git", "pull", "origin", baseBranch)
 	pullCmd.Dir = workspacePath
 	if err := pullCmd.Run(); err != nil {
-		// 忽略拉取错误，可能是没有远程分支或网络问题
-		Warn("拉取最新代码失败", "workspace", workspacePath, "baseBranch", baseBranch, "error", err)
+		Warn("failed to pull latest code", "workspace", workspacePath, "baseBranch", baseBranch, "error", err)
 	}
 
-	// 3. 检查分支是否已存在
 	exists, err := w.CheckBranchExists(workspacePath, branchName)
 	if err != nil {
-		return fmt.Errorf("检查分支是否存在失败: %v", err)
+		return fmt.Errorf("failed to check if branch exists: %v", err)
 	}
 
 	if exists {
-		// 分支已存在，直接切换
 		switchExistingCmd := exec.CommandContext(ctx, "git", "checkout", branchName)
 		switchExistingCmd.Dir = workspacePath
 		if err := switchExistingCmd.Run(); err != nil {
-			return fmt.Errorf("切换到已存在的分支 %s 失败: %v", branchName, err)
+			return fmt.Errorf("failed to switch to existing branch %s: %v", branchName, err)
 		}
-		Info("切换到已存在的工作分支", "workspace", workspacePath, "branch", branchName)
+		Info("switched to existing branch", "workspace", workspacePath, "branch", branchName)
 	} else {
-		// 分支不存在，创建新分支并切换
 		createCmd := exec.CommandContext(ctx, "git", "checkout", "-b", branchName)
 		createCmd.Dir = workspacePath
 		if err := createCmd.Run(); err != nil {
-			return fmt.Errorf("创建并切换到分支 %s 失败: %v", branchName, err)
+			return fmt.Errorf("failed to create and switch to branch %s: %v", branchName, err)
 		}
-		Info("创建并切换到新工作分支", "workspace", workspacePath, "branch", branchName, "baseBranch", baseBranch)
+		Info("created and switched to new branch", "workspace", workspacePath, "branch", branchName, "baseBranch", baseBranch)
 	}
 
 	return nil
 }
 
-// SwitchBranch 切换到指定分支
 func (w *WorkspaceManager) SwitchBranch(workspacePath, branchName string) error {
 	if workspacePath == "" {
-		return fmt.Errorf("工作空间路径不能为空")
+		return fmt.Errorf("workspace path cannot be empty")
 	}
 
 	if branchName == "" {
-		return fmt.Errorf("分支名不能为空")
+		return fmt.Errorf("branch name cannot be empty")
 	}
 
-	// 检查工作空间是否存在
 	if !w.CheckWorkspaceExists(workspacePath) {
-		return fmt.Errorf("工作空间不存在: %s", workspacePath)
+		return fmt.Errorf("workspace does not exist: %s", workspacePath)
 	}
 
-	// 检查是否为 Git 仓库
 	if !w.CheckGitRepositoryExists(workspacePath) {
-		return fmt.Errorf("不是Git仓库: %s", workspacePath)
+		return fmt.Errorf("not a git repository: %s", workspacePath)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
-	// 切换分支
 	switchCmd := exec.CommandContext(ctx, "git", "checkout", branchName)
 	switchCmd.Dir = workspacePath
 	if err := switchCmd.Run(); err != nil {
-		return fmt.Errorf("切换到分支 %s 失败: %v", branchName, err)
+		return fmt.Errorf("failed to switch to branch %s: %v", branchName, err)
 	}
 
-	Info("成功切换分支", "workspace", workspacePath, "branch", branchName)
+	Info("switched to branch", "workspace", workspacePath, "branch", branchName)
 	return nil
 }
 
-// CheckBranchExists 检查分支是否存在（本地分支）
 func (w *WorkspaceManager) CheckBranchExists(workspacePath, branchName string) (bool, error) {
 	if workspacePath == "" {
-		return false, fmt.Errorf("工作空间路径不能为空")
+		return false, fmt.Errorf("workspace path cannot be empty")
 	}
 
 	if branchName == "" {
-		return false, fmt.Errorf("分支名不能为空")
+		return false, fmt.Errorf("branch name cannot be empty")
 	}
 
-	// 检查工作空间是否存在
 	if !w.CheckWorkspaceExists(workspacePath) {
-		return false, fmt.Errorf("工作空间不存在: %s", workspacePath)
+		return false, fmt.Errorf("workspace does not exist: %s", workspacePath)
 	}
 
-	// 检查是否为 Git 仓库
 	if !w.CheckGitRepositoryExists(workspacePath) {
-		return false, fmt.Errorf("不是Git仓库: %s", workspacePath)
+		return false, fmt.Errorf("not a git repository: %s", workspacePath)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// 检查本地分支是否存在
 	branchCmd := exec.CommandContext(ctx, "git", "branch", "--list", branchName)
 	branchCmd.Dir = workspacePath
 	output, err := branchCmd.Output()
 	if err != nil {
-		return false, fmt.Errorf("检查分支失败: %v", err)
+		return false, fmt.Errorf("failed to check branch: %v", err)
 	}
 
-	// 如果输出不为空，说明分支存在
 	return len(strings.TrimSpace(string(output))) > 0, nil
 }
 
-// GetCurrentBranch 获取当前分支名
 func (w *WorkspaceManager) GetCurrentBranch(workspacePath string) (string, error) {
 	if workspacePath == "" {
-		return "", fmt.Errorf("工作空间路径不能为空")
+		return "", fmt.Errorf("workspace path cannot be empty")
 	}
 
-	// 检查工作空间是否存在
 	if !w.CheckWorkspaceExists(workspacePath) {
-		return "", fmt.Errorf("工作空间不存在: %s", workspacePath)
+		return "", fmt.Errorf("workspace does not exist: %s", workspacePath)
 	}
 
-	// 检查是否为 Git 仓库
 	if !w.CheckGitRepositoryExists(workspacePath) {
-		return "", fmt.Errorf("不是Git仓库: %s", workspacePath)
+		return "", fmt.Errorf("not a git repository: %s", workspacePath)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// 获取当前分支名
 	branchCmd := exec.CommandContext(ctx, "git", "branch", "--show-current")
 	branchCmd.Dir = workspacePath
 	output, err := branchCmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("获取当前分支失败: %v", err)
+		return "", fmt.Errorf("failed to get current branch: %v", err)
 	}
 
 	return strings.TrimSpace(string(output)), nil
 }
 
-// validateCredential 验证Git凭据的有效性
 func (w *WorkspaceManager) validateCredential(credential *GitCredentialInfo) error {
 	if credential == nil {
-		return fmt.Errorf("凭据信息不能为空")
+		return fmt.Errorf("credential information cannot be empty")
 	}
 
 	switch credential.Type {
 	case GitCredentialTypePassword:
 		if credential.Username == "" {
-			return fmt.Errorf("用户名不能为空")
+			return fmt.Errorf("username cannot be empty")
 		}
 		if credential.Password == "" {
-			return fmt.Errorf("密码不能为空")
+			return fmt.Errorf("password cannot be empty")
 		}
 	case GitCredentialTypeToken:
 		if credential.Password == "" {
-			return fmt.Errorf("Token不能为空")
+			return fmt.Errorf("token cannot be empty")
 		}
 	case GitCredentialTypeSSHKey:
 		if credential.PrivateKey == "" {
-			return fmt.Errorf("SSH私钥不能为空")
+			return fmt.Errorf("ssh private key cannot be empty")
 		}
-		// 基本的SSH私钥格式检查
 		if !strings.Contains(credential.PrivateKey, "BEGIN") || !strings.Contains(credential.PrivateKey, "PRIVATE KEY") {
-			return fmt.Errorf("SSH私钥格式不正确")
+			return fmt.Errorf("ssh private key format is incorrect")
 		}
 	default:
-		return fmt.Errorf("不支持的凭据类型: %s", credential.Type)
+		return fmt.Errorf("unsupported credential type: %s", credential.Type)
 	}
 
 	return nil
 }
 
-// PushBranch 推送分支到远程仓库
 func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string, credential *GitCredentialInfo, sslVerify bool) (string, error) {
 	if workspacePath == "" {
-		return "", fmt.Errorf("工作空间路径不能为空")
+		return "", fmt.Errorf("workspace path cannot be empty")
 	}
 
 	if branchName == "" {
-		return "", fmt.Errorf("分支名不能为空")
+		return "", fmt.Errorf("branch name cannot be empty")
 	}
 
-	// 检查工作空间是否存在
 	if !w.CheckWorkspaceExists(workspacePath) {
-		return "", fmt.Errorf("工作空间不存在: %s", workspacePath)
+		return "", fmt.Errorf("workspace does not exist: %s", workspacePath)
 	}
 
-	// 检查是否为 Git 仓库
 	if !w.CheckGitRepositoryExists(workspacePath) {
-		return "", fmt.Errorf("不是Git仓库: %s", workspacePath)
+		return "", fmt.Errorf("not a git repository: %s", workspacePath)
 	}
 
-	// 验证凭据信息
 	if credential != nil {
 		if err := w.validateCredential(credential); err != nil {
-			return "", fmt.Errorf("凭据验证失败: %v", err)
+			return "", fmt.Errorf("credential validation failed: %v", err)
 		}
 	}
 
@@ -653,45 +570,38 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 	var envVars []string
 	var output string
 
-	// 设置基础环境变量，禁用交互式输入
 	baseEnv := w.createNonInteractiveGitEnv()
 
-	// 准备推送命令和认证
 	if credential != nil {
 		switch credential.Type {
 		case GitCredentialTypePassword, GitCredentialTypeToken:
-			// HTTPS 认证：配置认证URL
 			authenticatedURL, err := w.buildAuthenticatedURL(repoURL, credential)
 			if err != nil {
-				return "", fmt.Errorf("构建认证URL失败: %v", err)
+				return "", fmt.Errorf("failed to build authenticated URL: %v", err)
 			}
 
-			Info("准备HTTPS推送", "workspace", workspacePath, "branch", branchName, "credentialType", string(credential.Type))
+			Info("preparing HTTPS push", "workspace", workspacePath, "branch", branchName, "credentialType", string(credential.Type))
 
-			// 检查分支是否存在
 			exists, err := w.CheckBranchExists(workspacePath, branchName)
 			if err != nil {
-				return "", fmt.Errorf("分支检查失败: %v", err)
+				return "", fmt.Errorf("failed to check branch: %v", err)
 			}
 			if !exists {
-				return "", fmt.Errorf("分支 '%s' 不存在", branchName)
+				return "", fmt.Errorf("branch '%s' does not exist", branchName)
 			}
 
-			// 设置远程仓库URL
 			setURLCmd := exec.CommandContext(ctx, "git", "remote", "set-url", "origin", authenticatedURL)
 			setURLCmd.Dir = workspacePath
 			setURLCmd.Env = baseEnv
 
-			// 设置SSL验证
 			if !sslVerify {
 				setURLCmd.Env = append(setURLCmd.Env, "GIT_SSL_NO_VERIFY=true")
 			}
 
 			if err := setURLCmd.Run(); err != nil {
-				return "", fmt.Errorf("设置远程仓库URL失败: %v", err)
+				return "", fmt.Errorf("failed to set remote repository URL: %v", err)
 			}
 
-			// 执行推送
 			cmd = exec.CommandContext(ctx, "git", "push", "--porcelain", "origin", branchName)
 			cmd.Dir = workspacePath
 			cmd.Env = baseEnv
@@ -701,21 +611,19 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 			}
 
 		case GitCredentialTypeSSHKey:
-			// SSH 认证
-			Info("准备SSH推送", "workspace", workspacePath, "branch", branchName)
+			Info("preparing SSH push", "workspace", workspacePath, "branch", branchName)
 
-			// 检查分支是否存在
 			exists, err := w.CheckBranchExists(workspacePath, branchName)
 			if err != nil {
-				return "", fmt.Errorf("分支检查失败: %v", err)
+				return "", fmt.Errorf("failed to check branch: %v", err)
 			}
 			if !exists {
-				return "", fmt.Errorf("分支 '%s' 不存在", branchName)
+				return "", fmt.Errorf("branch '%s' does not exist", branchName)
 			}
 
 			keyFile := filepath.Join(workspacePath, ".ssh_key_push")
 			if err := ioutil.WriteFile(keyFile, []byte(credential.PrivateKey), 0600); err != nil {
-				return "", fmt.Errorf("创建SSH密钥文件失败: %v", err)
+				return "", fmt.Errorf("failed to create SSH key file: %v", err)
 			}
 			defer os.Remove(keyFile)
 
@@ -728,16 +636,14 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 			cmd.Env = envVars
 		}
 	} else {
-		// 无认证推送
-		Info("准备无认证推送", "workspace", workspacePath, "branch", branchName)
+		Info("preparing unauthenticated push", "workspace", workspacePath, "branch", branchName)
 
-		// 检查分支是否存在
 		exists, err := w.CheckBranchExists(workspacePath, branchName)
 		if err != nil {
-			return "", fmt.Errorf("分支检查失败: %v", err)
+			return "", fmt.Errorf("failed to check branch: %v", err)
 		}
 		if !exists {
-			return "", fmt.Errorf("分支 '%s' 不存在", branchName)
+			return "", fmt.Errorf("branch '%s' does not exist", branchName)
 		}
 
 		cmd = exec.CommandContext(ctx, "git", "push", "--porcelain", "origin", branchName)
@@ -745,49 +651,46 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 		cmd.Env = baseEnv
 	}
 
-	// 执行推送命令并捕获输出
 	var outputBuilder strings.Builder
 	cmd.Stdout = &outputBuilder
 	cmd.Stderr = &outputBuilder
 
-	Info("开始执行Git推送命令", "workspace", workspacePath, "branch", branchName)
+	Info("starting Git push command", "workspace", workspacePath, "branch", branchName)
 
 	err := cmd.Run()
 	output = outputBuilder.String()
 
 	if err != nil {
-		Error("Git推送失败", "workspace", workspacePath, "branch", branchName, "error", err, "output", output)
+		Error("Git push failed", "workspace", workspacePath, "branch", branchName, "error", err, "output", output)
 
-		// 分析错误原因并提供更详细的错误信息
 		if strings.Contains(output, "Authentication failed") || strings.Contains(output, "401") || strings.Contains(output, "403") {
-			return output, fmt.Errorf("认证失败，请检查凭据是否正确: %v", err)
+			return output, fmt.Errorf("authentication failed, please check if the credential is correct: %v", err)
 		}
 		if strings.Contains(output, "Permission denied") {
-			return output, fmt.Errorf("权限被拒绝，请检查仓库访问权限: %v", err)
+			return output, fmt.Errorf("permission denied, please check if the repository access is correct: %v", err)
 		}
 		if strings.Contains(output, "Could not resolve host") {
-			return output, fmt.Errorf("无法解析主机名，请检查网络连接: %v", err)
+			return output, fmt.Errorf("could not resolve host, please check if the network connection is correct: %v", err)
 		}
 
-		return output, fmt.Errorf("推送分支失败: %v", err)
+		return output, fmt.Errorf("push branch failed: %v", err)
 	}
 
-	Info("成功推送分支", "workspace", workspacePath, "branch", branchName, "output", output)
+	Info("successfully pushed branch", "workspace", workspacePath, "branch", branchName, "output", output)
 	return output, nil
 }
 
-// createNonInteractiveGitEnv 创建禁用交互式输入的Git环境变量
 func (w *WorkspaceManager) createNonInteractiveGitEnv() []string {
 	return append(os.Environ(),
-		"GIT_TERMINAL_PROMPT=0",              // 禁用终端提示
-		"GIT_ASKPASS=",                       // 禁用密码询问
-		"SSH_ASKPASS=",                       // 禁用SSH密码询问
-		"GIT_CONFIG_NOSYSTEM=true",           // 忽略系统级Git配置
-		"GCM_INTERACTIVE=never",              // 禁用Git Credential Manager交互
-		"GIT_CREDENTIAL_HELPER=",             // 禁用凭据助手
-		"GIT_AUTHOR_NAME=XSHA Bot",           // 设置默认作者
-		"GIT_AUTHOR_EMAIL=bot@xsha.local",    // 设置默认邮箱
-		"GIT_COMMITTER_NAME=XSHA Bot",        // 设置默认提交者
-		"GIT_COMMITTER_EMAIL=bot@xsha.local", // 设置默认提交者邮箱
+		"GIT_TERMINAL_PROMPT=0",              // disable terminal prompt
+		"GIT_ASKPASS=",                       // disable password prompt
+		"SSH_ASKPASS=",                       // disable SSH password prompt
+		"GIT_CONFIG_NOSYSTEM=true",           // ignore system-level Git configuration
+		"GCM_INTERACTIVE=never",              // disable Git Credential Manager interactive
+		"GIT_CREDENTIAL_HELPER=",             // disable credential helper
+		"GIT_AUTHOR_NAME=XSHA Bot",           // set default author
+		"GIT_AUTHOR_EMAIL=bot@xsha.local",    // set default email
+		"GIT_COMMITTER_NAME=XSHA Bot",        // set default committer
+		"GIT_COMMITTER_EMAIL=bot@xsha.local", // set default committer email
 	)
 }

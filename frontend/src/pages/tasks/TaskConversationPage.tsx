@@ -216,6 +216,7 @@ const TaskConversationPage: React.FC = () => {
               </Button>
               <Button
                 variant="default"
+                className="text-foreground hover:text-foreground"
                 onClick={() => window.location.reload()}
               >
                 {t("common.retry")}

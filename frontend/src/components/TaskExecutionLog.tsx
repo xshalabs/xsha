@@ -216,6 +216,7 @@ export function TaskExecutionLog({
               <Button
                 variant="outline"
                 size="sm"
+                className="text-foreground hover:text-foreground"
                 onClick={handleRetry}
                 disabled={actionLoading === "retry"}
               >

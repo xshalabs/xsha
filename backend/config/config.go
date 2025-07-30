@@ -1,11 +1,27 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
-	"xsha-backend/utils"
 
 	"github.com/joho/godotenv"
+)
+
+type LogLevel string
+
+const (
+	LevelDebug LogLevel = "DEBUG"
+	LevelInfo  LogLevel = "INFO"
+	LevelWarn  LogLevel = "WARN"
+	LevelError LogLevel = "ERROR"
+)
+
+type LogFormat string
+
+const (
+	FormatJSON LogFormat = "JSON"
+	FormatText LogFormat = "TEXT"
 )
 
 type Config struct {
@@ -22,21 +38,22 @@ type Config struct {
 	SchedulerInterval      string
 	WorkspaceBaseDir       string
 	DockerExecutionTimeout string
+	GitCloneTimeout        string
 	MaxConcurrentTasks     int
 
 	GitSSLVerify bool
 
-	LogLevel  utils.LogLevel
-	LogFormat utils.LogFormat
+	LogLevel  LogLevel
+	LogFormat LogFormat
 	LogOutput string
 }
 
 func Load() *Config {
 
 	if err := godotenv.Load(); err != nil {
-		utils.Info("No .env file found or failed to load, using environment variables and default values", "error", err.Error())
+		fmt.Printf("No .env file found or failed to load, using environment variables and default values: %v\n", err)
 	} else {
-		utils.Info("Successfully loaded .env file")
+		fmt.Println("Successfully loaded .env file")
 	}
 
 	aesKey := normalizeAESKey(getEnv("XSHA_AES_KEY", "default-aes-key-change-in-production"))
@@ -55,12 +72,13 @@ func Load() *Config {
 		SchedulerInterval:      getEnv("XSHA_SCHEDULER_INTERVAL", "30s"),
 		WorkspaceBaseDir:       getEnv("XSHA_WORKSPACE_BASE_DIR", "/tmp/xsha-workspaces"),
 		DockerExecutionTimeout: getEnv("XSHA_DOCKER_TIMEOUT", "30m"),
+		GitCloneTimeout:        getEnv("XSHA_GIT_CLONE_TIMEOUT", "5m"),
 		MaxConcurrentTasks:     getEnvInt("XSHA_MAX_CONCURRENT_TASKS", 5),
 
 		GitSSLVerify: getEnvBool("XSHA_GIT_SSL_VERIFY", false),
 
-		LogLevel:  utils.LogLevel(getEnv("XSHA_LOG_LEVEL", "INFO")),
-		LogFormat: utils.LogFormat(getEnv("XSHA_LOG_FORMAT", "JSON")),
+		LogLevel:  LogLevel(getEnv("XSHA_LOG_LEVEL", "INFO")),
+		LogFormat: LogFormat(getEnv("XSHA_LOG_FORMAT", "JSON")),
 		LogOutput: getEnv("XSHA_LOG_OUTPUT", "stdout"),
 	}
 
@@ -79,7 +97,7 @@ func getEnvInt(key string, defaultValue int) int {
 		if intValue, err := strconv.Atoi(value); err == nil {
 			return intValue
 		}
-		utils.Warn("Warning: Failed to parse environment variable as integer, using default value", "key", key, "value", value, "default", defaultValue)
+		fmt.Printf("Warning: Failed to parse environment variable as integer, using default value. key=%s value=%s default=%d\n", key, value, defaultValue)
 	}
 	return defaultValue
 }
@@ -89,7 +107,7 @@ func getEnvBool(key string, defaultValue bool) bool {
 		if boolValue, err := strconv.ParseBool(value); err == nil {
 			return boolValue
 		}
-		utils.Warn("Warning: Failed to parse environment variable as boolean, using default value", "key", key, "value", value, "default", defaultValue)
+		fmt.Printf("Warning: Failed to parse environment variable as boolean, using default value. key=%s value=%s default=%t\n", key, value, defaultValue)
 	}
 	return defaultValue
 }

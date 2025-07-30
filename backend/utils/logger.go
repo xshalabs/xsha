@@ -8,24 +8,23 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	"xsha-backend/config"
 )
 
-// LogLevel log level type
-type LogLevel string
+// Re-export types from config package to maintain compatibility
+type LogLevel = config.LogLevel
+type LogFormat = config.LogFormat
 
 const (
-	LevelDebug LogLevel = "DEBUG"
-	LevelInfo  LogLevel = "INFO"
-	LevelWarn  LogLevel = "WARN"
-	LevelError LogLevel = "ERROR"
+	LevelDebug = config.LevelDebug
+	LevelInfo  = config.LevelInfo
+	LevelWarn  = config.LevelWarn
+	LevelError = config.LevelError
 )
 
-// LogFormat log format type
-type LogFormat string
-
 const (
-	FormatJSON LogFormat = "JSON"
-	FormatText LogFormat = "TEXT"
+	FormatJSON = config.FormatJSON
+	FormatText = config.FormatText
 )
 
 // LogConfig log configuration
