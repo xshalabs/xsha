@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Dialog,
@@ -11,16 +11,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { 
-  GitBranch, 
-  AlertTriangle, 
-  CheckCircle, 
-  XCircle, 
+
+import {
+  GitBranch,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
   Loader2,
   Copy,
   Eye,
-  EyeOff
+  EyeOff,
 } from "lucide-react";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
@@ -53,7 +53,6 @@ export function PushBranchDialog({
   const [pushResult, setPushResult] = useState<PushResult | null>(null);
   const [showFullOutput, setShowFullOutput] = useState(false);
 
-  // 重置状态当dialog关闭或任务改变时
   useEffect(() => {
     if (!open || !task) {
       setStep("confirm");
@@ -70,40 +69,40 @@ export function PushBranchDialog({
     if (!task) return;
 
     setStep("pushing");
-    
+
     try {
       const response = await apiService.tasks.pushTaskBranch(task.id);
-      
+
       setPushResult({
         success: true,
         message: response.message,
         output: response.data.output,
       });
-      
+
       setStep("result");
-      
+
       // 调用成功回调
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       logError(error as Error, "Failed to push task branch");
-      
+
       setPushResult({
         success: false,
         message: t("tasks.messages.push_failed"),
         output: "",
         error: errorMessage,
       });
-      
+
       setStep("result");
     }
   };
 
   const handleCancel = () => {
     if (step === "pushing") {
-      // 推送过程中不允许关闭
       return;
     }
     onOpenChange(false);
@@ -123,32 +122,38 @@ export function PushBranchDialog({
         return (
           <>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex items-center gap-2 text-foreground">
                 <GitBranch className="h-5 w-5" />
                 {t("tasks.push.confirm_title")}
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-muted-foreground">
                 {t("tasks.push.confirm_description")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
-              <div className="bg-muted p-4 rounded-lg">
+              <div className="p-4 rounded-lg text-foreground">
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium">{t("tasks.fields.title")}:</span>
+                    <span className="text-sm font-medium">
+                      {t("tasks.fields.title")}:
+                    </span>
                     <span className="text-sm">{task?.title}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium">{t("tasks.fields.work_branch")}:</span>
+                    <span className="text-sm font-medium">
+                      {t("tasks.fields.work_branch")}:
+                    </span>
                     <Badge variant="outline" className="font-mono">
                       {task?.work_branch}
                     </Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium">{t("tasks.fields.repository")}:</span>
+                    <span className="text-sm font-medium">
+                      {t("tasks.fields.project")}:
+                    </span>
                     <span className="text-sm text-muted-foreground">
-                      {task?.project?.repo_url}
+                      {task?.project?.name}
                     </span>
                   </div>
                 </div>
@@ -168,7 +173,11 @@ export function PushBranchDialog({
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={handleCancel}>
+              <Button
+                variant="outline"
+                className="text-foreground hover:text-foreground"
+                onClick={handleCancel}
+              >
                 {t("common.cancel")}
               </Button>
               <Button onClick={handleFirstConfirm}>
@@ -208,7 +217,11 @@ export function PushBranchDialog({
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setStep("confirm")}>
+              <Button
+                variant="outline"
+                className="text-foreground hover:text-foreground"
+                onClick={() => setStep("confirm")}
+              >
                 {t("common.back")}
               </Button>
               <Button variant="destructive" onClick={handleFinalConfirm}>
@@ -222,8 +235,8 @@ export function PushBranchDialog({
         return (
           <>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Loader2 className="h-5 w-5 animate-spin" />
+              <DialogTitle className="flex items-center gap-2 text-foreground">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 {t("tasks.push.pushing_title")}
               </DialogTitle>
               <DialogDescription>
@@ -233,8 +246,8 @@ export function PushBranchDialog({
 
             <div className="space-y-4">
               <div className="text-center py-8">
-                <Loader2 className="h-12 w-12 animate-spin mx-auto text-blue-600 mb-4" />
-                <div className="text-lg font-medium mb-2">
+                <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary mb-4" />
+                <div className="text-lg font-medium mb-2 text-foreground">
                   {t("tasks.push.pushing_to", { branch: task?.work_branch })}
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -242,8 +255,6 @@ export function PushBranchDialog({
                 </div>
               </div>
             </div>
-
-            {/* 推送过程中不显示Footer，防止用户关闭 */}
           </>
         );
 
@@ -251,18 +262,17 @@ export function PushBranchDialog({
         return (
           <>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex items-center gap-2 text-foreground">
                 {pushResult?.success ? (
                   <CheckCircle className="h-5 w-5 text-green-600" />
                 ) : (
                   <XCircle className="h-5 w-5 text-red-600" />
                 )}
-                {pushResult?.success 
-                  ? t("tasks.push.success_title") 
-                  : t("tasks.push.error_title")
-                }
+                {pushResult?.success
+                  ? t("tasks.push.success_title")
+                  : t("tasks.push.error_title")}
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-muted-foreground">
                 {pushResult?.message}
               </DialogDescription>
             </DialogHeader>
@@ -275,7 +285,7 @@ export function PushBranchDialog({
                     {t("tasks.push.success_message")}
                   </div>
                   <div className="text-sm text-green-700">
-                    {t("tasks.push.success_details", { 
+                    {t("tasks.push.success_details", {
                       branch: task?.work_branch,
                       repository: task?.project?.name,
                     })}
@@ -298,7 +308,9 @@ export function PushBranchDialog({
               {pushResult?.output && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{t("tasks.push.output")}:</span>
+                    <span className="text-sm font-medium">
+                      {t("tasks.push.output")}:
+                    </span>
                     <div className="flex gap-2">
                       <Button
                         variant="ghost"
@@ -322,7 +334,7 @@ export function PushBranchDialog({
                       </Button>
                     </div>
                   </div>
-                  
+
                   <Textarea
                     value={pushResult.output}
                     readOnly
@@ -334,7 +346,11 @@ export function PushBranchDialog({
             </div>
 
             <DialogFooter>
-              <Button onClick={handleClose}>
+              <Button
+                variant="outline"
+                className="text-foreground hover:text-foreground"
+                onClick={handleClose}
+              >
                 {t("common.close")}
               </Button>
             </DialogFooter>
@@ -347,8 +363,11 @@ export function PushBranchDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={step === "pushing" ? undefined : onOpenChange}>
-      <DialogContent 
+    <Dialog
+      open={open}
+      onOpenChange={step === "pushing" ? undefined : onOpenChange}
+    >
+      <DialogContent
         className="max-w-2xl max-h-[90vh] overflow-y-auto"
         showCloseButton={step !== "pushing"}
       >
@@ -356,4 +375,4 @@ export function PushBranchDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

@@ -164,7 +164,9 @@ const TaskConversationPage: React.FC = () => {
   };
 
   const handleViewConversationGitDiff = (conversationId: number) => {
-    navigate(`/projects/${projectId}/tasks/${taskId}/conversation/git-diff/${conversationId}`);
+    navigate(
+      `/projects/${projectId}/tasks/${taskId}/conversation/git-diff/${conversationId}`
+    );
   };
 
   const handlePushBranch = async () => {
@@ -266,6 +268,7 @@ const TaskConversationPage: React.FC = () => {
           <div className="flex gap-2">
             <Button
               variant="outline"
+              className="text-foreground hover:text-foreground"
               onClick={() => navigate(`/projects/${projectId}/tasks`)}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -275,6 +278,7 @@ const TaskConversationPage: React.FC = () => {
               <>
                 <Button
                   variant="outline"
+                  className="text-foreground hover:text-foreground"
                   onClick={handlePushBranch}
                 >
                   <GitBranch className="h-4 w-4 mr-2" />
@@ -282,7 +286,9 @@ const TaskConversationPage: React.FC = () => {
                 </Button>
                 <Button
                   variant="default"
-                  onClick={() => navigate(`/projects/${projectId}/tasks/${task.id}/git-diff`)}
+                  onClick={() =>
+                    navigate(`/projects/${projectId}/tasks/${task.id}/git-diff`)
+                  }
                 >
                   <GitCompare className="h-4 w-4 mr-2" />
                   {t("tasks.actions.viewGitDiff")}
