@@ -1,8 +1,16 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { apiService } from "@/lib/api/index";
@@ -15,6 +23,8 @@ const ProjectListPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const projectListRef = useRef<ProjectListRef>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<number | null>(null);
 
   usePageTitle(t("common.pageTitle.projects"));
 
@@ -22,13 +32,16 @@ const ProjectListPage: React.FC = () => {
     navigate(`/projects/${project.id}/edit`);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm(t("projects.messages.deleteConfirm"))) {
-      return;
-    }
+  const handleDelete = (id: number) => {
+    setProjectToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!projectToDelete) return;
 
     try {
-      await apiService.projects.delete(id);
+      await apiService.projects.delete(projectToDelete);
       toast.success(t("projects.messages.deleteSuccess"));
       if (projectListRef.current) {
         projectListRef.current.refreshData();
@@ -40,7 +53,15 @@ const ProjectListPage: React.FC = () => {
           ? error.message
           : t("projects.messages.deleteFailed")
       );
+    } finally {
+      setDeleteDialogOpen(false);
+      setProjectToDelete(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setProjectToDelete(null);
   };
 
   const handleCreateNew = () => {
@@ -76,6 +97,35 @@ const ProjectListPage: React.FC = () => {
           ref={projectListRef}
         />
       </div>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-foreground">
+              {t("projects.delete")}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {t("projects.messages.deleteConfirm")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="text-foreground hover:text-foreground"
+              onClick={handleCancelDelete}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              className="text-foreground"
+              onClick={handleConfirmDelete}
+            >
+              {t("projects.delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
