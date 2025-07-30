@@ -96,7 +96,7 @@ func (r *projectRepository) GetByCredentialID(credentialID uint, createdBy strin
 	return projects, err
 }
 
-// GetTaskCounts 批量获取项目的任务统计数量
+// GetTaskCounts 批量获取项目的任务统计数量（排除已删除的任务）
 func (r *projectRepository) GetTaskCounts(projectIDs []uint, createdBy string) (map[uint]int64, error) {
 	if len(projectIDs) == 0 {
 		return make(map[uint]int64), nil
@@ -110,7 +110,7 @@ func (r *projectRepository) GetTaskCounts(projectIDs []uint, createdBy string) (
 	var results []TaskCountResult
 	err := r.db.Table("tasks").
 		Select("project_id, COUNT(*) as count").
-		Where("project_id IN ? AND created_by = ?", projectIDs, createdBy).
+		Where("project_id IN ? AND created_by = ? AND deleted_at IS NULL", projectIDs, createdBy).
 		Group("project_id").
 		Find(&results).Error
 

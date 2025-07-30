@@ -277,9 +277,14 @@ export const ProjectList = forwardRef<ProjectListRef, ProjectListProps>(
                           )}
                         </TableCell>
                         <TableCell className="text-center">
-                          <span className="inline-flex items-center justify-center min-w-[2rem] h-6 px-2 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(ROUTES.projectTasks(project.id))}
+                            className="inline-flex items-center justify-center min-w-[2rem] h-6 px-2 text-xs font-medium bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 transition-colors"
+                          >
                             {project.task_count ?? 0}
-                          </span>
+                          </Button>
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
