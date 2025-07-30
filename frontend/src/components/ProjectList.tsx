@@ -243,6 +243,7 @@ export const ProjectList = forwardRef<ProjectListRef, ProjectListProps>(
                       <TableHead>{t("projects.name")}</TableHead>
                       <TableHead>{t("projects.repoUrl")}</TableHead>
                       <TableHead>{t("projects.credential")}</TableHead>
+                      <TableHead className="text-center">{t("projects.taskCount")}</TableHead>
                       <TableHead className="text-right">
                         {t("common.actions")}
                       </TableHead>
@@ -274,6 +275,11 @@ export const ProjectList = forwardRef<ProjectListRef, ProjectListProps>(
                           ) : (
                             <span className="text-muted-foreground">-</span>
                           )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="inline-flex items-center justify-center min-w-[2rem] h-6 px-2 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                            {project.task_count ?? 0}
+                          </span>
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>

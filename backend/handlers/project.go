@@ -161,7 +161,7 @@ func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 		protocol = &protocolValue
 	}
 
-	projects, total, err := h.projectService.ListProjects(username.(string), name, protocol, page, pageSize)
+	projects, total, err := h.projectService.ListProjectsWithTaskCount(username.(string), name, protocol, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "common.internal_error"),

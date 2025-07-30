@@ -18,6 +18,12 @@ type projectService struct {
 	config         *config.Config
 }
 
+// ProjectWithTaskCount 包含任务数量的项目结构
+type ProjectWithTaskCount struct {
+	*database.Project
+	TaskCount int64 `json:"task_count"`
+}
+
 // NewProjectService 创建项目服务实例
 func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository.GitCredentialRepository, gitCredService GitCredentialService, cfg *config.Config) ProjectService {
 	return &projectService{
@@ -78,6 +84,43 @@ func (s *projectService) GetProject(id uint, createdBy string) (*database.Projec
 // ListProjects 获取项目列表
 func (s *projectService) ListProjects(createdBy string, name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error) {
 	return s.repo.List(createdBy, name, protocol, page, pageSize)
+}
+
+// ListProjectsWithTaskCount 获取包含任务数量的项目列表
+func (s *projectService) ListProjectsWithTaskCount(createdBy string, name string, protocol *database.GitProtocolType, page, pageSize int) (interface{}, int64, error) {
+	// 首先获取项目列表
+	projects, total, err := s.repo.List(createdBy, name, protocol, page, pageSize)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 如果没有项目，直接返回空列表
+	if len(projects) == 0 {
+		return []ProjectWithTaskCount{}, total, nil
+	}
+
+	// 提取项目ID列表
+	projectIDs := make([]uint, len(projects))
+	for i, project := range projects {
+		projectIDs[i] = project.ID
+	}
+
+	// 批量获取任务统计
+	taskCounts, err := s.repo.GetTaskCounts(projectIDs, createdBy)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 构建包含任务数量的项目列表
+	projectsWithTaskCount := make([]ProjectWithTaskCount, len(projects))
+	for i, project := range projects {
+		projectsWithTaskCount[i] = ProjectWithTaskCount{
+			Project:   &project,
+			TaskCount: taskCounts[project.ID],
+		}
+	}
+
+	return projectsWithTaskCount, total, nil
 }
 
 // UpdateProject 更新项目

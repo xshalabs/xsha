@@ -18,6 +18,7 @@ export interface Project {
   created_at: string;
   updated_at: string;
   last_used?: string;
+  task_count?: number;
   credential?: {
     id: number;
     name: string;

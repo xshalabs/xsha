@@ -32,10 +32,10 @@ interface DevEnvironmentFormProps {
   mode: "create" | "edit";
 }
 
+// 默认资源配置，现在将从服务器动态获取
 const defaultResources = {
-  claude_code: { cpu: 1.0, memory: 1024 },
-  gemini_cli: { cpu: 1.0, memory: 1024 },
-  opencode: { cpu: 1.0, memory: 1024 },
+  cpu: 1.0,
+  memory: 1024,
 };
 
 interface EnvironmentTypeOption {
@@ -59,7 +59,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    type: "claude_code" as DevEnvironmentType,
+    type: "claude-code" as DevEnvironmentType, // 使用新的 key 格式
     cpu_limit: 1.0,
     memory_limit: 1024,
   });
@@ -80,8 +80,8 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
         setLoadingTypes(true);
         const response = await devEnvironmentsApi.getAvailableTypes();
         const types: EnvironmentTypeOption[] = response.types.map((type) => ({
-          value: type.name,
-          label: type.name,
+          value: type.key, // 使用 key 作为 value
+          label: type.name, // 使用 name 作为显示标签
           description: `Docker Image: ${type.image}`,
           image: type.image,
         }));
@@ -98,7 +98,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
         toast.error(error.message || t("dev_environments.load_types_failed"));
         // Fallback to default Claude Code type
         setEnvironmentTypes([{
-          value: "claude_code",
+          value: "claude-code", // 使用新的 key 格式
           label: "Claude Code",
           description: "Docker Image: claude-code:latest",
           image: "claude-code:latest",
@@ -125,7 +125,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
       setFormData({
         name: "",
         description: "",
-        type: "claude_code",
+        type: "claude-code", // 使用新的 key 格式
         cpu_limit: 1.0,
         memory_limit: 1024,
       });
@@ -170,12 +170,12 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
   };
 
   const handleTypeChange = (type: DevEnvironmentType) => {
-    const defaults = defaultResources[type];
+    // 使用默认的资源配置
     setFormData((prev) => ({
       ...prev,
       type,
-      cpu_limit: defaults.cpu,
-      memory_limit: defaults.memory,
+      cpu_limit: defaultResources.cpu,
+      memory_limit: defaultResources.memory,
     }));
   };
 

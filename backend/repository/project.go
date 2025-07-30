@@ -95,3 +95,39 @@ func (r *projectRepository) GetByCredentialID(credentialID uint, createdBy strin
 	err := r.db.Where("credential_id = ? AND created_by = ?", credentialID, createdBy).Find(&projects).Error
 	return projects, err
 }
+
+// GetTaskCounts 批量获取项目的任务统计数量
+func (r *projectRepository) GetTaskCounts(projectIDs []uint, createdBy string) (map[uint]int64, error) {
+	if len(projectIDs) == 0 {
+		return make(map[uint]int64), nil
+	}
+
+	type TaskCountResult struct {
+		ProjectID uint  `gorm:"column:project_id"`
+		Count     int64 `gorm:"column:count"`
+	}
+
+	var results []TaskCountResult
+	err := r.db.Table("tasks").
+		Select("project_id, COUNT(*) as count").
+		Where("project_id IN ? AND created_by = ?", projectIDs, createdBy).
+		Group("project_id").
+		Find(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 构建返回的map，确保所有项目都有统计数据（包括任务数为0的项目）
+	taskCounts := make(map[uint]int64)
+	for _, projectID := range projectIDs {
+		taskCounts[projectID] = 0 // 默认为0
+	}
+
+	// 填充实际的统计数据
+	for _, result := range results {
+		taskCounts[result.ProjectID] = result.Count
+	}
+
+	return taskCounts, nil
+}

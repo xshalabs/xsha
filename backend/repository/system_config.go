@@ -110,8 +110,14 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 	// 初始化开发环境类型配置
 	defaultDevEnvTypes := []map[string]interface{}{
 		{
-			"name":  "Claude Code",
 			"image": "claude-code:latest",
+			"name":  "Claude Code",
+			"key":   "claude-code",
+		},
+		{
+			"image": "claude-code:latest",
+			"name":  "Claude Code - CN",
+			"key":   "claude-code-cn",
 		},
 	}
 

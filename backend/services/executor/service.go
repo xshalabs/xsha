@@ -23,6 +23,7 @@ type aiTaskExecutorService struct {
 	// 外部服务
 	gitCredService        services.GitCredentialService
 	taskConvResultService services.TaskConversationResultService
+	taskService           services.TaskService
 
 	// 内部组件
 	executionManager *ExecutionManager
@@ -45,6 +46,7 @@ func NewAITaskExecutorService(
 	taskConvResultRepo repository.TaskConversationResultRepository,
 	gitCredService services.GitCredentialService,
 	taskConvResultService services.TaskConversationResultService,
+	taskService services.TaskService,
 	systemConfigService services.SystemConfigService,
 	cfg *config.Config,
 	logBroadcaster *services.LogBroadcaster,
@@ -77,6 +79,7 @@ func NewAITaskExecutorService(
 		taskConvResultRepo:    taskConvResultRepo,
 		gitCredService:        gitCredService,
 		taskConvResultService: taskConvResultService,
+		taskService:           taskService,
 		executionManager:      executionManager,
 		dockerExecutor:        dockerExecutor,
 		resultParser:          resultParser,
@@ -249,6 +252,16 @@ func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversat
 	if conv.Task.DevEnvironment == nil {
 		s.stateManager.SetFailed(conv, "task has no development environment configured, cannot execute")
 		return fmt.Errorf("task has no development environment configured, cannot execute")
+	}
+
+	// 检查任务状态，如果是todo状态则更新为in_progress
+	if conv.Task.Status == database.TaskStatusTodo {
+		if err := s.taskService.UpdateTaskStatus(conv.Task.ID, conv.CreatedBy, database.TaskStatusInProgress); err != nil {
+			utils.Error("更新任务状态失败", "task_id", conv.Task.ID, "error", err)
+			// 这里不返回错误，因为任务状态更新失败不应阻止对话执行
+		} else {
+			utils.Info("任务状态已更新", "task_id", conv.Task.ID, "old_status", "todo", "new_status", "in_progress")
+		}
 	}
 
 	// 更新对话状态为 running

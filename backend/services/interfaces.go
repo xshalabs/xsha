@@ -55,6 +55,7 @@ type ProjectService interface {
 	GetProject(id uint, createdBy string) (*database.Project, error)
 
 	ListProjects(createdBy string, name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
+	ListProjectsWithTaskCount(createdBy string, name string, protocol *database.GitProtocolType, page, pageSize int) (interface{}, int64, error)
 	UpdateProject(id uint, createdBy string, updates map[string]interface{}) error
 	DeleteProject(id uint, createdBy string) error
 
@@ -97,7 +98,7 @@ type DevEnvironmentService interface {
 	CreateEnvironment(name, description, envType, createdBy string, cpuLimit float64, memoryLimit int64, envVars map[string]string) (*database.DevEnvironment, error)
 	GetEnvironment(id uint, createdBy string) (*database.DevEnvironment, error)
 
-	ListEnvironments(createdBy string, envType *database.DevEnvironmentType, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
+	ListEnvironments(createdBy string, envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
 	UpdateEnvironment(id uint, createdBy string, updates map[string]interface{}) error
 	DeleteEnvironment(id uint, createdBy string) error
 

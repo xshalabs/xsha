@@ -123,13 +123,7 @@ type AdminOperationLog struct {
 	OperationTime time.Time `gorm:"not null;index" json:"operation_time"`
 }
 
-type DevEnvironmentType string
-
-const (
-	DevEnvTypeClaude   DevEnvironmentType = "claude_code"
-	DevEnvTypeGemini   DevEnvironmentType = "gemini_cli"
-	DevEnvTypeOpenCode DevEnvironmentType = "opencode"
-)
+// DevEnvironmentType 已删除，现在使用 string 类型存储环境类型的 key
 
 type DevEnvironment struct {
 	ID        uint           `gorm:"primarykey" json:"id"`
@@ -137,9 +131,9 @@ type DevEnvironment struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
-	Name        string             `gorm:"not null;uniqueIndex:idx_env_name_user" json:"name"`
-	Description string             `gorm:"type:text" json:"description"`
-	Type        DevEnvironmentType `gorm:"not null;index" json:"type"`
+	Name        string `gorm:"not null;uniqueIndex:idx_env_name_user" json:"name"`
+	Description string `gorm:"type:text" json:"description"`
+	Type        string `gorm:"not null;index" json:"type"` // 存储环境类型的 key
 
 	CPULimit    float64 `gorm:"default:1.0" json:"cpu_limit"`
 	MemoryLimit int64   `gorm:"default:1024" json:"memory_limit"`

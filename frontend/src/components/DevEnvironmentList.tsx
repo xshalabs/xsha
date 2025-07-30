@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Table,
@@ -41,7 +41,9 @@ import type {
   DevEnvironmentDisplay,
   DevEnvironmentListParams,
   DevEnvironmentType,
+  DevEnvironmentTypeConfig,
 } from "@/types/dev-environment";
+import { devEnvironmentsApi } from "@/lib/api/dev-environments";
 
 interface DevEnvironmentListProps {
   environments: DevEnvironmentDisplay[];
@@ -56,12 +58,12 @@ interface DevEnvironmentListProps {
   onDelete: (id: number) => void;
 }
 
-const typeConfig: Record<DevEnvironmentType, { label: string; color: string }> =
-  {
-    claude_code: { label: "Claude Code", color: "text-blue-600" },
-    gemini_cli: { label: "Gemini CLI", color: "text-purple-600" },
-    opencode: { label: "OpenCode", color: "text-green-600" },
-  };
+// 默认的颜色配置
+const defaultColors = ["text-blue-600", "text-purple-600", "text-green-600", "text-orange-600", "text-red-600"];
+
+const getTypeColor = (index: number) => {
+  return defaultColors[index % defaultColors.length];
+};
 
 const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
   environments,
@@ -77,6 +79,8 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
 }) => {
   const { t } = useTranslation();
   const [showFilters, setShowFilters] = useState(false);
+  const [environmentTypes, setEnvironmentTypes] = useState<DevEnvironmentTypeConfig[]>([]);
+  const [typeConfigMap, setTypeConfigMap] = useState<Record<string, { label: string; color: string }>>({});
   const [localFilters, setLocalFilters] =
     useState<DevEnvironmentListParams>(params);
 
@@ -96,6 +100,34 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
       page: 1,
     });
   };
+
+  // 加载环境类型配置
+  useEffect(() => {
+    const loadEnvironmentTypes = async () => {
+      try {
+        const response = await devEnvironmentsApi.getAvailableTypes();
+        setEnvironmentTypes(response.types);
+        
+        // 创建类型配置映射
+        const configMap: Record<string, { label: string; color: string }> = {};
+        response.types.forEach((type, index) => {
+          configMap[type.key] = {
+            label: type.name,
+            color: getTypeColor(index),
+          };
+        });
+        setTypeConfigMap(configMap);
+      } catch (error) {
+        console.error("Failed to load environment types:", error);
+        // 使用 fallback 配置
+        setTypeConfigMap({
+          "claude-code": { label: "Claude Code", color: "text-blue-600" },
+        });
+      }
+    };
+
+    loadEnvironmentTypes();
+  }, []);
 
   const resetFilters = () => {
     const emptyFilters: DevEnvironmentListParams = { page: 1, page_size: 10 };
@@ -180,9 +212,11 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t("common.all")}</SelectItem>
-                    <SelectItem value="claude_code">Claude Code</SelectItem>
-                    <SelectItem value="gemini_cli">Gemini CLI</SelectItem>
-                    <SelectItem value="opencode">OpenCode</SelectItem>
+                    {environmentTypes.map((type) => (
+                      <SelectItem key={type.key} value={type.key}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -244,9 +278,9 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className={typeConfig[environment.type].color}
+                          className={typeConfigMap[environment.type]?.color || "text-gray-600"}
                         >
-                          {typeConfig[environment.type].label}
+                          {typeConfigMap[environment.type]?.label || environment.type}
                         </Badge>
                       </TableCell>
                       <TableCell>

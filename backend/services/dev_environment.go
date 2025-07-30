@@ -49,7 +49,7 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, envType, cr
 	env := &database.DevEnvironment{
 		Name:        name,
 		Description: description,
-		Type:        database.DevEnvironmentType(envType),
+		Type:        envType, // 直接存储 key 值
 		CPULimit:    cpuLimit,
 		MemoryLimit: memoryLimit,
 		EnvVars:     string(envVarsJSON),
@@ -70,7 +70,7 @@ func (s *devEnvironmentService) GetEnvironment(id uint, createdBy string) (*data
 }
 
 // ListEnvironments gets a list of development environments
-func (s *devEnvironmentService) ListEnvironments(createdBy string, envType *database.DevEnvironmentType, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
+func (s *devEnvironmentService) ListEnvironments(createdBy string, envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
 	return s.repo.List(createdBy, envType, name, page, pageSize)
 }
 
@@ -186,28 +186,25 @@ func (s *devEnvironmentService) validateEnvironmentData(name, envType string, cp
 	// 从系统配置获取支持的环境类型
 	envTypesJSON, err := s.configService.GetValue("dev_environment_types")
 	if err != nil {
-		// 如果获取配置失败，使用默认验证
-		if envType != string(database.DevEnvTypeClaude) &&
-			envType != string(database.DevEnvTypeGemini) &&
-			envType != string(database.DevEnvTypeOpenCode) {
-			return errors.New("unsupported environment type")
+		return errors.New("failed to get environment types configuration")
+	}
+
+	// 解析环境类型配置
+	var envTypes []map[string]interface{}
+	if err := json.Unmarshal([]byte(envTypesJSON), &envTypes); err != nil {
+		return errors.New("failed to parse environment types configuration")
+	}
+
+	// 验证是否为配置支持的环境类型 key
+	found := false
+	for _, supportedType := range envTypes {
+		if key, ok := supportedType["key"].(string); ok && key == envType {
+			found = true
+			break
 		}
-	} else {
-		// 解析环境类型配置
-		var envTypes []map[string]interface{}
-		if err := json.Unmarshal([]byte(envTypesJSON), &envTypes); err == nil {
-			// 验证是否为配置支持的环境类型
-			found := false
-			for _, supportedType := range envTypes {
-				if name, ok := supportedType["name"].(string); ok && name == envType {
-					found = true
-					break
-				}
-			}
-			if !found {
-				return errors.New("unsupported environment type")
-			}
-		}
+	}
+	if !found {
+		return errors.New("unsupported environment type")
 	}
 
 	return s.ValidateResourceLimits(cpuLimit, memoryLimit)

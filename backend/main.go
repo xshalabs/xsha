@@ -90,7 +90,7 @@ func main() {
 	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, workspaceManager, cfg, gitCredService)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo)
 	taskConvResultService := services.NewTaskConversationResultService(taskConvResultRepo, taskConvRepo, taskRepo, projectRepo)
-	aiTaskExecutor := executor.NewAITaskExecutorService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, gitCredService, taskConvResultService, systemConfigService, cfg, logBroadcaster)
+	aiTaskExecutor := executor.NewAITaskExecutorService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, gitCredService, taskConvResultService, taskService, systemConfigService, cfg, logBroadcaster)
 
 	// Initialize scheduler
 	taskProcessor := scheduler.NewTaskProcessor(aiTaskExecutor)

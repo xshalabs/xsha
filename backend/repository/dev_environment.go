@@ -41,7 +41,7 @@ func (r *devEnvironmentRepository) GetByName(name, createdBy string) (*database.
 }
 
 // List 分页获取开发环境列表
-func (r *devEnvironmentRepository) List(createdBy string, envType *database.DevEnvironmentType, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
+func (r *devEnvironmentRepository) List(createdBy string, envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
 	var environments []database.DevEnvironment
 	var total int64
 

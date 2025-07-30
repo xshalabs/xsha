@@ -1,4 +1,4 @@
-export type DevEnvironmentType = "claude_code" | "gemini_cli" | "opencode";
+export type DevEnvironmentType = string; // 现在是动态的环境类型 key
 
 export interface DevEnvironment {
   id: number;
@@ -62,6 +62,12 @@ export interface DevEnvironmentListParams {
   page_size?: number;
   type?: DevEnvironmentType;
   name?: string;
+}
+
+export interface DevEnvironmentTypeConfig {
+  key: string;
+  name: string;
+  image: string;
 }
 
 export interface DevEnvironmentTypeOption {

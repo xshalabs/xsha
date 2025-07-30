@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 	"strconv"
-	"xsha-backend/database"
 	"xsha-backend/i18n"
 	"xsha-backend/middleware"
 	"xsha-backend/services"
@@ -24,7 +23,7 @@ func NewDevEnvironmentHandlers(devEnvService services.DevEnvironmentService) *De
 type CreateEnvironmentRequest struct {
 	Name        string            `json:"name" binding:"required"`
 	Description string            `json:"description"`
-	Type        string            `json:"type" binding:"required,oneof=claude_code gemini_cli opencode"`
+	Type        string            `json:"type" binding:"required"` // 环境类型的 key，动态验证
 	CPULimit    float64           `json:"cpu_limit" binding:"min=0.1,max=16"`
 	MemoryLimit int64             `json:"memory_limit" binding:"min=128,max=32768"`
 	EnvVars     map[string]string `json:"env_vars"`
@@ -138,7 +137,7 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 
 	page := 1
 	pageSize := 10
-	var envType *database.DevEnvironmentType
+	var envType *string
 	var name *string
 
 	if p := c.Query("page"); p != "" {
@@ -152,8 +151,7 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 		}
 	}
 	if t := c.Query("type"); t != "" {
-		typeValue := database.DevEnvironmentType(t)
-		envType = &typeValue
+		envType = &t
 	}
 	if n := c.Query("name"); n != "" {
 		name = &n

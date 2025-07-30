@@ -7,6 +7,7 @@ import type {
   DevEnvironmentListResponse,
   DevEnvironmentVarsResponse,
   DevEnvironmentListParams,
+  DevEnvironmentTypeConfig,
 } from "@/types/dev-environment";
 
 export const devEnvironmentsApi = {
@@ -73,7 +74,7 @@ export const devEnvironmentsApi = {
     });
   },
 
-  getAvailableTypes: async (): Promise<{ types: { name: string; image: string }[] }> => {
-    return request<{ types: { name: string; image: string }[] }>("/dev-environments/available-types");
+  getAvailableTypes: async (): Promise<{ types: DevEnvironmentTypeConfig[] }> => {
+    return request<{ types: DevEnvironmentTypeConfig[] }>("/dev-environments/available-types");
   },
 };

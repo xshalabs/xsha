@@ -14,6 +14,7 @@
   "repoUrl": "Repository URL",
   "protocol": "Protocol Type",
   "credential": "Access Credential",
+  "taskCount": "Tasks",
   "createdAt": "Created At",
   "lastUsed": "Last Used",
   "createdBy": "Created By",

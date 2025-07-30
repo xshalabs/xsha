@@ -14,6 +14,7 @@
   "repoUrl": "仓库地址",
   "protocol": "协议类型",
   "credential": "访问凭据",
+  "taskCount": "任务数量",
   "createdAt": "创建时间",
   "lastUsed": "上次使用",
   "createdBy": "创建者",

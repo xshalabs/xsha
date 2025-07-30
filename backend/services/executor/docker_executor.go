@@ -113,7 +113,7 @@ func (d *dockerExecutor) BuildCommand(conv *database.TaskConversation, workspace
 }
 
 // getImageNameFromConfig 根据开发环境类型从系统配置获取镜像名称
-func (d *dockerExecutor) getImageNameFromConfig(envType database.DevEnvironmentType) string {
+func (d *dockerExecutor) getImageNameFromConfig(envType string) string {
 	// 从系统配置获取环境类型映射
 	envTypesJSON, err := d.configService.GetValue("dev_environment_types")
 	if err != nil {
@@ -128,9 +128,9 @@ func (d *dockerExecutor) getImageNameFromConfig(envType database.DevEnvironmentT
 		return "claude-code:latest"
 	}
 
-	// 根据环境类型配置选择镜像
+	// 根据环境类型配置选择镜像，使用 key 字段匹配
 	for _, envTypeConfig := range envTypes {
-		if name, ok := envTypeConfig["name"].(string); ok && name == string(envType) {
+		if key, ok := envTypeConfig["key"].(string); ok && key == envType {
 			if image, ok := envTypeConfig["image"].(string); ok {
 				return image
 			}
