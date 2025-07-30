@@ -72,10 +72,6 @@ func main() {
 	taskConvResultRepo := repository.NewTaskConversationResultRepository(dbManager.GetDB())
 	systemConfigRepo := repository.NewSystemConfigRepository(dbManager.GetDB())
 
-	// Initialize log broadcaster
-	logBroadcaster := services.NewLogBroadcaster()
-	logBroadcaster.Start()
-
 	// Initialize workspace manager
 	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir)
 
@@ -90,7 +86,7 @@ func main() {
 	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, workspaceManager, cfg, gitCredService)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo)
 	taskConvResultService := services.NewTaskConversationResultService(taskConvResultRepo, taskConvRepo, taskRepo, projectRepo)
-	aiTaskExecutor := executor.NewAITaskExecutorService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, gitCredService, taskConvResultService, taskService, systemConfigService, cfg, logBroadcaster)
+	aiTaskExecutor := executor.NewAITaskExecutorService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, gitCredService, taskConvResultService, taskService, systemConfigService, cfg)
 
 	// Initialize scheduler
 	taskProcessor := scheduler.NewTaskProcessor(aiTaskExecutor)
@@ -114,7 +110,6 @@ func main() {
 	taskConvHandlers := handlers.NewTaskConversationHandlers(taskConvService)
 	taskConvResultHandlers := handlers.NewTaskConversationResultHandlers(taskConvResultService)
 	taskExecLogHandlers := handlers.NewTaskExecutionLogHandlers(aiTaskExecutor)
-	sseLogHandlers := handlers.NewSSELogHandlers(logBroadcaster)
 	systemConfigHandlers := handlers.NewSystemConfigHandlers(systemConfigService)
 
 	// Set gin mode
@@ -132,7 +127,7 @@ func main() {
 	}
 
 	// Setup routes - Pass all handler instances
-	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvResultHandlers, taskExecLogHandlers, sseLogHandlers, systemConfigHandlers)
+	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvResultHandlers, taskExecLogHandlers, systemConfigHandlers)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

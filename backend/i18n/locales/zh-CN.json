@@ -98,8 +98,7 @@
   "task_execution.no_dev_environment": "任务未配置开发环境，无法执行",
   "task_execution.update_status_failed": "更新对话状态失败",
   "task_execution.create_log_failed": "创建执行日志失败",
-  "sse_log.test_message_content": "测试消息 - 时间: %s",
-  "sse_log.test_message_sent": "测试消息已发送",
+
   "tasks.errors.no_start_branch": "任务没有设置起始分支",
   "tasks.errors.no_work_branch": "任务没有设置工作分支",
   "tasks.errors.no_workspace": "任务没有工作空间路径",

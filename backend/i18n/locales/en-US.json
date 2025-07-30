@@ -98,8 +98,7 @@
   "task_execution.no_dev_environment": "Task has no development environment configured, cannot execute",
   "task_execution.update_status_failed": "Failed to update conversation status",
   "task_execution.create_log_failed": "Failed to create execution log",
-  "sse_log.test_message_content": "Test message - Time: %s",
-  "sse_log.test_message_sent": "Test message sent successfully",
+
   "tasks.errors.no_start_branch": "Task has no start branch set",
   "tasks.errors.no_work_branch": "Task has no work branch set",
   "tasks.errors.no_workspace": "Task has no workspace path",

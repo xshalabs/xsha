@@ -34,7 +34,6 @@ type aiTaskExecutorService struct {
 
 	// 基础设施
 	workspaceManager *utils.WorkspaceManager
-	logBroadcaster   *services.LogBroadcaster
 	config           *config.Config
 }
 
@@ -49,15 +48,13 @@ func NewAITaskExecutorService(
 	taskService services.TaskService,
 	systemConfigService services.SystemConfigService,
 	cfg *config.Config,
-	logBroadcaster *services.LogBroadcaster,
 ) services.AITaskExecutorService {
 	// 创建工作空间管理器
 	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir)
 
 	// 创建日志追加器
 	logAppender := &logAppenderImpl{
-		execLogRepo:    execLogRepo,
-		logBroadcaster: logBroadcaster,
+		execLogRepo: execLogRepo,
 	}
 
 	// 创建内部组件
@@ -86,7 +83,6 @@ func NewAITaskExecutorService(
 		workspaceCleaner:      workspaceCleaner,
 		stateManager:          stateManager,
 		workspaceManager:      workspaceManager,
-		logBroadcaster:        logBroadcaster,
 		config:                cfg,
 	}
 }
@@ -358,7 +354,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		if errorMsg != "" {
 			statusMessage += fmt.Sprintf(" - %s", errorMsg)
 		}
-		s.logBroadcaster.BroadcastStatus(conv.ID, fmt.Sprintf("%s - %s", string(finalStatus), statusMessage))
+		// Status broadcast removed with SSE log functionality
 
 		// 尝试解析并创建任务结果记录
 		// 重新从数据库获取最新的执行日志数据（包含所有追加的日志内容）
@@ -591,8 +587,7 @@ func (s *aiTaskExecutorService) CleanupWorkspaceOnCancel(taskID uint, workspaceP
 
 // logAppenderImpl 日志追加器实现
 type logAppenderImpl struct {
-	execLogRepo    repository.TaskExecutionLogRepository
-	logBroadcaster *services.LogBroadcaster
+	execLogRepo repository.TaskExecutionLogRepository
 }
 
 func (l *logAppenderImpl) AppendLog(execLogID uint, content string) {
@@ -602,8 +597,5 @@ func (l *logAppenderImpl) AppendLog(execLogID uint, content string) {
 		return
 	}
 
-	// 获取对话ID进行广播
-	if execLog, err := l.execLogRepo.GetByID(execLogID); err == nil {
-		l.logBroadcaster.BroadcastLog(execLog.ConversationID, content, "log")
-	}
+	// Log broadcast removed with SSE log functionality
 }

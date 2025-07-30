@@ -12,7 +12,7 @@ import (
 )
 
 // SetupRoutes sets up routes
-func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskConvResultHandlers *handlers.TaskConversationResultHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, sseLogHandlers *handlers.SSELogHandlers, systemConfigHandlers *handlers.SystemConfigHandlers) {
+func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskConvResultHandlers *handlers.TaskConversationResultHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, systemConfigHandlers *handlers.SystemConfigHandlers) {
 	// Apply global middleware
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
@@ -137,14 +137,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		api.GET("/task-conversations/:conversationId/execution-log", taskExecLogHandlers.GetExecutionLog)
 		api.POST("/task-conversations/:conversationId/execution/cancel", taskExecLogHandlers.CancelExecution)
 		api.POST("/task-conversations/:conversationId/execution/retry", taskExecLogHandlers.RetryExecution)
-
-		// SSE real-time log management
-		logs := api.Group("/logs")
-		{
-			logs.GET("/stream", sseLogHandlers.StreamLogs)                     // SSE real-time log stream
-			logs.GET("/stats", sseLogHandlers.GetLogStats)                     // Get connection statistics
-			logs.POST("/test/:conversationId", sseLogHandlers.SendTestMessage) // Send test message
-		}
 
 		// Development environment management
 		devEnvs := api.Group("/dev-environments")

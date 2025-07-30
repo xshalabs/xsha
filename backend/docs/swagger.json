@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "XSHA Backend API服务，提供用户认证、项目管理、Git凭据管理等功能",
+        "description": "XSHA Backend API service, providing user authentication, project management, Git credential management and other functions",
         "title": "XSHA Backend API",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
@@ -25,7 +25,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取系统的登录日志记录，支持按用户名筛选和分页",
+                "description": "Get system login log records, supporting filtering by username and pagination",
                 "consumes": [
                     "application/json"
                 ],
@@ -33,82 +33,68 @@
                     "application/json"
                 ],
                 "tags": [
-                    "认证"
+                    "Authentication"
                 ],
-                "summary": "获取登录日志",
+                "summary": "Get login logs",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "用户名筛选",
+                        "description": "Username filter",
                         "name": "username",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "页码，默认为1",
+                        "description": "Page number, defaults to 1",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量，默认为20，最大100",
+                        "description": "Page size, defaults to 20, maximum 100",
                         "name": "page_size",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "登录日志列表",
+                        "description": "Login log list",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "logs": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "page": {
-                                            "type": "number"
-                                        },
-                                        "page_size": {
-                                            "type": "number"
-                                        },
-                                        "total": {
-                                            "type": "number"
-                                        },
-                                        "total_pages": {
-                                            "type": "number"
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "logs": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "page": {
+                                    "type": "number"
+                                },
+                                "page_size": {
+                                    "type": "number"
+                                },
+                                "total": {
+                                    "type": "number"
+                                },
+                                "total_pages": {
+                                    "type": "number"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
-                        "description": "获取登录日志失败",
+                        "description": "Failed to get login logs",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -121,7 +107,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取管理员操作日志列表，支持多条件筛选和分页",
+                "description": "Get administrator operation log list with multi-condition filtering and pagination",
                 "consumes": [
                     "application/json"
                 ],
@@ -129,112 +115,98 @@
                     "application/json"
                 ],
                 "tags": [
-                    "管理员日志"
+                    "Admin Logs"
                 ],
-                "summary": "获取操作日志列表",
+                "summary": "Get operation log list",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "用户名筛选",
+                        "description": "Username filter",
                         "name": "username",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "资源类型筛选",
+                        "description": "Resource type filter",
                         "name": "resource",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "操作类型筛选",
+                        "description": "Operation type filter",
                         "name": "operation",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
-                        "description": "操作成功状态筛选",
+                        "description": "Operation success status filter",
                         "name": "success",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "开始时间筛选 (YYYY-MM-DD)",
+                        "description": "Start time filter (YYYY-MM-DD)",
                         "name": "start_time",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "结束时间筛选 (YYYY-MM-DD)",
+                        "description": "End time filter (YYYY-MM-DD)",
                         "name": "end_time",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "页码，默认为1",
+                        "description": "Page number, default is 1",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量，默认为20，最大100",
+                        "description": "Page size, default is 20, maximum is 100",
                         "name": "page_size",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "操作日志列表",
+                        "description": "Operation log list",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "logs": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "page": {
-                                            "type": "number"
-                                        },
-                                        "page_size": {
-                                            "type": "number"
-                                        },
-                                        "total": {
-                                            "type": "number"
-                                        },
-                                        "total_pages": {
-                                            "type": "number"
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "logs": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "page": {
+                                    "type": "number"
+                                },
+                                "page_size": {
+                                    "type": "number"
+                                },
+                                "total": {
+                                    "type": "number"
+                                },
+                                "total_pages": {
+                                    "type": "number"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
-                        "description": "获取操作日志失败",
+                        "description": "Failed to get operation logs",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -247,7 +219,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "根据ID获取单个操作日志的详细信息",
+                "description": "Get detailed information of a single operation log by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -255,13 +227,13 @@
                     "application/json"
                 ],
                 "tags": [
-                    "管理员日志"
+                    "Admin Logs"
                 ],
-                "summary": "获取操作日志详情",
+                "summary": "Get operation log details",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "日志ID",
+                        "description": "Log ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -269,60 +241,39 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "操作日志详情",
+                        "description": "Operation log details",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "log": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "log": {
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
-                        "description": "无效的日志ID",
+                        "description": "Invalid log ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
-                        "description": "日志不存在",
+                        "description": "Log not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -335,7 +286,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取指定时间范围内的操作统计信息",
+                "description": "Get operation statistics information within a specified time range",
                 "consumes": [
                     "application/json"
                 ],
@@ -343,177 +294,61 @@
                     "application/json"
                 ],
                 "tags": [
-                    "管理员日志"
+                    "Admin Logs"
                 ],
-                "summary": "获取操作统计",
+                "summary": "Get operation statistics",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "用户名筛选",
+                        "description": "Username filter",
                         "name": "username",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "开始时间 (YYYY-MM-DD)，默认30天前",
+                        "description": "Start time (YYYY-MM-DD), default is 30 days ago",
                         "name": "start_time",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "结束时间 (YYYY-MM-DD)，默认今天",
+                        "description": "End time (YYYY-MM-DD), default is today",
                         "name": "end_time",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "操作统计信息",
+                        "description": "Operation statistics information",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "end_time": {
+                                    "type": "string"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "operation_stats": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "end_time": {
-                                            "type": "string"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "operation_stats": {
-                                            "type": "object"
-                                        },
-                                        "resource_stats": {
-                                            "type": "object"
-                                        },
-                                        "start_time": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "resource_stats": {
+                                    "type": "object"
+                                },
+                                "start_time": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
-                        "description": "获取操作统计失败",
+                        "description": "Failed to get operation statistics",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/logs/stats": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "获取当前SSE连接数等统计信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "SSE日志"
-                ],
-                "summary": "获取SSE连接统计",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/logs/stream": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "通过SSE推送任务执行的实时日志",
-                "produces": [
-                    "text/plain"
-                ],
-                "tags": [
-                    "SSE日志"
-                ],
-                "summary": "实时日志流",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "对话ID，用于过滤特定对话的日志",
-                        "name": "conversationId",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "event-stream",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/logs/test/{conversationId}": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "发送一条测试日志消息用于调试SSE功能",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "SSE日志"
-                ],
-                "summary": "发送测试日志消息",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "对话ID",
-                        "name": "conversationId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
                             }
                         }
                     }
@@ -522,7 +357,7 @@
         },
         "/auth/login": {
             "post": {
-                "description": "使用用户名和密码进行登录认证",
+                "description": "Login authentication using username and password",
                 "consumes": [
                     "application/json"
                 ],
@@ -530,109 +365,74 @@
                     "application/json"
                 ],
                 "tags": [
-                    "认证"
+                    "Authentication"
                 ],
-                "summary": "用户登录",
+                "summary": "User login",
                 "parameters": [
                     {
-                        "description": "登录信息",
+                        "description": "Login information",
                         "name": "loginData",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "password": {
+                                    "type": "string"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "password": {
-                                            "type": "string"
-                                        },
-                                        "username": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "username": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "登录成功",
+                        "description": "Login successful",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "expires_at": {
+                                    "type": "string"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "expires_at": {
-                                            "type": "string"
-                                        },
-                                        "token": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "token": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
-                        "description": "认证失败",
+                        "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "429": {
-                        "description": "请求过于频繁",
+                        "description": "Too frequent requests",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -645,7 +445,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "登出当前用户，将token加入黑名单",
+                "description": "Logout current user and add token to blacklist",
                 "consumes": [
                     "application/json"
                 ],
@@ -653,80 +453,52 @@
                     "application/json"
                 ],
                 "tags": [
-                    "认证"
+                    "Authentication"
                 ],
-                "summary": "用户登出",
+                "summary": "User logout",
                 "responses": {
                     "200": {
-                        "description": "登出成功",
+                        "description": "Logout successful",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
-                        "description": "无效的token",
+                        "description": "Invalid token",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
-                        "description": "认证失败",
+                        "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
-                        "description": "登出失败",
+                        "description": "Logout failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -739,7 +511,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取当前用户的开发环境列表，支持分页和筛选",
+                "description": "Get current user's development environment list with pagination and filtering",
                 "consumes": [
                     "application/json"
                 ],
@@ -747,58 +519,51 @@
                     "application/json"
                 ],
                 "tags": [
-                    "开发环境"
+                    "Development Environment"
                 ],
-                "summary": "获取环境列表",
+                "summary": "Get environment list",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码，默认为1",
+                        "description": "Page number, default is 1",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量，默认为20",
+                        "description": "Page size, default is 10",
                         "name": "page_size",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "环境类型筛选",
+                        "description": "Environment type filter",
                         "name": "type",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "状态筛选",
-                        "name": "status",
+                        "description": "Environment name filter",
+                        "name": "name",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "环境列表",
+                        "description": "Environment list",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "environments": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "total": {
-                                            "type": "number"
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "environments": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
+                                },
+                                "total": {
+                                    "type": "number"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -809,7 +574,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "创建一个新的开发环境",
+                "description": "Create a new development environment",
                 "consumes": [
                     "application/json"
                 ],
@@ -817,12 +582,12 @@
                     "application/json"
                 ],
                 "tags": [
-                    "开发环境"
+                    "Development Environment"
                 ],
-                "summary": "创建开发环境",
+                "summary": "Create development environment",
                 "parameters": [
                     {
-                        "description": "环境信息",
+                        "description": "Environment information",
                         "name": "environment",
                         "in": "body",
                         "required": true,
@@ -833,42 +598,64 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "环境创建成功",
+                        "description": "Environment created successfully",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "environment": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "environment": {
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/dev-environments/available-types": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get available environment types from system configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Development Environment"
+                ],
+                "summary": "Get available environment types",
+                "responses": {
+                    "200": {
+                        "description": "Available environment types",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "types": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -881,7 +668,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "根据环境ID获取开发环境详细信息",
+                "description": "Get detailed information of a development environment by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -889,13 +676,13 @@
                     "application/json"
                 ],
                 "tags": [
-                    "开发环境"
+                    "Development Environment"
                 ],
-                "summary": "获取环境详情",
+                "summary": "Get environment details",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "环境ID",
+                        "description": "Environment ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -903,39 +690,25 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "环境详情",
+                        "description": "Environment details",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "environment": {
                                     "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "environment": {
-                                            "type": "object"
-                                        }
-                                    }
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
-                        "description": "环境不存在",
+                        "description": "Environment not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -979,37 +752,23 @@
                     "200": {
                         "description": "环境更新成功",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "请求参数错误",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1044,37 +803,23 @@
                     "200": {
                         "description": "环境删除成功",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "删除失败",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1111,37 +856,23 @@
                     "200": {
                         "description": "环境变量",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "env_vars": {
                                     "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "env_vars": {
-                                            "type": "object"
-                                        }
-                                    }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "获取失败",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1188,37 +919,23 @@
                     "200": {
                         "description": "更新成功",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "更新失败",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1231,7 +948,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取当前用户的Git凭据列表，支持按类型筛选和分页",
+                "description": "Get the current user's Git credential list, supporting filtering by type and pagination",
                 "consumes": [
                     "application/json"
                 ],
@@ -1239,82 +956,68 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Git凭据"
+                    "Git Credentials"
                 ],
-                "summary": "获取Git凭据列表",
+                "summary": "Get Git credential list",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "凭据类型筛选 (password/token/ssh_key)",
+                        "description": "Credential type filter (password/token/ssh_key)",
                         "name": "type",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "页码，默认为1",
+                        "description": "Page number, defaults to 1",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量，默认为20，最大100",
+                        "description": "Page size, defaults to 20, maximum 100",
                         "name": "page_size",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "凭据列表",
+                        "description": "Credential list",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "credentials": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "page": {
-                                            "type": "number"
-                                        },
-                                        "page_size": {
-                                            "type": "number"
-                                        },
-                                        "total": {
-                                            "type": "number"
-                                        },
-                                        "total_pages": {
-                                            "type": "number"
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "credentials": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "page": {
+                                    "type": "number"
+                                },
+                                "page_size": {
+                                    "type": "number"
+                                },
+                                "total": {
+                                    "type": "number"
+                                },
+                                "total_pages": {
+                                    "type": "number"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
-                        "description": "获取凭据列表失败",
+                        "description": "Failed to get credential list",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1325,7 +1028,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "创建新的Git凭据，支持密码、令牌、SSH密钥类型",
+                "description": "Create a new Git credential, supporting password, token, and SSH key types",
                 "consumes": [
                     "application/json"
                 ],
@@ -1333,12 +1036,12 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Git凭据"
+                    "Git Credentials"
                 ],
-                "summary": "创建Git凭据",
+                "summary": "Create Git credential",
                 "parameters": [
                     {
-                        "description": "凭据信息",
+                        "description": "Credential information",
                         "name": "credential",
                         "in": "body",
                         "required": true,
@@ -1349,60 +1052,39 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "凭据创建成功",
+                        "description": "Credential created successfully",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "credential": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "credential": {
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
-                        "description": "创建凭据失败",
+                        "description": "Failed to create credential",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1415,7 +1097,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "根据ID获取指定Git凭据的详细信息",
+                "description": "Get detailed information of a specified Git credential by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -1423,13 +1105,13 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Git凭据"
+                    "Git Credentials"
                 ],
-                "summary": "获取Git凭据详情",
+                "summary": "Get Git credential details",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "凭据ID",
+                        "description": "Credential ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1437,57 +1119,36 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "凭据详情",
+                        "description": "Credential details",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "credential": {
                                     "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "credential": {
-                                            "type": "object"
-                                        }
-                                    }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
-                        "description": "无效的凭据ID",
+                        "description": "Invalid credential ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
-                        "description": "凭据不存在",
+                        "description": "Credential not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1498,7 +1159,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "更新指定Git凭据的信息",
+                "description": "Update information of a specified Git credential",
                 "consumes": [
                     "application/json"
                 ],
@@ -1506,19 +1167,19 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Git凭据"
+                    "Git Credentials"
                 ],
-                "summary": "更新Git凭据",
+                "summary": "Update Git credential",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "凭据ID",
+                        "description": "Credential ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "凭据更新信息",
+                        "description": "Credential update information",
                         "name": "credential",
                         "in": "body",
                         "required": true,
@@ -1529,57 +1190,36 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "凭据更新成功",
+                        "description": "Credential updated successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
-                        "description": "凭据不存在",
+                        "description": "Credential not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1590,7 +1230,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "删除指定的Git凭据",
+                "description": "Delete a specified Git credential",
                 "consumes": [
                     "application/json"
                 ],
@@ -1598,13 +1238,13 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Git凭据"
+                    "Git Credentials"
                 ],
-                "summary": "删除Git凭据",
+                "summary": "Delete Git credential",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "凭据ID",
+                        "description": "Credential ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1612,57 +1252,36 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "凭据删除成功",
+                        "description": "Credential deleted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
-                        "description": "无效的凭据ID",
+                        "description": "Invalid credential ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
-                        "description": "凭据不存在",
+                        "description": "Credential not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1670,7 +1289,7 @@
         },
         "/health": {
             "get": {
-                "description": "检查服务器状态",
+                "description": "Check server status",
                 "consumes": [
                     "application/json"
                 ],
@@ -1678,32 +1297,25 @@
                     "application/json"
                 ],
                 "tags": [
-                    "系统"
+                    "System"
                 ],
-                "summary": "健康检查",
+                "summary": "Health check",
                 "responses": {
                     "200": {
-                        "description": "服务器状态正常",
+                        "description": "Server status is normal",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "lang": {
+                                    "type": "string"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "lang": {
-                                            "type": "string"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "status": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1711,7 +1323,7 @@
         },
         "/language": {
             "post": {
-                "description": "设置用户的语言偏好",
+                "description": "Set user's language preference",
                 "consumes": [
                     "application/json"
                 ],
@@ -1719,67 +1331,46 @@
                     "application/json"
                 ],
                 "tags": [
-                    "国际化"
+                    "Internationalization"
                 ],
-                "summary": "设置语言偏好",
+                "summary": "Set language preference",
                 "parameters": [
                     {
-                        "description": "语言设置",
+                        "description": "Language setting",
                         "name": "languageData",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "language": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "language": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "语言设置成功",
+                        "description": "Language set successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "language": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "language": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1787,7 +1378,7 @@
         },
         "/languages": {
             "get": {
-                "description": "获取系统支持的所有语言列表及当前语言",
+                "description": "Get all supported languages and current language from the system",
                 "consumes": [
                     "application/json"
                 ],
@@ -1795,32 +1386,25 @@
                     "application/json"
                 ],
                 "tags": [
-                    "国际化"
+                    "Internationalization"
                 ],
-                "summary": "获取支持的语言列表",
+                "summary": "Get supported language list",
                 "responses": {
                     "200": {
-                        "description": "支持的语言列表",
+                        "description": "Supported language list",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "current": {
+                                    "type": "string"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "current": {
-                                            "type": "string"
-                                        },
-                                        "languages": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        }
+                                "languages": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
                                     }
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1833,7 +1417,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取当前用户的项目列表，支持分页",
+                "description": "获取当前用户的项目列表，支持分页和名称筛选",
                 "consumes": [
                     "application/json"
                 ],
@@ -1845,6 +1429,18 @@
                 ],
                 "summary": "获取项目列表",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "项目名称筛选（模糊匹配）",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "协议类型筛选 (https/ssh)",
+                        "name": "protocol",
+                        "in": "query"
+                    },
                     {
                         "type": "integer",
                         "description": "页码，默认为1",
@@ -1862,49 +1458,35 @@
                     "200": {
                         "description": "项目列表",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "page": {
+                                    "type": "number"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "page": {
-                                            "type": "number"
-                                        },
-                                        "page_size": {
-                                            "type": "number"
-                                        },
-                                        "projects": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "total": {
-                                            "type": "number"
-                                        }
+                                "page_size": {
+                                    "type": "number"
+                                },
+                                "projects": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
+                                },
+                                "total": {
+                                    "type": "number"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "获取项目列表失败",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1941,58 +1523,37 @@
                     "201": {
                         "description": "项目创建成功",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "number"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "id": {
-                                            "type": "number"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "请求参数错误",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "创建项目失败",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2031,58 +1592,37 @@
                     "200": {
                         "description": "获取分支列表成功",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "result": {
-                                            "$ref": "#/definitions/handlers.FetchRepositoryBranchesResponse"
-                                        }
-                                    }
+                                "result": {
+                                    "$ref": "#/definitions/handlers.FetchRepositoryBranchesResponse"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "请求参数错误",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "获取分支列表失败",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2119,43 +1659,29 @@
                     "200": {
                         "description": "获取凭据列表成功",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "credentials": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "credentials": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
+                                },
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "请求参数错误",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2194,40 +1720,26 @@
                     "200": {
                         "description": "解析成功",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "result": {
-                                            "$ref": "#/definitions/handlers.ParseRepositoryURLResponse"
-                                        }
-                                    }
+                                "result": {
+                                    "$ref": "#/definitions/handlers.ParseRepositoryURLResponse"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "请求参数错误",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2266,40 +1778,26 @@
                     "200": {
                         "description": "验证成功",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "can_access": {
+                                    "type": "boolean"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "can_access": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "请求参数错误或验证失败",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2336,55 +1834,34 @@
                     "200": {
                         "description": "项目详情",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "project": {
                                     "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "project": {
-                                            "type": "object"
-                                        }
-                                    }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "无效的项目ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "项目不存在",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2428,55 +1905,34 @@
                     "200": {
                         "description": "项目更新成功",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "请求参数错误",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "项目不存在",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2511,55 +1967,123 @@
                     "200": {
                         "description": "项目删除成功",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "无效的项目ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "项目不存在",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/system-configs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all system configurations without pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System Configuration"
+                ],
+                "summary": "Get all configurations",
+                "responses": {
+                    "200": {
+                        "description": "All configurations",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "configs": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
                                 }
-                            ]
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update multiple system configurations in a single request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System Configuration"
+                ],
+                "summary": "Batch update configurations",
+                "parameters": [
+                    {
+                        "description": "Configuration updates",
+                        "name": "configs",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.BatchUpdateConfigsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Configurations updated successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request parameter error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -2770,7 +2294,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取当前登录用户的信息",
+                "description": "Get information of current logged-in user",
                 "consumes": [
                     "application/json"
                 ],
@@ -2778,44 +2302,30 @@
                     "application/json"
                 ],
                 "tags": [
-                    "用户"
+                    "User"
                 ],
-                "summary": "获取当前用户信息",
+                "summary": "Get current user information",
                 "responses": {
                     "200": {
-                        "description": "用户信息",
+                        "description": "User information",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "username": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "username": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
-                        "description": "获取用户信息失败",
+                        "description": "Failed to get user information",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2832,13 +2342,6 @@
                 "failed",
                 "cancelled"
             ],
-            "x-enum-comments": {
-                "ConversationStatusCancelled": "已撤销",
-                "ConversationStatusFailed": "执行失败",
-                "ConversationStatusPending": "待处理",
-                "ConversationStatusRunning": "进行中",
-                "ConversationStatusSuccess": "执行成功"
-            },
             "x-enum-varnames": [
                 "ConversationStatusPending",
                 "ConversationStatusRunning",
@@ -2851,65 +2354,36 @@
             "type": "object",
             "properties": {
                 "cpu_limit": {
-                    "description": "资源限制",
                     "type": "number"
                 },
                 "created_at": {
                     "type": "string"
                 },
                 "created_by": {
-                    "description": "关联用户",
                     "type": "string"
                 },
                 "description": {
-                    "description": "环境描述",
                     "type": "string"
                 },
                 "env_vars": {
-                    "description": "环境变量 (JSON格式存储)",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "memory_limit": {
-                    "description": "内存限制 (MB)",
                     "type": "integer"
                 },
                 "name": {
-                    "description": "基本信息",
                     "type": "string"
                 },
                 "type": {
-                    "description": "环境类型",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/database.DevEnvironmentType"
-                        }
-                    ]
+                    "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
-        },
-        "database.DevEnvironmentType": {
-            "type": "string",
-            "enum": [
-                "claude_code",
-                "gemini_cli",
-                "opencode"
-            ],
-            "x-enum-comments": {
-                "DevEnvTypeClaude": "Claude Code环境",
-                "DevEnvTypeGemini": "Gemini CLI环境",
-                "DevEnvTypeOpenCode": "OpenCode环境"
-            },
-            "x-enum-varnames": [
-                "DevEnvTypeClaude",
-                "DevEnvTypeGemini",
-                "DevEnvTypeOpenCode"
-            ]
         },
         "database.GitCredential": {
             "type": "object",
@@ -2918,45 +2392,27 @@
                     "type": "string"
                 },
                 "created_by": {
-                    "description": "关联用户",
                     "type": "string"
                 },
                 "description": {
-                    "description": "描述",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "is_active": {
-                    "description": "是否激活",
-                    "type": "boolean"
-                },
-                "last_used": {
-                    "description": "元数据",
-                    "type": "string"
-                },
                 "name": {
-                    "description": "基本信息",
                     "type": "string"
                 },
                 "public_key": {
-                    "description": "SSH公钥（不敏感，可显示）",
                     "type": "string"
                 },
                 "type": {
-                    "description": "凭据类型",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/database.GitCredentialType"
-                        }
-                    ]
+                    "$ref": "#/definitions/database.GitCredentialType"
                 },
                 "updated_at": {
                     "type": "string"
                 },
                 "username": {
-                    "description": "认证信息",
                     "type": "string"
                 }
             }
@@ -2968,11 +2424,6 @@
                 "token",
                 "ssh_key"
             ],
-            "x-enum-comments": {
-                "GitCredentialTypePassword": "用户名密码",
-                "GitCredentialTypeSSHKey": "SSH Key",
-                "GitCredentialTypeToken": "Personal Access Token"
-            },
             "x-enum-varnames": [
                 "GitCredentialTypePassword",
                 "GitCredentialTypeToken",
@@ -2985,10 +2436,6 @@
                 "https",
                 "ssh"
             ],
-            "x-enum-comments": {
-                "GitProtocolHTTPS": "HTTPS协议",
-                "GitProtocolSSH": "SSH协议"
-            },
             "x-enum-varnames": [
                 "GitProtocolHTTPS",
                 "GitProtocolSSH"
@@ -3001,54 +2448,33 @@
                     "type": "string"
                 },
                 "created_by": {
-                    "description": "关联用户",
                     "type": "string"
                 },
                 "credential": {
-                    "description": "关联的凭据",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/database.GitCredential"
-                        }
-                    ]
+                    "$ref": "#/definitions/database.GitCredential"
                 },
                 "credential_id": {
-                    "description": "绑定的凭据ID",
                     "type": "integer"
                 },
-                "default_branch": {
-                    "description": "默认分支",
-                    "type": "string"
-                },
                 "description": {
-                    "description": "项目描述",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "is_active": {
-                    "description": "元数据",
                     "type": "boolean"
                 },
                 "last_used": {
-                    "description": "最后使用时间",
                     "type": "string"
                 },
                 "name": {
-                    "description": "基本信息",
                     "type": "string"
                 },
                 "protocol": {
-                    "description": "Git协议类型",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/database.GitProtocolType"
-                        }
-                    ]
+                    "$ref": "#/definitions/database.GitProtocolType"
                 },
                 "repo_url": {
-                    "description": "Git配置",
                     "type": "string"
                 },
                 "updated_at": {
@@ -3059,8 +2485,10 @@
         "database.Task": {
             "type": "object",
             "properties": {
+                "conversation_count": {
+                    "type": "integer"
+                },
                 "conversations": {
-                    "description": "关联对话",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/database.TaskConversation"
@@ -3070,61 +2498,42 @@
                     "type": "string"
                 },
                 "created_by": {
-                    "description": "元数据",
                     "type": "string"
                 },
                 "dev_environment": {
-                    "description": "关联开发环境",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/database.DevEnvironment"
-                        }
-                    ]
+                    "$ref": "#/definitions/database.DevEnvironment"
                 },
                 "dev_environment_id": {
-                    "description": "绑定的开发环境ID",
                     "type": "integer"
                 },
                 "has_pull_request": {
-                    "description": "是否提交PR",
                     "type": "boolean"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "project": {
-                    "description": "关联项目",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/database.Project"
-                        }
-                    ]
+                    "$ref": "#/definitions/database.Project"
                 },
                 "project_id": {
-                    "description": "关联信息",
                     "type": "integer"
                 },
                 "start_branch": {
-                    "description": "开始开发的分支",
                     "type": "string"
                 },
                 "status": {
-                    "description": "状态信息",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/database.TaskStatus"
-                        }
-                    ]
+                    "$ref": "#/definitions/database.TaskStatus"
                 },
                 "title": {
-                    "description": "基本信息",
                     "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
                 },
+                "work_branch": {
+                    "type": "string"
+                },
                 "workspace_path": {
-                    "description": "工作空间信息",
                     "type": "string"
                 }
             }
@@ -3132,38 +2541,28 @@
         "database.TaskConversation": {
             "type": "object",
             "properties": {
+                "commit_hash": {
+                    "type": "string"
+                },
                 "content": {
-                    "description": "对话信息",
                     "type": "string"
                 },
                 "created_at": {
                     "type": "string"
                 },
                 "created_by": {
-                    "description": "元数据",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "status": {
-                    "description": "对话状态",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/database.ConversationStatus"
-                        }
-                    ]
+                    "$ref": "#/definitions/database.ConversationStatus"
                 },
                 "task": {
-                    "description": "关联任务",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/database.Task"
-                        }
-                    ]
+                    "$ref": "#/definitions/database.Task"
                 },
                 "task_id": {
-                    "description": "关联信息",
                     "type": "integer"
                 },
                 "updated_at": {
@@ -3174,53 +2573,34 @@
         "database.TaskExecutionLog": {
             "type": "object",
             "properties": {
-                "commit_hash": {
-                    "description": "提交的hash（成功时）",
-                    "type": "string"
-                },
                 "completed_at": {
-                    "description": "完成时间",
                     "type": "string"
                 },
                 "conversation": {
-                    "description": "关联对话",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/database.TaskConversation"
-                        }
-                    ]
+                    "$ref": "#/definitions/database.TaskConversation"
                 },
                 "conversation_id": {
-                    "description": "关联信息",
                     "type": "integer"
                 },
                 "created_at": {
                     "type": "string"
                 },
                 "docker_command": {
-                    "description": "执行的Docker命令",
                     "type": "string"
                 },
                 "error_message": {
-                    "description": "错误信息",
                     "type": "string"
                 },
                 "execution_logs": {
-                    "description": "执行日志（实时追加）",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "started_at": {
-                    "description": "时间信息",
                     "type": "string"
                 },
                 "updated_at": {
-                    "type": "string"
-                },
-                "workspace_path": {
-                    "description": "执行信息",
                     "type": "string"
                 }
             }
@@ -3233,12 +2613,6 @@
                 "done",
                 "cancelled"
             ],
-            "x-enum-comments": {
-                "TaskStatusCancelled": "已取消",
-                "TaskStatusDone": "已完成",
-                "TaskStatusInProgress": "进行中",
-                "TaskStatusTodo": "待处理"
-            },
             "x-enum-varnames": [
                 "TaskStatusTodo",
                 "TaskStatusInProgress",
@@ -3246,8 +2620,46 @@
                 "TaskStatusCancelled"
             ]
         },
+        "handlers.BatchUpdateConfigsRequest": {
+            "type": "object",
+            "required": [
+                "configs"
+            ],
+            "properties": {
+                "configs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.ConfigUpdateItem"
+                    }
+                }
+            }
+        },
+        "handlers.ConfigUpdateItem": {
+            "type": "object",
+            "required": [
+                "config_key",
+                "config_value"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "config_key": {
+                    "type": "string"
+                },
+                "config_value": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "is_editable": {
+                    "type": "boolean"
+                }
+            }
+        },
         "handlers.CreateCredentialRequest": {
-            "description": "创建Git凭据的请求参数",
+            "description": "Request parameters for creating Git credentials",
             "type": "object",
             "required": [
                 "name",
@@ -3257,11 +2669,11 @@
             "properties": {
                 "description": {
                     "type": "string",
-                    "example": "用于GitHub项目的凭据"
+                    "example": "Credential for GitHub projects"
                 },
                 "name": {
                     "type": "string",
-                    "example": "我的GitHub凭据"
+                    "example": "My GitHub Credential"
                 },
                 "secret_data": {
                     "type": "object",
@@ -3317,12 +2729,8 @@
                     "type": "string"
                 },
                 "type": {
-                    "type": "string",
-                    "enum": [
-                        "claude_code",
-                        "gemini_cli",
-                        "opencode"
-                    ]
+                    "description": "环境类型的 key，动态验证",
+                    "type": "string"
                 }
             }
         },
@@ -3336,9 +2744,6 @@
             "properties": {
                 "credential_id": {
                     "type": "integer"
-                },
-                "default_branch": {
-                    "type": "string"
                 },
                 "description": {
                     "type": "string"
@@ -3440,16 +2845,16 @@
             }
         },
         "handlers.UpdateCredentialRequest": {
-            "description": "更新Git凭据的请求参数",
+            "description": "Request parameters for updating Git credentials",
             "type": "object",
             "properties": {
                 "description": {
                     "type": "string",
-                    "example": "更新的描述"
+                    "example": "Updated description"
                 },
                 "name": {
                     "type": "string",
-                    "example": "更新的凭据名称"
+                    "example": "Updated credential name"
                 },
                 "secret_data": {
                     "type": "object",
@@ -3496,10 +2901,6 @@
                 "credential_id": {
                     "type": "integer",
                     "example": 1
-                },
-                "default_branch": {
-                    "type": "string",
-                    "example": "main"
                 },
                 "description": {
                     "type": "string",

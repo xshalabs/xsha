@@ -8,12 +8,6 @@ definitions:
     - failed
     - cancelled
     type: string
-    x-enum-comments:
-      ConversationStatusCancelled: 已撤销
-      ConversationStatusFailed: 执行失败
-      ConversationStatusPending: 待处理
-      ConversationStatusRunning: 进行中
-      ConversationStatusSuccess: 执行成功
     x-enum-varnames:
     - ConversationStatusPending
     - ConversationStatusRunning
@@ -23,80 +17,45 @@ definitions:
   database.DevEnvironment:
     properties:
       cpu_limit:
-        description: 资源限制
         type: number
       created_at:
         type: string
       created_by:
-        description: 关联用户
         type: string
       description:
-        description: 环境描述
         type: string
       env_vars:
-        description: 环境变量 (JSON格式存储)
         type: string
       id:
         type: integer
       memory_limit:
-        description: 内存限制 (MB)
         type: integer
       name:
-        description: 基本信息
         type: string
       type:
-        allOf:
-        - $ref: '#/definitions/database.DevEnvironmentType'
-        description: 环境类型
+        type: string
       updated_at:
         type: string
     type: object
-  database.DevEnvironmentType:
-    enum:
-    - claude_code
-    - gemini_cli
-    - opencode
-    type: string
-    x-enum-comments:
-      DevEnvTypeClaude: Claude Code环境
-      DevEnvTypeGemini: Gemini CLI环境
-      DevEnvTypeOpenCode: OpenCode环境
-    x-enum-varnames:
-    - DevEnvTypeClaude
-    - DevEnvTypeGemini
-    - DevEnvTypeOpenCode
   database.GitCredential:
     properties:
       created_at:
         type: string
       created_by:
-        description: 关联用户
         type: string
       description:
-        description: 描述
         type: string
       id:
         type: integer
-      is_active:
-        description: 是否激活
-        type: boolean
-      last_used:
-        description: 元数据
-        type: string
       name:
-        description: 基本信息
         type: string
       public_key:
-        description: SSH公钥（不敏感，可显示）
         type: string
       type:
-        allOf:
-        - $ref: '#/definitions/database.GitCredentialType'
-        description: 凭据类型
+        $ref: '#/definitions/database.GitCredentialType'
       updated_at:
         type: string
       username:
-        description: 认证信息
         type: string
     type: object
   database.GitCredentialType:
@@ -105,10 +64,6 @@ definitions:
     - token
     - ssh_key
     type: string
-    x-enum-comments:
-      GitCredentialTypePassword: 用户名密码
-      GitCredentialTypeSSHKey: SSH Key
-      GitCredentialTypeToken: Personal Access Token
     x-enum-varnames:
     - GitCredentialTypePassword
     - GitCredentialTypeToken
@@ -118,9 +73,6 @@ definitions:
     - https
     - ssh
     type: string
-    x-enum-comments:
-      GitProtocolHTTPS: HTTPS协议
-      GitProtocolSSH: SSH协议
     x-enum-varnames:
     - GitProtocolHTTPS
     - GitProtocolSSH
@@ -129,150 +81,107 @@ definitions:
       created_at:
         type: string
       created_by:
-        description: 关联用户
         type: string
       credential:
-        allOf:
-        - $ref: '#/definitions/database.GitCredential'
-        description: 关联的凭据
+        $ref: '#/definitions/database.GitCredential'
       credential_id:
-        description: 绑定的凭据ID
         type: integer
-      default_branch:
-        description: 默认分支
-        type: string
       description:
-        description: 项目描述
         type: string
       id:
         type: integer
       is_active:
-        description: 元数据
         type: boolean
       last_used:
-        description: 最后使用时间
         type: string
       name:
-        description: 基本信息
         type: string
       protocol:
-        allOf:
-        - $ref: '#/definitions/database.GitProtocolType'
-        description: Git协议类型
+        $ref: '#/definitions/database.GitProtocolType'
       repo_url:
-        description: Git配置
         type: string
       updated_at:
         type: string
     type: object
   database.Task:
     properties:
+      conversation_count:
+        type: integer
       conversations:
-        description: 关联对话
         items:
           $ref: '#/definitions/database.TaskConversation'
         type: array
       created_at:
         type: string
       created_by:
-        description: 元数据
         type: string
       dev_environment:
-        allOf:
-        - $ref: '#/definitions/database.DevEnvironment'
-        description: 关联开发环境
+        $ref: '#/definitions/database.DevEnvironment'
       dev_environment_id:
-        description: 绑定的开发环境ID
         type: integer
       has_pull_request:
-        description: 是否提交PR
         type: boolean
       id:
         type: integer
       project:
-        allOf:
-        - $ref: '#/definitions/database.Project'
-        description: 关联项目
+        $ref: '#/definitions/database.Project'
       project_id:
-        description: 关联信息
         type: integer
       start_branch:
-        description: 开始开发的分支
         type: string
       status:
-        allOf:
-        - $ref: '#/definitions/database.TaskStatus'
-        description: 状态信息
+        $ref: '#/definitions/database.TaskStatus'
       title:
-        description: 基本信息
         type: string
       updated_at:
         type: string
+      work_branch:
+        type: string
       workspace_path:
-        description: 工作空间信息
         type: string
     type: object
   database.TaskConversation:
     properties:
+      commit_hash:
+        type: string
       content:
-        description: 对话信息
         type: string
       created_at:
         type: string
       created_by:
-        description: 元数据
         type: string
       id:
         type: integer
       status:
-        allOf:
-        - $ref: '#/definitions/database.ConversationStatus'
-        description: 对话状态
+        $ref: '#/definitions/database.ConversationStatus'
       task:
-        allOf:
-        - $ref: '#/definitions/database.Task'
-        description: 关联任务
+        $ref: '#/definitions/database.Task'
       task_id:
-        description: 关联信息
         type: integer
       updated_at:
         type: string
     type: object
   database.TaskExecutionLog:
     properties:
-      commit_hash:
-        description: 提交的hash（成功时）
-        type: string
       completed_at:
-        description: 完成时间
         type: string
       conversation:
-        allOf:
-        - $ref: '#/definitions/database.TaskConversation'
-        description: 关联对话
+        $ref: '#/definitions/database.TaskConversation'
       conversation_id:
-        description: 关联信息
         type: integer
       created_at:
         type: string
       docker_command:
-        description: 执行的Docker命令
         type: string
       error_message:
-        description: 错误信息
         type: string
       execution_logs:
-        description: 执行日志（实时追加）
         type: string
       id:
         type: integer
       started_at:
-        description: 时间信息
         type: string
       updated_at:
-        type: string
-      workspace_path:
-        description: 执行信息
         type: string
     type: object
   database.TaskStatus:
@@ -282,24 +191,44 @@ definitions:
     - done
     - cancelled
     type: string
-    x-enum-comments:
-      TaskStatusCancelled: 已取消
-      TaskStatusDone: 已完成
-      TaskStatusInProgress: 进行中
-      TaskStatusTodo: 待处理
     x-enum-varnames:
     - TaskStatusTodo
     - TaskStatusInProgress
     - TaskStatusDone
     - TaskStatusCancelled
+  handlers.BatchUpdateConfigsRequest:
+    properties:
+      configs:
+        items:
+          $ref: '#/definitions/handlers.ConfigUpdateItem'
+        type: array
+    required:
+    - configs
+    type: object
+  handlers.ConfigUpdateItem:
+    properties:
+      category:
+        type: string
+      config_key:
+        type: string
+      config_value:
+        type: string
+      description:
+        type: string
+      is_editable:
+        type: boolean
+    required:
+    - config_key
+    - config_value
+    type: object
   handlers.CreateCredentialRequest:
-    description: 创建Git凭据的请求参数
+    description: Request parameters for creating Git credentials
     properties:
       description:
-        example: 用于GitHub项目的凭据
+        example: Credential for GitHub projects
         type: string
       name:
-        example: 我的GitHub凭据
+        example: My GitHub Credential
         type: string
       secret_data:
         additionalProperties:
@@ -341,10 +270,7 @@ definitions:
       name:
         type: string
       type:
-        enum:
-        - claude_code
-        - gemini_cli
-        - opencode
+        description: 环境类型的 key，动态验证
         type: string
     required:
     - name
@@ -354,8 +280,6 @@ definitions:
     properties:
       credential_id:
         type: integer
-      default_branch:
-        type: string
       description:
         type: string
       name:
@@ -431,13 +355,13 @@ definitions:
         type: string
     type: object
   handlers.UpdateCredentialRequest:
-    description: 更新Git凭据的请求参数
+    description: Request parameters for updating Git credentials
     properties:
       description:
-        example: 更新的描述
+        example: Updated description
         type: string
       name:
-        example: 更新的凭据名称
+        example: Updated credential name
         type: string
       secret_data:
         additionalProperties:
@@ -470,9 +394,6 @@ definitions:
       credential_id:
         example: 1
         type: integer
-      default_branch:
-        example: main
-        type: string
       description:
         example: 更新的项目描述
         type: string
@@ -501,7 +422,8 @@ info:
     email: support@swagger.io
     name: API Support
     url: http://www.swagger.io/support
-  description: XSHA Backend API服务，提供用户认证、项目管理、Git凭据管理等功能
+  description: XSHA Backend API service, providing user authentication, project management,
+    Git credential management and other functions
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -513,17 +435,18 @@ paths:
     get:
       consumes:
       - application/json
-      description: 获取系统的登录日志记录，支持按用户名筛选和分页
+      description: Get system login log records, supporting filtering by username
+        and pagination
       parameters:
-      - description: 用户名筛选
+      - description: Username filter
         in: query
         name: username
         type: string
-      - description: 页码，默认为1
+      - description: Page number, defaults to 1
         in: query
         name: page
         type: integer
-      - description: 每页数量，默认为20，最大100
+      - description: Page size, defaults to 20, maximum 100
         in: query
         name: page_size
         type: integer
@@ -531,75 +454,72 @@ paths:
       - application/json
       responses:
         "200":
-          description: 登录日志列表
+          description: Login log list
           schema:
-            allOf:
-            - type: object
-            - properties:
-                logs:
-                  items:
-                    type: object
-                  type: array
-                message:
-                  type: string
-                page:
-                  type: number
-                page_size:
-                  type: number
-                total:
-                  type: number
-                total_pages:
-                  type: number
-              type: object
+            properties:
+              logs:
+                items:
+                  type: object
+                type: array
+              message:
+                type: string
+              page:
+                type: number
+              page_size:
+                type: number
+              total:
+                type: number
+              total_pages:
+                type: number
+            type: object
         "500":
-          description: 获取登录日志失败
+          description: Failed to get login logs
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: 获取登录日志
+      summary: Get login logs
       tags:
-      - 认证
+      - Authentication
   /admin/operation-logs:
     get:
       consumes:
       - application/json
-      description: 获取管理员操作日志列表，支持多条件筛选和分页
+      description: Get administrator operation log list with multi-condition filtering
+        and pagination
       parameters:
-      - description: 用户名筛选
+      - description: Username filter
         in: query
         name: username
         type: string
-      - description: 资源类型筛选
+      - description: Resource type filter
         in: query
         name: resource
         type: string
-      - description: 操作类型筛选
+      - description: Operation type filter
         in: query
         name: operation
         type: string
-      - description: 操作成功状态筛选
+      - description: Operation success status filter
         in: query
         name: success
         type: boolean
-      - description: 开始时间筛选 (YYYY-MM-DD)
+      - description: Start time filter (YYYY-MM-DD)
         in: query
         name: start_time
         type: string
-      - description: 结束时间筛选 (YYYY-MM-DD)
+      - description: End time filter (YYYY-MM-DD)
         in: query
         name: end_time
         type: string
-      - description: 页码，默认为1
+      - description: Page number, default is 1
         in: query
         name: page
         type: integer
-      - description: 每页数量，默认为20，最大100
+      - description: Page size, default is 20, maximum is 100
         in: query
         name: page_size
         type: integer
@@ -607,47 +527,43 @@ paths:
       - application/json
       responses:
         "200":
-          description: 操作日志列表
+          description: Operation log list
           schema:
-            allOf:
-            - type: object
-            - properties:
-                logs:
-                  items:
-                    type: object
-                  type: array
-                message:
-                  type: string
-                page:
-                  type: number
-                page_size:
-                  type: number
-                total:
-                  type: number
-                total_pages:
-                  type: number
-              type: object
+            properties:
+              logs:
+                items:
+                  type: object
+                type: array
+              message:
+                type: string
+              page:
+                type: number
+              page_size:
+                type: number
+              total:
+                type: number
+              total_pages:
+                type: number
+            type: object
         "500":
-          description: 获取操作日志失败
+          description: Failed to get operation logs
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: 获取操作日志列表
+      summary: Get operation log list
       tags:
-      - 管理员日志
+      - Admin Logs
   /admin/operation-logs/{id}:
     get:
       consumes:
       - application/json
-      description: 根据ID获取单个操作日志的详细信息
+      description: Get detailed information of a single operation log by ID
       parameters:
-      - description: 日志ID
+      - description: Log ID
         in: path
         name: id
         required: true
@@ -656,54 +572,48 @@ paths:
       - application/json
       responses:
         "200":
-          description: 操作日志详情
+          description: Operation log details
           schema:
-            allOf:
-            - type: object
-            - properties:
-                log:
-                  type: object
-                message:
-                  type: string
-              type: object
+            properties:
+              log:
+                type: object
+              message:
+                type: string
+            type: object
         "400":
-          description: 无效的日志ID
+          description: Invalid log ID
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
         "404":
-          description: 日志不存在
+          description: Log not found
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: 获取操作日志详情
+      summary: Get operation log details
       tags:
-      - 管理员日志
+      - Admin Logs
   /admin/operation-stats:
     get:
       consumes:
       - application/json
-      description: 获取指定时间范围内的操作统计信息
+      description: Get operation statistics information within a specified time range
       parameters:
-      - description: 用户名筛选
+      - description: Username filter
         in: query
         name: username
         type: string
-      - description: 开始时间 (YYYY-MM-DD)，默认30天前
+      - description: Start time (YYYY-MM-DD), default is 30 days ago
         in: query
         name: start_time
         type: string
-      - description: 结束时间 (YYYY-MM-DD)，默认今天
+      - description: End time (YYYY-MM-DD), default is today
         in: query
         name: end_time
         type: string
@@ -711,260 +621,174 @@ paths:
       - application/json
       responses:
         "200":
-          description: 操作统计信息
+          description: Operation statistics information
           schema:
-            allOf:
-            - type: object
-            - properties:
-                end_time:
-                  type: string
-                message:
-                  type: string
-                operation_stats:
-                  type: object
-                resource_stats:
-                  type: object
-                start_time:
-                  type: string
-              type: object
+            properties:
+              end_time:
+                type: string
+              message:
+                type: string
+              operation_stats:
+                type: object
+              resource_stats:
+                type: object
+              start_time:
+                type: string
+            type: object
         "500":
-          description: 获取操作统计失败
+          description: Failed to get operation statistics
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
-      security:
-      - BearerAuth: []
-      summary: 获取操作统计
-      tags:
-      - 管理员日志
-  /api/v1/logs/stats:
-    get:
-      consumes:
-      - application/json
-      description: 获取当前SSE连接数等统计信息
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
+            properties:
+              error:
+                type: string
             type: object
       security:
       - BearerAuth: []
-      summary: 获取SSE连接统计
+      summary: Get operation statistics
       tags:
-      - SSE日志
-  /api/v1/logs/stream:
-    get:
-      description: 通过SSE推送任务执行的实时日志
-      parameters:
-      - description: 对话ID，用于过滤特定对话的日志
-        in: query
-        name: conversationId
-        type: integer
-      produces:
-      - text/plain
-      responses:
-        "200":
-          description: event-stream
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: 实时日志流
-      tags:
-      - SSE日志
-  /api/v1/logs/test/{conversationId}:
-    post:
-      consumes:
-      - application/json
-      description: 发送一条测试日志消息用于调试SSE功能
-      parameters:
-      - description: 对话ID
-        in: path
-        name: conversationId
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: 发送测试日志消息
-      tags:
-      - SSE日志
+      - Admin Logs
   /auth/login:
     post:
       consumes:
       - application/json
-      description: 使用用户名和密码进行登录认证
+      description: Login authentication using username and password
       parameters:
-      - description: 登录信息
+      - description: Login information
         in: body
         name: loginData
         required: true
         schema:
-          allOf:
-          - type: object
-          - properties:
-              password:
-                type: string
-              username:
-                type: string
-            type: object
+          properties:
+            password:
+              type: string
+            username:
+              type: string
+          type: object
       produces:
       - application/json
       responses:
         "200":
-          description: 登录成功
+          description: Login successful
           schema:
-            allOf:
-            - type: object
-            - properties:
-                expires_at:
-                  type: string
-                token:
-                  type: string
-              type: object
+            properties:
+              expires_at:
+                type: string
+              token:
+                type: string
+            type: object
         "400":
-          description: 请求参数错误
+          description: Request parameter error
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
         "401":
-          description: 认证失败
+          description: Authentication failed
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
         "429":
-          description: 请求过于频繁
+          description: Too frequent requests
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
-      summary: 用户登录
+            properties:
+              error:
+                type: string
+            type: object
+      summary: User login
       tags:
-      - 认证
+      - Authentication
   /auth/logout:
     post:
       consumes:
       - application/json
-      description: 登出当前用户，将token加入黑名单
+      description: Logout current user and add token to blacklist
       produces:
       - application/json
       responses:
         "200":
-          description: 登出成功
+          description: Logout successful
           schema:
-            allOf:
-            - type: object
-            - properties:
-                message:
-                  type: string
-              type: object
+            properties:
+              message:
+                type: string
+            type: object
         "400":
-          description: 无效的token
+          description: Invalid token
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
         "401":
-          description: 认证失败
+          description: Authentication failed
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
         "500":
-          description: 登出失败
+          description: Logout failed
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: 用户登出
+      summary: User logout
       tags:
-      - 认证
+      - Authentication
   /dev-environments:
     get:
       consumes:
       - application/json
-      description: 获取当前用户的开发环境列表，支持分页和筛选
+      description: Get current user's development environment list with pagination
+        and filtering
       parameters:
-      - description: 页码，默认为1
+      - description: Page number, default is 1
         in: query
         name: page
         type: integer
-      - description: 每页数量，默认为20
+      - description: Page size, default is 10
         in: query
         name: page_size
         type: integer
-      - description: 环境类型筛选
+      - description: Environment type filter
         in: query
         name: type
         type: string
-      - description: 状态筛选
+      - description: Environment name filter
         in: query
-        name: status
+        name: name
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: 环境列表
+          description: Environment list
           schema:
-            allOf:
-            - type: object
-            - properties:
-                environments:
-                  items:
-                    type: object
-                  type: array
-                total:
-                  type: number
-              type: object
+            properties:
+              environments:
+                items:
+                  type: object
+                type: array
+              total:
+                type: number
+            type: object
       security:
       - BearerAuth: []
-      summary: 获取环境列表
+      summary: Get environment list
       tags:
-      - 开发环境
+      - Development Environment
     post:
       consumes:
       - application/json
-      description: 创建一个新的开发环境
+      description: Create a new development environment
       parameters:
-      - description: 环境信息
+      - description: Environment information
         in: body
         name: environment
         required: true
@@ -974,30 +798,26 @@ paths:
       - application/json
       responses:
         "201":
-          description: 环境创建成功
+          description: Environment created successfully
           schema:
-            allOf:
-            - type: object
-            - properties:
-                environment:
-                  type: object
-                message:
-                  type: string
-              type: object
+            properties:
+              environment:
+                type: object
+              message:
+                type: string
+            type: object
         "400":
-          description: 请求参数错误
+          description: Request parameter error
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: 创建开发环境
+      summary: Create development environment
       tags:
-      - 开发环境
+      - Development Environment
   /dev-environments/{id}:
     delete:
       consumes:
@@ -1015,21 +835,17 @@ paths:
         "200":
           description: 环境删除成功
           schema:
-            allOf:
-            - type: object
-            - properties:
-                message:
-                  type: string
-              type: object
+            properties:
+              message:
+                type: string
+            type: object
         "400":
           description: 删除失败
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
       summary: 删除环境
@@ -1038,9 +854,9 @@ paths:
     get:
       consumes:
       - application/json
-      description: 根据环境ID获取开发环境详细信息
+      description: Get detailed information of a development environment by ID
       parameters:
-      - description: 环境ID
+      - description: Environment ID
         in: path
         name: id
         required: true
@@ -1049,28 +865,24 @@ paths:
       - application/json
       responses:
         "200":
-          description: 环境详情
+          description: Environment details
           schema:
-            allOf:
-            - type: object
-            - properties:
-                environment:
-                  type: object
-              type: object
+            properties:
+              environment:
+                type: object
+            type: object
         "404":
-          description: 环境不存在
+          description: Environment not found
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: 获取环境详情
+      summary: Get environment details
       tags:
-      - 开发环境
+      - Development Environment
     put:
       consumes:
       - application/json
@@ -1093,21 +905,17 @@ paths:
         "200":
           description: 环境更新成功
           schema:
-            allOf:
-            - type: object
-            - properties:
-                message:
-                  type: string
-              type: object
+            properties:
+              message:
+                type: string
+            type: object
         "400":
           description: 请求参数错误
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
       summary: 更新环境
@@ -1130,21 +938,17 @@ paths:
         "200":
           description: 环境变量
           schema:
-            allOf:
-            - type: object
-            - properties:
-                env_vars:
-                  type: object
-              type: object
+            properties:
+              env_vars:
+                type: object
+            type: object
         "400":
           description: 获取失败
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
       summary: 获取环境变量
@@ -1174,41 +978,60 @@ paths:
         "200":
           description: 更新成功
           schema:
-            allOf:
-            - type: object
-            - properties:
-                message:
-                  type: string
-              type: object
+            properties:
+              message:
+                type: string
+            type: object
         "400":
           description: 更新失败
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
       summary: 更新环境变量
       tags:
       - 开发环境
+  /dev-environments/available-types:
+    get:
+      consumes:
+      - application/json
+      description: Get available environment types from system configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Available environment types
+          schema:
+            properties:
+              types:
+                items:
+                  type: object
+                type: array
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get available environment types
+      tags:
+      - Development Environment
   /git-credentials:
     get:
       consumes:
       - application/json
-      description: 获取当前用户的Git凭据列表，支持按类型筛选和分页
+      description: Get the current user's Git credential list, supporting filtering
+        by type and pagination
       parameters:
-      - description: 凭据类型筛选 (password/token/ssh_key)
+      - description: Credential type filter (password/token/ssh_key)
         in: query
         name: type
         type: string
-      - description: 页码，默认为1
+      - description: Page number, defaults to 1
         in: query
         name: page
         type: integer
-      - description: 每页数量，默认为20，最大100
+      - description: Page size, defaults to 20, maximum 100
         in: query
         name: page_size
         type: integer
@@ -1216,46 +1039,43 @@ paths:
       - application/json
       responses:
         "200":
-          description: 凭据列表
+          description: Credential list
           schema:
-            allOf:
-            - type: object
-            - properties:
-                credentials:
-                  items:
-                    type: object
-                  type: array
-                message:
-                  type: string
-                page:
-                  type: number
-                page_size:
-                  type: number
-                total:
-                  type: number
-                total_pages:
-                  type: number
-              type: object
+            properties:
+              credentials:
+                items:
+                  type: object
+                type: array
+              message:
+                type: string
+              page:
+                type: number
+              page_size:
+                type: number
+              total:
+                type: number
+              total_pages:
+                type: number
+            type: object
         "500":
-          description: 获取凭据列表失败
+          description: Failed to get credential list
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: 获取Git凭据列表
+      summary: Get Git credential list
       tags:
-      - Git凭据
+      - Git Credentials
     post:
       consumes:
       - application/json
-      description: 创建新的Git凭据，支持密码、令牌、SSH密钥类型
+      description: Create a new Git credential, supporting password, token, and SSH
+        key types
       parameters:
-      - description: 凭据信息
+      - description: Credential information
         in: body
         name: credential
         required: true
@@ -1265,46 +1085,40 @@ paths:
       - application/json
       responses:
         "201":
-          description: 凭据创建成功
+          description: Credential created successfully
           schema:
-            allOf:
-            - type: object
-            - properties:
-                credential:
-                  type: object
-                message:
-                  type: string
-              type: object
+            properties:
+              credential:
+                type: object
+              message:
+                type: string
+            type: object
         "400":
-          description: 请求参数错误
+          description: Request parameter error
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
         "500":
-          description: 创建凭据失败
+          description: Failed to create credential
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: 创建Git凭据
+      summary: Create Git credential
       tags:
-      - Git凭据
+      - Git Credentials
   /git-credentials/{id}:
     delete:
       consumes:
       - application/json
-      description: 删除指定的Git凭据
+      description: Delete a specified Git credential
       parameters:
-      - description: 凭据ID
+      - description: Credential ID
         in: path
         name: id
         required: true
@@ -1313,43 +1127,37 @@ paths:
       - application/json
       responses:
         "200":
-          description: 凭据删除成功
+          description: Credential deleted successfully
           schema:
-            allOf:
-            - type: object
-            - properties:
-                message:
-                  type: string
-              type: object
+            properties:
+              message:
+                type: string
+            type: object
         "400":
-          description: 无效的凭据ID
+          description: Invalid credential ID
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
         "404":
-          description: 凭据不存在
+          description: Credential not found
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: 删除Git凭据
+      summary: Delete Git credential
       tags:
-      - Git凭据
+      - Git Credentials
     get:
       consumes:
       - application/json
-      description: 根据ID获取指定Git凭据的详细信息
+      description: Get detailed information of a specified Git credential by ID
       parameters:
-      - description: 凭据ID
+      - description: Credential ID
         in: path
         name: id
         required: true
@@ -1358,48 +1166,42 @@ paths:
       - application/json
       responses:
         "200":
-          description: 凭据详情
+          description: Credential details
           schema:
-            allOf:
-            - type: object
-            - properties:
-                credential:
-                  type: object
-              type: object
+            properties:
+              credential:
+                type: object
+            type: object
         "400":
-          description: 无效的凭据ID
+          description: Invalid credential ID
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
         "404":
-          description: 凭据不存在
+          description: Credential not found
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: 获取Git凭据详情
+      summary: Get Git credential details
       tags:
-      - Git凭据
+      - Git Credentials
     put:
       consumes:
       - application/json
-      description: 更新指定Git凭据的信息
+      description: Update information of a specified Git credential
       parameters:
-      - description: 凭据ID
+      - description: Credential ID
         in: path
         name: id
         required: true
         type: integer
-      - description: 凭据更新信息
+      - description: Credential update information
         in: body
         name: credential
         required: true
@@ -1409,132 +1211,124 @@ paths:
       - application/json
       responses:
         "200":
-          description: 凭据更新成功
+          description: Credential updated successfully
           schema:
-            allOf:
-            - type: object
-            - properties:
-                message:
-                  type: string
-              type: object
+            properties:
+              message:
+                type: string
+            type: object
         "400":
-          description: 请求参数错误
+          description: Request parameter error
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
         "404":
-          description: 凭据不存在
+          description: Credential not found
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: 更新Git凭据
+      summary: Update Git credential
       tags:
-      - Git凭据
+      - Git Credentials
   /health:
     get:
       consumes:
       - application/json
-      description: 检查服务器状态
+      description: Check server status
       produces:
       - application/json
       responses:
         "200":
-          description: 服务器状态正常
+          description: Server status is normal
           schema:
-            allOf:
-            - type: object
-            - properties:
-                lang:
-                  type: string
-                message:
-                  type: string
-                status:
-                  type: string
-              type: object
-      summary: 健康检查
+            properties:
+              lang:
+                type: string
+              message:
+                type: string
+              status:
+                type: string
+            type: object
+      summary: Health check
       tags:
-      - 系统
+      - System
   /language:
     post:
       consumes:
       - application/json
-      description: 设置用户的语言偏好
+      description: Set user's language preference
       parameters:
-      - description: 语言设置
+      - description: Language setting
         in: body
         name: languageData
         required: true
         schema:
-          allOf:
-          - type: object
-          - properties:
-              language:
-                type: string
-            type: object
+          properties:
+            language:
+              type: string
+          type: object
       produces:
       - application/json
       responses:
         "200":
-          description: 语言设置成功
+          description: Language set successfully
           schema:
-            allOf:
-            - type: object
-            - properties:
-                language:
-                  type: string
-              type: object
+            properties:
+              language:
+                type: string
+            type: object
         "400":
-          description: 请求参数错误
+          description: Request parameter error
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
-      summary: 设置语言偏好
+            properties:
+              error:
+                type: string
+            type: object
+      summary: Set language preference
       tags:
-      - 国际化
+      - Internationalization
   /languages:
     get:
       consumes:
       - application/json
-      description: 获取系统支持的所有语言列表及当前语言
+      description: Get all supported languages and current language from the system
       produces:
       - application/json
       responses:
         "200":
-          description: 支持的语言列表
+          description: Supported language list
           schema:
-            allOf:
-            - type: object
-            - properties:
-                current:
+            properties:
+              current:
+                type: string
+              languages:
+                items:
                   type: string
-                languages:
-                  items:
-                    type: string
-                  type: array
-              type: object
-      summary: 获取支持的语言列表
+                type: array
+            type: object
+      summary: Get supported language list
       tags:
-      - 国际化
+      - Internationalization
   /projects:
     get:
       consumes:
       - application/json
-      description: 获取当前用户的项目列表，支持分页
+      description: 获取当前用户的项目列表，支持分页和名称筛选
       parameters:
+      - description: 项目名称筛选（模糊匹配）
+        in: query
+        name: name
+        type: string
+      - description: 协议类型筛选 (https/ssh)
+        in: query
+        name: protocol
+        type: string
       - description: 页码，默认为1
         in: query
         name: page
@@ -1549,29 +1343,25 @@ paths:
         "200":
           description: 项目列表
           schema:
-            allOf:
-            - type: object
-            - properties:
-                page:
-                  type: number
-                page_size:
-                  type: number
-                projects:
-                  items:
-                    type: object
-                  type: array
-                total:
-                  type: number
-              type: object
+            properties:
+              page:
+                type: number
+              page_size:
+                type: number
+              projects:
+                items:
+                  type: object
+                type: array
+              total:
+                type: number
+            type: object
         "500":
           description: 获取项目列表失败
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
       summary: 获取项目列表
@@ -1594,32 +1384,26 @@ paths:
         "201":
           description: 项目创建成功
           schema:
-            allOf:
-            - type: object
-            - properties:
-                id:
-                  type: number
-                message:
-                  type: string
-              type: object
+            properties:
+              id:
+                type: number
+              message:
+                type: string
+            type: object
         "400":
           description: 请求参数错误
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
         "500":
           description: 创建项目失败
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
       summary: 创建项目
@@ -1642,30 +1426,24 @@ paths:
         "200":
           description: 项目删除成功
           schema:
-            allOf:
-            - type: object
-            - properties:
-                message:
-                  type: string
-              type: object
+            properties:
+              message:
+                type: string
+            type: object
         "400":
           description: 无效的项目ID
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
         "404":
           description: 项目不存在
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
       summary: 删除项目
@@ -1687,30 +1465,24 @@ paths:
         "200":
           description: 项目详情
           schema:
-            allOf:
-            - type: object
-            - properties:
-                project:
-                  type: object
-              type: object
+            properties:
+              project:
+                type: object
+            type: object
         "400":
           description: 无效的项目ID
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
         "404":
           description: 项目不存在
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
       summary: 获取项目详情
@@ -1738,30 +1510,24 @@ paths:
         "200":
           description: 项目更新成功
           schema:
-            allOf:
-            - type: object
-            - properties:
-                message:
-                  type: string
-              type: object
+            properties:
+              message:
+                type: string
+            type: object
         "400":
           description: 请求参数错误
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
         "404":
           description: 项目不存在
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
       summary: 更新项目
@@ -1785,32 +1551,26 @@ paths:
         "200":
           description: 获取分支列表成功
           schema:
-            allOf:
-            - type: object
-            - properties:
-                message:
-                  type: string
-                result:
-                  $ref: '#/definitions/handlers.FetchRepositoryBranchesResponse'
-              type: object
+            properties:
+              message:
+                type: string
+              result:
+                $ref: '#/definitions/handlers.FetchRepositoryBranchesResponse'
+            type: object
         "400":
           description: 请求参数错误
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
         "500":
           description: 获取分支列表失败
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
       summary: 获取Git仓库分支列表
@@ -1833,25 +1593,21 @@ paths:
         "200":
           description: 获取凭据列表成功
           schema:
-            allOf:
-            - type: object
-            - properties:
-                credentials:
-                  items:
-                    type: object
-                  type: array
-                message:
-                  type: string
-              type: object
+            properties:
+              credentials:
+                items:
+                  type: object
+                type: array
+              message:
+                type: string
+            type: object
         "400":
           description: 请求参数错误
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
       summary: 获取兼容凭据
@@ -1875,23 +1631,19 @@ paths:
         "200":
           description: 解析成功
           schema:
-            allOf:
-            - type: object
-            - properties:
-                message:
-                  type: string
-                result:
-                  $ref: '#/definitions/handlers.ParseRepositoryURLResponse'
-              type: object
+            properties:
+              message:
+                type: string
+              result:
+                $ref: '#/definitions/handlers.ParseRepositoryURLResponse'
+            type: object
         "400":
           description: 请求参数错误
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
       summary: 解析Git仓库URL
@@ -1915,28 +1667,79 @@ paths:
         "200":
           description: 验证成功
           schema:
-            allOf:
-            - type: object
-            - properties:
-                can_access:
-                  type: boolean
-                message:
-                  type: string
-              type: object
+            properties:
+              can_access:
+                type: boolean
+              message:
+                type: string
+            type: object
         "400":
           description: 请求参数错误或验证失败
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
       summary: 验证Git仓库访问权限
       tags:
       - 项目
+  /system-configs:
+    get:
+      consumes:
+      - application/json
+      description: Get all system configurations without pagination
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All configurations
+          schema:
+            properties:
+              configs:
+                items:
+                  type: object
+                type: array
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all configurations
+      tags:
+      - System Configuration
+    put:
+      consumes:
+      - application/json
+      description: Update multiple system configurations in a single request
+      parameters:
+      - description: Configuration updates
+        in: body
+        name: configs
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.BatchUpdateConfigsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Configurations updated successfully
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Request parameter error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Batch update configurations
+      tags:
+      - System Configuration
   /task-conversations/{conversationId}/execution-log:
     get:
       consumes:
@@ -2068,33 +1871,29 @@ paths:
     get:
       consumes:
       - application/json
-      description: 获取当前登录用户的信息
+      description: Get information of current logged-in user
       produces:
       - application/json
       responses:
         "200":
-          description: 用户信息
+          description: User information
           schema:
-            allOf:
-            - type: object
-            - properties:
-                username:
-                  type: string
-              type: object
+            properties:
+              username:
+                type: string
+            type: object
         "500":
-          description: 获取用户信息失败
+          description: Failed to get user information
           schema:
-            allOf:
-            - type: object
-            - properties:
-                error:
-                  type: string
-              type: object
+            properties:
+              error:
+                type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: 获取当前用户信息
+      summary: Get current user information
       tags:
-      - 用户
+      - User
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.
