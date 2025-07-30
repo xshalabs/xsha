@@ -13,19 +13,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ProjectHandlers 项目处理器结构体
+// ProjectHandlers project handler struct
 type ProjectHandlers struct {
 	projectService services.ProjectService
 }
 
-// NewProjectHandlers 创建项目处理器实例
+// NewProjectHandlers creates project handler instance
 func NewProjectHandlers(projectService services.ProjectService) *ProjectHandlers {
 	return &ProjectHandlers{
 		projectService: projectService,
 	}
 }
 
-// CreateProjectRequest 创建项目请求结构
+// CreateProjectRequest create project request structure
 type CreateProjectRequest struct {
 	Name         string `json:"name" binding:"required"`
 	Description  string `json:"description"`
@@ -34,26 +34,26 @@ type CreateProjectRequest struct {
 	CredentialID *uint  `json:"credential_id"`
 }
 
-// UpdateProjectRequest 更新项目请求结构
-// @Description 更新项目的请求参数
+// UpdateProjectRequest update project request structure
+// @Description Update project request parameters
 type UpdateProjectRequest struct {
-	Name         string `json:"name" example:"更新的项目名称"`
-	Description  string `json:"description" example:"更新的项目描述"`
+	Name         string `json:"name" example:"Updated project name"`
+	Description  string `json:"description" example:"Updated project description"`
 	RepoURL      string `json:"repo_url" example:"https://github.com/user/repo.git"`
 	CredentialID *uint  `json:"credential_id" example:"1"`
 }
 
-// CreateProject 创建项目
-// @Summary 创建项目
-// @Description 创建一个新的项目
-// @Tags 项目
+// CreateProject creates project
+// @Summary Create project
+// @Description Create a new project
+// @Tags Project
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param project body CreateProjectRequest true "项目信息"
-// @Success 201 {object} object{id=number,message=string} "项目创建成功"
-// @Failure 400 {object} object{error=string} "请求参数错误"
-// @Failure 500 {object} object{error=string} "创建项目失败"
+// @Param project body CreateProjectRequest true "Project information"
+// @Success 201 {object} object{id=number,message=string} "Project created successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 500 {object} object{error=string} "Project creation failed"
 // @Router /projects [post]
 func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -84,10 +84,10 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 	})
 }
 
-// GetProject 获取单个项目
-// @Summary 获取项目详情
-// @Description 根据项目ID获取项目详细信息
-// @Tags 项目
+// GetProject gets single project
+// @Summary Get project details
+// @Description Get project detailed information by project ID
+// @Tags Project
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -122,10 +122,10 @@ func (h *ProjectHandlers) GetProject(c *gin.Context) {
 	})
 }
 
-// ListProjects 获取项目列表
-// @Summary 获取项目列表
-// @Description 获取当前用户的项目列表，支持分页和名称筛选
-// @Tags 项目
+// ListProjects gets project list
+// @Summary Get project list
+// @Description Get current user's project list with pagination and name filtering
+// @Tags Project
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -140,7 +140,7 @@ func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 	username, _ := c.Get("username")
 
-	// 解析查询参数
+	// Parse query parameters
 	page := 1
 	pageSize := 20
 	var protocol *database.GitProtocolType

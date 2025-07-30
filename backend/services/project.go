@@ -19,13 +19,13 @@ type projectService struct {
 	config         *config.Config
 }
 
-// ProjectWithTaskCount 包含任务数量的项目结构
+// ProjectWithTaskCount project structure with task count
 type ProjectWithTaskCount struct {
 	*database.Project
 	TaskCount int64 `json:"task_count"`
 }
 
-// NewProjectService 创建项目服务实例
+// NewProjectService creates project service instance
 func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository.GitCredentialRepository, gitCredService GitCredentialService, taskRepo repository.TaskRepository, cfg *config.Config) ProjectService {
 	return &projectService{
 		repo:           repo,
@@ -36,9 +36,9 @@ func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository
 	}
 }
 
-// CreateProject 创建项目
+// CreateProject creates project
 func (s *projectService) CreateProject(name, description, repoURL, protocol, createdBy string, credentialID *uint) (*database.Project, error) {
-	// 验证输入
+	// Validate input
 	if err := s.validateProjectData(name, repoURL, protocol); err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (s *projectService) ListProjectsWithTaskCount(createdBy string, name string
 	return projectsWithTaskCount, total, nil
 }
 
-// UpdateProject 更新项目
+// UpdateProject updates project
 func (s *projectService) UpdateProject(id uint, createdBy string, updates map[string]interface{}) error {
 	project, err := s.repo.GetByID(id, createdBy)
 	if err != nil {
@@ -172,7 +172,7 @@ func (s *projectService) UpdateProject(id uint, createdBy string, updates map[st
 	return s.repo.Update(project)
 }
 
-// DeleteProject 删除项目
+// DeleteProject deletes project
 func (s *projectService) DeleteProject(id uint, createdBy string) error {
 	// 检查项目是否存在
 	project, err := s.repo.GetByID(id, createdBy)
@@ -193,7 +193,7 @@ func (s *projectService) DeleteProject(id uint, createdBy string) error {
 	return s.repo.Delete(id, createdBy)
 }
 
-// ValidateProtocolCredential 验证协议和凭据的兼容性
+// ValidateProtocolCredential validates protocol and credential compatibility
 func (s *projectService) ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint, createdBy string) error {
 	// 如果没有绑定凭据，则跳过验证
 	if credentialID == nil {
@@ -223,7 +223,7 @@ func (s *projectService) ValidateProtocolCredential(protocol database.GitProtoco
 	return nil
 }
 
-// GetCompatibleCredentials 获取与协议兼容的凭据列表
+// GetCompatibleCredentials gets compatible credential list for protocol
 func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolType, createdBy string) ([]database.GitCredential, error) {
 	switch protocol {
 	case database.GitProtocolHTTPS:
@@ -253,7 +253,7 @@ func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolT
 	}
 }
 
-// FetchRepositoryBranches 获取仓库分支列表
+// FetchRepositoryBranches fetches repository branch list
 func (s *projectService) FetchRepositoryBranches(repoURL string, credentialID *uint, createdBy string) (*utils.GitAccessResult, error) {
 	// 验证仓库URL格式
 	if err := utils.ValidateGitURL(repoURL); err != nil {

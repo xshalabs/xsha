@@ -76,7 +76,7 @@ func (h *TaskExecutionLogHandlers) CancelExecution(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户名
+	// Get current username
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
@@ -97,13 +97,13 @@ func (h *TaskExecutionLogHandlers) CancelExecution(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task_execution_log.cancel_success")})
 }
 
-// RetryExecution 重试任务执行
-// @Summary 重试任务执行
-// @Description 重试失败或已取消的AI任务
-// @Tags 任务执行日志
+// RetryExecution retries task execution
+// @Summary Retry task execution
+// @Description Retry failed or cancelled AI task
+// @Tags Task Execution Log
 // @Accept json
 // @Produce json
-// @Param conversationId path int true "对话ID"
+// @Param conversationId path int true "Conversation ID"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -120,7 +120,7 @@ func (h *TaskExecutionLogHandlers) RetryExecution(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户名
+	// Get current username
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
