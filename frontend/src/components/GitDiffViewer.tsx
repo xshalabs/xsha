@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
-import type { GitDiffSummary, GitDiffFile } from "@/lib/api/tasks";
+import type { GitDiffSummary } from "@/lib/api/tasks";
 
 interface GitDiffViewerProps {
   taskId: number;

@@ -1,6 +1,7 @@
 {
   "loading": "加载中...",
   "error": "错误",
+  "details": "详细信息",
   "success": "成功",
   "cancel": "取消",
   "confirm": "确认",
@@ -35,6 +36,7 @@
   "toggle_sidebar": "切换侧边栏",
   "page": "第",
   "continue": "继续",
+  "close": "关闭",
   "pagination": {
     "info": "显示第 {{start}} - {{end}} 条，共 {{total}} 条",
     "previous": "上一页",

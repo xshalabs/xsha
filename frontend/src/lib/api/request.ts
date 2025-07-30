@@ -27,7 +27,9 @@ export const request = async <T>(
       const errorData: ApiErrorResponse = await response.json();
       throw new ApiError(
         errorData.error || `HTTP error! status: ${response.status}`,
-        response.status
+        response.status,
+        undefined,
+        errorData.details
       );
     }
 

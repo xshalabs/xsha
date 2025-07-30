@@ -17,6 +17,7 @@ export interface UserResponse {
 
 export interface ApiErrorResponse {
   error: string;
+  details?: string;
 }
 
 export interface LanguagesResponse {

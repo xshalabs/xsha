@@ -71,7 +71,15 @@ func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, bra
 	var cmd *exec.Cmd
 	var envVars []string
 
+	// 设置基础环境变量，禁用交互式输入
+	baseEnv := w.createNonInteractiveGitEnv()
+
 	if credential != nil {
+		// 验证凭据
+		if err := w.validateCredential(credential); err != nil {
+			return fmt.Errorf("凭据验证失败: %v", err)
+		}
+
 		switch credential.Type {
 		case GitCredentialTypePassword, GitCredentialTypeToken:
 			// HTTPS 认证
@@ -80,6 +88,7 @@ func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, bra
 				return err
 			}
 			cmd = exec.CommandContext(ctx, "git", "clone", "-b", branch, authenticatedURL, workspacePath)
+			cmd.Env = baseEnv
 
 		case GitCredentialTypeSSHKey:
 			// SSH 认证
@@ -89,8 +98,8 @@ func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, bra
 			}
 			defer os.Remove(keyFile)
 
-			envVars = append(os.Environ(),
-				fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no", keyFile),
+			envVars = append(baseEnv,
+				fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o BatchMode=yes -o PasswordAuthentication=no", keyFile),
 			)
 			cmd = exec.CommandContext(ctx, "git", "clone", "-b", branch, repoURL, workspacePath)
 			cmd.Env = envVars
@@ -98,11 +107,7 @@ func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, bra
 	} else {
 		// 无认证
 		cmd = exec.CommandContext(ctx, "git", "clone", "-b", branch, repoURL, workspacePath)
-	}
-
-	// 设置Git环境变量
-	if cmd.Env == nil {
-		cmd.Env = os.Environ()
+		cmd.Env = baseEnv
 	}
 
 	// 根据配置决定是否禁用SSL验证
@@ -185,10 +190,18 @@ func (w *WorkspaceManager) buildAuthenticatedURL(repoURL string, credential *Git
 		return "", fmt.Errorf("解析URL失败: %v", err)
 	}
 
+	// 确保是HTTPS协议
+	if parsedURL.Scheme != "https" && parsedURL.Scheme != "http" {
+		return "", fmt.Errorf("URL协议必须是 HTTP 或 HTTPS: %s", parsedURL.Scheme)
+	}
+
 	switch credential.Type {
 	case GitCredentialTypePassword:
 		if credential.Password == "" {
 			return "", fmt.Errorf("密码不能为空")
+		}
+		if credential.Username == "" {
+			return "", fmt.Errorf("用户名不能为空")
 		}
 		parsedURL.User = url.UserPassword(credential.Username, credential.Password)
 
@@ -196,14 +209,35 @@ func (w *WorkspaceManager) buildAuthenticatedURL(repoURL string, credential *Git
 		if credential.Password == "" {
 			return "", fmt.Errorf("Token不能为空")
 		}
-		// GitHub风格：token作为用户名，密码为空或x-oauth-basic
-		parsedURL.User = url.UserPassword(credential.Password, "x-oauth-basic")
+
+		// 根据Git平台设置不同的认证格式
+		host := strings.ToLower(parsedURL.Host)
+		switch {
+		case strings.Contains(host, "github.com") || strings.Contains(host, "github"):
+			// GitHub: token作为用户名，密码为空或x-oauth-basic
+			parsedURL.User = url.UserPassword(credential.Password, "x-oauth-basic")
+		case strings.Contains(host, "gitlab.com") || strings.Contains(host, "gitlab"):
+			// GitLab: oauth2作为用户名，token作为密码
+			parsedURL.User = url.UserPassword("oauth2", credential.Password)
+		case strings.Contains(host, "bitbucket.org") || strings.Contains(host, "bitbucket"):
+			// Bitbucket: x-token-auth作为用户名，token作为密码
+			parsedURL.User = url.UserPassword("x-token-auth", credential.Password)
+		case strings.Contains(host, "dev.azure.com") || strings.Contains(host, "visualstudio.com"):
+			// Azure DevOps: 空用户名，token作为密码
+			parsedURL.User = url.UserPassword("", credential.Password)
+		default:
+			// 通用格式：尝试GitHub格式
+			parsedURL.User = url.UserPassword(credential.Password, "x-oauth-basic")
+		}
 
 	default:
-		return "", fmt.Errorf("不支持的凭据类型用于URL构建")
+		return "", fmt.Errorf("不支持的凭据类型用于URL构建: %s", credential.Type)
 	}
 
-	return parsedURL.String(), nil
+	authenticatedURL := parsedURL.String()
+	Info("构建认证URL成功", "host", parsedURL.Host, "credentialType", string(credential.Type))
+
+	return authenticatedURL, nil
 }
 
 // CheckWorkspaceExists 检查工作目录是否存在
@@ -552,6 +586,39 @@ func (w *WorkspaceManager) GetCurrentBranch(workspacePath string) (string, error
 	return strings.TrimSpace(string(output)), nil
 }
 
+// validateCredential 验证Git凭据的有效性
+func (w *WorkspaceManager) validateCredential(credential *GitCredentialInfo) error {
+	if credential == nil {
+		return fmt.Errorf("凭据信息不能为空")
+	}
+
+	switch credential.Type {
+	case GitCredentialTypePassword:
+		if credential.Username == "" {
+			return fmt.Errorf("用户名不能为空")
+		}
+		if credential.Password == "" {
+			return fmt.Errorf("密码不能为空")
+		}
+	case GitCredentialTypeToken:
+		if credential.Password == "" {
+			return fmt.Errorf("Token不能为空")
+		}
+	case GitCredentialTypeSSHKey:
+		if credential.PrivateKey == "" {
+			return fmt.Errorf("SSH私钥不能为空")
+		}
+		// 基本的SSH私钥格式检查
+		if !strings.Contains(credential.PrivateKey, "BEGIN") || !strings.Contains(credential.PrivateKey, "PRIVATE KEY") {
+			return fmt.Errorf("SSH私钥格式不正确")
+		}
+	default:
+		return fmt.Errorf("不支持的凭据类型: %s", credential.Type)
+	}
+
+	return nil
+}
+
 // PushBranch 推送分支到远程仓库
 func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string, credential *GitCredentialInfo, sslVerify bool) (string, error) {
 	if workspacePath == "" {
@@ -572,12 +639,22 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 		return "", fmt.Errorf("不是Git仓库: %s", workspacePath)
 	}
 
+	// 验证凭据信息
+	if credential != nil {
+		if err := w.validateCredential(credential); err != nil {
+			return "", fmt.Errorf("凭据验证失败: %v", err)
+		}
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 
 	var cmd *exec.Cmd
 	var envVars []string
-	output := ""
+	var output string
+
+	// 设置基础环境变量，禁用交互式输入
+	baseEnv := w.createNonInteractiveGitEnv()
 
 	// 准备推送命令和认证
 	if credential != nil {
@@ -589,13 +666,25 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 				return "", fmt.Errorf("构建认证URL失败: %v", err)
 			}
 
+			Info("准备HTTPS推送", "workspace", workspacePath, "branch", branchName, "credentialType", string(credential.Type))
+
+			// 检查分支是否存在
+			exists, err := w.CheckBranchExists(workspacePath, branchName)
+			if err != nil {
+				return "", fmt.Errorf("分支检查失败: %v", err)
+			}
+			if !exists {
+				return "", fmt.Errorf("分支 '%s' 不存在", branchName)
+			}
+
 			// 设置远程仓库URL
 			setURLCmd := exec.CommandContext(ctx, "git", "remote", "set-url", "origin", authenticatedURL)
 			setURLCmd.Dir = workspacePath
+			setURLCmd.Env = baseEnv
 
-			// 设置Git环境变量
+			// 设置SSL验证
 			if !sslVerify {
-				setURLCmd.Env = append(os.Environ(), "GIT_SSL_NO_VERIFY=true")
+				setURLCmd.Env = append(setURLCmd.Env, "GIT_SSL_NO_VERIFY=true")
 			}
 
 			if err := setURLCmd.Run(); err != nil {
@@ -603,33 +692,57 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 			}
 
 			// 执行推送
-			cmd = exec.CommandContext(ctx, "git", "push", "origin", branchName)
+			cmd = exec.CommandContext(ctx, "git", "push", "--porcelain", "origin", branchName)
 			cmd.Dir = workspacePath
+			cmd.Env = baseEnv
 
 			if !sslVerify {
-				cmd.Env = append(os.Environ(), "GIT_SSL_NO_VERIFY=true")
+				cmd.Env = append(cmd.Env, "GIT_SSL_NO_VERIFY=true")
 			}
 
 		case GitCredentialTypeSSHKey:
 			// SSH 认证
+			Info("准备SSH推送", "workspace", workspacePath, "branch", branchName)
+
+			// 检查分支是否存在
+			exists, err := w.CheckBranchExists(workspacePath, branchName)
+			if err != nil {
+				return "", fmt.Errorf("分支检查失败: %v", err)
+			}
+			if !exists {
+				return "", fmt.Errorf("分支 '%s' 不存在", branchName)
+			}
+
 			keyFile := filepath.Join(workspacePath, ".ssh_key_push")
 			if err := ioutil.WriteFile(keyFile, []byte(credential.PrivateKey), 0600); err != nil {
 				return "", fmt.Errorf("创建SSH密钥文件失败: %v", err)
 			}
 			defer os.Remove(keyFile)
 
-			envVars = append(os.Environ(),
-				fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no", keyFile),
+			envVars = append(baseEnv,
+				fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o BatchMode=yes -o PasswordAuthentication=no", keyFile),
 			)
 
-			cmd = exec.CommandContext(ctx, "git", "push", "origin", branchName)
+			cmd = exec.CommandContext(ctx, "git", "push", "--porcelain", "origin", branchName)
 			cmd.Dir = workspacePath
 			cmd.Env = envVars
 		}
 	} else {
 		// 无认证推送
-		cmd = exec.CommandContext(ctx, "git", "push", "origin", branchName)
+		Info("准备无认证推送", "workspace", workspacePath, "branch", branchName)
+
+		// 检查分支是否存在
+		exists, err := w.CheckBranchExists(workspacePath, branchName)
+		if err != nil {
+			return "", fmt.Errorf("分支检查失败: %v", err)
+		}
+		if !exists {
+			return "", fmt.Errorf("分支 '%s' 不存在", branchName)
+		}
+
+		cmd = exec.CommandContext(ctx, "git", "push", "--porcelain", "origin", branchName)
 		cmd.Dir = workspacePath
+		cmd.Env = baseEnv
 	}
 
 	// 执行推送命令并捕获输出
@@ -637,13 +750,44 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 	cmd.Stdout = &outputBuilder
 	cmd.Stderr = &outputBuilder
 
+	Info("开始执行Git推送命令", "workspace", workspacePath, "branch", branchName)
+
 	err := cmd.Run()
 	output = outputBuilder.String()
 
 	if err != nil {
+		Error("Git推送失败", "workspace", workspacePath, "branch", branchName, "error", err, "output", output)
+
+		// 分析错误原因并提供更详细的错误信息
+		if strings.Contains(output, "Authentication failed") || strings.Contains(output, "401") || strings.Contains(output, "403") {
+			return output, fmt.Errorf("认证失败，请检查凭据是否正确: %v", err)
+		}
+		if strings.Contains(output, "Permission denied") {
+			return output, fmt.Errorf("权限被拒绝，请检查仓库访问权限: %v", err)
+		}
+		if strings.Contains(output, "Could not resolve host") {
+			return output, fmt.Errorf("无法解析主机名，请检查网络连接: %v", err)
+		}
+
 		return output, fmt.Errorf("推送分支失败: %v", err)
 	}
 
-	Info("成功推送分支", "workspace", workspacePath, "branch", branchName)
+	Info("成功推送分支", "workspace", workspacePath, "branch", branchName, "output", output)
 	return output, nil
+}
+
+// createNonInteractiveGitEnv 创建禁用交互式输入的Git环境变量
+func (w *WorkspaceManager) createNonInteractiveGitEnv() []string {
+	return append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",              // 禁用终端提示
+		"GIT_ASKPASS=",                       // 禁用密码询问
+		"SSH_ASKPASS=",                       // 禁用SSH密码询问
+		"GIT_CONFIG_NOSYSTEM=true",           // 忽略系统级Git配置
+		"GCM_INTERACTIVE=never",              // 禁用Git Credential Manager交互
+		"GIT_CREDENTIAL_HELPER=",             // 禁用凭据助手
+		"GIT_AUTHOR_NAME=XSHA Bot",           // 设置默认作者
+		"GIT_AUTHOR_EMAIL=bot@xsha.local",    // 设置默认邮箱
+		"GIT_COMMITTER_NAME=XSHA Bot",        // 设置默认提交者
+		"GIT_COMMITTER_EMAIL=bot@xsha.local", // 设置默认提交者邮箱
+	)
 }

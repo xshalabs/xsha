@@ -409,6 +409,11 @@ func (s *taskService) PushTaskBranch(id uint, createdBy string) (string, error) 
 		return "", fmt.Errorf("任务关联项目信息不完整")
 	}
 
+	// 检查项目是否关联了 Git Credential
+	if task.Project.CredentialID == nil {
+		return "", fmt.Errorf("项目未关联Git凭据，请先关联Git Credential后再推送")
+	}
+
 	// 准备Git凭据
 	var credential *utils.GitCredentialInfo
 	if task.Project.CredentialID != nil {

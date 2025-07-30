@@ -1,6 +1,7 @@
 {
   "loading": "Loading...",
   "error": "Error",
+  "details": "Details",
   "success": "Success",
   "cancel": "Cancel",
   "confirm": "Confirm",
@@ -35,6 +36,7 @@
   "toggle_sidebar": "Toggle Sidebar",
   "page": "Page",
   "continue": "Continue",
+  "close": "Close",
   "pagination": {
     "info": "Showing {{start}} - {{end}} of {{total}} items",
     "previous": "Previous",

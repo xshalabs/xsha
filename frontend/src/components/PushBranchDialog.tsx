@@ -40,6 +40,7 @@ interface PushResult {
   message: string;
   output: string;
   error?: string;
+  details?: string;
 }
 
 export function PushBranchDialog({
@@ -88,6 +89,9 @@ export function PushBranchDialog({
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
+      const errorDetails = error instanceof Error && 'details' in error 
+        ? (error as any).details 
+        : undefined;
       logError(error as Error, "Failed to push task branch");
 
       setPushResult({
@@ -95,6 +99,7 @@ export function PushBranchDialog({
         message: t("tasks.messages.push_failed"),
         output: "",
         error: errorMessage,
+        details: errorDetails,
       });
 
       setStep("result");
@@ -300,6 +305,11 @@ export function PushBranchDialog({
                   {pushResult?.error && (
                     <div className="text-sm text-red-700 mt-2">
                       <strong>{t("common.error")}:</strong> {pushResult.error}
+                    </div>
+                  )}
+                  {pushResult?.details && (
+                    <div className="text-sm text-red-700 mt-2 pt-2 border-t border-red-200">
+                      <strong>{t("common.details")}:</strong> {pushResult.details}
                     </div>
                   )}
                 </div>

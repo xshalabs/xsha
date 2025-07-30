@@ -16,6 +16,7 @@ var ErrorMapping = map[string]string{
 	"no updates provided":                                "validation.required",
 	"invalid title format":                               "validation.invalid_format",
 	"task title cannot be empty":                         "task.title_required",
+	"项目未关联Git凭据，请先关联Git Credential后再推送":                  "task.no_git_credential",
 
 	// Project related errors
 	"project name already exists":                                                    "project.name_exists",

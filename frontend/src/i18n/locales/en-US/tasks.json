@@ -129,7 +129,8 @@
     "noItemsSelected": "Please select tasks to operate on"
   },
   "errors": {
-    "fetchBranchesFailed": "Failed to fetch repository branches"
+    "fetchBranchesFailed": "Failed to fetch repository branches",
+    "noGitCredential": "Project has no associated Git credential, please associate a Git Credential before pushing"
   },
   "tabs": {
     "management": "Task Management",

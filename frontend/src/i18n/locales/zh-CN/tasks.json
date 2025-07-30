@@ -128,7 +128,8 @@
     "noItemsSelected": "请先选择要操作的任务"
   },
   "errors": {
-    "fetchBranchesFailed": "获取仓库分支失败"
+    "fetchBranchesFailed": "获取仓库分支失败",
+    "noGitCredential": "项目未关联Git凭据，请先关联Git Credential后再推送"
   },
   "tabs": {
     "management": "任务管理",
