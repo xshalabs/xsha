@@ -208,7 +208,7 @@ function App() {
               }
             />
             <Route
-              path="/projects/:projectId/tasks/:taskId/conversation/:conversationId/git-diff"
+              path="/projects/:projectId/tasks/:taskId/conversation/git-diff/:conversationId"
               element={
                 <ProtectedRoute>
                   <Layout>

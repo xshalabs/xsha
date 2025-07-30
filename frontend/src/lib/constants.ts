@@ -43,6 +43,10 @@ export const ROUTES = {
     `/projects/${projectId}/tasks/${taskId}/edit`,
   taskConversation: (projectId: number, taskId: number) =>
     `/projects/${projectId}/tasks/${taskId}/conversation`,
+  taskConversationGitDiff: (projectId: number, taskId: number, conversationId: number) =>
+    `/projects/${projectId}/tasks/${taskId}/conversation/git-diff/${conversationId}`,
+  taskGitDiff: (projectId: number, taskId: number) =>
+    `/projects/${projectId}/tasks/${taskId}/git-diff`,
 
   adminLogs: "/admin/logs",
 
