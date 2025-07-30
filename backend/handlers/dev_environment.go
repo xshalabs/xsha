@@ -23,7 +23,7 @@ func NewDevEnvironmentHandlers(devEnvService services.DevEnvironmentService) *De
 type CreateEnvironmentRequest struct {
 	Name        string            `json:"name" binding:"required"`
 	Description string            `json:"description"`
-	Type        string            `json:"type" binding:"required"` // 环境类型的 key，动态验证
+	Type        string            `json:"type" binding:"required"`
 	CPULimit    float64           `json:"cpu_limit" binding:"min=0.1,max=16"`
 	MemoryLimit int64             `json:"memory_limit" binding:"min=128,max=32768"`
 	EnvVars     map[string]string `json:"env_vars"`
@@ -177,17 +177,17 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 	})
 }
 
-// UpdateEnvironment 更新开发环境
-// @Summary 更新环境
-// @Description 更新指定开发环境的信息
-// @Tags 开发环境
+// UpdateEnvironment updates development environment
+// @Summary Update environment
+// @Description Update specified development environment information
+// @Tags Development Environment
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "环境ID"
-// @Param environment body UpdateEnvironmentRequest true "环境更新信息"
-// @Success 200 {object} object{message=string} "环境更新成功"
-// @Failure 400 {object} object{error=string} "请求参数错误"
+// @Param id path int true "Environment ID"
+// @Param environment body UpdateEnvironmentRequest true "Environment update information"
+// @Success 200 {object} object{message=string} "Environment updated successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
 // @Router /dev-environments/{id} [put]
 func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -247,16 +247,16 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	})
 }
 
-// DeleteEnvironment 删除开发环境
-// @Summary 删除环境
-// @Description 删除指定的开发环境
-// @Tags 开发环境
+// DeleteEnvironment deletes development environment
+// @Summary Delete environment
+// @Description Delete specified development environment
+// @Tags Development Environment
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "环境ID"
-// @Success 200 {object} object{message=string} "环境删除成功"
-// @Failure 400 {object} object{error=string} "删除失败"
+// @Param id path int true "Environment ID"
+// @Success 200 {object} object{message=string} "Environment deleted successfully"
+// @Failure 400 {object} object{error=string} "Delete failed"
 // @Router /dev-environments/{id} [delete]
 func (h *DevEnvironmentHandlers) DeleteEnvironment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -284,16 +284,16 @@ func (h *DevEnvironmentHandlers) DeleteEnvironment(c *gin.Context) {
 	})
 }
 
-// GetEnvironmentVars 获取环境变量
-// @Summary 获取环境变量
-// @Description 获取指定环境的环境变量
-// @Tags 开发环境
+// GetEnvironmentVars gets environment variables
+// @Summary Get environment variables
+// @Description Get environment variables of specified environment
+// @Tags Development Environment
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "环境ID"
-// @Success 200 {object} object{env_vars=object} "环境变量"
-// @Failure 400 {object} object{error=string} "获取失败"
+// @Param id path int true "Environment ID"
+// @Success 200 {object} object{env_vars=object} "Environment variables"
+// @Failure 400 {object} object{error=string} "Get failed"
 // @Router /dev-environments/{id}/env-vars [get]
 func (h *DevEnvironmentHandlers) GetEnvironmentVars(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -321,17 +321,17 @@ func (h *DevEnvironmentHandlers) GetEnvironmentVars(c *gin.Context) {
 	})
 }
 
-// UpdateEnvironmentVars 更新环境变量
-// @Summary 更新环境变量
-// @Description 更新指定环境的环境变量
-// @Tags 开发环境
+// UpdateEnvironmentVars updates environment variables
+// @Summary Update environment variables
+// @Description Update environment variables of specified environment
+// @Tags Development Environment
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "环境ID"
-// @Param env_vars body map[string]string true "环境变量"
-// @Success 200 {object} object{message=string} "更新成功"
-// @Failure 400 {object} object{error=string} "更新失败"
+// @Param id path int true "Environment ID"
+// @Param env_vars body map[string]string true "Environment variables"
+// @Success 200 {object} object{message=string} "Update successful"
+// @Failure 400 {object} object{error=string} "Update failed"
 // @Router /dev-environments/{id}/env-vars [put]
 func (h *DevEnvironmentHandlers) UpdateEnvironmentVars(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)

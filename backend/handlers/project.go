@@ -91,10 +91,10 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "项目ID"
-// @Success 200 {object} object{project=object} "项目详情"
-// @Failure 400 {object} object{error=string} "无效的项目ID"
-// @Failure 404 {object} object{error=string} "项目不存在"
+// @Param id path int true "Project ID"
+// @Success 200 {object} object{project=object} "Project details"
+// @Failure 400 {object} object{error=string} "Invalid project ID"
+// @Failure 404 {object} object{error=string} "Project not found"
 // @Router /projects/{id} [get]
 func (h *ProjectHandlers) GetProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -129,12 +129,12 @@ func (h *ProjectHandlers) GetProject(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param name query string false "项目名称筛选（模糊匹配）"
-// @Param protocol query string false "协议类型筛选 (https/ssh)"
-// @Param page query int false "页码，默认为1"
-// @Param page_size query int false "每页数量，默认为20"
-// @Success 200 {object} object{projects=[]object,total=number,page=number,page_size=number} "项目列表"
-// @Failure 500 {object} object{error=string} "获取项目列表失败"
+// @Param name query string false "Project name filter (fuzzy matching)"
+// @Param protocol query string false "Protocol type filter (https/ssh)"
+// @Param page query int false "Page number, defaults to 1"
+// @Param page_size query int false "Page size, defaults to 20"
+// @Success 200 {object} object{projects=[]object,total=number,page=number,page_size=number} "Project list"
+// @Failure 500 {object} object{error=string} "Failed to get project list"
 // @Router /projects [get]
 func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -181,18 +181,18 @@ func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 	})
 }
 
-// UpdateProject 更新项目
-// @Summary 更新项目
-// @Description 更新指定项目的信息
-// @Tags 项目
+// UpdateProject updates project
+// @Summary Update project
+// @Description Update specified project information
+// @Tags Project
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "项目ID"
-// @Param project body UpdateProjectRequest true "项目更新信息"
-// @Success 200 {object} object{message=string} "项目更新成功"
-// @Failure 400 {object} object{error=string} "请求参数错误"
-// @Failure 404 {object} object{error=string} "项目不存在"
+// @Param id path int true "Project ID"
+// @Param project body UpdateProjectRequest true "Project update information"
+// @Success 200 {object} object{message=string} "Project updated successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 404 {object} object{error=string} "Project not found"
 // @Router /projects/{id} [put]
 func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -243,17 +243,17 @@ func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 	})
 }
 
-// DeleteProject 删除项目
-// @Summary 删除项目
-// @Description 删除指定的项目
-// @Tags 项目
+// DeleteProject deletes project
+// @Summary Delete project
+// @Description Delete specified project
+// @Tags Project
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "项目ID"
-// @Success 200 {object} object{message=string} "项目删除成功"
-// @Failure 400 {object} object{error=string} "无效的项目ID"
-// @Failure 404 {object} object{error=string} "项目不存在"
+// @Param id path int true "Project ID"
+// @Success 200 {object} object{message=string} "Project deleted successfully"
+// @Failure 400 {object} object{error=string} "Invalid project ID"
+// @Failure 404 {object} object{error=string} "Project not found"
 // @Router /projects/{id} [delete]
 func (h *ProjectHandlers) DeleteProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -281,16 +281,16 @@ func (h *ProjectHandlers) DeleteProject(c *gin.Context) {
 	})
 }
 
-// GetCompatibleCredentials 获取与协议兼容的凭据列表
-// @Summary 获取兼容凭据
-// @Description 根据协议类型获取兼容的Git凭据列表
-// @Tags 项目
+// GetCompatibleCredentials gets credential list compatible with protocol
+// @Summary Get compatible credentials
+// @Description Get Git credential list compatible with protocol type
+// @Tags Project
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param protocol query string true "协议类型 (https/ssh)"
-// @Success 200 {object} object{message=string,credentials=[]object} "获取凭据列表成功"
-// @Failure 400 {object} object{error=string} "请求参数错误"
+// @Param protocol query string true "Protocol type (https/ssh)"
+// @Success 200 {object} object{message=string,credentials=[]object} "Get credential list successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
 // @Router /projects/credentials [get]
 func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -375,32 +375,32 @@ func (h *ProjectHandlers) ParseRepositoryURL(c *gin.Context) {
 	})
 }
 
-// FetchRepositoryBranchesRequest 获取仓库分支请求结构
-// @Description 获取Git仓库分支列表的请求参数
+// FetchRepositoryBranchesRequest fetch repository branches request structure
+// @Description Request parameters for fetching Git repository branch list
 type FetchRepositoryBranchesRequest struct {
 	RepoURL      string `json:"repo_url" binding:"required" example:"https://github.com/user/repo.git"`
 	CredentialID *uint  `json:"credential_id" example:"1"`
 }
 
-// FetchRepositoryBranchesResponse 获取仓库分支响应结构
-// @Description 获取Git仓库分支列表的响应
+// FetchRepositoryBranchesResponse fetch repository branches response structure
+// @Description Response for fetching Git repository branch list
 type FetchRepositoryBranchesResponse struct {
 	CanAccess    bool     `json:"can_access" example:"true"`
 	ErrorMessage string   `json:"error_message" example:""`
 	Branches     []string `json:"branches" example:"[\"main\",\"develop\",\"feature-1\"]"`
 }
 
-// FetchRepositoryBranches 获取仓库分支列表
-// @Summary 获取Git仓库分支列表
-// @Description 使用提供的凭据获取Git仓库的分支列表，同时验证访问权限
-// @Tags 项目
+// FetchRepositoryBranches fetches repository branch list
+// @Summary Fetch Git repository branch list
+// @Description Fetch Git repository branch list using provided credentials and verify access permissions
+// @Tags Project
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body FetchRepositoryBranchesRequest true "仓库信息"
-// @Success 200 {object} object{message=string,result=FetchRepositoryBranchesResponse} "获取分支列表成功"
-// @Failure 400 {object} object{error=string} "请求参数错误"
-// @Failure 500 {object} object{error=string} "获取分支列表失败"
+// @Param request body FetchRepositoryBranchesRequest true "Repository information"
+// @Success 200 {object} object{message=string,result=FetchRepositoryBranchesResponse} "Fetch branch list successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 500 {object} object{error=string} "Failed to fetch branch list"
 // @Router /projects/branches [post]
 func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -436,23 +436,23 @@ func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 	})
 }
 
-// ValidateRepositoryAccessRequest 验证仓库访问请求结构
-// @Description 验证Git仓库访问权限的请求参数
+// ValidateRepositoryAccessRequest validate repository access request structure
+// @Description Request parameters for validating Git repository access permissions
 type ValidateRepositoryAccessRequest struct {
 	RepoURL      string `json:"repo_url" binding:"required" example:"https://github.com/user/repo.git"`
 	CredentialID *uint  `json:"credential_id" example:"1"`
 }
 
-// ValidateRepositoryAccess 验证仓库访问权限
-// @Summary 验证Git仓库访问权限
-// @Description 使用提供的凭据验证是否能够访问指定的Git仓库
-// @Tags 项目
+// ValidateRepositoryAccess validates repository access permissions
+// @Summary Validate Git repository access permissions
+// @Description Validate whether the specified Git repository can be accessed using provided credentials
+// @Tags Project
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body ValidateRepositoryAccessRequest true "仓库信息"
-// @Success 200 {object} object{message=string,can_access=bool} "验证成功"
-// @Failure 400 {object} object{error=string} "请求参数错误或验证失败"
+// @Param request body ValidateRepositoryAccessRequest true "Repository information"
+// @Success 200 {object} object{message=string,can_access=bool} "Validation successful"
+// @Failure 400 {object} object{error=string} "Request parameter error or validation failed"
 // @Router /projects/validate-access [post]
 func (h *ProjectHandlers) ValidateRepositoryAccess(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)

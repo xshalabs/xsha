@@ -725,7 +725,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "更新指定开发环境的信息",
+                "description": "Update specified development environment information",
                 "consumes": [
                     "application/json"
                 ],
@@ -733,19 +733,19 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "开发环境"
+                    "Development Environment"
                 ],
-                "summary": "更新环境",
+                "summary": "Update environment",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "环境ID",
+                        "description": "Environment ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "环境更新信息",
+                        "description": "Environment update information",
                         "name": "environment",
                         "in": "body",
                         "required": true,
@@ -756,7 +756,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "环境更新成功",
+                        "description": "Environment updated successfully",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -767,7 +767,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Request parameter error",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -785,7 +785,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "删除指定的开发环境",
+                "description": "Delete specified development environment",
                 "consumes": [
                     "application/json"
                 ],
@@ -793,13 +793,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "开发环境"
+                    "Development Environment"
                 ],
-                "summary": "删除环境",
+                "summary": "Delete environment",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "环境ID",
+                        "description": "Environment ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -807,7 +807,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "环境删除成功",
+                        "description": "Environment deleted successfully",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -818,7 +818,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "删除失败",
+                        "description": "Delete failed",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -838,7 +838,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取指定环境的环境变量",
+                "description": "Get environment variables of specified environment",
                 "consumes": [
                     "application/json"
                 ],
@@ -846,13 +846,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "开发环境"
+                    "Development Environment"
                 ],
-                "summary": "获取环境变量",
+                "summary": "Get environment variables",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "环境ID",
+                        "description": "Environment ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -860,7 +860,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "环境变量",
+                        "description": "Environment variables",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -871,7 +871,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "获取失败",
+                        "description": "Get failed",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -889,7 +889,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "更新指定环境的环境变量",
+                "description": "Update environment variables of specified environment",
                 "consumes": [
                     "application/json"
                 ],
@@ -897,19 +897,19 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "开发环境"
+                    "Development Environment"
                 ],
-                "summary": "更新环境变量",
+                "summary": "Update environment variables",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "环境ID",
+                        "description": "Environment ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "环境变量",
+                        "description": "Environment variables",
                         "name": "env_vars",
                         "in": "body",
                         "required": true,
@@ -923,7 +923,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Update successful",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -934,7 +934,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "更新失败",
+                        "description": "Update failed",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1423,7 +1423,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取当前用户的项目列表，支持分页和名称筛选",
+                "description": "Get current user's project list with pagination and name filtering",
                 "consumes": [
                     "application/json"
                 ],
@@ -1431,38 +1431,38 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "项目"
+                    "Project"
                 ],
-                "summary": "获取项目列表",
+                "summary": "Get project list",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "项目名称筛选（模糊匹配）",
+                        "description": "Project name filter (fuzzy matching)",
                         "name": "name",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "协议类型筛选 (https/ssh)",
+                        "description": "Protocol type filter (https/ssh)",
                         "name": "protocol",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "页码，默认为1",
+                        "description": "Page number, defaults to 1",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量，默认为20",
+                        "description": "Page size, defaults to 20",
                         "name": "page_size",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "项目列表",
+                        "description": "Project list",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1485,7 +1485,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "获取项目列表失败",
+                        "description": "Failed to get project list",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1503,7 +1503,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "创建一个新的项目",
+                "description": "Create a new project",
                 "consumes": [
                     "application/json"
                 ],
@@ -1511,12 +1511,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "项目"
+                    "Project"
                 ],
-                "summary": "创建项目",
+                "summary": "Create project",
                 "parameters": [
                     {
-                        "description": "项目信息",
+                        "description": "Project information",
                         "name": "project",
                         "in": "body",
                         "required": true,
@@ -1527,7 +1527,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "项目创建成功",
+                        "description": "Project created successfully",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1541,7 +1541,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Request parameter error",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1552,7 +1552,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "创建项目失败",
+                        "description": "Project creation failed",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1572,7 +1572,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "使用提供的凭据获取Git仓库的分支列表，同时验证访问权限",
+                "description": "Fetch Git repository branch list using provided credentials and verify access permissions",
                 "consumes": [
                     "application/json"
                 ],
@@ -1580,12 +1580,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "项目"
+                    "Project"
                 ],
-                "summary": "获取Git仓库分支列表",
+                "summary": "Fetch Git repository branch list",
                 "parameters": [
                     {
-                        "description": "仓库信息",
+                        "description": "Repository information",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1596,7 +1596,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取分支列表成功",
+                        "description": "Fetch branch list successfully",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1610,7 +1610,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Request parameter error",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1621,7 +1621,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "获取分支列表失败",
+                        "description": "Failed to fetch branch list",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1641,7 +1641,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "根据协议类型获取兼容的Git凭据列表",
+                "description": "Get Git credential list compatible with protocol type",
                 "consumes": [
                     "application/json"
                 ],
@@ -1649,13 +1649,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "项目"
+                    "Project"
                 ],
-                "summary": "获取兼容凭据",
+                "summary": "Get compatible credentials",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "协议类型 (https/ssh)",
+                        "description": "Protocol type (https/ssh)",
                         "name": "protocol",
                         "in": "query",
                         "required": true
@@ -1663,7 +1663,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取凭据列表成功",
+                        "description": "Get credential list successfully",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1680,7 +1680,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Request parameter error",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1758,7 +1758,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "使用提供的凭据验证是否能够访问指定的Git仓库",
+                "description": "Validate whether the specified Git repository can be accessed using provided credentials",
                 "consumes": [
                     "application/json"
                 ],
@@ -1766,12 +1766,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "项目"
+                    "Project"
                 ],
-                "summary": "验证Git仓库访问权限",
+                "summary": "Validate Git repository access permissions",
                 "parameters": [
                     {
-                        "description": "仓库信息",
+                        "description": "Repository information",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1782,7 +1782,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "验证成功",
+                        "description": "Validation successful",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1796,7 +1796,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误或验证失败",
+                        "description": "Request parameter error or validation failed",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1816,7 +1816,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "根据项目ID获取项目详细信息",
+                "description": "Get project detailed information by project ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -1824,13 +1824,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "项目"
+                    "Project"
                 ],
-                "summary": "获取项目详情",
+                "summary": "Get project details",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "项目ID",
+                        "description": "Project ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1838,7 +1838,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "项目详情",
+                        "description": "Project details",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1849,7 +1849,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "无效的项目ID",
+                        "description": "Invalid project ID",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1860,7 +1860,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "项目不存在",
+                        "description": "Project not found",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1878,7 +1878,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "更新指定项目的信息",
+                "description": "Update specified project information",
                 "consumes": [
                     "application/json"
                 ],
@@ -1886,19 +1886,19 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "项目"
+                    "Project"
                 ],
-                "summary": "更新项目",
+                "summary": "Update project",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "项目ID",
+                        "description": "Project ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "项目更新信息",
+                        "description": "Project update information",
                         "name": "project",
                         "in": "body",
                         "required": true,
@@ -1909,7 +1909,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "项目更新成功",
+                        "description": "Project updated successfully",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1920,7 +1920,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Request parameter error",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1931,7 +1931,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "项目不存在",
+                        "description": "Project not found",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1949,7 +1949,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "删除指定的项目",
+                "description": "Delete specified project",
                 "consumes": [
                     "application/json"
                 ],
@@ -1957,13 +1957,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "项目"
+                    "Project"
                 ],
-                "summary": "删除项目",
+                "summary": "Delete project",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "项目ID",
+                        "description": "Project ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1971,7 +1971,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "项目删除成功",
+                        "description": "Project deleted successfully",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1982,7 +1982,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "无效的项目ID",
+                        "description": "Invalid project ID",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1993,7 +1993,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "项目不存在",
+                        "description": "Project not found",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -2102,7 +2102,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "根据对话ID获取AI任务执行的详细日志",
+                "description": "Get detailed execution log of AI task by conversation ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -2110,13 +2110,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "任务执行日志"
+                    "Task Execution Log"
                 ],
-                "summary": "获取任务对话的执行日志",
+                "summary": "Get task conversation execution log",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "对话ID",
+                        "description": "Conversation ID",
                         "name": "conversationId",
                         "in": "path",
                         "required": true
@@ -2166,7 +2166,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "取消正在执行或待执行的AI任务",
+                "description": "Cancel AI task that is executing or pending",
                 "consumes": [
                     "application/json"
                 ],
@@ -2174,13 +2174,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "任务执行日志"
+                    "Task Execution Log"
                 ],
-                "summary": "取消任务执行",
+                "summary": "Cancel task execution",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "对话ID",
+                        "description": "Conversation ID",
                         "name": "conversationId",
                         "in": "path",
                         "required": true
@@ -2233,7 +2233,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "重试失败或已取消的AI任务",
+                "description": "Retry failed or cancelled AI task",
                 "consumes": [
                     "application/json"
                 ],
@@ -2241,13 +2241,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "任务执行日志"
+                    "Task Execution Log"
                 ],
-                "summary": "重试任务执行",
+                "summary": "Retry task execution",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "对话ID",
+                        "description": "Conversation ID",
                         "name": "conversationId",
                         "in": "path",
                         "required": true
@@ -2735,7 +2735,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "description": "环境类型的 key，动态验证",
                     "type": "string"
                 }
             }
@@ -2770,7 +2769,7 @@ const docTemplate = `{
             }
         },
         "handlers.FetchRepositoryBranchesRequest": {
-            "description": "获取Git仓库分支列表的请求参数",
+            "description": "Request parameters for fetching Git repository branch list",
             "type": "object",
             "required": [
                 "repo_url"
@@ -2787,7 +2786,7 @@ const docTemplate = `{
             }
         },
         "handlers.FetchRepositoryBranchesResponse": {
-            "description": "获取Git仓库分支列表的响应",
+            "description": "Response for fetching Git repository branch list",
             "type": "object",
             "properties": {
                 "branches": {
@@ -2901,7 +2900,7 @@ const docTemplate = `{
             }
         },
         "handlers.UpdateProjectRequest": {
-            "description": "更新项目的请求参数",
+            "description": "Update project request parameters",
             "type": "object",
             "properties": {
                 "credential_id": {
@@ -2910,11 +2909,11 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string",
-                    "example": "更新的项目描述"
+                    "example": "Updated project description"
                 },
                 "name": {
                     "type": "string",
-                    "example": "更新的项目名称"
+                    "example": "Updated project name"
                 },
                 "repo_url": {
                     "type": "string",
@@ -2923,7 +2922,7 @@ const docTemplate = `{
             }
         },
         "handlers.ValidateRepositoryAccessRequest": {
-            "description": "验证Git仓库访问权限的请求参数",
+            "description": "Request parameters for validating Git repository access permissions",
             "type": "object",
             "required": [
                 "repo_url"
