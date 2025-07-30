@@ -691,15 +691,16 @@ export function TaskList({
         </CardContent>
       </Card>
 
-      {/* 批量状态修改对话框 */}
       <Dialog
         open={showBatchStatusDialog}
         onOpenChange={setShowBatchStatusDialog}
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("tasks.batch.updateStatus")}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-foreground">
+              {t("tasks.batch.updateStatus")}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               {t("tasks.batch.confirmUpdate", {
                 count: selectedTaskIds.length,
                 status: getStatusDisplayName(batchTargetStatus),
@@ -709,7 +710,7 @@ export function TaskList({
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="batch-status">
+              <Label htmlFor="batch-status" className="text-muted-foreground">
                 {t("tasks.batch.selectStatus")}
               </Label>
               <Select
@@ -718,7 +719,7 @@ export function TaskList({
                   setBatchTargetStatus(value)
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-foreground">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -738,6 +739,7 @@ export function TaskList({
           <DialogFooter>
             <Button
               variant="outline"
+              className="text-foreground hover:text-foreground"
               onClick={() => setShowBatchStatusDialog(false)}
             >
               {t("common.cancel")}
