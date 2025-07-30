@@ -78,6 +78,7 @@
     "title": "任务标题",
     "project": "项目",
     "status": "状态",
+    "conversations": "对话数量",
     "branch": "分支",
     "environment": "开发环境",
     "updated": "更新时间"

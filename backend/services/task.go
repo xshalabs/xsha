@@ -133,7 +133,37 @@ func (s *taskService) ListTasks(projectID *uint, createdBy string, status *datab
 		pageSize = 20
 	}
 
-	return s.repo.List(projectID, createdBy, status, title, branch, devEnvID, page, pageSize)
+	// 获取任务列表
+	tasks, total, err := s.repo.List(projectID, createdBy, status, title, branch, devEnvID, page, pageSize)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 如果没有任务，直接返回
+	if len(tasks) == 0 {
+		return tasks, total, nil
+	}
+
+	// 提取任务ID列表
+	taskIDs := make([]uint, len(tasks))
+	for i, task := range tasks {
+		taskIDs[i] = task.ID
+	}
+
+	// 批量获取对话统计
+	conversationCounts, err := s.repo.GetConversationCounts(taskIDs, createdBy)
+	if err != nil {
+		// 如果获取对话统计失败，不影响主要功能，只记录错误并返回原任务列表
+		utils.Error("Failed to get conversation counts", "error", err)
+		return tasks, total, nil
+	}
+
+	// 填充对话数量
+	for i := range tasks {
+		tasks[i].ConversationCount = conversationCounts[tasks[i].ID]
+	}
+
+	return tasks, total, nil
 }
 
 // UpdateTask 更新任务（只允许更新标题）

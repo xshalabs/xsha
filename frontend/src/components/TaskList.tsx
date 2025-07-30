@@ -131,7 +131,7 @@ export function TaskList({
   const [showBatchStatusDialog, setShowBatchStatusDialog] = useState(false);
   const [batchTargetStatus, setBatchTargetStatus] =
     useState<TaskStatus>("todo");
-  
+
   // 删除确认对话框状态
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
@@ -536,6 +536,7 @@ export function TaskList({
                       <TableHead>{t("tasks.table.project")}</TableHead>
                     )}
                     <TableHead>{t("tasks.table.status")}</TableHead>
+                    <TableHead>{t("tasks.table.conversations")}</TableHead>
                     <TableHead>{t("tasks.table.branch")}</TableHead>
                     <TableHead>{t("tasks.table.environment")}</TableHead>
                     <TableHead>{t("tasks.table.updated")}</TableHead>
@@ -557,7 +558,12 @@ export function TaskList({
                       </TableCell>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{task.title}</div>
+                          <div
+                            className="font-medium text-blue-600 hover:text-blue-800 cursor-pointer transition-colors"
+                            onClick={() => onViewConversation?.(task)}
+                          >
+                            {task.title}
+                          </div>
                           <div className="text-xs text-muted-foreground">
                             {t("common.createdAt")}:{" "}
                             {formatDate(task.created_at)}
@@ -583,6 +589,14 @@ export function TaskList({
                             {t(`tasks.status.${task.status}`)}
                           </span>
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">
+                            {task.conversation_count}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
@@ -774,7 +788,9 @@ export function TaskList({
               {t("tasks.messages.delete_confirm_title")}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              {t("tasks.messages.deleteConfirm", { title: taskToDelete?.title || "" })}
+              {t("tasks.messages.deleteConfirm", {
+                title: taskToDelete?.title || "",
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

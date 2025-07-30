@@ -88,6 +88,7 @@ type TaskRepository interface {
 
 	// Business operations
 	ListByProject(projectID uint, createdBy string) ([]database.Task, error)
+	GetConversationCounts(taskIDs []uint, createdBy string) (map[uint]int64, error)
 }
 
 // TaskConversationRepository defines task conversation repository interface

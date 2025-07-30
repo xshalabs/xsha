@@ -13,6 +13,7 @@ export interface Task {
   created_by: string;
   created_at: string;
   updated_at: string;
+  conversation_count: number;
   project?: {
     id: number;
     name: string;

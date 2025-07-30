@@ -89,3 +89,39 @@ func (r *taskRepository) ListByProject(projectID uint, createdBy string) ([]data
 		Order("created_at DESC").Find(&tasks).Error
 	return tasks, err
 }
+
+// GetConversationCounts 批量获取任务的对话统计数量（排除已删除的对话）
+func (r *taskRepository) GetConversationCounts(taskIDs []uint, createdBy string) (map[uint]int64, error) {
+	if len(taskIDs) == 0 {
+		return make(map[uint]int64), nil
+	}
+
+	type ConversationCountResult struct {
+		TaskID uint  `gorm:"column:task_id"`
+		Count  int64 `gorm:"column:count"`
+	}
+
+	var results []ConversationCountResult
+	err := r.db.Table("task_conversations").
+		Select("task_id, COUNT(*) as count").
+		Where("task_id IN ? AND created_by = ? AND deleted_at IS NULL", taskIDs, createdBy).
+		Group("task_id").
+		Find(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 构建返回的map，确保所有任务都有统计数据（包括对话数为0的任务）
+	conversationCounts := make(map[uint]int64)
+	for _, taskID := range taskIDs {
+		conversationCounts[taskID] = 0 // 默认为0
+	}
+
+	// 填充实际的统计数据
+	for _, result := range results {
+		conversationCounts[result.TaskID] = result.Count
+	}
+
+	return conversationCounts, nil
+}

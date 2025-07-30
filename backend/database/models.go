@@ -182,7 +182,8 @@ type Task struct {
 
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 
-	Conversations []TaskConversation `gorm:"foreignKey:TaskID" json:"conversations"`
+	Conversations     []TaskConversation `gorm:"foreignKey:TaskID" json:"conversations"`
+	ConversationCount int64              `gorm:"-" json:"conversation_count"`
 }
 
 type TaskConversation struct {

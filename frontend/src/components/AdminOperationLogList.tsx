@@ -394,6 +394,7 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
                     <Button
                       variant="outline"
                       size="sm"
+                      className="text-foreground hover:text-foreground"
                       onClick={() => onViewDetail(log.id)}
                     >
                       <Eye className="w-4 h-4 mr-1" />

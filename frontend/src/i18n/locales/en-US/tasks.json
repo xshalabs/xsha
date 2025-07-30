@@ -79,6 +79,7 @@
     "title": "Title",
     "project": "Project",
     "status": "Status",
+    "conversations": "Conversations",
     "branch": "Branch",
     "environment": "Environment",
     "updated": "Updated"
