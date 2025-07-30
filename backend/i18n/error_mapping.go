@@ -71,7 +71,11 @@ var ErrorMapping = map[string]string{
 	"task has no development environment configured, cannot execute": "task_execution.no_dev_environment",
 	"failed to update conversation status to cancelled":              "task_execution.update_status_failed",
 	"failed to update conversation status":                           "task_execution.update_status_failed",
-	"failed to create execution log":                                 "task_execution.create_log_failed",
+
+	// Delete constraint errors
+	"project.delete_has_in_progress_tasks":   "project.delete_has_in_progress_tasks",
+	"git_credential.delete_used_by_projects": "git_credential.delete_used_by_projects",
+	"dev_environment.delete_used_by_tasks":   "dev_environment.delete_used_by_tasks",
 }
 
 // MapErrorToI18nKey 将错误消息映射到国际化键值

@@ -11,15 +11,17 @@ import (
 )
 
 type gitCredentialService struct {
-	repo   repository.GitCredentialRepository
-	config *config.Config
+	repo        repository.GitCredentialRepository
+	projectRepo repository.ProjectRepository
+	config      *config.Config
 }
 
 // NewGitCredentialService creates a Git credential service instance
-func NewGitCredentialService(repo repository.GitCredentialRepository, cfg *config.Config) GitCredentialService {
+func NewGitCredentialService(repo repository.GitCredentialRepository, projectRepo repository.ProjectRepository, cfg *config.Config) GitCredentialService {
 	return &gitCredentialService{
-		repo:   repo,
-		config: cfg,
+		repo:        repo,
+		projectRepo: projectRepo,
+		config:      cfg,
 	}
 }
 
@@ -132,6 +134,24 @@ func (s *gitCredentialService) UpdateCredential(id uint, createdBy string, updat
 
 // DeleteCredential deletes a credential
 func (s *gitCredentialService) DeleteCredential(id uint, createdBy string) error {
+	// 检查凭据是否存在
+	credential, err := s.repo.GetByID(id, createdBy)
+	if err != nil {
+		return err
+	}
+
+	// 检查是否有项目使用此凭据
+	projects, _, err := s.projectRepo.List(createdBy, "", nil, 1, 1000)
+	if err != nil {
+		return fmt.Errorf("failed to check credential usage: %v", err)
+	}
+
+	for _, project := range projects {
+		if project.CredentialID != nil && *project.CredentialID == credential.ID {
+			return errors.New("git_credential.delete_used_by_projects")
+		}
+	}
+
 	return s.repo.Delete(id, createdBy)
 }
 

@@ -11,13 +11,15 @@ import (
 
 type devEnvironmentService struct {
 	repo          repository.DevEnvironmentRepository
+	taskRepo      repository.TaskRepository
 	configService SystemConfigService
 }
 
 // NewDevEnvironmentService creates a new development environment service instance
-func NewDevEnvironmentService(repo repository.DevEnvironmentRepository, configService SystemConfigService) DevEnvironmentService {
+func NewDevEnvironmentService(repo repository.DevEnvironmentRepository, taskRepo repository.TaskRepository, configService SystemConfigService) DevEnvironmentService {
 	return &devEnvironmentService{
 		repo:          repo,
+		taskRepo:      taskRepo,
 		configService: configService,
 	}
 }
@@ -105,6 +107,21 @@ func (s *devEnvironmentService) UpdateEnvironment(id uint, createdBy string, upd
 
 // DeleteEnvironment deletes a development environment
 func (s *devEnvironmentService) DeleteEnvironment(id uint, createdBy string) error {
+	// 检查环境是否存在
+	env, err := s.repo.GetByID(id, createdBy)
+	if err != nil {
+		return err
+	}
+
+	// 检查是否有任务使用此开发环境
+	tasks, _, err := s.taskRepo.List(nil, createdBy, nil, nil, nil, &env.ID, 1, 1)
+	if err != nil {
+		return fmt.Errorf("failed to check environment usage: %v", err)
+	}
+	if len(tasks) > 0 {
+		return errors.New("dev_environment.delete_used_by_tasks")
+	}
+
 	return s.repo.Delete(id, createdBy)
 }
 

@@ -15,6 +15,7 @@ type projectService struct {
 	repo           repository.ProjectRepository
 	gitCredRepo    repository.GitCredentialRepository
 	gitCredService GitCredentialService
+	taskRepo       repository.TaskRepository
 	config         *config.Config
 }
 
@@ -25,11 +26,12 @@ type ProjectWithTaskCount struct {
 }
 
 // NewProjectService 创建项目服务实例
-func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository.GitCredentialRepository, gitCredService GitCredentialService, cfg *config.Config) ProjectService {
+func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository.GitCredentialRepository, gitCredService GitCredentialService, taskRepo repository.TaskRepository, cfg *config.Config) ProjectService {
 	return &projectService{
 		repo:           repo,
 		gitCredRepo:    gitCredRepo,
 		gitCredService: gitCredService,
+		taskRepo:       taskRepo,
 		config:         cfg,
 	}
 }
@@ -172,6 +174,22 @@ func (s *projectService) UpdateProject(id uint, createdBy string, updates map[st
 
 // DeleteProject 删除项目
 func (s *projectService) DeleteProject(id uint, createdBy string) error {
+	// 检查项目是否存在
+	project, err := s.repo.GetByID(id, createdBy)
+	if err != nil {
+		return err
+	}
+
+	// 检查项目下是否有进行中的任务
+	inProgressStatus := database.TaskStatusInProgress
+	tasks, _, err := s.taskRepo.List(&project.ID, createdBy, &inProgressStatus, nil, nil, nil, 1, 1)
+	if err != nil {
+		return fmt.Errorf("failed to check project tasks: %v", err)
+	}
+	if len(tasks) > 0 {
+		return errors.New("project.delete_has_in_progress_tasks")
+	}
+
 	return s.repo.Delete(id, createdBy)
 }
 
