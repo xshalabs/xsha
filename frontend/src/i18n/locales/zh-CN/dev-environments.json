@@ -16,6 +16,7 @@
   "delete_success": "环境删除成功",
   "delete_failed": "环境删除失败",
   "delete_confirm": "确定要删除这个环境吗？",
+  "delete_confirm_title": "删除环境",
   
   "actions": {
     "edit": "编辑",

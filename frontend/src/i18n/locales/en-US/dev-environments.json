@@ -16,6 +16,7 @@
   "delete_success": "Environment deleted successfully",
   "delete_failed": "Failed to delete environment",
   "delete_confirm": "Are you sure you want to delete this environment?",
+  "delete_confirm_title": "Delete Environment",
 
   "actions": {
     "edit": "Edit",
