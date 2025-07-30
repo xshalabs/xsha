@@ -467,7 +467,7 @@ func (h *TaskHandlers) GetTaskGitDiff(c *gin.Context) {
 	// 获取Git差异
 	diff, err := h.taskService.GetTaskGitDiff(task, includeContent)
 	if err != nil {
-		utils.Error("获取任务Git差异失败", "taskID", taskID, "error", err)
+		utils.Error("Failed to get task Git diff", "taskID", taskID, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "tasks.errors.git_diff_failed"),
 		})
@@ -529,7 +529,7 @@ func (h *TaskHandlers) GetTaskGitDiffFile(c *gin.Context) {
 	// 获取文件的Git差异内容
 	diffContent, err := h.taskService.GetTaskGitDiffFile(task, filePath)
 	if err != nil {
-		utils.Error("获取任务文件Git差异失败", "taskID", taskID, "filePath", filePath, "error", err)
+		utils.Error("Failed to get task file Git diff", "taskID", taskID, "filePath", filePath, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "tasks.errors.git_diff_file_failed"),
 		})
@@ -568,7 +568,7 @@ func (h *TaskHandlers) PushTaskBranch(c *gin.Context) {
 	// 执行推送
 	output, err := h.taskService.PushTaskBranch(uint(taskID), username.(string))
 	if err != nil {
-		utils.Error("推送任务分支失败", "taskID", taskID, "error", err)
+		utils.Error("Failed to push task branch", "taskID", taskID, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   i18n.T(lang, "tasks.push_failed"),
 			"details": err.Error(),

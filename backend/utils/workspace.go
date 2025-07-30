@@ -318,7 +318,7 @@ func (w *WorkspaceManager) CleanupOldWorkspaces(days int) error {
 		// 如果目录修改时间早于截止时间，则删除
 		if info.ModTime().Before(cutoffTime) {
 			if err := os.RemoveAll(dirPath); err != nil {
-				fmt.Printf("清理目录失败 %s: %v\n", dirPath, err)
+				fmt.Printf("Failed to cleanup directory %s: %v\n", dirPath, err)
 			}
 		}
 	}

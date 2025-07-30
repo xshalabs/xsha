@@ -44,7 +44,7 @@ func (s *schedulerManager) Start() error {
 	s.wg.Add(1)
 	go s.run()
 
-	utils.Info("定时器已启动", "interval", s.interval)
+	utils.Info("Scheduler started", "interval", s.interval)
 	return nil
 }
 
@@ -62,7 +62,7 @@ func (s *schedulerManager) Stop() error {
 	s.wg.Wait()
 	s.running = false
 
-	utils.Info("定时器已停止")
+	utils.Info("Scheduler stopped")
 	return nil
 }
 
@@ -79,14 +79,14 @@ func (s *schedulerManager) run() {
 
 	// 立即执行一次
 	if err := s.processor.ProcessTasks(); err != nil {
-		utils.Error("初始任务处理失败", "error", err)
+		utils.Error("Initial task processing failed", "error", err)
 	}
 
 	for {
 		select {
 		case <-s.ticker.C:
 			if err := s.processor.ProcessTasks(); err != nil {
-				utils.Error("定时任务处理失败", "error", err)
+				utils.Error("Scheduled task processing failed", "error", err)
 			}
 		case <-s.quit:
 			return

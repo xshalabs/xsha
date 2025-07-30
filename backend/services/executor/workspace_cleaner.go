@@ -19,28 +19,28 @@ func NewWorkspaceCleaner(workspaceManager *utils.WorkspaceManager) WorkspaceClea
 // CleanupOnFailure 在任务执行失败时清理工作空间
 func (w *workspaceCleaner) CleanupOnFailure(taskID uint, workspacePath string) error {
 	if workspacePath == "" {
-		utils.Warn("工作空间路径为空，跳过清理", "task_id", taskID)
+		utils.Warn("Workspace path is empty, skipping cleanup", "task_id", taskID)
 		return nil
 	}
 
-	utils.Info("开始清理失败任务的工作空间", "task_id", taskID, "workspace", workspacePath)
+	utils.Info("Starting to clean failed task workspace", "task_id", taskID, "workspace", workspacePath)
 
 	// 检查工作空间是否为脏状态
 	isDirty, err := w.workspaceManager.CheckWorkspaceIsDirty(workspacePath)
 	if err != nil {
-		utils.Error("检查工作空间状态失败", "task_id", taskID, "workspace", workspacePath, "error", err)
+		utils.Error("Failed to check workspace status", "task_id", taskID, "workspace", workspacePath, "error", err)
 		// 即使检查失败，也尝试清理
 	}
 
 	if isDirty || err != nil {
 		// 重置工作空间到干净状态
 		if resetErr := w.workspaceManager.ResetWorkspaceToCleanState(workspacePath); resetErr != nil {
-			utils.Error("重置工作空间失败", "task_id", taskID, "workspace", workspacePath, "error", resetErr)
-			return fmt.Errorf("清理失败任务工作空间失败: %v", resetErr)
+			utils.Error("Failed to reset workspace", "task_id", taskID, "workspace", workspacePath, "error", resetErr)
+			return fmt.Errorf("failed to cleanup failed task workspace: %v", resetErr)
 		}
-		utils.Info("已清理失败任务的工作空间文件变动", "task_id", taskID, "workspace", workspacePath)
+		utils.Info("Cleaned failed task workspace file changes", "task_id", taskID, "workspace", workspacePath)
 	} else {
-		utils.Info("工作空间已处于干净状态，无需清理", "task_id", taskID, "workspace", workspacePath)
+		utils.Info("Workspace is already clean, no cleanup needed", "task_id", taskID, "workspace", workspacePath)
 	}
 
 	return nil
@@ -49,28 +49,28 @@ func (w *workspaceCleaner) CleanupOnFailure(taskID uint, workspacePath string) e
 // CleanupOnCancel 在任务被取消时清理工作空间
 func (w *workspaceCleaner) CleanupOnCancel(taskID uint, workspacePath string) error {
 	if workspacePath == "" {
-		utils.Warn("工作空间路径为空，跳过清理", "task_id", taskID)
+		utils.Warn("Workspace path is empty, skipping cleanup", "task_id", taskID)
 		return nil
 	}
 
-	utils.Info("开始清理被取消任务的工作空间", "task_id", taskID, "workspace", workspacePath)
+	utils.Info("Starting to clean cancelled task workspace", "task_id", taskID, "workspace", workspacePath)
 
 	// 检查工作空间是否为脏状态
 	isDirty, err := w.workspaceManager.CheckWorkspaceIsDirty(workspacePath)
 	if err != nil {
-		utils.Error("检查工作空间状态失败", "task_id", taskID, "workspace", workspacePath, "error", err)
+		utils.Error("Failed to check workspace status", "task_id", taskID, "workspace", workspacePath, "error", err)
 		// 即使检查失败，也尝试清理
 	}
 
 	if isDirty || err != nil {
 		// 重置工作空间到干净状态
 		if resetErr := w.workspaceManager.ResetWorkspaceToCleanState(workspacePath); resetErr != nil {
-			utils.Error("重置工作空间失败", "task_id", taskID, "workspace", workspacePath, "error", resetErr)
-			return fmt.Errorf("清理取消任务工作空间失败: %v", resetErr)
+			utils.Error("Failed to reset workspace", "task_id", taskID, "workspace", workspacePath, "error", resetErr)
+			return fmt.Errorf("failed to cleanup cancelled task workspace: %v", resetErr)
 		}
-		utils.Info("已清理被取消任务的工作空间文件变动", "task_id", taskID, "workspace", workspacePath)
+		utils.Info("Cleaned cancelled task workspace file changes", "task_id", taskID, "workspace", workspacePath)
 	} else {
-		utils.Info("工作空间已处于干净状态，无需清理", "task_id", taskID, "workspace", workspacePath)
+		utils.Info("Workspace is already clean, no cleanup needed", "task_id", taskID, "workspace", workspacePath)
 	}
 
 	return nil

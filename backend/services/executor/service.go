@@ -91,10 +91,10 @@ func NewAITaskExecutorService(
 func (s *aiTaskExecutorService) ProcessPendingConversations() error {
 	conversations, err := s.taskConvRepo.GetPendingConversationsWithDetails()
 	if err != nil {
-		return fmt.Errorf("获取待处理对话失败: %v", err)
+		return fmt.Errorf("failed to get pending conversations: %v", err)
 	}
 
-	utils.Info("发现待处理的对话",
+	utils.Info("Found pending conversations to process",
 		"count", len(conversations),
 		"running", s.executionManager.GetRunningCount(),
 		"maxConcurrency", s.executionManager.maxConcurrency)
@@ -108,14 +108,14 @@ func (s *aiTaskExecutorService) ProcessPendingConversations() error {
 		// 检查是否可以执行新任务
 		if !s.executionManager.CanExecute() {
 			skippedCount++
-			utils.Warn("达到最大并发数限制，跳过对话", "conversationId", conv.ID)
+			utils.Warn("Reached maximum concurrency limit, skipping conversation", "conversationId", conv.ID)
 			continue
 		}
 
 		// 检查是否已经在运行
 		if s.executionManager.IsRunning(conv.ID) {
 			skippedCount++
-			utils.Warn("对话已在运行中，跳过", "conversationId", conv.ID)
+			utils.Warn("Conversation already in progress, skipping", "conversationId", conv.ID)
 			continue
 		}
 
@@ -126,7 +126,7 @@ func (s *aiTaskExecutorService) ProcessPendingConversations() error {
 		go func(conversation database.TaskConversation) {
 			defer wg.Done()
 			if err := s.processConversation(&conversation); err != nil {
-				utils.Error("处理对话失败", "conversationId", conversation.ID, "error", err)
+				utils.Error("Failed to process conversation", "conversationId", conversation.ID, "error", err)
 			}
 		}(conv)
 	}
@@ -134,7 +134,7 @@ func (s *aiTaskExecutorService) ProcessPendingConversations() error {
 	// 等待所有当前批次的对话开始处理（不等待完成）
 	wg.Wait()
 
-	utils.Info("本批次对话处理完成", "processed", processedCount, "skipped", skippedCount)
+	utils.Info("Batch conversation processing completed", "processed", processedCount, "skipped", skippedCount)
 	return nil
 }
 
@@ -148,7 +148,7 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint, createdBy s
 	// 获取对话信息作为主体
 	conv, err := s.taskConvRepo.GetByID(conversationID, createdBy)
 	if err != nil {
-		return fmt.Errorf("获取对话信息失败: %v", err)
+		return fmt.Errorf("failed to get conversation info: %v", err)
 	}
 
 	// 检查对话状态是否可以取消
@@ -172,7 +172,7 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint, createdBy s
 	// 清理工作空间（在取消时）
 	if conv.Task != nil && conv.Task.WorkspacePath != "" {
 		if cleanupErr := s.workspaceCleaner.CleanupOnCancel(conv.Task.ID, conv.Task.WorkspacePath); cleanupErr != nil {
-			utils.Error("取消执行时清理工作空间失败", "task_id", conv.Task.ID, "workspace", conv.Task.WorkspacePath, "error", cleanupErr)
+			utils.Error("Failed to cleanup workspace during cancellation", "task_id", conv.Task.ID, "workspace", conv.Task.WorkspacePath, "error", cleanupErr)
 			// 不因为清理失败而中断取消操作，但要记录错误
 		}
 	}
@@ -185,7 +185,7 @@ func (s *aiTaskExecutorService) RetryExecution(conversationID uint, createdBy st
 	// 获取对话信息
 	conv, err := s.taskConvRepo.GetByID(conversationID, createdBy)
 	if err != nil {
-		return fmt.Errorf("获取对话信息失败: %v", err)
+		return fmt.Errorf("failed to get conversation info: %v", err)
 	}
 
 	// 检查对话状态是否可以重试
@@ -253,10 +253,10 @@ func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversat
 	// 检查任务状态，如果是todo状态则更新为in_progress
 	if conv.Task.Status == database.TaskStatusTodo {
 		if err := s.taskService.UpdateTaskStatus(conv.Task.ID, conv.CreatedBy, database.TaskStatusInProgress); err != nil {
-			utils.Error("更新任务状态失败", "task_id", conv.Task.ID, "error", err)
+			utils.Error("Failed to update task status", "task_id", conv.Task.ID, "error", err)
 			// 这里不返回错误，因为任务状态更新失败不应阻止对话执行
 		} else {
-			utils.Info("任务状态已更新", "task_id", conv.Task.ID, "old_status", "todo", "new_status", "in_progress")
+			utils.Info("Task status updated", "task_id", conv.Task.ID, "old_status", "todo", "new_status", "in_progress")
 		}
 	}
 
@@ -308,7 +308,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		// 更新对话状态 (主状态)
 		conv.Status = finalStatus
 		if err := s.taskConvRepo.Update(conv); err != nil {
-			utils.Error("更新对话最终状态失败", "error", err)
+			utils.Error("Failed to update conversation final status", "error", err)
 		}
 
 		// 清理工作空间（在失败或取消时）
@@ -316,11 +316,11 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 			if conv.Task != nil && conv.Task.WorkspacePath != "" {
 				if finalStatus == database.ConversationStatusFailed {
 					if cleanupErr := s.workspaceCleaner.CleanupOnFailure(conv.Task.ID, conv.Task.WorkspacePath); cleanupErr != nil {
-						utils.Error("清理失败任务工作空间时出错", "task_id", conv.Task.ID, "error", cleanupErr)
+						utils.Error("Error during failed task workspace cleanup", "task_id", conv.Task.ID, "error", cleanupErr)
 					}
 				} else if finalStatus == database.ConversationStatusCancelled {
 					if cleanupErr := s.workspaceCleaner.CleanupOnCancel(conv.Task.ID, conv.Task.WorkspacePath); cleanupErr != nil {
-						utils.Error("清理取消任务工作空间时出错", "task_id", conv.Task.ID, "error", cleanupErr)
+						utils.Error("Error during cancelled task workspace cleanup", "task_id", conv.Task.ID, "error", cleanupErr)
 					}
 				}
 			}
@@ -329,7 +329,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		// 更新对话的 commit hash（如果成功）
 		if commitHash != "" {
 			if err := s.taskConvRepo.UpdateCommitHash(conv.ID, commitHash); err != nil {
-				utils.Error("更新对话commit hash失败", "error", err)
+				utils.Error("Failed to update conversation commit hash", "error", err)
 			}
 		}
 
@@ -346,11 +346,11 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 
 		// 使用 UpdateMetadata 避免覆盖 execution_logs 字段
 		if err := s.execLogRepo.UpdateMetadata(execLog.ID, updates); err != nil {
-			utils.Error("更新执行日志元数据失败", "error", err)
+			utils.Error("Failed to update execution log metadata", "error", err)
 		}
 
 		// 广播状态变化
-		statusMessage := fmt.Sprintf("执行完成: %s", string(finalStatus))
+		statusMessage := fmt.Sprintf("Execution completed: %s", string(finalStatus))
 		if errorMsg != "" {
 			statusMessage += fmt.Sprintf(" - %s", errorMsg)
 		}
@@ -360,12 +360,12 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		// 重新从数据库获取最新的执行日志数据（包含所有追加的日志内容）
 		latestExecLog, err := s.execLogRepo.GetByID(execLog.ID)
 		if err != nil {
-			utils.Error("获取最新执行日志失败", "execLogID", execLog.ID, "error", err)
+			utils.Error("Failed to get latest execution log", "execLogID", execLog.ID, "error", err)
 			latestExecLog = execLog // 使用原始对象作为后备
 		}
 		s.resultParser.ParseAndCreate(conv, latestExecLog)
 
-		utils.Info("对话执行完成", "conversationId", conv.ID, "status", string(finalStatus))
+		utils.Info("Conversation execution completed", "conversationId", conv.ID, "status", string(finalStatus))
 	}()
 
 	// 检查是否被取消
@@ -389,7 +389,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	if conv.Task.WorkspacePath == "" {
 		conv.Task.WorkspacePath = workspacePath
 		if updateErr := s.taskRepo.Update(conv.Task); updateErr != nil {
-			utils.Error("更新任务工作空间路径失败", "error", updateErr)
+			utils.Error("Failed to update task workspace path", "error", updateErr)
 			// 继续执行，不因为路径更新失败而中断任务
 		}
 	}
@@ -454,10 +454,10 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		// 更新任务的工作分支字段
 		conv.Task.WorkBranch = workBranch
 		if updateErr := s.taskRepo.Update(conv.Task); updateErr != nil {
-			utils.Error("更新任务工作分支失败", "taskID", conv.Task.ID, "error", updateErr)
+			utils.Error("Failed to update task work branch", "taskID", conv.Task.ID, "error", updateErr)
 			// 继续执行，不因为更新失败而中断任务
 		} else {
-			utils.Info("为已存在任务生成工作分支", "taskID", conv.Task.ID, "workBranch", workBranch)
+			utils.Info("Generated work branch for existing task", "taskID", conv.Task.ID, "workBranch", workBranch)
 		}
 	}
 
@@ -593,7 +593,7 @@ type logAppenderImpl struct {
 func (l *logAppenderImpl) AppendLog(execLogID uint, content string) {
 	// 追加到数据库
 	if err := l.execLogRepo.AppendLog(execLogID, content); err != nil {
-		utils.Error("追加日志失败", "error", err)
+		utils.Error("Failed to append log", "error", err)
 		return
 	}
 

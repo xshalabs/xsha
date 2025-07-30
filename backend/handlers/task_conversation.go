@@ -269,7 +269,7 @@ func (h *TaskConversationHandlers) GetConversationGitDiff(c *gin.Context) {
 	// 获取对话Git差异
 	diff, err := h.conversationService.GetConversationGitDiff(uint(conversationID), username.(string), includeContent)
 	if err != nil {
-		utils.Error("获取对话Git差异失败", "conversationID", conversationID, "error", err)
+		utils.Error("Failed to get conversation Git diff", "conversationID", conversationID, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "taskConversation.git_diff_failed"),
 		})
@@ -314,7 +314,7 @@ func (h *TaskConversationHandlers) GetConversationGitDiffFile(c *gin.Context) {
 	// 获取文件的Git差异内容
 	diffContent, err := h.conversationService.GetConversationGitDiffFile(uint(conversationID), username.(string), filePath)
 	if err != nil {
-		utils.Error("获取对话文件Git差异失败", "conversationID", conversationID, "filePath", filePath, "error", err)
+		utils.Error("Failed to get conversation file Git diff", "conversationID", conversationID, "filePath", filePath, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "taskConversation.git_diff_file_failed"),
 		})

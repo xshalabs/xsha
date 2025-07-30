@@ -214,16 +214,16 @@ func (d *dockerExecutor) BuildCommandForLog(conv *database.TaskConversation, wor
 func (d *dockerExecutor) ExecuteWithContext(ctx context.Context, dockerCmd string, execLogID uint) error {
 	// 首先检查 Docker 是否可用
 	if err := d.CheckAvailability(); err != nil {
-		d.logAppender.AppendLog(execLogID, fmt.Sprintf("❌ Docker 不可用: %v\n", err))
-		return fmt.Errorf("docker 不可用: %v", err)
+		d.logAppender.AppendLog(execLogID, fmt.Sprintf("❌ Docker unavailable: %v\n", err))
+		return fmt.Errorf("docker unavailable: %v", err)
 	}
 
-	d.logAppender.AppendLog(execLogID, "✅ Docker 可用性检查通过\n")
+	d.logAppender.AppendLog(execLogID, "✅ Docker availability check passed\n")
 
 	// 解析超时时间
 	timeout, err := time.ParseDuration(d.config.DockerExecutionTimeout)
 	if err != nil {
-		utils.Warn("解析Docker超时时间失败，使用默认值30分钟", "error", err)
+		utils.Warn("Failed to parse Docker timeout, using default 30 minutes", "error", err)
 		timeout = 30 * time.Minute
 	}
 

@@ -18,13 +18,13 @@ func NewTaskProcessor(aiTaskExecutor services.AITaskExecutorService) TaskProcess
 
 // ProcessTasks 处理任务
 func (p *taskProcessor) ProcessTasks() error {
-	utils.Info("开始处理待处理的任务对话...")
+	utils.Info("Starting to process pending task conversations...")
 
 	if err := p.aiTaskExecutor.ProcessPendingConversations(); err != nil {
-		utils.Error("处理任务失败", "error", err)
+		utils.Error("Task processing failed", "error", err)
 		return err
 	}
 
-	utils.Info("任务处理完成")
+	utils.Info("Task processing completed")
 	return nil
 }

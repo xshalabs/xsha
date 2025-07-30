@@ -493,10 +493,10 @@ func (s *taskService) PushTaskBranch(id uint, createdBy string) (string, error) 
 	)
 
 	if err != nil {
-		utils.Error("推送任务分支失败", "taskID", id, "branch", task.WorkBranch, "error", err)
+		utils.Error("Failed to push task branch", "taskID", id, "branch", task.WorkBranch, "error", err)
 		return output, err
 	}
 
-	utils.Info("成功推送任务分支", "taskID", id, "branch", task.WorkBranch)
+	utils.Info("Successfully pushed task branch", "taskID", id, "branch", task.WorkBranch)
 	return output, nil
 }

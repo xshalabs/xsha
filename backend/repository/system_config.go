@@ -129,7 +129,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 	err = r.SetValueWithCategory(
 		"dev_environment_types",
 		string(devEnvTypesJSON),
-		"开发环境类型配置，定义可用的开发环境及其对应的Docker镜像",
+		"Development environment type configuration, defines available development environments and their corresponding Docker images",
 		"dev_environment",
 		true,
 	)
