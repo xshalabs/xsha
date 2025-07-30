@@ -16,7 +16,6 @@ type gitCredentialService struct {
 	config      *config.Config
 }
 
-// NewGitCredentialService creates a Git credential service instance
 func NewGitCredentialService(repo repository.GitCredentialRepository, projectRepo repository.ProjectRepository, cfg *config.Config) GitCredentialService {
 	return &gitCredentialService{
 		repo:        repo,
@@ -25,19 +24,15 @@ func NewGitCredentialService(repo repository.GitCredentialRepository, projectRep
 	}
 }
 
-// CreateCredential creates a Git credential
 func (s *gitCredentialService) CreateCredential(name, description, credType, username, createdBy string, secretData map[string]string) (*database.GitCredential, error) {
-	// Validate input
 	if err := s.ValidateCredentialData(credType, secretData); err != nil {
 		return nil, err
 	}
 
-	// Check if name already exists
 	if existing, _ := s.repo.GetByName(name, createdBy); existing != nil {
 		return nil, errors.New("credential name already exists")
 	}
 
-	// Create credential object
 	credential := &database.GitCredential{
 		Name:        name,
 		Description: description,
@@ -46,7 +41,6 @@ func (s *gitCredentialService) CreateCredential(name, description, credType, use
 		CreatedBy:   createdBy,
 	}
 
-	// Encrypt sensitive data
 	switch database.GitCredentialType(credType) {
 	case database.GitCredentialTypePassword, database.GitCredentialTypeToken:
 		if password, ok := secretData["password"]; ok {
@@ -69,7 +63,6 @@ func (s *gitCredentialService) CreateCredential(name, description, credType, use
 		}
 	}
 
-	// Save to database
 	if err := s.repo.Create(credential); err != nil {
 		return nil, err
 	}
@@ -77,24 +70,20 @@ func (s *gitCredentialService) CreateCredential(name, description, credType, use
 	return credential, nil
 }
 
-// GetCredential gets a Git credential
 func (s *gitCredentialService) GetCredential(id uint, createdBy string) (*database.GitCredential, error) {
 	return s.repo.GetByID(id, createdBy)
 }
 
-// ListCredentials gets credential list
 func (s *gitCredentialService) ListCredentials(createdBy string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error) {
 	return s.repo.List(createdBy, credType, page, pageSize)
 }
 
-// UpdateCredential updates a credential
 func (s *gitCredentialService) UpdateCredential(id uint, createdBy string, updates map[string]interface{}, secretData map[string]string) error {
 	credential, err := s.repo.GetByID(id, createdBy)
 	if err != nil {
 		return err
 	}
 
-	// Update basic information
 	if name, ok := updates["name"]; ok {
 		credential.Name = name.(string)
 	}
@@ -132,15 +121,12 @@ func (s *gitCredentialService) UpdateCredential(id uint, createdBy string, updat
 	return s.repo.Update(credential)
 }
 
-// DeleteCredential deletes a credential
 func (s *gitCredentialService) DeleteCredential(id uint, createdBy string) error {
-	// Check if credential exists
 	credential, err := s.repo.GetByID(id, createdBy)
 	if err != nil {
 		return err
 	}
 
-	// Check if any projects are using this credential
 	projects, _, err := s.projectRepo.List(createdBy, "", nil, 1, 1000)
 	if err != nil {
 		return fmt.Errorf("failed to check credential usage: %v", err)
@@ -155,14 +141,11 @@ func (s *gitCredentialService) DeleteCredential(id uint, createdBy string) error
 	return s.repo.Delete(id, createdBy)
 }
 
-// ListActiveCredentials gets credential list (now returns all credentials since we no longer distinguish active status)
 func (s *gitCredentialService) ListActiveCredentials(createdBy string, credType *database.GitCredentialType) ([]database.GitCredential, error) {
-	// Use a large page size to get all credentials
 	credentials, _, err := s.repo.List(createdBy, credType, 1, 1000)
 	return credentials, err
 }
 
-// DecryptCredentialSecret decrypts credential sensitive information
 func (s *gitCredentialService) DecryptCredentialSecret(credential *database.GitCredential, secretType string) (string, error) {
 	switch secretType {
 	case "password":
@@ -180,7 +163,6 @@ func (s *gitCredentialService) DecryptCredentialSecret(credential *database.GitC
 	}
 }
 
-// ValidateCredentialData validates credential data
 func (s *gitCredentialService) ValidateCredentialData(credType string, data map[string]string) error {
 	switch database.GitCredentialType(credType) {
 	case database.GitCredentialTypePassword:
@@ -188,14 +170,13 @@ func (s *gitCredentialService) ValidateCredentialData(credType string, data map[
 			return errors.New("password is required for password type")
 		}
 	case database.GitCredentialTypeToken:
-		if data["password"] == "" { // token stored in password field
+		if data["password"] == "" {
 			return errors.New("token is required for token type")
 		}
 	case database.GitCredentialTypeSSHKey:
 		if data["private_key"] == "" {
 			return errors.New("private key is required for SSH key type")
 		}
-		// Validate SSH key format
 		if !strings.Contains(data["private_key"], "BEGIN") {
 			return errors.New("invalid private key format")
 		}
