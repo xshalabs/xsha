@@ -18,9 +18,6 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  Copy,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
@@ -52,13 +49,11 @@ export function PushBranchDialog({
   const { t } = useTranslation();
   const [step, setStep] = useState<PushStep>("confirm");
   const [pushResult, setPushResult] = useState<PushResult | null>(null);
-  const [showFullOutput, setShowFullOutput] = useState(false);
 
   useEffect(() => {
     if (!open || !task) {
       setStep("confirm");
       setPushResult(null);
-      setShowFullOutput(false);
     }
   }, [open, task]);
 
@@ -89,9 +84,10 @@ export function PushBranchDialog({
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      const errorDetails = error instanceof Error && 'details' in error 
-        ? (error as any).details 
-        : undefined;
+      const errorDetails =
+        error instanceof Error && "details" in error
+          ? (error as any).details
+          : undefined;
       logError(error as Error, "Failed to push task branch");
 
       setPushResult({
@@ -117,10 +113,6 @@ export function PushBranchDialog({
     onOpenChange(false);
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
-
   const renderContent = () => {
     switch (step) {
       case "confirm":
@@ -136,31 +128,34 @@ export function PushBranchDialog({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4">
-              <div className="p-4 rounded-lg text-foreground">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium">
-                      {t("tasks.fields.title")}:
-                    </span>
-                    <span className="text-sm">{task?.title}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium">
-                      {t("tasks.fields.work_branch")}:
-                    </span>
-                    <Badge variant="outline" className="font-mono">
-                      {task?.work_branch}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium">
-                      {t("tasks.fields.project")}:
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      {task?.project?.name}
-                    </span>
-                  </div>
+            <div className="space-y-4 my-4">
+              <div className="rounded-lg text-foreground space-y-3">
+                <div className="flex justify-between items-start">
+                  <span className="text-sm font-medium flex-shrink-0">
+                    {t("tasks.fields.title")}:
+                  </span>
+                  <span className="text-sm break-words text-right ml-2">
+                    {task?.title}
+                  </span>
+                </div>
+                <div className="flex justify-between items-start">
+                  <span className="text-sm font-medium flex-shrink-0">
+                    {t("tasks.fields.work_branch")}:
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className="font-mono text-xs break-all ml-2"
+                  >
+                    {task?.work_branch}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-start">
+                  <span className="text-sm font-medium flex-shrink-0">
+                    {t("tasks.fields.project")}:
+                  </span>
+                  <span className="text-sm text-muted-foreground break-words text-right ml-2">
+                    {task?.project?.name}
+                  </span>
                 </div>
               </div>
 
@@ -205,7 +200,7 @@ export function PushBranchDialog({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4">
+            <div className="space-y-4 my-4">
               <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
                 <div className="text-center space-y-3">
                   <div className="text-lg font-semibold text-red-800">
@@ -249,7 +244,7 @@ export function PushBranchDialog({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4">
+            <div className="space-y-4 my-4">
               <div className="text-center py-8">
                 <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary mb-4" />
                 <div className="text-lg font-medium mb-2 text-foreground">
@@ -282,7 +277,7 @@ export function PushBranchDialog({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4">
+            <div className="space-y-4 my-4">
               {pushResult?.success ? (
                 <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
                   <div className="flex items-center gap-2 text-green-800 font-medium mb-2">
@@ -303,13 +298,19 @@ export function PushBranchDialog({
                     {t("tasks.push.error_message")}
                   </div>
                   {pushResult?.error && (
-                    <div className="text-sm text-red-700 mt-2">
-                      <strong>{t("common.error")}:</strong> {pushResult.error}
+                    <div className="text-sm text-red-700 mt-2 break-words">
+                      <strong>{t("common.error")}:</strong>{" "}
+                      <span className="whitespace-pre-wrap">
+                        {pushResult.error}
+                      </span>
                     </div>
                   )}
                   {pushResult?.details && (
-                    <div className="text-sm text-red-700 mt-2 pt-2 border-t border-red-200">
-                      <strong>{t("common.details")}:</strong> {pushResult.details}
+                    <div className="text-sm text-red-700 mt-2 pt-2 border-t border-red-200 break-words">
+                      <strong>{t("common.details")}:</strong>{" "}
+                      <span className="whitespace-pre-wrap">
+                        {pushResult.details}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -317,39 +318,17 @@ export function PushBranchDialog({
 
               {pushResult?.output && (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
+                  <div className="flex items-center">
+                    <span className="text-sm font-medium text-foreground">
                       {t("tasks.push.output")}:
                     </span>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowFullOutput(!showFullOutput)}
-                      >
-                        {showFullOutput ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                        {showFullOutput ? t("common.hide") : t("common.show")}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(pushResult.output)}
-                      >
-                        <Copy className="h-4 w-4" />
-                        {t("common.copy")}
-                      </Button>
-                    </div>
                   </div>
 
                   <Textarea
                     value={pushResult.output}
                     readOnly
-                    className="font-mono text-xs bg-gray-50"
-                    rows={showFullOutput ? 10 : 4}
+                    className="font-mono text-xs text-muted-foreground resize-none overflow-auto"
+                    rows={8}
                   />
                 </div>
               )}
@@ -378,10 +357,10 @@ export function PushBranchDialog({
       onOpenChange={step === "pushing" ? undefined : onOpenChange}
     >
       <DialogContent
-        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="max-w-2xl max-h-[90vh] flex flex-col"
         showCloseButton={step !== "pushing"}
       >
-        {renderContent()}
+        <div className="flex-1 overflow-y-auto">{renderContent()}</div>
       </DialogContent>
     </Dialog>
   );

@@ -102,6 +102,7 @@
   "tasks.errors.git_diff_failed": "Failed to get Git diff",
   "tasks.errors.git_diff_file_failed": "Failed to get file Git diff",
   "tasks.push_failed": "Failed to push branch",
+  "tasks.push_success": "Branch pushed successfully",
   "validation.file_path_required": "File path is required",
   "taskConversation.git_diff_failed": "Failed to get conversation Git diff",
   "taskConversation.git_diff_file_failed": "Failed to get conversation file Git diff",

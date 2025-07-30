@@ -102,6 +102,7 @@
   "tasks.errors.git_diff_failed": "获取Git差异失败",
   "tasks.errors.git_diff_file_failed": "获取文件Git差异失败",
   "tasks.push_failed": "推送分支失败",
+  "tasks.push_success": "分支推送成功",
   "validation.file_path_required": "文件路径是必需的",
   "taskConversation.git_diff_failed": "获取对话Git差异失败",
   "taskConversation.git_diff_file_failed": "获取对话文件Git差异失败",
