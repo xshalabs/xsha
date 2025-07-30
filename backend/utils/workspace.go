@@ -551,3 +551,99 @@ func (w *WorkspaceManager) GetCurrentBranch(workspacePath string) (string, error
 
 	return strings.TrimSpace(string(output)), nil
 }
+
+// PushBranch 推送分支到远程仓库
+func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string, credential *GitCredentialInfo, sslVerify bool) (string, error) {
+	if workspacePath == "" {
+		return "", fmt.Errorf("工作空间路径不能为空")
+	}
+
+	if branchName == "" {
+		return "", fmt.Errorf("分支名不能为空")
+	}
+
+	// 检查工作空间是否存在
+	if !w.CheckWorkspaceExists(workspacePath) {
+		return "", fmt.Errorf("工作空间不存在: %s", workspacePath)
+	}
+
+	// 检查是否为 Git 仓库
+	if !w.CheckGitRepositoryExists(workspacePath) {
+		return "", fmt.Errorf("不是Git仓库: %s", workspacePath)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	defer cancel()
+
+	var cmd *exec.Cmd
+	var envVars []string
+	output := ""
+
+	// 准备推送命令和认证
+	if credential != nil {
+		switch credential.Type {
+		case GitCredentialTypePassword, GitCredentialTypeToken:
+			// HTTPS 认证：配置认证URL
+			authenticatedURL, err := w.buildAuthenticatedURL(repoURL, credential)
+			if err != nil {
+				return "", fmt.Errorf("构建认证URL失败: %v", err)
+			}
+
+			// 设置远程仓库URL
+			setURLCmd := exec.CommandContext(ctx, "git", "remote", "set-url", "origin", authenticatedURL)
+			setURLCmd.Dir = workspacePath
+
+			// 设置Git环境变量
+			if !sslVerify {
+				setURLCmd.Env = append(os.Environ(), "GIT_SSL_NO_VERIFY=true")
+			}
+
+			if err := setURLCmd.Run(); err != nil {
+				return "", fmt.Errorf("设置远程仓库URL失败: %v", err)
+			}
+
+			// 执行推送
+			cmd = exec.CommandContext(ctx, "git", "push", "origin", branchName)
+			cmd.Dir = workspacePath
+
+			if !sslVerify {
+				cmd.Env = append(os.Environ(), "GIT_SSL_NO_VERIFY=true")
+			}
+
+		case GitCredentialTypeSSHKey:
+			// SSH 认证
+			keyFile := filepath.Join(workspacePath, ".ssh_key_push")
+			if err := ioutil.WriteFile(keyFile, []byte(credential.PrivateKey), 0600); err != nil {
+				return "", fmt.Errorf("创建SSH密钥文件失败: %v", err)
+			}
+			defer os.Remove(keyFile)
+
+			envVars = append(os.Environ(),
+				fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no", keyFile),
+			)
+
+			cmd = exec.CommandContext(ctx, "git", "push", "origin", branchName)
+			cmd.Dir = workspacePath
+			cmd.Env = envVars
+		}
+	} else {
+		// 无认证推送
+		cmd = exec.CommandContext(ctx, "git", "push", "origin", branchName)
+		cmd.Dir = workspacePath
+	}
+
+	// 执行推送命令并捕获输出
+	var outputBuilder strings.Builder
+	cmd.Stdout = &outputBuilder
+	cmd.Stderr = &outputBuilder
+
+	err := cmd.Run()
+	output = outputBuilder.String()
+
+	if err != nil {
+		return output, fmt.Errorf("推送分支失败: %v", err)
+	}
+
+	Info("成功推送分支", "workspace", workspacePath, "branch", branchName)
+	return output, nil
+}

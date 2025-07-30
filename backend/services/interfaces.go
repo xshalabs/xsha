@@ -130,6 +130,9 @@ type TaskService interface {
 	// Git diff 操作
 	GetTaskGitDiff(task *database.Task, includeContent bool) (*utils.GitDiffSummary, error)
 	GetTaskGitDiffFile(task *database.Task, filePath string) (string, error)
+
+	// Git push 操作
+	PushTaskBranch(id uint, createdBy string) (string, error)
 }
 
 // TaskConversationService 定义任务对话服务接口

@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+	"xsha-backend/config"
 	"xsha-backend/database"
 	"xsha-backend/repository"
 	"xsha-backend/utils"
@@ -17,15 +18,19 @@ type taskService struct {
 	projectRepo      repository.ProjectRepository
 	devEnvRepo       repository.DevEnvironmentRepository
 	workspaceManager *utils.WorkspaceManager
+	config           *config.Config
+	gitCredService   GitCredentialService
 }
 
 // NewTaskService 创建任务服务实例
-func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository, workspaceManager *utils.WorkspaceManager) TaskService {
+func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository, workspaceManager *utils.WorkspaceManager, cfg *config.Config, gitCredService GitCredentialService) TaskService {
 	return &taskService{
 		repo:             repo,
 		projectRepo:      projectRepo,
 		devEnvRepo:       devEnvRepo,
 		workspaceManager: workspaceManager,
+		config:           cfg,
+		gitCredService:   gitCredService,
 	}
 }
 
@@ -376,4 +381,87 @@ func (s *taskService) GetTaskGitDiffFile(task *database.Task, filePath string) (
 	}
 
 	return string(output), nil
+}
+
+// PushTaskBranch 推送任务分支到远程仓库
+func (s *taskService) PushTaskBranch(id uint, createdBy string) (string, error) {
+	// 获取任务详情
+	task, err := s.GetTask(id, createdBy)
+	if err != nil {
+		return "", err
+	}
+
+	// 检查任务状态
+	if task.Status == database.TaskStatusCancelled {
+		return "", fmt.Errorf("无法推送已取消的任务")
+	}
+
+	// 检查必要的字段
+	if task.WorkBranch == "" {
+		return "", fmt.Errorf("任务工作分支不存在")
+	}
+
+	if task.WorkspacePath == "" {
+		return "", fmt.Errorf("任务工作空间路径为空")
+	}
+
+	if task.Project == nil {
+		return "", fmt.Errorf("任务关联项目信息不完整")
+	}
+
+	// 准备Git凭据
+	var credential *utils.GitCredentialInfo
+	if task.Project.CredentialID != nil {
+		cred, err := s.gitCredService.GetCredential(*task.Project.CredentialID, createdBy)
+		if err != nil {
+			return "", fmt.Errorf("获取Git凭据失败: %v", err)
+		}
+
+		// 解密凭据信息
+		credential = &utils.GitCredentialInfo{
+			Type:     utils.GitCredentialType(cred.Type),
+			Username: cred.Username,
+		}
+
+		switch cred.Type {
+		case database.GitCredentialTypePassword:
+			password, err := s.gitCredService.DecryptCredentialSecret(cred, "password")
+			if err != nil {
+				return "", fmt.Errorf("解密密码失败: %v", err)
+			}
+			credential.Password = password
+
+		case database.GitCredentialTypeToken:
+			token, err := s.gitCredService.DecryptCredentialSecret(cred, "token")
+			if err != nil {
+				return "", fmt.Errorf("解密令牌失败: %v", err)
+			}
+			credential.Password = token
+
+		case database.GitCredentialTypeSSHKey:
+			privateKey, err := s.gitCredService.DecryptCredentialSecret(cred, "private_key")
+			if err != nil {
+				return "", fmt.Errorf("解密SSH私钥失败: %v", err)
+			}
+			credential.PrivateKey = privateKey
+			credential.PublicKey = cred.PublicKey
+		}
+	}
+
+	// 执行推送
+	output, err := s.workspaceManager.PushBranch(
+		task.WorkspacePath,
+		task.WorkBranch,
+		task.Project.RepoURL,
+		credential,
+		s.config.GitSSLVerify,
+	)
+
+	if err != nil {
+		utils.Error("推送任务分支失败", "taskID", id, "branch", task.WorkBranch, "error", err)
+		return output, err
+	}
+
+	utils.Info("成功推送任务分支", "taskID", id, "branch", task.WorkBranch)
+	return output, nil
 }

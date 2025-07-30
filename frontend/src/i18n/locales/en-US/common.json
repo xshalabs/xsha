@@ -34,6 +34,7 @@
   "items": "items",
   "toggle_sidebar": "Toggle Sidebar",
   "page": "Page",
+  "continue": "Continue",
   "pagination": {
     "info": "Showing {{start}} - {{end}} of {{total}} items",
     "previous": "Previous",

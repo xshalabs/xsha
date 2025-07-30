@@ -89,6 +89,7 @@ interface TaskListProps {
   onDelete: (id: number) => void;
   onViewConversation?: (task: Task) => void;
   onViewGitDiff?: (task: Task) => void;
+  onPushBranch?: (task: Task) => void;
   onCreateNew: () => void;
   onBatchUpdateStatus?: (taskIds: number[], status: TaskStatus) => void;
 }
@@ -118,6 +119,7 @@ export function TaskList({
   onDelete,
   onViewConversation,
   onViewGitDiff,
+  onPushBranch,
   onCreateNew,
   onBatchUpdateStatus,
 }: TaskListProps) {
@@ -632,6 +634,15 @@ export function TaskList({
                               >
                                 <GitCompare className="h-4 w-4 mr-2" />
                                 {t("tasks.actions.viewGitDiff")}
+                              </DropdownMenuItem>
+                            )}
+
+                            {onPushBranch && (
+                              <DropdownMenuItem
+                                onClick={() => onPushBranch(task)}
+                              >
+                                <GitBranch className="h-4 w-4 mr-2" />
+                                {t("tasks.actions.pushBranch")}
                               </DropdownMenuItem>
                             )}
 

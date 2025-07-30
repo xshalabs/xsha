@@ -3,13 +3,15 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, GitCompare } from "lucide-react";
+import { ArrowLeft, GitCompare, GitBranch } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { TaskConversation } from "@/components/TaskConversation";
 import { TaskExecutionLog } from "@/components/TaskExecutionLog";
 import { TaskConversationResult } from "@/components/TaskConversationResult";
+import { PushBranchDialog } from "@/components/PushBranchDialog";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
+import { toast } from "sonner";
 import type { Task } from "@/types/task";
 import type {
   TaskConversation as TaskConversationInterface,
@@ -36,6 +38,7 @@ const TaskConversationPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"log" | "result">("log");
+  const [pushDialogOpen, setPushDialogOpen] = useState(false);
 
   usePageTitle(
     task
@@ -161,7 +164,18 @@ const TaskConversationPage: React.FC = () => {
   };
 
   const handleViewConversationGitDiff = (conversationId: number) => {
-    navigate(`/projects/${projectId}/tasks/${taskId}/conversation/${conversationId}/git-diff`);
+    navigate(`/projects/${projectId}/tasks/${taskId}/conversation/git-diff/${conversationId}`);
+  };
+
+  const handlePushBranch = async () => {
+    if (!task?.work_branch) {
+      toast.error(t("tasks.messages.push_failed"), {
+        description: "任务没有工作分支",
+      });
+      return;
+    }
+
+    setPushDialogOpen(true);
   };
 
   const selectedConversation = conversations.find(
@@ -258,13 +272,22 @@ const TaskConversationPage: React.FC = () => {
               {t("common.back")}
             </Button>
             {task.work_branch && (
-              <Button
-                variant="default"
-                onClick={() => navigate(`/projects/${projectId}/tasks/${task.id}/git-diff`)}
-              >
-                <GitCompare className="h-4 w-4 mr-2" />
-                {t("tasks.actions.viewGitDiff")}
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handlePushBranch}
+                >
+                  <GitBranch className="h-4 w-4 mr-2" />
+                  {t("tasks.actions.pushBranch")}
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => navigate(`/projects/${projectId}/tasks/${task.id}/git-diff`)}
+                >
+                  <GitCompare className="h-4 w-4 mr-2" />
+                  {t("tasks.actions.viewGitDiff")}
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -347,6 +370,11 @@ const TaskConversationPage: React.FC = () => {
           </div>
         </div>
       </div>
+      <PushBranchDialog
+        open={pushDialogOpen}
+        onOpenChange={setPushDialogOpen}
+        task={task}
+      />
     </div>
   );
 };

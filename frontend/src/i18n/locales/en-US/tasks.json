@@ -12,8 +12,9 @@
     "delete": "Delete Task",
     "view": "View Task",
     "viewConversation": "View Conversation",
+    "viewGitDiff": "View Git Diff",
     "batchUpdateStatus": "Batch Update Status",
-    "viewGitDiff": "View Git Diff"
+    "pushBranch": "Push Branch"
   },
   "status": {
     "todo": "To Do",
@@ -36,7 +37,9 @@
     "startBranch": "Start Branch",
     "status": "Status",
     "hasPullRequest": "Has PR",
-    "devEnvironment": "Development Environment"
+    "devEnvironment": "Development Environment",
+    "work_branch": "Work Branch",
+    "repository": "Repository URL"
   },
   "form": {
     "createDescription": "Create a new development task",
@@ -81,15 +84,40 @@
     "updated": "Updated"
   },
   "messages": {
+    "loadFailed": "Failed to load task",
     "createSuccess": "Task created successfully",
-    "updateSuccess": "Task updated successfully",
-    "deleteSuccess": "Task deleted successfully",
     "createFailed": "Failed to create task",
+    "updateSuccess": "Task updated successfully",
     "updateFailed": "Failed to update task",
+    "deleteSuccess": "Task deleted successfully",
     "deleteFailed": "Failed to delete task",
-    "deleteConfirm": "Are you sure you want to delete task \"{{title}}\"? This action cannot be undone.",
-    "batchUpdateSuccess": "Batch status update completed: {{success}} succeeded, {{failed}} failed",
-    "batchUpdateFailed": "Batch status update failed"
+    "batchUpdateSuccess": "Batch update successful",
+    "batchUpdateFailed": "Batch update failed",
+    "push_success": "Branch pushed successfully",
+    "push_failed": "Failed to push branch",
+    "push_confirm": "Are you sure you want to push this task's branch to the remote repository?",
+    "pushing": "Pushing..."
+  },
+  "push": {
+    "confirm_title": "Confirm Branch Push",
+    "confirm_description": "You are about to push the task branch to the remote repository. Please confirm the following information.",
+    "warning_title": "Notice",
+    "warning_description": "The push operation will upload your changes to the remote repository, and other team members will be able to see these changes.",
+    "final_confirm_title": "Final Confirmation",
+    "final_confirm_description": "This is your last chance to confirm. Please review carefully.",
+    "final_warning": "Warning: This operation cannot be undone!",
+    "final_warning_details": "You are about to push branch \"{{branch}}\" to repository \"{{repository}}\". After pushing, changes will be visible to all team members.",
+    "confirm_push": "Confirm Push",
+    "pushing_title": "Pushing",
+    "pushing_description": "Pushing your changes to the remote repository...",
+    "pushing_to": "Pushing branch: {{branch}}",
+    "please_wait": "Please wait, do not close this window",
+    "success_title": "Push Successful",
+    "success_message": "Branch has been successfully pushed to remote repository",
+    "success_details": "Branch \"{{branch}}\" has been successfully pushed to repository \"{{repository}}\".",
+    "error_title": "Push Failed",
+    "error_message": "An error occurred during the push process",
+    "output": "Push Output"
   },
   "batch": {
     "selectedCount": "{{count}} tasks selected",
@@ -114,6 +142,5 @@
   "no_commit_hash": "No Commit Hash",
   "no_commit_hash_desc": "This conversation has no associated commit hash",
   "create_description": "Create a new development task",
-  "edit_description": "Edit task information",
-  "loadFailed": "Failed to load task"
+  "edit_description": "Edit task information"
 } 

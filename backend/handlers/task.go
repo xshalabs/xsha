@@ -543,3 +543,43 @@ func (h *TaskHandlers) GetTaskGitDiffFile(c *gin.Context) {
 		},
 	})
 }
+
+// PushTaskBranch 推送任务分支到远程仓库
+func (h *TaskHandlers) PushTaskBranch(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	// 获取任务ID
+	taskIDStr := c.Param("id")
+	taskID, err := strconv.ParseUint(taskIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_id"),
+		})
+		return
+	}
+
+	// 获取当前用户
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+
+	// 执行推送
+	output, err := h.taskService.PushTaskBranch(uint(taskID), username.(string))
+	if err != nil {
+		utils.Error("推送任务分支失败", "taskID", taskID, "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   i18n.T(lang, "tasks.push_failed"),
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "tasks.push_success"),
+		"data": gin.H{
+			"output": output,
+		},
+	})
+}

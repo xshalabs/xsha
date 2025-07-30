@@ -103,6 +103,17 @@ export const tasksApi = {
       method: 'GET',
     });
   },
+
+  pushTaskBranch: async (taskId: number): Promise<{
+    message: string;
+    data: {
+      output: string;
+    };
+  }> => {
+    return request(`/tasks/${taskId}/push`, {
+      method: 'POST',
+    });
+  },
 };
 
 // Git diff types

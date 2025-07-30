@@ -99,6 +99,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			tasks.DELETE("/:id", taskHandlers.DeleteTask)                    // 删除任务
 			tasks.GET("/:id/git-diff", taskHandlers.GetTaskGitDiff)          // 获取任务Git变动
 			tasks.GET("/:id/git-diff/file", taskHandlers.GetTaskGitDiffFile) // 获取任务指定文件Git变动
+			tasks.POST("/:id/push", taskHandlers.PushTaskBranch)             // 推送任务分支到远程仓库
 		}
 
 		// 任务对话管理

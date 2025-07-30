@@ -4,11 +4,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { TaskList } from "@/components/TaskList";
+import { PushBranchDialog } from "@/components/PushBranchDialog";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import type { Task, TaskStatus } from "@/types/task";
 import type { Project } from "@/types/project";
 import type { DevEnvironment } from "@/types/dev-environment";
+import { toast } from "sonner";
+
 import { Plus } from "lucide-react";
 
 const TaskListPage: React.FC = () => {
@@ -32,6 +35,9 @@ const TaskListPage: React.FC = () => {
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [devEnvironments, setDevEnvironments] = useState<DevEnvironment[]>([]);
+
+  const [pushDialogOpen, setPushDialogOpen] = useState(false);
+  const [selectedTaskForPush, setSelectedTaskForPush] = useState<Task | null>(null);
 
   usePageTitle(
     currentProject
@@ -283,6 +289,30 @@ const TaskListPage: React.FC = () => {
     }
   };
 
+  const handlePushBranch = async (task: Task) => {
+    if (!task.work_branch) {
+      toast.error(t("tasks.messages.push_failed"), {
+        description: "任务没有工作分支",
+      });
+      return;
+    }
+
+    setSelectedTaskForPush(task);
+    setPushDialogOpen(true);
+  };
+
+  const handlePushSuccess = async () => {
+    // 刷新任务列表
+    await loadTasks(
+      currentPage,
+      statusFilter,
+      projectId ? parseInt(projectId, 10) : undefined,
+      titleFilter,
+      branchFilter,
+      devEnvironmentFilter
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -330,10 +360,18 @@ const TaskListPage: React.FC = () => {
           onDelete={handleTaskDelete}
           onViewConversation={handleViewConversation}
           onViewGitDiff={handleViewGitDiff}
+          onPushBranch={handlePushBranch}
           onCreateNew={handleTaskCreate}
           onBatchUpdateStatus={handleBatchUpdateStatus}
         />
       </div>
+
+      <PushBranchDialog
+        open={pushDialogOpen}
+        onOpenChange={setPushDialogOpen}
+        task={selectedTaskForPush}
+        onSuccess={handlePushSuccess}
+      />
     </div>
   );
 };

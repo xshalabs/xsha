@@ -13,7 +13,8 @@
     "view": "查看任务",
     "viewConversation": "查看对话",
     "viewGitDiff": "查看Git变动",
-    "batchUpdateStatus": "批量修改状态"
+    "batchUpdateStatus": "批量修改状态",
+    "pushBranch": "推送分支"
   },
   "status": {
     "todo": "待处理",
@@ -36,7 +37,8 @@
     "startBranch": "起始分支",
     "status": "状态",
     "hasPullRequest": "是否有PR",
-    "devEnvironment": "开发环境"
+    "devEnvironment": "开发环境",
+    "work_branch": "工作分支"
   },
   "form": {
     "createDescription": "创建一个新的开发任务",
@@ -81,15 +83,40 @@
     "updated": "更新时间"
   },
   "messages": {
+    "loadFailed": "加载任务失败",
     "createSuccess": "任务创建成功",
-    "updateSuccess": "任务更新成功",
-    "deleteSuccess": "任务删除成功",
     "createFailed": "任务创建失败",
+    "updateSuccess": "任务更新成功",
     "updateFailed": "任务更新失败",
+    "deleteSuccess": "任务删除成功",
     "deleteFailed": "任务删除失败",
-    "deleteConfirm": "确定要删除任务 \"{{title}}\" 吗？此操作不可撤销。",
     "batchUpdateSuccess": "批量状态更新成功：{{success}}个成功，{{failed}}个失败",
-    "batchUpdateFailed": "批量状态更新失败"
+    "batchUpdateFailed": "批量状态更新失败",
+    "push_success": "分支推送成功",
+    "push_failed": "分支推送失败",
+    "push_confirm": "确定要推送此任务的分支到远程仓库吗？",
+    "pushing": "正在推送..."
+  },
+  "push": {
+    "confirm_title": "推送分支确认",
+    "confirm_description": "您即将推送任务分支到远程仓库，请确认以下信息。",
+    "warning_title": "注意",
+    "warning_description": "推送操作将会把您的更改上传到远程仓库，其他团队成员将能看到这些更改。",
+    "final_confirm_title": "最终确认",
+    "final_confirm_description": "这是最后一次确认机会，请仔细检查。",
+    "final_warning": "警告：此操作不可撤销！",
+    "final_warning_details": "您即将推送分支 \"{{branch}}\" 到仓库 \"{{repository}}\"。推送后，更改将对所有团队成员可见。",
+    "confirm_push": "确认推送",
+    "pushing_title": "正在推送",
+    "pushing_description": "正在将您的更改推送到远程仓库...",
+    "pushing_to": "正在推送分支：{{branch}}",
+    "please_wait": "请稍候，不要关闭此窗口",
+    "success_title": "推送成功",
+    "success_message": "分支已成功推送到远程仓库",
+    "success_details": "分支 \"{{branch}}\" 已成功推送到仓库 \"{{repository}}\"。",
+    "error_title": "推送失败",
+    "error_message": "推送过程中发生错误",
+    "output": "推送输出"
   },
   "batch": {
     "selectedCount": "已选择 {{count}} 个任务",
@@ -115,7 +142,6 @@
   "no_commit_hash_desc": "此对话没有关联的提交哈希",
   "create_description": "创建一个新的开发任务",
   "edit_description": "修改任务信息",
-  "loadFailed": "加载任务失败",
   "gitDiff": {
     "title": "Git 变动查看"
   }
