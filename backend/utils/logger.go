@@ -11,7 +11,6 @@ import (
 	"xsha-backend/config"
 )
 
-// Re-export types from config package to maintain compatibility
 type LogLevel = config.LogLevel
 type LogFormat = config.LogFormat
 
@@ -27,7 +26,6 @@ const (
 	FormatText = config.FormatText
 )
 
-// LogConfig log configuration
 type LogConfig struct {
 	Level  LogLevel  `json:"level" env:"LOG_LEVEL" default:"INFO"`
 	Format LogFormat `json:"format" env:"LOG_FORMAT" default:"JSON"`
@@ -36,9 +34,7 @@ type LogConfig struct {
 
 var defaultLogger *slog.Logger
 
-// InitLogger initializes the global logger
 func InitLogger(config LogConfig) error {
-	// Parse log level
 	var level slog.Level
 	switch strings.ToUpper(string(config.Level)) {
 	case "DEBUG":
@@ -53,12 +49,10 @@ func InitLogger(config LogConfig) error {
 		level = slog.LevelInfo
 	}
 
-	// Configure options
 	opts := &slog.HandlerOptions{
 		Level:     level,
-		AddSource: false, // We manually add source location information
+		AddSource: false,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-			// Custom time format
 			if a.Key == slog.TimeKey {
 				return slog.String("timestamp", a.Value.Time().Format("2006-01-02T15:04:05.000Z07:00"))
 			}
@@ -66,7 +60,6 @@ func InitLogger(config LogConfig) error {
 		},
 	}
 
-	// Determine output target
 	var output *os.File
 	switch config.Output {
 	case "stdout", "":
@@ -74,7 +67,6 @@ func InitLogger(config LogConfig) error {
 	case "stderr":
 		output = os.Stderr
 	default:
-		// File output
 		file, err := os.OpenFile(config.Output, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 		if err != nil {
 			return err
@@ -82,7 +74,6 @@ func InitLogger(config LogConfig) error {
 		output = file
 	}
 
-	// Create Handler
 	var handler slog.Handler
 	switch config.Format {
 	case FormatJSON:
@@ -93,17 +84,14 @@ func InitLogger(config LogConfig) error {
 		handler = slog.NewJSONHandler(output, opts)
 	}
 
-	// Set global logger
 	defaultLogger = slog.New(handler)
 	slog.SetDefault(defaultLogger)
 
 	return nil
 }
 
-// GetLogger gets the default logger
 func GetLogger() *slog.Logger {
 	if defaultLogger == nil {
-		// If not initialized, use default configuration
 		InitLogger(LogConfig{
 			Level:  LevelInfo,
 			Format: FormatJSON,
@@ -113,11 +101,9 @@ func GetLogger() *slog.Logger {
 	return defaultLogger
 }
 
-// WithContext creates a logger with context
 func WithContext(ctx context.Context) *slog.Logger {
 	logger := GetLogger()
 
-	// 从上下文中提取有用的信息
 	if traceID := ctx.Value("trace_id"); traceID != nil {
 		logger = logger.With("trace_id", traceID)
 	}
@@ -131,7 +117,6 @@ func WithContext(ctx context.Context) *slog.Logger {
 	return logger
 }
 
-// WithFields creates a logger with fields
 func WithFields(fields map[string]interface{}) *slog.Logger {
 	logger := GetLogger()
 	args := make([]interface{}, 0, len(fields)*2)
@@ -141,7 +126,6 @@ func WithFields(fields map[string]interface{}) *slog.Logger {
 	return logger.With(args...)
 }
 
-// 便利函数 - 修改以正确获取调用者信息
 func Debug(msg string, args ...interface{}) {
 	logWithCaller(slog.LevelDebug, msg, args...)
 }
@@ -174,7 +158,6 @@ func ErrorContext(ctx context.Context, msg string, args ...interface{}) {
 	logWithCallerContext(ctx, slog.LevelError, msg, args...)
 }
 
-// logWithCaller 记录日志并正确获取调用者信息
 func logWithCaller(level slog.Level, msg string, args ...interface{}) {
 	logger := GetLogger()
 	if !logger.Enabled(context.Background(), level) {
@@ -186,7 +169,6 @@ func logWithCaller(level slog.Level, msg string, args ...interface{}) {
 	var line int
 	var function string
 
-	// 获取调用者信息，跳过2层：logWithCaller -> 便利函数 -> 实际调用者
 	pc, file, line, ok := runtime.Caller(2)
 	if ok {
 		fn := runtime.FuncForPC(pc)
@@ -196,10 +178,8 @@ func logWithCaller(level slog.Level, msg string, args ...interface{}) {
 		file = filepath.Base(file)
 	}
 
-	// 创建带源码信息的记录
 	record := slog.NewRecord(time.Now(), level, msg, pc)
 
-	// 转换args为slog.Attr格式
 	if len(args) > 0 {
 		attrs := make([]slog.Attr, 0, len(args)/2)
 		for i := 0; i < len(args)-1; i += 2 {
@@ -210,7 +190,6 @@ func logWithCaller(level slog.Level, msg string, args ...interface{}) {
 		record.AddAttrs(attrs...)
 	}
 
-	// 手动设置源码信息
 	if ok {
 		record.AddAttrs(slog.Group("source",
 			slog.String("function", function),
@@ -222,7 +201,6 @@ func logWithCaller(level slog.Level, msg string, args ...interface{}) {
 	logger.Handler().Handle(context.Background(), record)
 }
 
-// logWithCallerContext 带上下文记录日志并正确获取调用者信息
 func logWithCallerContext(ctx context.Context, level slog.Level, msg string, args ...interface{}) {
 	logger := WithContext(ctx)
 	if !logger.Enabled(ctx, level) {
@@ -234,7 +212,6 @@ func logWithCallerContext(ctx context.Context, level slog.Level, msg string, arg
 	var line int
 	var function string
 
-	// 获取调用者信息，跳过2层：logWithCallerContext -> 便利函数 -> 实际调用者
 	pc, file, line, ok := runtime.Caller(2)
 	if ok {
 		fn := runtime.FuncForPC(pc)
@@ -244,10 +221,8 @@ func logWithCallerContext(ctx context.Context, level slog.Level, msg string, arg
 		file = filepath.Base(file)
 	}
 
-	// 创建带源码信息的记录
 	record := slog.NewRecord(time.Now(), level, msg, pc)
 
-	// 转换args为slog.Attr格式
 	if len(args) > 0 {
 		attrs := make([]slog.Attr, 0, len(args)/2)
 		for i := 0; i < len(args)-1; i += 2 {
@@ -258,7 +233,6 @@ func logWithCallerContext(ctx context.Context, level slog.Level, msg string, arg
 		record.AddAttrs(attrs...)
 	}
 
-	// 手动设置源码信息
 	if ok {
 		record.AddAttrs(slog.Group("source",
 			slog.String("function", function),
@@ -270,7 +244,6 @@ func logWithCallerContext(ctx context.Context, level slog.Level, msg string, arg
 	logger.Handler().Handle(ctx, record)
 }
 
-// LogError 记录错误日志，如果err不为nil
 func LogError(err error, msg string, args ...interface{}) {
 	if err != nil {
 		allArgs := append([]interface{}{"error", err.Error()}, args...)
@@ -278,7 +251,6 @@ func LogError(err error, msg string, args ...interface{}) {
 	}
 }
 
-// LogErrorContext 带上下文记录错误日志
 func LogErrorContext(ctx context.Context, err error, msg string, args ...interface{}) {
 	if err != nil {
 		allArgs := append([]interface{}{"error", err.Error()}, args...)

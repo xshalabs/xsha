@@ -9,9 +9,7 @@ import (
 	"io"
 )
 
-// EncryptAES 使用AES-GCM加密数据
 func EncryptAES(plaintext, key string) (string, error) {
-	// 确保密钥长度为32字节
 	normalizedKey := normalizeAESKey(key)
 
 	block, err := aes.NewCipher([]byte(normalizedKey))
@@ -24,18 +22,15 @@ func EncryptAES(plaintext, key string) (string, error) {
 		return "", err
 	}
 
-	// 生成随机nonce
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
 		return "", err
 	}
 
-	// 加密并合并nonce和密文
 	ciphertext := gcm.Seal(nonce, nonce, []byte(plaintext), nil)
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
-// DecryptAES 使用AES-GCM解密数据
 func DecryptAES(ciphertext, key string) (string, error) {
 	normalizedKey := normalizeAESKey(key)
 
@@ -68,18 +63,15 @@ func DecryptAES(ciphertext, key string) (string, error) {
 	return string(plaintext), nil
 }
 
-// normalizeAESKey 标准化AES密钥为32字节
 func normalizeAESKey(key string) string {
 	if len(key) >= 32 {
 		return key[:32]
 	}
-	// 密钥不足32字节时用0填充
 	normalized := make([]byte, 32)
 	copy(normalized, []byte(key))
 	return string(normalized)
 }
 
-// GenerateAESKey 生成32字节的AES密钥（工具函数）
 func GenerateAESKey() (string, error) {
 	key := make([]byte, 32)
 	if _, err := rand.Read(key); err != nil {
@@ -88,8 +80,6 @@ func GenerateAESKey() (string, error) {
 	return base64.StdEncoding.EncodeToString(key), nil
 }
 
-// MaskSensitiveValue 给敏感信息打码
-// 显示前2个字符和后2个字符，中间用星号替代
 func MaskSensitiveValue(value string) string {
 	if len(value) <= 4 {
 		return "****"

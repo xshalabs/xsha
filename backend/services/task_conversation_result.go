@@ -16,7 +16,6 @@ type taskConversationResultService struct {
 	projectRepo      repository.ProjectRepository
 }
 
-// NewTaskConversationResultService creates a new task conversation result service instance
 func NewTaskConversationResultService(
 	repo repository.TaskConversationResultRepository,
 	conversationRepo repository.TaskConversationRepository,
@@ -31,14 +30,11 @@ func NewTaskConversationResultService(
 	}
 }
 
-// CreateResult creates a result
 func (s *taskConversationResultService) CreateResult(conversationID uint, resultData map[string]interface{}) (*database.TaskConversationResult, error) {
-	// Validate input data
 	if err := s.ValidateResultData(resultData); err != nil {
 		return nil, err
 	}
 
-	// Check if result record already exists
 	exists, err := s.repo.ExistsByConversationID(conversationID)
 	if err != nil {
 		return nil, errors.New("failed to check existing result")
@@ -47,12 +43,10 @@ func (s *taskConversationResultService) CreateResult(conversationID uint, result
 		return nil, errors.New("result already exists for this conversation")
 	}
 
-	// Build result object
 	result := &database.TaskConversationResult{
 		ConversationID: conversationID,
 	}
 
-	// Set basic fields
 	if typeVal, ok := resultData["type"].(string); ok {
 		result.Type = database.ResultType(typeVal)
 	}
@@ -63,7 +57,6 @@ func (s *taskConversationResultService) CreateResult(conversationID uint, result
 		result.IsError = isErrorVal
 	}
 
-	// Set time and performance fields
 	if durationMs, ok := resultData["duration_ms"].(float64); ok {
 		result.DurationMs = int64(durationMs)
 	}
@@ -74,22 +67,18 @@ func (s *taskConversationResultService) CreateResult(conversationID uint, result
 		result.NumTurns = int(numTurns)
 	}
 
-	// Set result content
 	if resultStr, ok := resultData["result"].(string); ok {
 		result.Result = resultStr
 	}
 
-	// Set session ID
 	if sessionID, ok := resultData["session_id"].(string); ok {
 		result.SessionID = sessionID
 	}
 
-	// Set cost
 	if totalCost, ok := resultData["total_cost_usd"].(float64); ok {
 		result.TotalCostUsd = totalCost
 	}
 
-	// Set usage statistics (JSON string)
 	if usage, ok := resultData["usage"]; ok {
 		usageBytes, err := json.Marshal(usage)
 		if err != nil {
@@ -99,7 +88,6 @@ func (s *taskConversationResultService) CreateResult(conversationID uint, result
 		}
 	}
 
-	// Create result record
 	if err := s.repo.Create(result); err != nil {
 		return nil, fmt.Errorf("failed to create result: %v", err)
 	}
@@ -111,25 +99,20 @@ func (s *taskConversationResultService) CreateResult(conversationID uint, result
 	return result, nil
 }
 
-// GetResult gets a result
 func (s *taskConversationResultService) GetResult(id uint) (*database.TaskConversationResult, error) {
 	return s.repo.GetByID(id)
 }
 
-// GetResultByConversationID gets a result by conversation ID
 func (s *taskConversationResultService) GetResultByConversationID(conversationID uint) (*database.TaskConversationResult, error) {
 	return s.repo.GetByConversationID(conversationID)
 }
 
-// UpdateResult updates a result
 func (s *taskConversationResultService) UpdateResult(id uint, updates map[string]interface{}) error {
-	// Check if result exists
 	result, err := s.repo.GetByID(id)
 	if err != nil {
 		return errors.New("result not found")
 	}
 
-	// Update fields
 	if typeVal, ok := updates["type"].(string); ok {
 		result.Type = database.ResultType(typeVal)
 	}
@@ -164,26 +147,21 @@ func (s *taskConversationResultService) UpdateResult(id uint, updates map[string
 	return s.repo.Update(result)
 }
 
-// DeleteResult deletes a result
 func (s *taskConversationResultService) DeleteResult(id uint) error {
 	return s.repo.Delete(id)
 }
 
-// ListResultsByTaskID gets a list of results by task ID
 func (s *taskConversationResultService) ListResultsByTaskID(taskID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error) {
 	return s.repo.ListByTaskID(taskID, page, pageSize)
 }
 
-// ListResultsByProjectID gets a list of results by project ID
 func (s *taskConversationResultService) ListResultsByProjectID(projectID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error) {
 	return s.repo.ListByProjectID(projectID, page, pageSize)
 }
 
-// GetTaskStats gets task statistics
 func (s *taskConversationResultService) GetTaskStats(taskID uint) (map[string]interface{}, error) {
 	stats := make(map[string]interface{})
 
-	// Get success rate
 	successRate, err := s.repo.GetSuccessRate(taskID)
 	if err != nil {
 		utils.Warn("Failed to get success rate", "task_id", taskID, "error", err)
@@ -191,7 +169,6 @@ func (s *taskConversationResultService) GetTaskStats(taskID uint) (map[string]in
 	}
 	stats["success_rate"] = successRate
 
-	// Get total cost
 	totalCost, err := s.repo.GetTotalCost(taskID)
 	if err != nil {
 		utils.Warn("Failed to get total cost", "task_id", taskID, "error", err)
@@ -199,7 +176,6 @@ func (s *taskConversationResultService) GetTaskStats(taskID uint) (map[string]in
 	}
 	stats["total_cost_usd"] = totalCost
 
-	// Get average execution time
 	avgDuration, err := s.repo.GetAverageDuration(taskID)
 	if err != nil {
 		utils.Warn("Failed to get average duration", "task_id", taskID, "error", err)
@@ -210,10 +186,8 @@ func (s *taskConversationResultService) GetTaskStats(taskID uint) (map[string]in
 	return stats, nil
 }
 
-// GetProjectStats gets project statistics
 func (s *taskConversationResultService) GetProjectStats(projectID uint) (map[string]interface{}, error) {
-	// Get results list under the project (no pagination for statistics)
-	results, _, err := s.repo.ListByProjectID(projectID, 1, 1000000) // Get all data with a large page
+	results, _, err := s.repo.ListByProjectID(projectID, 1, 1000000)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get project results: %w", err)
 	}
@@ -248,14 +222,11 @@ func (s *taskConversationResultService) GetProjectStats(projectID uint) (map[str
 	return stats, nil
 }
 
-// ExistsForConversation checks if a conversation already has a result
 func (s *taskConversationResultService) ExistsForConversation(conversationID uint) (bool, error) {
 	return s.repo.ExistsByConversationID(conversationID)
 }
 
-// ValidateResultData validates result data
 func (s *taskConversationResultService) ValidateResultData(resultData map[string]interface{}) error {
-	// Check required fields
 	if typeVal, ok := resultData["type"].(string); !ok || typeVal == "" {
 		return errors.New("type is required")
 	}
@@ -276,7 +247,6 @@ func (s *taskConversationResultService) ValidateResultData(resultData map[string
 		return errors.New("session_id is required")
 	}
 
-	// Validate numeric fields
 	if durationMs, ok := resultData["duration_ms"]; ok {
 		if _, isFloat := durationMs.(float64); !isFloat {
 			return errors.New("duration_ms must be a number")
