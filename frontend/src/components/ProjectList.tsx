@@ -251,7 +251,12 @@ export const ProjectList = forwardRef<ProjectListRef, ProjectListProps>(
                       <TableRow key={project.id}>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{project.name}</div>
+                            <div 
+                              className="font-medium text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
+                              onClick={() => navigate(ROUTES.projectTasks(project.id))}
+                            >
+                              {project.name}
+                            </div>
                             {project.description && (
                               <div className="text-sm text-muted-foreground">
                                 {project.description}
