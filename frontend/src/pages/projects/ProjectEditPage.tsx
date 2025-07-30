@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -35,7 +36,7 @@ const ProjectEditPage: React.FC = () => {
         setProject(response.project);
       } catch (error) {
         logError(error as Error, "Failed to load project");
-        alert(
+        toast.error(
           error instanceof Error
             ? error.message
             : t("projects.messages.loadFailed")

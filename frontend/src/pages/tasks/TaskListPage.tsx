@@ -141,7 +141,7 @@ const TaskListPage: React.FC = () => {
       );
     } catch (error) {
       logError(error as Error, "Failed to delete task");
-      alert(
+      toast.error(
         error instanceof Error
           ? error.message
           : t("tasks.messages.deleteFailed")
@@ -256,14 +256,14 @@ const TaskListPage: React.FC = () => {
 
       const { success_count, failed_count } = response.data;
       if (failed_count === 0) {
-        alert(
+        toast.success(
           t("tasks.messages.batchUpdateSuccess", {
             success: success_count,
             failed: failed_count,
           })
         );
       } else {
-        alert(
+        toast.warning(
           t("tasks.messages.batchUpdateSuccess", {
             success: success_count,
             failed: failed_count,
@@ -281,7 +281,7 @@ const TaskListPage: React.FC = () => {
       );
     } catch (error) {
       logError(error as Error, "Failed to batch update task status");
-      alert(
+      toast.error(
         error instanceof Error
           ? error.message
           : t("tasks.messages.batchUpdateFailed")

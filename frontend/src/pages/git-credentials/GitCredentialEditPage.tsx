@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -40,7 +41,7 @@ const GitCredentialEditPage: React.FC = () => {
         setCredential(response.credential);
       } catch (error) {
         logError(error as Error, "Failed to load credential");
-        alert(
+        toast.error(
           error instanceof Error
             ? error.message
             : t("gitCredentials.messages.loadFailed")

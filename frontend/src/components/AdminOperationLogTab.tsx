@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { AdminOperationLogList } from "./AdminOperationLogList";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
@@ -76,7 +77,13 @@ export const AdminOperationLogTab: React.FC = () => {
         ).toLocaleString()}`,
       ].join("\n\n");
 
-      alert(logInfo);
+      toast.info(logInfo, {
+        duration: 8000,
+        style: {
+          whiteSpace: "pre-line",
+          maxWidth: "500px",
+        },
+      });
     } catch (err: any) {
       logError(err, "Failed to load operation log detail");
       console.error("Failed to load operation log detail:", err);
