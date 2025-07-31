@@ -29,12 +29,11 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { SUPPORTED_LANGUAGES, STORAGE_KEYS } from "@/lib/constants";
-import { apiService } from "@/lib/api/index";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
   const { t, i18n } = useTranslation();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {

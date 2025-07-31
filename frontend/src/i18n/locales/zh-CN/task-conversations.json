@@ -114,6 +114,9 @@
   "actions": {
     "delete": "删除",
     "viewGitDiff": "查看Git差异",
-    "viewChanges": "查看变动"
+    "viewChanges": "查看变动",
+    "copy": "复制",
+    "copySuccess": "内容已复制到剪切板",
+    "copyFailed": "复制内容失败"
   }
 } 

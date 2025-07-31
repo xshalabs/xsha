@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import {
   Send,
   User,
@@ -26,6 +27,7 @@ import {
   GitCommit,
   ChevronDown,
   ChevronUp,
+  Copy,
 } from "lucide-react";
 import type {
   TaskConversation as TaskConversationInterface,
@@ -210,6 +212,16 @@ export function TaskConversation({
     return content.split("\n").length > 3 || content.length > 150;
   };
 
+  const handleCopyContent = async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      toast.success(t("common.copied_to_clipboard"));
+    } catch (error) {
+      console.error("Failed to copy:", error);
+      toast.error(t("common.copy_failed"));
+    }
+  };
+
   return (
     <div className="space-y-6 h-full flex flex-col">
       <Card className="flex-1 flex flex-col">
@@ -302,16 +314,30 @@ export function TaskConversation({
                   </div>
 
                   <div className="mt-2 text-sm">
-                    <div
-                      className={`whitespace-pre-wrap ${
-                        isConversationExpanded(conversation.id)
-                          ? ""
-                          : shouldShowExpandButton(conversation.content)
-                          ? "line-clamp-3"
-                          : ""
-                      }`}
-                    >
-                      {conversation.content}
+                    <div className="flex justify-between items-start gap-2">
+                      <div
+                        className={`flex-1 whitespace-pre-wrap ${
+                          isConversationExpanded(conversation.id)
+                            ? ""
+                            : shouldShowExpandButton(conversation.content)
+                            ? "line-clamp-3"
+                            : ""
+                        }`}
+                      >
+                        {conversation.content}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopyContent(conversation.content);
+                        }}
+                        className="h-6 w-6 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 shrink-0"
+                        title={t("common.copy")}
+                      >
+                        <Copy className="w-3 h-3" />
+                      </Button>
                     </div>
                     {shouldShowExpandButton(conversation.content) && (
                       <Button
@@ -321,7 +347,7 @@ export function TaskConversation({
                           e.stopPropagation();
                           toggleExpanded(conversation.id);
                         }}
-                        className="mt-1 h-6 px-2 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                        className="mt-1 h-6 px-1 text-xs text-gray-500 hover:bg-blue-50"
                       >
                         {isConversationExpanded(conversation.id) ? (
                           <>

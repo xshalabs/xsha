@@ -114,6 +114,9 @@
   "actions": {
     "delete": "Delete",
     "viewGitDiff": "View Git Diff",
-    "viewChanges": "View Changes"
+    "viewChanges": "View Changes",
+    "copy": "Copy",
+    "copySuccess": "Content copied to clipboard",
+    "copyFailed": "Failed to copy content"
   }
 } 
