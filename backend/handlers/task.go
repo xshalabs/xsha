@@ -13,14 +13,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// TaskHandlers task handler struct
 type TaskHandlers struct {
 	taskService         services.TaskService
 	conversationService services.TaskConversationService
 	projectService      services.ProjectService
 }
 
-// NewTaskHandlers creates a task handler instance
 func NewTaskHandlers(taskService services.TaskService, conversationService services.TaskConversationService, projectService services.ProjectService) *TaskHandlers {
 	return &TaskHandlers{
 		taskService:         taskService,
@@ -29,29 +27,40 @@ func NewTaskHandlers(taskService services.TaskService, conversationService servi
 	}
 }
 
-// CreateTaskRequest request structure for creating tasks
+// @Description Create task request
 type CreateTaskRequest struct {
-	Title            string `json:"title" binding:"required"`
-	StartBranch      string `json:"start_branch" binding:"required"`
-	ProjectID        uint   `json:"project_id" binding:"required"`
-	DevEnvironmentID *uint  `json:"dev_environment_id" binding:"required"`
-	RequirementDesc  string `json:"requirement_desc" binding:"required"` // Requirement description for creating conversation
-	IncludeBranches  bool   `json:"include_branches"`                    // Whether to return project branch information
+	Title            string `json:"title" binding:"required" example:"Fix user authentication bug"`
+	StartBranch      string `json:"start_branch" binding:"required" example:"main"`
+	ProjectID        uint   `json:"project_id" binding:"required" example:"1"`
+	DevEnvironmentID *uint  `json:"dev_environment_id" binding:"required" example:"1"`
+	RequirementDesc  string `json:"requirement_desc" binding:"required" example:"Fix the login validation issue"`
+	IncludeBranches  bool   `json:"include_branches" example:"true"`
 }
 
-// CreateTaskResponse response structure for creating tasks
+// @Description Create task response
 type CreateTaskResponse struct {
 	Task            *database.Task `json:"task"`
-	ProjectBranches []string       `json:"project_branches,omitempty"` // Project branch list
-	BranchError     string         `json:"branch_error,omitempty"`     // Error information when getting branches
+	ProjectBranches []string       `json:"project_branches,omitempty" example:"main,develop,feature/user-auth"`
+	BranchError     string         `json:"branch_error,omitempty" example:"Failed to fetch branches"`
 }
 
-// UpdateTaskRequest request structure for updating tasks
+// @Description Update task request
 type UpdateTaskRequest struct {
-	Title string `json:"title" binding:"required"`
+	Title string `json:"title" binding:"required" example:"Updated task title"`
 }
 
-// CreateTask creates a task
+// CreateTask creates a new task
+// @Summary Create task
+// @Description Create a new task with optional requirement description and branch fetching
+// @Tags Tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param task body CreateTaskRequest true "Task information"
+// @Success 201 {object} object{message=string,data=CreateTaskResponse} "Task created successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Router /tasks [post]
 func (h *TaskHandlers) CreateTask(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -61,21 +70,18 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
-	// 创建任务
 	task, err := h.taskService.CreateTask(req.Title, req.StartBranch, username.(string), req.ProjectID, req.DevEnvironmentID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
 	}
 
-	// 如果有需求描述，创建初始对话记录
 	if strings.TrimSpace(req.RequirementDesc) != "" {
 		_, err := h.conversationService.CreateConversation(
 			task.ID,
@@ -83,17 +89,14 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 			username.(string),
 		)
 		if err != nil {
-			// 如果对话创建失败，记录错误但不影响任务创建
-			// 可以考虑添加日志记录
+			utils.Error("Failed to create conversation", "taskID", task.ID, "error", err)
 		}
 	}
 
-	// 构建响应数据
 	response := CreateTaskResponse{
 		Task: task,
 	}
 
-	// 如果请求包含分支信息，获取项目分支
 	if req.IncludeBranches {
 		if task.Project != nil {
 			branchResult, err := h.projectService.FetchRepositoryBranches(
@@ -119,7 +122,19 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 	})
 }
 
-// GetTask 获取任务详情
+// GetTask retrieves a specific task
+// @Summary Get task
+// @Description Get a task by ID
+// @Tags Tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Task ID"
+// @Success 200 {object} object{message=string,data=database.Task} "Task retrieved successfully"
+// @Failure 400 {object} object{error=string} "Invalid task ID"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 404 {object} object{error=string} "Task not found"
+// @Router /tasks/{id} [get]
 func (h *TaskHandlers) GetTask(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -130,14 +145,12 @@ func (h *TaskHandlers) GetTask(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
-	// 获取任务
 	task, err := h.taskService.GetTask(uint(id), username.(string))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "task.not_found")})
@@ -150,18 +163,33 @@ func (h *TaskHandlers) GetTask(c *gin.Context) {
 	})
 }
 
-// ListTasks 获取任务列表
+// ListTasks retrieves tasks with pagination and filtering
+// @Summary List tasks
+// @Description Get a paginated list of tasks with optional filtering by project, status, title, branch, and dev environment
+// @Tags Tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number (default: 1)" default(1)
+// @Param page_size query int false "Number of items per page (default: 20)" default(20)
+// @Param project_id query int false "Filter by project ID"
+// @Param status query string false "Filter by task status" Enums(todo,in_progress,done,cancelled)
+// @Param title query string false "Filter by task title (partial match)"
+// @Param branch query string false "Filter by branch name"
+// @Param dev_environment_id query int false "Filter by development environment ID"
+// @Success 200 {object} object{message=string,data=object{tasks=[]database.Task,total=int,page=int,page_size=int}} "Tasks retrieved successfully"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 500 {object} object{error=string} "Internal server error"
+// @Router /tasks [get]
 func (h *TaskHandlers) ListTasks(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
-	// 解析查询参数
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 
@@ -197,7 +225,6 @@ func (h *TaskHandlers) ListTasks(c *gin.Context) {
 		}
 	}
 
-	// 获取任务列表
 	tasks, total, err := h.taskService.ListTasks(projectID, username.(string), status, title, branch, devEnvID, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
@@ -215,7 +242,19 @@ func (h *TaskHandlers) ListTasks(c *gin.Context) {
 	})
 }
 
-// UpdateTask 更新任务
+// UpdateTask updates an existing task
+// @Summary Update task
+// @Description Update task information
+// @Tags Tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Task ID"
+// @Param task body UpdateTaskRequest true "Task update information"
+// @Success 200 {object} object{message=string} "Task updated successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Router /tasks/{id} [put]
 func (h *TaskHandlers) UpdateTask(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -232,18 +271,15 @@ func (h *TaskHandlers) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
-	// 构建更新数据
 	updates := make(map[string]interface{})
 	updates["title"] = req.Title
 
-	// 更新任务
 	if err := h.taskService.UpdateTask(uint(id), username.(string), updates); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
@@ -252,12 +288,24 @@ func (h *TaskHandlers) UpdateTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task.update_success")})
 }
 
-// UpdateTaskStatusRequest 更新任务状态请求结构
+// @Description Update task status request
 type UpdateTaskStatusRequest struct {
-	Status string `json:"status" binding:"required"`
+	Status string `json:"status" binding:"required" example:"in_progress" enums:"todo,in_progress,done,cancelled"`
 }
 
-// UpdateTaskStatus 更新任务状态
+// UpdateTaskStatus updates the status of a task
+// @Summary Update task status
+// @Description Update the status of a specific task
+// @Tags Tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Task ID"
+// @Param status body UpdateTaskStatusRequest true "Task status update information"
+// @Success 200 {object} object{message=string} "Task status updated successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Router /tasks/{id}/status [put]
 func (h *TaskHandlers) UpdateTaskStatus(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -274,14 +322,12 @@ func (h *TaskHandlers) UpdateTaskStatus(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
-	// 验证状态值
 	var status database.TaskStatus
 	switch req.Status {
 	case "todo":
@@ -297,7 +343,6 @@ func (h *TaskHandlers) UpdateTaskStatus(c *gin.Context) {
 		return
 	}
 
-	// 更新任务状态
 	if err := h.taskService.UpdateTaskStatus(uint(id), username.(string), status); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
@@ -306,7 +351,19 @@ func (h *TaskHandlers) UpdateTaskStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task.update_success")})
 }
 
-// DeleteTask 删除任务
+// DeleteTask deletes a task
+// @Summary Delete task
+// @Description Delete a specific task
+// @Tags Tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Task ID"
+// @Success 200 {object} object{message=string} "Task deleted successfully"
+// @Failure 400 {object} object{error=string} "Invalid task ID"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 404 {object} object{error=string} "Task not found"
+// @Router /tasks/{id} [delete]
 func (h *TaskHandlers) DeleteTask(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -317,14 +374,12 @@ func (h *TaskHandlers) DeleteTask(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
-	// 删除任务
 	if err := h.taskService.DeleteTask(uint(id), username.(string)); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
@@ -333,21 +388,32 @@ func (h *TaskHandlers) DeleteTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task.delete_success")})
 }
 
-// BatchUpdateTaskStatusRequest 批量更新任务状态请求结构
+// @Description Batch update task status request
 type BatchUpdateTaskStatusRequest struct {
-	TaskIDs []uint `json:"task_ids" binding:"required,min=1,max=100"`
-	Status  string `json:"status" binding:"required"`
+	TaskIDs []uint `json:"task_ids" binding:"required,min=1,max=100" example:"1,2,3"`
+	Status  string `json:"status" binding:"required" example:"done" enums:"todo,in_progress,done,cancelled"`
 }
 
-// BatchUpdateTaskStatusResponse 批量更新任务状态响应结构
+// @Description Batch update task status response
 type BatchUpdateTaskStatusResponse struct {
-	SuccessCount int    `json:"success_count"`
-	FailedCount  int    `json:"failed_count"`
-	SuccessIDs   []uint `json:"success_ids"`
-	FailedIDs    []uint `json:"failed_ids"`
+	SuccessCount int    `json:"success_count" example:"2"`
+	FailedCount  int    `json:"failed_count" example:"1"`
+	SuccessIDs   []uint `json:"success_ids" example:"1,2"`
+	FailedIDs    []uint `json:"failed_ids" example:"3"`
 }
 
-// BatchUpdateTaskStatus 批量更新任务状态
+// BatchUpdateTaskStatus updates the status of multiple tasks
+// @Summary Batch update task status
+// @Description Update the status of multiple tasks in a single request
+// @Tags Tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param batch body BatchUpdateTaskStatusRequest true "Batch status update information"
+// @Success 200 {object} object{message=string,data=BatchUpdateTaskStatusResponse} "Batch update completed"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Router /tasks/batch/status [put]
 func (h *TaskHandlers) BatchUpdateTaskStatus(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -357,14 +423,12 @@ func (h *TaskHandlers) BatchUpdateTaskStatus(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
-	// 验证状态值
 	var status database.TaskStatus
 	switch req.Status {
 	case "todo":
@@ -380,7 +444,6 @@ func (h *TaskHandlers) BatchUpdateTaskStatus(c *gin.Context) {
 		return
 	}
 
-	// 批量更新任务状态
 	successIDs, failedIDs, err := h.taskService.UpdateTaskStatusBatch(req.TaskIDs, username.(string), status)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
@@ -400,11 +463,25 @@ func (h *TaskHandlers) BatchUpdateTaskStatus(c *gin.Context) {
 	})
 }
 
-// GetTaskGitDiff 获取任务Git变动
+// GetTaskGitDiff retrieves the git diff for a task
+// @Summary Get task git diff
+// @Description Get the git diff between start branch and work branch for a task
+// @Tags Tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Task ID"
+// @Param include_content query bool false "Include file content in diff" default(false)
+// @Success 200 {object} object{data=object} "Git diff retrieved successfully"
+// @Failure 400 {object} object{error=string} "Invalid task ID or missing workspace"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 403 {object} object{error=string} "No permission to access task"
+// @Failure 404 {object} object{error=string} "Task not found"
+// @Failure 500 {object} object{error=string} "Failed to get git diff"
+// @Router /tasks/{id}/git-diff [get]
 func (h *TaskHandlers) GetTaskGitDiff(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	// 获取任务ID
 	taskIDStr := c.Param("id")
 	taskID, err := strconv.ParseUint(taskIDStr, 10, 32)
 	if err != nil {
@@ -414,17 +491,14 @@ func (h *TaskHandlers) GetTaskGitDiff(c *gin.Context) {
 		return
 	}
 
-	// 获取查询参数
 	includeContent := c.DefaultQuery("include_content", "false") == "true"
 
-	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
-	// 获取任务详情
 	task, err := h.taskService.GetTask(uint(taskID), username.(string))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -433,7 +507,6 @@ func (h *TaskHandlers) GetTaskGitDiff(c *gin.Context) {
 		return
 	}
 
-	// 检查权限
 	if task.CreatedBy != username.(string) {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error": i18n.T(lang, "common.no_permission"),
@@ -441,7 +514,6 @@ func (h *TaskHandlers) GetTaskGitDiff(c *gin.Context) {
 		return
 	}
 
-	// 检查必要的分支信息
 	if task.StartBranch == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.T(lang, "tasks.errors.no_start_branch"),
@@ -456,7 +528,6 @@ func (h *TaskHandlers) GetTaskGitDiff(c *gin.Context) {
 		return
 	}
 
-	// 检查工作空间是否存在
 	if task.WorkspacePath == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.T(lang, "tasks.errors.no_workspace"),
@@ -464,7 +535,6 @@ func (h *TaskHandlers) GetTaskGitDiff(c *gin.Context) {
 		return
 	}
 
-	// 获取Git差异
 	diff, err := h.taskService.GetTaskGitDiff(task, includeContent)
 	if err != nil {
 		utils.Error("Failed to get task Git diff", "taskID", taskID, "error", err)
@@ -479,11 +549,25 @@ func (h *TaskHandlers) GetTaskGitDiff(c *gin.Context) {
 	})
 }
 
-// GetTaskGitDiffFile 获取任务指定文件的Git变动详情
+// GetTaskGitDiffFile retrieves the git diff for a specific file in a task
+// @Summary Get task git diff file
+// @Description Get the git diff for a specific file between start branch and work branch
+// @Tags Tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Task ID"
+// @Param file_path query string true "File path to get diff for"
+// @Success 200 {object} object{data=object{file_path=string,diff_content=string}} "File diff retrieved successfully"
+// @Failure 400 {object} object{error=string} "Invalid task ID or missing file path"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 403 {object} object{error=string} "No permission to access task"
+// @Failure 404 {object} object{error=string} "Task not found"
+// @Failure 500 {object} object{error=string} "Failed to get file diff"
+// @Router /tasks/{id}/git-diff/file [get]
 func (h *TaskHandlers) GetTaskGitDiffFile(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	// 获取任务ID
 	taskIDStr := c.Param("id")
 	taskID, err := strconv.ParseUint(taskIDStr, 10, 32)
 	if err != nil {
@@ -493,7 +577,6 @@ func (h *TaskHandlers) GetTaskGitDiffFile(c *gin.Context) {
 		return
 	}
 
-	// 获取文件路径
 	filePath := c.Query("file_path")
 	if filePath == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -502,14 +585,12 @@ func (h *TaskHandlers) GetTaskGitDiffFile(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
-	// 获取任务详情
 	task, err := h.taskService.GetTask(uint(taskID), username.(string))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -518,7 +599,6 @@ func (h *TaskHandlers) GetTaskGitDiffFile(c *gin.Context) {
 		return
 	}
 
-	// 检查权限
 	if task.CreatedBy != username.(string) {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error": i18n.T(lang, "common.no_permission"),
@@ -526,7 +606,6 @@ func (h *TaskHandlers) GetTaskGitDiffFile(c *gin.Context) {
 		return
 	}
 
-	// 获取文件的Git差异内容
 	diffContent, err := h.taskService.GetTaskGitDiffFile(task, filePath)
 	if err != nil {
 		utils.Error("Failed to get task file Git diff", "taskID", taskID, "filePath", filePath, "error", err)
@@ -544,11 +623,22 @@ func (h *TaskHandlers) GetTaskGitDiffFile(c *gin.Context) {
 	})
 }
 
-// PushTaskBranch 推送任务分支到远程仓库
+// PushTaskBranch pushes the task's work branch to the remote repository
+// @Summary Push task branch
+// @Description Push the task's work branch to the remote repository
+// @Tags Tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Task ID"
+// @Success 200 {object} object{message=string,data=object{output=string}} "Branch pushed successfully"
+// @Failure 400 {object} object{error=string} "Invalid task ID"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 500 {object} object{error=string,details=string} "Failed to push branch"
+// @Router /tasks/{id}/push [post]
 func (h *TaskHandlers) PushTaskBranch(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	// 获取任务ID
 	taskIDStr := c.Param("id")
 	taskID, err := strconv.ParseUint(taskIDStr, 10, 32)
 	if err != nil {
@@ -558,14 +648,12 @@ func (h *TaskHandlers) PushTaskBranch(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
-	// 执行推送
 	output, err := h.taskService.PushTaskBranch(uint(taskID), username.(string))
 	if err != nil {
 		utils.Error("Failed to push task branch", "taskID", taskID, "error", err)
