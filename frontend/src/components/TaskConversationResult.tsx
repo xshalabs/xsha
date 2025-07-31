@@ -22,7 +22,9 @@ import {
   Code,
   Loader2,
   AlertCircle,
+  Copy,
 } from "lucide-react";
+import { toast } from "sonner";
 import type {
   TaskConversationResult,
   UsageStats,
@@ -76,6 +78,15 @@ export function TaskConversationResult({
     ) : (
       <CheckCircle className="h-4 w-4 text-green-500" />
     );
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(t("common.copied_to_clipboard"));
+    } catch (err) {
+      toast.error(t("common.copy_failed"));
+    }
   };
 
   const fetchResult = async () => {
@@ -189,10 +200,21 @@ export function TaskConversationResult({
 
       <CardContent className="space-y-4">
         <div>
-          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            {t("taskConversation.result.content")}
-          </h4>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-sm font-medium flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              {t("taskConversation.result.content")}
+            </h4>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => copyToClipboard(result.result)}
+              className="h-7 px-2 text-foreground hover:text-foreground"
+            >
+              <Copy className="h-3 w-3 mr-1" />
+              {t("common.copy")}
+            </Button>
+          </div>
           <div className="bg-foreground/5 p-3 rounded-md max-h-[400px] overflow-auto">
             <pre className="text-sm whitespace-pre-wrap">{result.result}</pre>
           </div>

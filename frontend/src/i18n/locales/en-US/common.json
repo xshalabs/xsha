@@ -37,6 +37,9 @@
   "page": "Page",
   "continue": "Continue",
   "close": "Close",
+  "copy": "Copy",
+  "copied_to_clipboard": "Copied to clipboard",
+  "copy_failed": "Failed to copy",
   "pagination": {
     "info": "Showing {{start}} - {{end}} of {{total}} items",
     "previous": "Previous",
