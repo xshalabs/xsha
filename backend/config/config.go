@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -35,11 +36,13 @@ type Config struct {
 	JWTSecret    string
 	AESKey       string
 
-	SchedulerInterval      string
-	WorkspaceBaseDir       string
-	DockerExecutionTimeout string
-	GitCloneTimeout        string
-	MaxConcurrentTasks     int
+	SchedulerInterval         string
+	SchedulerIntervalDuration time.Duration
+	WorkspaceBaseDir          string
+	DockerExecutionTimeout    string
+	GitCloneTimeout           string
+	GitCloneTimeoutDuration   time.Duration
+	MaxConcurrentTasks        int
 
 	GitSSLVerify bool
 
@@ -81,6 +84,20 @@ func Load() *Config {
 		LogFormat: LogFormat(getEnv("XSHA_LOG_FORMAT", "JSON")),
 		LogOutput: getEnv("XSHA_LOG_OUTPUT", "stdout"),
 	}
+
+	gitCloneTimeout, err := time.ParseDuration(config.GitCloneTimeout)
+	if err != nil {
+		fmt.Printf("Warning: Failed to parse git clone timeout, using default 5 minutes. timeout=%s error=%v\n", config.GitCloneTimeout, err)
+		gitCloneTimeout = 5 * time.Minute
+	}
+	config.GitCloneTimeoutDuration = gitCloneTimeout
+
+	schedulerInterval, err := time.ParseDuration(config.SchedulerInterval)
+	if err != nil {
+		fmt.Printf("Warning: Failed to parse scheduler interval, using default 30 seconds. interval=%s error=%v\n", config.SchedulerInterval, err)
+		schedulerInterval = 30 * time.Second
+	}
+	config.SchedulerIntervalDuration = schedulerInterval
 
 	return config
 }

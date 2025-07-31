@@ -1,14 +1,6 @@
 // @title XSHA Backend API
 // @version 1.0
 // @description XSHA Backend API service, providing user authentication, project management, Git credential management and other functions
-// @termsOfService http://swagger.io/terms/
-
-// @contact.name API Support
-// @contact.url http://www.swagger.io/support
-// @contact.email support@swagger.io
-
-// @license.name MIT
-// @license.url https://opensource.org/licenses/MIT
 
 // @host localhost:8080
 // @BasePath /api/v1
@@ -24,11 +16,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 	"xsha-backend/config"
 	"xsha-backend/database"
 	"xsha-backend/handlers"
-	"xsha-backend/i18n"
 	"xsha-backend/repository"
 	"xsha-backend/routes"
 	"xsha-backend/scheduler"
@@ -36,15 +26,12 @@ import (
 	"xsha-backend/services/executor"
 	"xsha-backend/utils"
 
-	_ "xsha-backend/docs" // Auto-generated swagger docs
+	_ "xsha-backend/docs"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// Initialize internationalization
-	i18nInstance := i18n.GetInstance()
-
 	// Load configuration
 	cfg := config.Load()
 
@@ -73,12 +60,7 @@ func main() {
 	systemConfigRepo := repository.NewSystemConfigRepository(dbManager.GetDB())
 
 	// Initialize workspace manager
-	gitCloneTimeout, err := time.ParseDuration(cfg.GitCloneTimeout)
-	if err != nil {
-		utils.Warn("Failed to parse git clone timeout, using default 5 minutes", "timeout", cfg.GitCloneTimeout, "error", err)
-		gitCloneTimeout = 5 * time.Minute
-	}
-	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir, gitCloneTimeout)
+	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir, cfg.GitCloneTimeoutDuration)
 
 	// Initialize services
 	loginLogService := services.NewLoginLogService(loginLogRepo)
@@ -95,15 +77,7 @@ func main() {
 
 	// Initialize scheduler
 	taskProcessor := scheduler.NewTaskProcessor(aiTaskExecutor)
-
-	// Parse scheduler interval
-	schedulerInterval, err := time.ParseDuration(cfg.SchedulerInterval)
-	if err != nil {
-		utils.Warn("Failed to parse scheduler interval, using default value of 30 seconds", "error", err)
-		schedulerInterval = 30 * time.Second
-	}
-
-	schedulerManager := scheduler.NewSchedulerManager(taskProcessor, schedulerInterval)
+	schedulerManager := scheduler.NewSchedulerManager(taskProcessor, cfg.SchedulerIntervalDuration)
 
 	// Initialize handlers
 	authHandlers := handlers.NewAuthHandlers(authService, loginLogService)
@@ -157,11 +131,11 @@ func main() {
 	}()
 
 	// Start server
-	utils.Info(i18nInstance.GetMessage("zh-CN", "server.starting"))
+	utils.Info("Server starting...")
 	utils.Info("Server starting on port", "port", cfg.Port)
 
 	if err := r.Run(":" + cfg.Port); err != nil {
-		utils.Error(i18nInstance.GetMessage("zh-CN", "server.start_failed"), "error", err)
+		utils.Error("Server start failed", "error", err)
 		os.Exit(1)
 	}
 }

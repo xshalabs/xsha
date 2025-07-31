@@ -3,16 +3,7 @@
     "info": {
         "description": "XSHA Backend API service, providing user authentication, project management, Git credential management and other functions",
         "title": "XSHA Backend API",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
-        },
-        "license": {
-            "name": "MIT",
-            "url": "https://opensource.org/licenses/MIT"
-        },
+        "contact": {},
         "version": "1.0"
     },
     "host": "localhost:8080",

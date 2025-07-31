@@ -563,16 +563,9 @@ definitions:
     type: object
 host: localhost:8080
 info:
-  contact:
-    email: support@swagger.io
-    name: API Support
-    url: http://www.swagger.io/support
+  contact: {}
   description: XSHA Backend API service, providing user authentication, project management,
     Git credential management and other functions
-  license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
-  termsOfService: http://swagger.io/terms/
   title: XSHA Backend API
   version: "1.0"
 paths:
