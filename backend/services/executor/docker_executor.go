@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -39,6 +40,10 @@ func (d *dockerExecutor) CheckAvailability() error {
 	}
 
 	return nil
+}
+
+func (d *dockerExecutor) escapeShellArg(arg string) string {
+	return strconv.Quote(arg)
 }
 
 func (d *dockerExecutor) BuildCommand(conv *database.TaskConversation, workspacePath string) string {
@@ -76,12 +81,12 @@ func (d *dockerExecutor) BuildCommand(conv *database.TaskConversation, workspace
 			"--output-format=stream-json",
 			"--dangerously-skip-permissions",
 			"--verbose",
-			conv.Content,
+			d.escapeShellArg(conv.Content),
 		}
 	case "opencode":
-		aiCommand = []string{conv.Content}
+		aiCommand = []string{d.escapeShellArg(conv.Content)}
 	case "gemini_cli":
-		aiCommand = []string{conv.Content}
+		aiCommand = []string{d.escapeShellArg(conv.Content)}
 	default:
 		aiCommand = []string{
 			"claude",
@@ -89,7 +94,7 @@ func (d *dockerExecutor) BuildCommand(conv *database.TaskConversation, workspace
 			"--output-format=stream-json",
 			"--dangerously-skip-permissions",
 			"--verbose",
-			conv.Content,
+			d.escapeShellArg(conv.Content),
 		}
 	}
 
@@ -158,12 +163,12 @@ func (d *dockerExecutor) BuildCommandForLog(conv *database.TaskConversation, wor
 			"--output-format=stream-json",
 			"--dangerously-skip-permissions",
 			"--verbose",
-			conv.Content,
+			d.escapeShellArg(conv.Content),
 		}
 	case "opencode":
-		aiCommand = []string{conv.Content}
+		aiCommand = []string{d.escapeShellArg(conv.Content)}
 	case "gemini_cli":
-		aiCommand = []string{conv.Content}
+		aiCommand = []string{d.escapeShellArg(conv.Content)}
 	default:
 		aiCommand = []string{
 			"claude",
@@ -171,7 +176,7 @@ func (d *dockerExecutor) BuildCommandForLog(conv *database.TaskConversation, wor
 			"--output-format=stream-json",
 			"--dangerously-skip-permissions",
 			"--verbose",
-			conv.Content,
+			d.escapeShellArg(conv.Content),
 		}
 	}
 
