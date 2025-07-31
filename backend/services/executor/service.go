@@ -358,6 +358,11 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	}
 
 	if s.workspaceManager.CheckGitRepositoryExists(workspacePath) {
+		if err := s.workspaceCleaner.CleanupBeforeExecution(conv.Task.ID, workspacePath); err != nil {
+			finalStatus = database.ConversationStatusFailed
+			errorMsg = fmt.Sprintf("failed to cleanup workspace before execution: %v", err)
+			return
+		}
 	} else {
 		credential, err := s.prepareGitCredential(conv.Task.Project)
 		if err != nil {

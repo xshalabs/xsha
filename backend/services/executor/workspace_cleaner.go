@@ -66,3 +66,30 @@ func (w *workspaceCleaner) CleanupOnCancel(taskID uint, workspacePath string) er
 
 	return nil
 }
+
+func (w *workspaceCleaner) CleanupBeforeExecution(taskID uint, workspacePath string) error {
+	if workspacePath == "" {
+		utils.Warn("Workspace path is empty, skipping pre-execution cleanup", "task_id", taskID)
+		return nil
+	}
+
+	utils.Info("Starting pre-execution workspace cleanup", "task_id", taskID, "workspace", workspacePath)
+
+	isDirty, err := w.workspaceManager.CheckWorkspaceIsDirty(workspacePath)
+	if err != nil {
+		utils.Error("Failed to check workspace status during pre-execution cleanup", "task_id", taskID, "workspace", workspacePath, "error", err)
+		return fmt.Errorf("failed to check workspace status: %v", err)
+	}
+
+	if isDirty {
+		if resetErr := w.workspaceManager.ResetWorkspaceToCleanState(workspacePath); resetErr != nil {
+			utils.Error("Failed to reset workspace during pre-execution cleanup", "task_id", taskID, "workspace", workspacePath, "error", resetErr)
+			return fmt.Errorf("failed to cleanup workspace before execution: %v", resetErr)
+		}
+		utils.Info("Cleaned workspace uncommitted changes before execution", "task_id", taskID, "workspace", workspacePath)
+	} else {
+		utils.Info("Workspace is clean, no pre-execution cleanup needed", "task_id", taskID, "workspace", workspacePath)
+	}
+
+	return nil
+}

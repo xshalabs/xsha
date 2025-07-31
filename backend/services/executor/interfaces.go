@@ -20,6 +20,7 @@ type ResultParser interface {
 type WorkspaceCleaner interface {
 	CleanupOnFailure(taskID uint, workspacePath string) error
 	CleanupOnCancel(taskID uint, workspacePath string) error
+	CleanupBeforeExecution(taskID uint, workspacePath string) error
 }
 
 type ConversationStateManager interface {

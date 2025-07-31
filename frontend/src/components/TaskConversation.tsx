@@ -236,7 +236,7 @@ export function TaskConversation({
             size="sm"
             onClick={onRefresh}
             disabled={loading}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 text-foreground hover:text-foreground"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             <span>{t("common.refresh")}</span>
