@@ -243,9 +243,9 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
                   <SelectItem value={CredentialTypes.TOKEN}>
                     {t("gitCredentials.types.token")}
                   </SelectItem>
-                  <SelectItem value={CredentialTypes.SSH_KEY}>
+                  {/* <SelectItem value={CredentialTypes.SSH_KEY}>
                     {t("gitCredentials.types.ssh_key")}
-                  </SelectItem>
+                  </SelectItem> */}
                 </SelectContent>
               </Select>
             </div>
