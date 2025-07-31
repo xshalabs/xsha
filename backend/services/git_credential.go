@@ -148,7 +148,7 @@ func (s *gitCredentialService) ListActiveCredentials(createdBy string, credType 
 
 func (s *gitCredentialService) DecryptCredentialSecret(credential *database.GitCredential, secretType string) (string, error) {
 	switch secretType {
-	case "password":
+	case "password", "token":
 		if credential.PasswordHash == "" {
 			return "", errors.New("password not set")
 		}
