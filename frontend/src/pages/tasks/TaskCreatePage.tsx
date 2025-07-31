@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { TaskForm } from "@/components/TaskForm";
+import { TaskFormCreate } from "@/components/TaskFormCreate";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import { toast } from "sonner";
@@ -75,7 +75,7 @@ const TaskCreatePage: React.FC = () => {
           </Button>
         </div>
 
-        <TaskForm
+        <TaskFormCreate
           defaultProjectId={projectId ? parseInt(projectId, 10) : undefined}
           currentProject={currentProject || undefined}
           onSubmit={handleSubmit}

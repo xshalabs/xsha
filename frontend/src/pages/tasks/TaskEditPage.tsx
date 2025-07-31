@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { TaskForm } from "@/components/TaskForm";
+import { TaskFormEdit } from "@/components/TaskFormEdit";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import type { Task, TaskFormData } from "@/types/task";
@@ -108,7 +108,7 @@ const TaskEditPage: React.FC = () => {
           </Button>
         </div>
 
-        <TaskForm task={task} onSubmit={handleSubmit} onCancel={handleCancel} />
+        <TaskFormEdit task={task} onSubmit={handleSubmit} onCancel={handleCancel} />
       </div>
     </div>
   );
