@@ -50,7 +50,7 @@ func (d *dockerExecutor) BuildCommand(conv *database.TaskConversation, workspace
 	}
 
 	cmd := []string{
-		"docker", "run", "--rm",
+		"docker", "run", "--rm", "-i",
 		fmt.Sprintf("-v %s:/app", workspacePath),
 	}
 
