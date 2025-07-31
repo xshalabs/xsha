@@ -88,7 +88,6 @@ const GitCredentialListPage: React.FC = () => {
       await loadCredentials();
     } catch (err: any) {
       const errorMessage = err.message || t("gitCredentials.messages.deleteFailed");
-      setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setDeleteDialogOpen(false);
