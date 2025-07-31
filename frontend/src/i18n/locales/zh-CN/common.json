@@ -40,6 +40,8 @@
   "copy": "复制",
   "copied_to_clipboard": "已复制到剪切板",
   "copy_failed": "复制失败",
+  "showMore": "显示更多",
+  "showLess": "收起",
   "pagination": {
     "info": "显示第 {{start}} - {{end}} 条，共 {{total}} 条",
     "previous": "上一页",

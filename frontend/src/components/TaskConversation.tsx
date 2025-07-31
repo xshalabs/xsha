@@ -24,6 +24,8 @@ import {
   Play,
   Trash2,
   GitCommit,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import type {
   TaskConversation as TaskConversationInterface,
@@ -64,7 +66,12 @@ export function TaskConversation({
   const [sending, setSending] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [conversationToDelete, setConversationToDelete] = useState<number | null>(null);
+  const [conversationToDelete, setConversationToDelete] = useState<
+    number | null
+  >(null);
+  const [expandedConversations, setExpandedConversations] = useState<
+    Set<number>
+  >(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -185,6 +192,24 @@ export function TaskConversation({
     return sortedConversations[0]?.id === conversationId;
   };
 
+  const toggleExpanded = (conversationId: number) => {
+    const newExpanded = new Set(expandedConversations);
+    if (newExpanded.has(conversationId)) {
+      newExpanded.delete(conversationId);
+    } else {
+      newExpanded.add(conversationId);
+    }
+    setExpandedConversations(newExpanded);
+  };
+
+  const isConversationExpanded = (conversationId: number) => {
+    return expandedConversations.has(conversationId);
+  };
+
+  const shouldShowExpandButton = (content: string) => {
+    return content.split("\n").length > 3 || content.length > 150;
+  };
+
   return (
     <div className="space-y-6 h-full flex flex-col">
       <Card className="flex-1 flex flex-col">
@@ -276,8 +301,41 @@ export function TaskConversation({
                     </div>
                   </div>
 
-                  <div className="mt-2 text-sm line-clamp-3">
-                    {conversation.content}
+                  <div className="mt-2 text-sm">
+                    <div
+                      className={`whitespace-pre-wrap ${
+                        isConversationExpanded(conversation.id)
+                          ? ""
+                          : shouldShowExpandButton(conversation.content)
+                          ? "line-clamp-3"
+                          : ""
+                      }`}
+                    >
+                      {conversation.content}
+                    </div>
+                    {shouldShowExpandButton(conversation.content) && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleExpanded(conversation.id);
+                        }}
+                        className="mt-1 h-6 px-2 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                      >
+                        {isConversationExpanded(conversation.id) ? (
+                          <>
+                            <ChevronUp className="w-3 h-3 mr-1" />
+                            {t("common.showLess")}
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="w-3 h-3 mr-1" />
+                            {t("common.showMore")}
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between mt-2">
@@ -288,7 +346,9 @@ export function TaskConversation({
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center text-xs text-gray-500">
                           <GitCommit className="w-3 h-3 mr-1" />
-                          <span className="font-mono">{conversation.commit_hash.substring(0, 8)}</span>
+                          <span className="font-mono">
+                            {conversation.commit_hash.substring(0, 8)}
+                          </span>
                         </div>
                         {onViewConversationGitDiff && (
                           <Button
@@ -348,11 +408,7 @@ export function TaskConversation({
               <div className="flex flex-1 justify-end">
                 <Button
                   onClick={handleSendMessage}
-                  disabled={
-                    !newMessage.trim() ||
-                    sending ||
-                    !canSendMessage()
-                  }
+                  disabled={!newMessage.trim() || sending || !canSendMessage()}
                   className="flex items-center space-x-2"
                 >
                   <Send className="w-4 h-4" />
