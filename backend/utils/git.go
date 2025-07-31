@@ -56,6 +56,54 @@ type GitCredentialInfo struct {
 	PublicKey  string            `json:"public_key"`
 }
 
+type GitProxyConfig struct {
+	Enabled    bool   `json:"enabled"`
+	HttpProxy  string `json:"http_proxy"`
+	HttpsProxy string `json:"https_proxy"`
+	NoProxy    string `json:"no_proxy"`
+}
+
+func ApplyProxyToGitEnv(env []string, proxyConfig *GitProxyConfig) []string {
+	if proxyConfig == nil || !proxyConfig.Enabled {
+		return env
+	}
+
+	if env == nil {
+		env = os.Environ()
+	}
+
+	var newEnv []string
+	var hasHttpProxy, hasHttpsProxy, hasNoProxy bool
+
+	for _, e := range env {
+		if strings.HasPrefix(e, "HTTP_PROXY=") || strings.HasPrefix(e, "http_proxy=") {
+			hasHttpProxy = true
+		} else if strings.HasPrefix(e, "HTTPS_PROXY=") || strings.HasPrefix(e, "https_proxy=") {
+			hasHttpsProxy = true
+		} else if strings.HasPrefix(e, "NO_PROXY=") || strings.HasPrefix(e, "no_proxy=") {
+			hasNoProxy = true
+		}
+		newEnv = append(newEnv, e)
+	}
+
+	if proxyConfig.HttpProxy != "" && !hasHttpProxy {
+		newEnv = append(newEnv, "HTTP_PROXY="+proxyConfig.HttpProxy)
+		newEnv = append(newEnv, "http_proxy="+proxyConfig.HttpProxy)
+	}
+
+	if proxyConfig.HttpsProxy != "" && !hasHttpsProxy {
+		newEnv = append(newEnv, "HTTPS_PROXY="+proxyConfig.HttpsProxy)
+		newEnv = append(newEnv, "https_proxy="+proxyConfig.HttpsProxy)
+	}
+
+	if proxyConfig.NoProxy != "" && !hasNoProxy {
+		newEnv = append(newEnv, "NO_PROXY="+proxyConfig.NoProxy)
+		newEnv = append(newEnv, "no_proxy="+proxyConfig.NoProxy)
+	}
+
+	return newEnv
+}
+
 func DetectGitProtocol(repoURL string) GitProtocolType {
 	repoURL = strings.TrimSpace(repoURL)
 
@@ -193,7 +241,7 @@ func IsGitURL(str string) bool {
 	return sshPattern.MatchString(str)
 }
 
-func FetchRepositoryBranchesWithConfig(repoURL string, credential *GitCredentialInfo, sslVerify bool) (*GitAccessResult, error) {
+func FetchRepositoryBranchesWithConfig(repoURL string, credential *GitCredentialInfo, sslVerify bool, proxyConfig *GitProxyConfig) (*GitAccessResult, error) {
 	tempDir, err := ioutil.TempDir("", "git-repo-*")
 	if err != nil {
 		return &GitAccessResult{
@@ -290,6 +338,8 @@ func FetchRepositoryBranchesWithConfig(repoURL string, credential *GitCredential
 		cmd.Env = os.Environ()
 	}
 
+	cmd.Env = ApplyProxyToGitEnv(cmd.Env, proxyConfig)
+
 	if !sslVerify {
 		cmd.Env = append(cmd.Env, "GIT_SSL_NO_VERIFY=true")
 	}
@@ -323,10 +373,6 @@ func FetchRepositoryBranchesWithConfig(repoURL string, credential *GitCredential
 	}, nil
 }
 
-func FetchRepositoryBranches(repoURL string, credential *GitCredentialInfo) (*GitAccessResult, error) {
-	return FetchRepositoryBranchesWithConfig(repoURL, credential, false)
-}
-
 func parseBranchesFromLsRemote(output string) []string {
 	var branches []string
 	lines := strings.Split(strings.TrimSpace(output), "\n")
@@ -342,19 +388,6 @@ func parseBranchesFromLsRemote(output string) []string {
 	}
 
 	return branches
-}
-
-func ValidateRepositoryAccess(repoURL string, credential *GitCredentialInfo) error {
-	result, err := FetchRepositoryBranches(repoURL, credential)
-	if err != nil {
-		return err
-	}
-
-	if !result.CanAccess {
-		return fmt.Errorf(result.ErrorMessage)
-	}
-
-	return nil
 }
 
 func GitResetToPreviousCommit(workspacePath, commitHash string) error {
@@ -407,12 +440,12 @@ func GitResetToPreviousCommit(workspacePath, commitHash string) error {
 
 type GitDiffFile struct {
 	Path        string `json:"path"`
-	Status      string `json:"status"`       // added, modified, deleted, renamed
-	Additions   int    `json:"additions"`    // added lines
-	Deletions   int    `json:"deletions"`    // deleted lines
-	IsBinary    bool   `json:"is_binary"`    // is binary file
-	OldPath     string `json:"old_path"`     // old path
-	DiffContent string `json:"diff_content"` // diff content
+	Status      string `json:"status"`
+	Additions   int    `json:"additions"`
+	Deletions   int    `json:"deletions"`
+	IsBinary    bool   `json:"is_binary"`
+	OldPath     string `json:"old_path"`
+	DiffContent string `json:"diff_content"`
 }
 
 type GitDiffSummary struct {
@@ -420,8 +453,8 @@ type GitDiffSummary struct {
 	TotalAdditions int           `json:"total_additions"`
 	TotalDeletions int           `json:"total_deletions"`
 	Files          []GitDiffFile `json:"files"`
-	CommitsBehind  int           `json:"commits_behind"` // commits behind
-	CommitsAhead   int           `json:"commits_ahead"`  // commits ahead
+	CommitsBehind  int           `json:"commits_behind"`
+	CommitsAhead   int           `json:"commits_ahead"`
 }
 
 func GetBranchDiff(workspacePath, baseBranch, compareBranch string, includeContent bool) (*GitDiffSummary, error) {

@@ -21,6 +21,7 @@ type aiTaskExecutorService struct {
 	gitCredService        services.GitCredentialService
 	taskConvResultService services.TaskConversationResultService
 	taskService           services.TaskService
+	systemConfigService   services.SystemConfigService
 
 	executionManager *ExecutionManager
 	dockerExecutor   DockerExecutor
@@ -68,6 +69,7 @@ func NewAITaskExecutorService(
 		gitCredService:        gitCredService,
 		taskConvResultService: taskConvResultService,
 		taskService:           taskService,
+		systemConfigService:   systemConfigService,
 		executionManager:      executionManager,
 		dockerExecutor:        dockerExecutor,
 		resultParser:          resultParser,
@@ -349,6 +351,12 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	default:
 	}
 
+	proxyConfig, err := s.systemConfigService.GetGitProxyConfig()
+	if err != nil {
+		utils.Warn("Failed to get proxy config, using no proxy", "error", err)
+		proxyConfig = nil
+	}
+
 	if s.workspaceManager.CheckGitRepositoryExists(workspacePath) {
 	} else {
 		credential, err := s.prepareGitCredential(conv.Task.Project)
@@ -364,6 +372,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 			conv.Task.StartBranch,
 			credential,
 			s.config.GitSSLVerify,
+			proxyConfig,
 		); err != nil {
 			finalStatus = database.ConversationStatusFailed
 			errorMsg = fmt.Sprintf("failed to clone repository: %v", err)
@@ -394,6 +403,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		workspacePath,
 		workBranch,
 		conv.Task.StartBranch,
+		proxyConfig,
 	); err != nil {
 		finalStatus = database.ConversationStatusFailed
 		errorMsg = fmt.Sprintf("failed to create or switch to work branch: %v", err)

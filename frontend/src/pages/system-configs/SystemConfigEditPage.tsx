@@ -6,6 +6,7 @@ import { systemConfigsApi } from "@/lib/api/system-configs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Card,
   CardContent,
@@ -56,6 +57,37 @@ export default function SystemConfigEditPage() {
     }));
   };
 
+  const handleSwitchChange = (configKey: string, checked: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      [configKey]: checked ? "true" : "false",
+    }));
+  };
+
+  const getPlaceholder = (configKey: string) => {
+    switch (configKey) {
+      case "git_proxy_http":
+      case "git_proxy_https":
+        return t("system-config.proxy_url_placeholder");
+      case "git_proxy_no_proxy":
+        return t("system-config.no_proxy_placeholder");
+      default:
+        return "";
+    }
+  };
+
+  const getConfigLabel = (config: SystemConfig) => {
+    const translationKey = `system-config.${config.config_key}`;
+    const translatedLabel = t(translationKey);
+    return translatedLabel !== translationKey ? translatedLabel : config.config_key;
+  };
+
+  const getConfigDescription = (config: SystemConfig) => {
+    const translationKey = `system-config.${config.config_key}_desc`;
+    const translatedDesc = t(translationKey);
+    return translatedDesc !== translationKey ? translatedDesc : config.description;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -66,7 +98,7 @@ export default function SystemConfigEditPage() {
         .filter((config) => config.is_editable)
         .map((config) => ({
           config_key: config.config_key,
-          config_value: formData[config.config_key] || config.config_value,
+          config_value: formData[config.config_key] !== undefined ? formData[config.config_key] : config.config_value,
           description: config.description,
           category: config.category,
           is_editable: config.is_editable,
@@ -159,20 +191,36 @@ export default function SystemConfigEditPage() {
                         htmlFor={config.config_key}
                         className="text-sm font-medium"
                       >
-                        {config.config_key}
+                        {getConfigLabel(config)}
                         {!config.is_editable && (
                           <span className="ml-2 text-xs text-muted-foreground">
-                            (只读)
+                            ({t("system-config.readonly")})
                           </span>
                         )}
                       </Label>
-                      {config.description && (
+                      {getConfigDescription(config) && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          {config.description}
+                          {getConfigDescription(config)}
                         </p>
                       )}
                       <div className="mt-2">
-                        {config.config_value.length > 100 ? (
+                        {config.config_key === "git_proxy_enabled" ? (
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              id={config.config_key}
+                              checked={formData[config.config_key] === "true"}
+                              onCheckedChange={(checked) =>
+                                handleSwitchChange(config.config_key, checked)
+                              }
+                              disabled={!config.is_editable}
+                            />
+                            <Label htmlFor={config.config_key} className="text-sm">
+                              {formData[config.config_key] === "true" 
+                                ? t("common.enabled") 
+                                : t("common.disabled")}
+                            </Label>
+                          </div>
+                        ) : config.config_value.length > 100 ? (
                           <Textarea
                             id={config.config_key}
                             value={formData[config.config_key] || ""}
@@ -185,6 +233,7 @@ export default function SystemConfigEditPage() {
                             disabled={!config.is_editable}
                             rows={4}
                             className="resize-none"
+                            placeholder={getPlaceholder(config.config_key)}
                           />
                         ) : (
                           <Input
@@ -197,6 +246,7 @@ export default function SystemConfigEditPage() {
                               )
                             }
                             disabled={!config.is_editable}
+                            placeholder={getPlaceholder(config.config_key)}
                           />
                         )}
                       </div>

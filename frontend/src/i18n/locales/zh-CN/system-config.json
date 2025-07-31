@@ -43,6 +43,8 @@
   "category_system_desc": "核心系统设置",
   "category_ui": "界面",
   "category_ui_desc": "用户界面设置",
+  "category_git": "Git",
+  "category_git_desc": "Git操作和代理设置",
   "no_configs": "未找到配置",
   "no_configs_description": "此分类中没有可用的配置",
   "no_description": "无描述信息",
@@ -54,5 +56,15 @@
   "env_type_image": "Docker镜像",
   "env_type_image_placeholder": "例如：claude-code:latest",
   "add_env_type": "添加环境类型",
-  "env_types_validation_error": "所有环境类型都必须指定名称和镜像，且至少需要一个类型"
+  "env_types_validation_error": "所有环境类型都必须指定名称和镜像，且至少需要一个类型",
+  "git_proxy_enabled": "启用Git代理",
+  "git_proxy_enabled_desc": "是否为Git操作启用HTTP代理",
+  "git_proxy_http": "HTTP代理地址",
+  "git_proxy_http_desc": "用于Git HTTP操作的代理服务器地址",
+  "git_proxy_https": "HTTPS代理地址", 
+  "git_proxy_https_desc": "用于Git HTTPS操作的代理服务器地址",
+  "git_proxy_no_proxy": "代理排除列表",
+  "git_proxy_no_proxy_desc": "不使用代理的域名列表，用逗号分隔",
+  "proxy_url_placeholder": "例如：http://proxy.company.com:8080",
+  "no_proxy_placeholder": "例如：localhost,127.0.0.1,.local"
 } 

@@ -16,6 +16,8 @@
   "saving": "Saving...",
   "send": "Send",
   "sending": "Sending...",
+  "enabled": "Enabled",
+  "disabled": "Disabled",
   "inactive": "Inactive",
   "createdAt": "Created",
   "updatedAt": "Updated",

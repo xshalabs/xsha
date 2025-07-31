@@ -89,11 +89,6 @@ func (r *systemConfigRepository) SetValueWithCategory(key, value, description, c
 }
 
 func (r *systemConfigRepository) InitializeDefaultConfigs() error {
-	_, err := r.GetByKey("dev_environment_types")
-	if err == nil {
-		return nil
-	}
-
 	defaultDevEnvTypes := []map[string]interface{}{
 		{
 			"image": "claude-code:latest",
@@ -107,15 +102,67 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		return err
 	}
 
-	err = r.SetValueWithCategory(
-		"dev_environment_types",
-		string(devEnvTypesJSON),
-		"Development environment type configuration, defines available development environments and their corresponding Docker images",
-		"dev_environment",
-		true,
-	)
-	if err != nil {
-		return err
+	// Define default configurations
+	defaultConfigs := []struct {
+		key         string
+		value       string
+		description string
+		category    string
+	}{
+		{
+			key:         "dev_environment_types",
+			value:       string(devEnvTypesJSON),
+			description: "Development environment type configuration, defines available development environments and their corresponding Docker images",
+			category:    "dev_environment",
+		},
+		{
+			key:         "git_proxy_enabled",
+			value:       "false",
+			description: "Enable or disable HTTP proxy for Git operations",
+			category:    "git",
+		},
+		{
+			key:         "git_proxy_http",
+			value:       "",
+			description: "HTTP proxy URL for Git operations (e.g., http://proxy.example.com:8080)",
+			category:    "git",
+		},
+		{
+			key:         "git_proxy_https",
+			value:       "",
+			description: "HTTPS proxy URL for Git operations (e.g., https://proxy.example.com:8080)",
+			category:    "git",
+		},
+		{
+			key:         "git_proxy_no_proxy",
+			value:       "",
+			description: "Comma-separated list of domains to bypass proxy (e.g., localhost,127.0.0.1,.local)",
+			category:    "git",
+		},
+	}
+
+	// Initialize all configurations with duplicate check
+	for _, config := range defaultConfigs {
+		// Check if this config already exists
+		existingConfig, err := r.GetByKey(config.key)
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return err
+		}
+
+		// Skip if config already exists
+		if existingConfig != nil {
+			continue
+		}
+
+		if err := r.SetValueWithCategory(
+			config.key,
+			config.value,
+			config.description,
+			config.category,
+			true,
+		); err != nil {
+			return err
+		}
 	}
 
 	return nil

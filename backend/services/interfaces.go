@@ -137,4 +137,5 @@ type SystemConfigService interface {
 	SetValue(key, value string) error
 	InitializeDefaultConfigs() error
 	ValidateConfigData(key, value, category string) error
+	GetGitProxyConfig() (*utils.GitProxyConfig, error)
 }

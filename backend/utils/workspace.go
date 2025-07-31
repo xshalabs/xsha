@@ -53,7 +53,7 @@ func (w *WorkspaceManager) CleanupTaskWorkspace(workspacePath string) error {
 	return os.RemoveAll(workspacePath)
 }
 
-func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, branch string, credential *GitCredentialInfo, sslVerify bool) error {
+func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, branch string, credential *GitCredentialInfo, sslVerify bool, proxyConfig *GitProxyConfig) error {
 	ctx, cancel := context.WithTimeout(context.Background(), w.gitCloneTimeout)
 	defer cancel()
 
@@ -74,7 +74,7 @@ func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, bra
 				return err
 			}
 			cmd = exec.CommandContext(ctx, "git", "clone", "-b", branch, authenticatedURL, workspacePath)
-			cmd.Env = baseEnv
+			cmd.Env = ApplyProxyToGitEnv(baseEnv, proxyConfig)
 
 		case GitCredentialTypeSSHKey:
 			keyFile := filepath.Join(workspacePath, ".ssh_key")
@@ -86,12 +86,13 @@ func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, bra
 			envVars = append(baseEnv,
 				fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o BatchMode=yes -o PasswordAuthentication=no", keyFile),
 			)
+			envVars = ApplyProxyToGitEnv(envVars, proxyConfig)
 			cmd = exec.CommandContext(ctx, "git", "clone", "-b", branch, repoURL, workspacePath)
 			cmd.Env = envVars
 		}
 	} else {
 		cmd = exec.CommandContext(ctx, "git", "clone", "-b", branch, repoURL, workspacePath)
-		cmd.Env = baseEnv
+		cmd.Env = ApplyProxyToGitEnv(baseEnv, proxyConfig)
 	}
 
 	if !sslVerify {
@@ -298,7 +299,7 @@ func (w *WorkspaceManager) CheckWorkspaceIsDirty(workspacePath string) (bool, er
 	return len(strings.TrimSpace(string(output))) > 0, nil
 }
 
-func (w *WorkspaceManager) CreateAndSwitchToBranch(workspacePath, branchName, baseBranch string) error {
+func (w *WorkspaceManager) CreateAndSwitchToBranch(workspacePath, branchName, baseBranch string, proxyConfig *GitProxyConfig) error {
 	if workspacePath == "" {
 		return fmt.Errorf("workspace path cannot be empty")
 	}
@@ -330,6 +331,7 @@ func (w *WorkspaceManager) CreateAndSwitchToBranch(workspacePath, branchName, ba
 
 	pullCmd := exec.CommandContext(ctx, "git", "pull", "origin", baseBranch)
 	pullCmd.Dir = workspacePath
+	pullCmd.Env = ApplyProxyToGitEnv(os.Environ(), proxyConfig)
 	if err := pullCmd.Run(); err != nil {
 		Warn("failed to pull latest code", "workspace", workspacePath, "baseBranch", baseBranch, "error", err)
 	}
@@ -419,7 +421,7 @@ func (w *WorkspaceManager) validateCredential(credential *GitCredentialInfo) err
 	return nil
 }
 
-func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string, credential *GitCredentialInfo, sslVerify bool) (string, error) {
+func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string, credential *GitCredentialInfo, sslVerify bool, proxyConfig *GitProxyConfig) (string, error) {
 	if workspacePath == "" {
 		return "", fmt.Errorf("workspace path cannot be empty")
 	}
@@ -471,7 +473,7 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 
 			setURLCmd := exec.CommandContext(ctx, "git", "remote", "set-url", "origin", authenticatedURL)
 			setURLCmd.Dir = workspacePath
-			setURLCmd.Env = baseEnv
+			setURLCmd.Env = ApplyProxyToGitEnv(baseEnv, proxyConfig)
 
 			if !sslVerify {
 				setURLCmd.Env = append(setURLCmd.Env, "GIT_SSL_NO_VERIFY=true")
@@ -483,7 +485,7 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 
 			cmd = exec.CommandContext(ctx, "git", "push", "--porcelain", "origin", branchName)
 			cmd.Dir = workspacePath
-			cmd.Env = baseEnv
+			cmd.Env = ApplyProxyToGitEnv(baseEnv, proxyConfig)
 
 			if !sslVerify {
 				cmd.Env = append(cmd.Env, "GIT_SSL_NO_VERIFY=true")
@@ -509,6 +511,7 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 			envVars = append(baseEnv,
 				fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o BatchMode=yes -o PasswordAuthentication=no", keyFile),
 			)
+			envVars = ApplyProxyToGitEnv(envVars, proxyConfig)
 
 			cmd = exec.CommandContext(ctx, "git", "push", "--porcelain", "origin", branchName)
 			cmd.Dir = workspacePath
@@ -527,7 +530,7 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 
 		cmd = exec.CommandContext(ctx, "git", "push", "--porcelain", "origin", branchName)
 		cmd.Dir = workspacePath
-		cmd.Env = baseEnv
+		cmd.Env = ApplyProxyToGitEnv(baseEnv, proxyConfig)
 	}
 
 	var outputBuilder strings.Builder

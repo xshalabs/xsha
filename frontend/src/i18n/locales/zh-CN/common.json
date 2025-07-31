@@ -16,6 +16,8 @@
   "saving": "保存中...",
   "send": "发送",
   "sending": "发送中...",
+  "enabled": "已启用",
+  "disabled": "已禁用",
   "inactive": "未激活",
   "createdAt": "创建时间",
   "updatedAt": "更新时间",

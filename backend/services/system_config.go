@@ -3,9 +3,11 @@ package services
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"xsha-backend/database"
 	"xsha-backend/repository"
+	"xsha-backend/utils"
 
 	"gorm.io/gorm"
 )
@@ -90,9 +92,13 @@ func (s *systemConfigService) ValidateConfigData(key, value, category string) er
 	if strings.TrimSpace(key) == "" {
 		return errors.New("configuration key is required")
 	}
-	if strings.TrimSpace(value) == "" {
+
+	// Git proxy configurations are optional and can be empty
+	allowEmptyValue := s.isOptionalConfig(key)
+	if !allowEmptyValue && strings.TrimSpace(value) == "" {
 		return errors.New("configuration value is required")
 	}
+
 	if strings.TrimSpace(category) == "" {
 		return errors.New("configuration category is required")
 	}
@@ -105,4 +111,54 @@ func (s *systemConfigService) ValidateConfigData(key, value, category string) er
 	}
 
 	return nil
+}
+
+func (s *systemConfigService) isOptionalConfig(key string) bool {
+	optionalConfigs := []string{
+		"git_proxy_http",
+		"git_proxy_https",
+		"git_proxy_no_proxy",
+	}
+
+	for _, optionalKey := range optionalConfigs {
+		if key == optionalKey {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *systemConfigService) GetGitProxyConfig() (*utils.GitProxyConfig, error) {
+	enabled, err := s.repo.GetValue("git_proxy_enabled")
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, fmt.Errorf("failed to get git_proxy_enabled: %v", err)
+	}
+
+	isEnabled := false
+	if enabled != "" {
+		isEnabled, _ = strconv.ParseBool(enabled)
+	}
+
+	httpProxy, err := s.repo.GetValue("git_proxy_http")
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, fmt.Errorf("failed to get git_proxy_http: %v", err)
+	}
+
+	httpsProxy, err := s.repo.GetValue("git_proxy_https")
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, fmt.Errorf("failed to get git_proxy_https: %v", err)
+	}
+
+	noProxy, err := s.repo.GetValue("git_proxy_no_proxy")
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, fmt.Errorf("failed to get git_proxy_no_proxy: %v", err)
+	}
+
+	return &utils.GitProxyConfig{
+		Enabled:    isEnabled,
+		HttpProxy:  httpProxy,
+		HttpsProxy: httpsProxy,
+		NoProxy:    noProxy,
+	}, nil
 }

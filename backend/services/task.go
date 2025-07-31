@@ -20,9 +20,10 @@ type taskService struct {
 	workspaceManager *utils.WorkspaceManager
 	config           *config.Config
 	gitCredService   GitCredentialService
+	systemConfigRepo repository.SystemConfigRepository
 }
 
-func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository, workspaceManager *utils.WorkspaceManager, cfg *config.Config, gitCredService GitCredentialService) TaskService {
+func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository, workspaceManager *utils.WorkspaceManager, cfg *config.Config, gitCredService GitCredentialService, systemConfigRepo repository.SystemConfigRepository) TaskService {
 	return &taskService{
 		repo:             repo,
 		projectRepo:      projectRepo,
@@ -30,6 +31,7 @@ func NewTaskService(repo repository.TaskRepository, projectRepo repository.Proje
 		workspaceManager: workspaceManager,
 		config:           cfg,
 		gitCredService:   gitCredService,
+		systemConfigRepo: systemConfigRepo,
 	}
 }
 
@@ -394,12 +396,19 @@ func (s *taskService) PushTaskBranch(id uint, createdBy string) (string, error) 
 		}
 	}
 
+	proxyConfig, err := s.getGitProxyConfig()
+	if err != nil {
+		utils.Warn("Failed to get proxy config for push, using no proxy", "error", err)
+		proxyConfig = nil
+	}
+
 	output, err := s.workspaceManager.PushBranch(
 		task.WorkspacePath,
 		task.WorkBranch,
 		task.Project.RepoURL,
 		credential,
 		s.config.GitSSLVerify,
+		proxyConfig,
 	)
 
 	if err != nil {
@@ -409,4 +418,26 @@ func (s *taskService) PushTaskBranch(id uint, createdBy string) (string, error) 
 
 	utils.Info("Successfully pushed task branch", "taskID", id, "branch", task.WorkBranch)
 	return output, nil
+}
+
+func (s *taskService) getGitProxyConfig() (*utils.GitProxyConfig, error) {
+	enabled, err := s.systemConfigRepo.GetValue("git_proxy_enabled")
+	if err != nil {
+		return nil, err
+	}
+
+	if enabled != "true" {
+		return &utils.GitProxyConfig{Enabled: false}, nil
+	}
+
+	httpProxy, _ := s.systemConfigRepo.GetValue("git_proxy_http")
+	httpsProxy, _ := s.systemConfigRepo.GetValue("git_proxy_https")
+	noProxy, _ := s.systemConfigRepo.GetValue("git_proxy_no_proxy")
+
+	return &utils.GitProxyConfig{
+		Enabled:    true,
+		HttpProxy:  httpProxy,
+		HttpsProxy: httpsProxy,
+		NoProxy:    noProxy,
+	}, nil
 }
