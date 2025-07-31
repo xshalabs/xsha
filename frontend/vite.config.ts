@@ -13,14 +13,12 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // 代理 API 请求到后端服务
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
       },
-      // 代理健康检查请求
       '/health': {
         target: 'http://localhost:8080',
         changeOrigin: true,
