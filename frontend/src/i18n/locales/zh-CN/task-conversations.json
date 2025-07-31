@@ -43,6 +43,10 @@
       "showLogs": "显示日志",
       "hideLogs": "隐藏日志"
     },
+    "cancel_confirm_title": "取消执行",
+    "cancel_confirm": "确定要取消此次执行吗？此操作无法撤销。",
+    "retry_confirm_title": "重试执行",
+    "retry_confirm": "确定要重试此次执行吗？这将启动一个新的执行过程。",
     "info": {
       "started": "开始时间",
       "completed": "完成时间",

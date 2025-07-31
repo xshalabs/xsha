@@ -7,6 +7,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useTranslation } from "react-i18next";
 import {
   Square,
@@ -48,6 +56,8 @@ export function TaskExecutionLog({
   );
   const [showLogs, setShowLogs] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [retryDialogOpen, setRetryDialogOpen] = useState(false);
 
   const canCancel = (conversationStatus: ConversationStatus) => {
     return conversationStatus === "pending" || conversationStatus === "running";
@@ -76,7 +86,11 @@ export function TaskExecutionLog({
     }
   };
 
-  const handleCancel = async () => {
+  const handleCancelClick = () => {
+    setCancelDialogOpen(true);
+  };
+
+  const handleConfirmCancel = async () => {
     if (!conversationId) return;
 
     setActionLoading("cancel");
@@ -84,15 +98,25 @@ export function TaskExecutionLog({
       await taskExecutionLogsApi.cancelExecution(conversationId);
       await loadExecutionLog();
       onStatusChange?.("cancelled");
+      setCancelDialogOpen(false);
     } catch (error) {
       console.error("Failed to cancel execution:", error);
       setError(t("errors.execution_cancel_failed"));
+      setCancelDialogOpen(false);
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleRetry = async () => {
+  const handleCancelCancel = () => {
+    setCancelDialogOpen(false);
+  };
+
+  const handleRetryClick = () => {
+    setRetryDialogOpen(true);
+  };
+
+  const handleConfirmRetry = async () => {
     if (!conversationId) return;
 
     setActionLoading("retry");
@@ -100,12 +124,18 @@ export function TaskExecutionLog({
       await taskExecutionLogsApi.retryExecution(conversationId);
       await loadExecutionLog();
       onStatusChange?.("running");
+      setRetryDialogOpen(false);
     } catch (error) {
       console.error("Failed to retry execution:", error);
       setError(t("errors.execution_retry_failed"));
+      setRetryDialogOpen(false);
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const handleCancelRetry = () => {
+    setRetryDialogOpen(false);
   };
 
   const formatTime = (dateString: string | null) => {
@@ -204,7 +234,8 @@ export function TaskExecutionLog({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleCancel}
+                onClick={handleCancelClick}
+                className="text-foreground hover:text-foreground"
                 disabled={actionLoading === "cancel"}
               >
                 <Square className="w-4 h-4 mr-1" />
@@ -217,7 +248,7 @@ export function TaskExecutionLog({
                 variant="outline"
                 size="sm"
                 className="text-foreground hover:text-foreground"
-                onClick={handleRetry}
+                onClick={handleRetryClick}
                 disabled={actionLoading === "retry"}
               >
                 <RotateCcw className="w-4 h-4 mr-1" />
@@ -334,6 +365,64 @@ export function TaskExecutionLog({
           </div>
         )}
       </CardContent>
+
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-foreground">
+              {t("taskConversation.execution.cancel_confirm_title")}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {t("taskConversation.execution.cancel_confirm")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="text-foreground hover:text-foreground"
+              onClick={handleCancelCancel}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              className="text-foreground"
+              onClick={handleConfirmCancel}
+              disabled={actionLoading === "cancel"}
+            >
+              {t("common.confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={retryDialogOpen} onOpenChange={setRetryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-foreground">
+              {t("taskConversation.execution.retry_confirm_title")}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {t("taskConversation.execution.retry_confirm")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="text-foreground hover:text-foreground"
+              onClick={handleCancelRetry}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              onClick={handleConfirmRetry}
+              disabled={actionLoading === "retry"}
+            >
+              {t("common.confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

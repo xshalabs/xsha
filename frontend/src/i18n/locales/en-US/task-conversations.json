@@ -43,6 +43,10 @@
       "showLogs": "Show Logs",
       "hideLogs": "Hide Logs"
     },
+    "cancel_confirm_title": "Cancel Execution",
+    "cancel_confirm": "Are you sure you want to cancel this execution? This action cannot be undone.",
+    "retry_confirm_title": "Retry Execution",
+    "retry_confirm": "Are you sure you want to retry this execution? This will start a new execution process.",
     "info": {
       "started": "Started",
       "completed": "Completed",
