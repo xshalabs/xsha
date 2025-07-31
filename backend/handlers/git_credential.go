@@ -68,7 +68,7 @@ func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "git_credential.create_failed") + ": " + err.Error(),
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
@@ -223,7 +223,7 @@ func (h *GitCredentialHandlers) UpdateCredential(c *gin.Context) {
 	err = h.gitCredService.UpdateCredential(uint(id), username.(string), updates, req.SecretData)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "git_credential.update_failed") + ": " + err.Error(),
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
@@ -260,8 +260,8 @@ func (h *GitCredentialHandlers) DeleteCredential(c *gin.Context) {
 
 	err = h.gitCredService.DeleteCredential(uint(id), username.(string))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": i18n.T(lang, "git_credential.delete_failed") + ": " + err.Error(),
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
