@@ -68,6 +68,16 @@ export function TaskConversationResult({
     return `$${cost.toFixed(4)}`;
   };
 
+  const formatTokens = (tokens: number): string => {
+    if (tokens >= 1000000) {
+      return `${(tokens / 1000000).toFixed(1)}M`;
+    }
+    if (tokens >= 1000) {
+      return `${(tokens / 1000).toFixed(1)}K`;
+    }
+    return tokens.toString();
+  };
+
   const getStatusColor = (isError: boolean) => {
     return isError ? "destructive" : "default";
   };
@@ -275,7 +285,10 @@ export function TaskConversationResult({
                 {t("taskConversation.result.input_tokens")}:
               </span>
               <span className="ml-2 font-medium">
-                {result.usage.input_tokens}
+                {formatTokens(result.usage.input_tokens)}
+              </span>
+              <span className="ml-1 text-xs text-gray-500">
+                ({result.usage.input_tokens.toLocaleString()})
               </span>
             </div>
             <div>
