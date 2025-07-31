@@ -27,7 +27,11 @@ func NewWorkspaceManager(baseDir string, gitCloneTimeout time.Duration) *Workspa
 	return &WorkspaceManager{baseDir: baseDir, gitCloneTimeout: gitCloneTimeout}
 }
 
-func (w *WorkspaceManager) CreateTaskWorkspace(taskID uint) (string, error) {
+func (w *WorkspaceManager) GetOrCreateTaskWorkspace(taskID uint, existingPath string) (string, error) {
+	if existingPath != "" && w.CheckWorkspaceExists(existingPath) {
+		return existingPath, nil
+	}
+
 	if err := os.MkdirAll(w.baseDir, 0755); err != nil {
 		return "", fmt.Errorf("failed to create base directory: %v", err)
 	}
@@ -40,14 +44,6 @@ func (w *WorkspaceManager) CreateTaskWorkspace(taskID uint) (string, error) {
 	}
 
 	return workspacePath, nil
-}
-
-func (w *WorkspaceManager) GetOrCreateTaskWorkspace(taskID uint, existingPath string) (string, error) {
-	if existingPath != "" && w.CheckWorkspaceExists(existingPath) {
-		return existingPath, nil
-	}
-
-	return w.CreateTaskWorkspace(taskID)
 }
 
 func (w *WorkspaceManager) CleanupTaskWorkspace(workspacePath string) error {
@@ -107,10 +103,6 @@ func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, bra
 	}
 
 	return nil
-}
-
-func (w *WorkspaceManager) CloneRepository(workspacePath, repoURL, branch string, credential *GitCredentialInfo) error {
-	return w.CloneRepositoryWithConfig(workspacePath, repoURL, branch, credential, false)
 }
 
 func (w *WorkspaceManager) CommitChanges(workspacePath, message string) (string, error) {
@@ -228,63 +220,6 @@ func (w *WorkspaceManager) CheckGitRepositoryExists(workspacePath string) bool {
 	gitDir := filepath.Join(workspacePath, ".git")
 	info, err := os.Stat(gitDir)
 	return err == nil && info.IsDir()
-}
-
-func (w *WorkspaceManager) GetWorkspaceSize(workspacePath string) (int64, error) {
-	var size int64
-	err := filepath.Walk(workspacePath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		size += info.Size()
-		return nil
-	})
-
-	if err != nil {
-		return 0, err
-	}
-
-	return size / (1024 * 1024), nil
-}
-
-func (w *WorkspaceManager) CleanupOldWorkspaces(days int) error {
-	if days <= 0 {
-		return fmt.Errorf("days must be greater than 0")
-	}
-
-	cutoffTime := time.Now().AddDate(0, 0, -days)
-
-	entries, err := os.ReadDir(w.baseDir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
-		}
-		return fmt.Errorf("failed to read base directory: %v", err)
-	}
-
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
-		}
-
-		if !strings.HasPrefix(entry.Name(), "conversation-") && !strings.HasPrefix(entry.Name(), "task-") {
-			continue
-		}
-
-		dirPath := filepath.Join(w.baseDir, entry.Name())
-		info, err := entry.Info()
-		if err != nil {
-			continue
-		}
-
-		if info.ModTime().Before(cutoffTime) {
-			if err := os.RemoveAll(dirPath); err != nil {
-				fmt.Printf("Failed to cleanup directory %s: %v\n", dirPath, err)
-			}
-		}
-	}
-
-	return nil
 }
 
 func (w *WorkspaceManager) ResetWorkspaceToCleanState(workspacePath string) error {
@@ -423,36 +358,6 @@ func (w *WorkspaceManager) CreateAndSwitchToBranch(workspacePath, branchName, ba
 	return nil
 }
 
-func (w *WorkspaceManager) SwitchBranch(workspacePath, branchName string) error {
-	if workspacePath == "" {
-		return fmt.Errorf("workspace path cannot be empty")
-	}
-
-	if branchName == "" {
-		return fmt.Errorf("branch name cannot be empty")
-	}
-
-	if !w.CheckWorkspaceExists(workspacePath) {
-		return fmt.Errorf("workspace does not exist: %s", workspacePath)
-	}
-
-	if !w.CheckGitRepositoryExists(workspacePath) {
-		return fmt.Errorf("not a git repository: %s", workspacePath)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
-	defer cancel()
-
-	switchCmd := exec.CommandContext(ctx, "git", "checkout", branchName)
-	switchCmd.Dir = workspacePath
-	if err := switchCmd.Run(); err != nil {
-		return fmt.Errorf("failed to switch to branch %s: %v", branchName, err)
-	}
-
-	Info("switched to branch", "workspace", workspacePath, "branch", branchName)
-	return nil
-}
-
 func (w *WorkspaceManager) CheckBranchExists(workspacePath, branchName string) (bool, error) {
 	if workspacePath == "" {
 		return false, fmt.Errorf("workspace path cannot be empty")
@@ -481,32 +386,6 @@ func (w *WorkspaceManager) CheckBranchExists(workspacePath, branchName string) (
 	}
 
 	return len(strings.TrimSpace(string(output))) > 0, nil
-}
-
-func (w *WorkspaceManager) GetCurrentBranch(workspacePath string) (string, error) {
-	if workspacePath == "" {
-		return "", fmt.Errorf("workspace path cannot be empty")
-	}
-
-	if !w.CheckWorkspaceExists(workspacePath) {
-		return "", fmt.Errorf("workspace does not exist: %s", workspacePath)
-	}
-
-	if !w.CheckGitRepositoryExists(workspacePath) {
-		return "", fmt.Errorf("not a git repository: %s", workspacePath)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	branchCmd := exec.CommandContext(ctx, "git", "branch", "--show-current")
-	branchCmd.Dir = workspacePath
-	output, err := branchCmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("failed to get current branch: %v", err)
-	}
-
-	return strings.TrimSpace(string(output)), nil
 }
 
 func (w *WorkspaceManager) validateCredential(credential *GitCredentialInfo) error {

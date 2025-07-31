@@ -43,12 +43,7 @@ func NewAITaskExecutorService(
 	systemConfigService services.SystemConfigService,
 	cfg *config.Config,
 ) services.AITaskExecutorService {
-	gitCloneTimeout, err := time.ParseDuration(cfg.GitCloneTimeout)
-	if err != nil {
-		utils.Warn("Failed to parse git clone timeout, using default 5 minutes", "timeout", cfg.GitCloneTimeout, "error", err)
-		gitCloneTimeout = 5 * time.Minute
-	}
-	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir, gitCloneTimeout)
+	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir, cfg.GitCloneTimeoutDuration)
 
 	logAppender := &logAppenderImpl{
 		execLogRepo: execLogRepo,
