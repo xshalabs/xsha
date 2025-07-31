@@ -54,7 +54,8 @@
     "branchHint": "指定开始开发的Git分支名称",
     "selectBranch": "选择分支",
     "branchFromRepository": "仓库中的可用分支",
-    "devEnvironmentHint": "可选择一个开发环境来执行此任务"
+    "devEnvironmentHint": "可选择一个开发环境来执行此任务",
+    "fetchingBranches": "正在从仓库获取分支..."
   },
   "validation": {
     "titleRequired": "任务标题不能为空",
@@ -132,6 +133,7 @@
   },
   "errors": {
     "fetchBranchesFailed": "获取仓库分支失败",
+    "fetchBranchesFailedTitle": "获取分支失败",
     "noGitCredential": "项目未关联Git凭据，请先关联Git Credential后再推送"
   },
   "tabs": {

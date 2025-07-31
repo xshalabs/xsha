@@ -55,7 +55,8 @@
     "branchHint": "Specify the Git branch name to start development",
     "selectBranch": "Select a branch",
     "branchFromRepository": "Available branches from the repository",
-    "devEnvironmentHint": "Optionally select a development environment to execute this task"
+    "devEnvironmentHint": "Optionally select a development environment to execute this task",
+    "fetchingBranches": "Fetching branches from repository..."
   },
   "validation": {
     "titleRequired": "Task title is required",
@@ -133,6 +134,7 @@
   },
   "errors": {
     "fetchBranchesFailed": "Failed to fetch repository branches",
+    "fetchBranchesFailedTitle": "Failed to fetch branches",
     "noGitCredential": "Project has no associated Git credential, please associate a Git Credential before pushing"
   },
   "tabs": {

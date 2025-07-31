@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "react-i18next";
-import { Save, X } from "lucide-react";
+import { Save, X, Loader2 } from "lucide-react";
 import type { TaskFormData } from "@/types/task";
 import type { Project } from "@/types/project";
 import type { DevEnvironment } from "@/types/dev-environment";
@@ -55,8 +55,9 @@ export function TaskFormCreate({
   const [devEnvironments, setDevEnvironments] = useState<DevEnvironment[]>([]);
   const [loadingDevEnvs, setLoadingDevEnvs] = useState(false);
   const [availableBranches, setAvailableBranches] = useState<string[]>([]);
-  const [loadingBranches, setLoadingBranches] = useState(false);
   const [branchError, setBranchError] = useState<string>("");
+  const [fetchingBranches, setFetchingBranches] = useState(false);
+  const [branchFetchError, setBranchFetchError] = useState<string>("");
 
   useEffect(() => {
     const loadDevEnvironments = async () => {
@@ -79,8 +80,9 @@ export function TaskFormCreate({
     if (!currentProject) return;
 
     try {
-      setLoadingBranches(true);
+      setFetchingBranches(true);
       setBranchError("");
+      setBranchFetchError("");
       setAvailableBranches([]);
 
       const response = await projectsApi.fetchBranches({
@@ -102,16 +104,19 @@ export function TaskFormCreate({
           }
           return prev;
         });
+        setFetchingBranches(false);
       } else {
-        setBranchError(
-          response.result.error_message || t("tasks.errors.fetchBranchesFailed")
-        );
+        const errorMsg = response.result.error_message || t("tasks.errors.fetchBranchesFailed");
+        setBranchError(errorMsg);
+        setBranchFetchError(errorMsg);
+        setFetchingBranches(false);
       }
     } catch (error) {
       console.error("Failed to fetch branches:", error);
-      setBranchError(t("tasks.errors.fetchBranchesFailed"));
-    } finally {
-      setLoadingBranches(false);
+      const errorMsg = t("tasks.errors.fetchBranchesFailed");
+      setBranchError(errorMsg);
+      setBranchFetchError(errorMsg);
+      setFetchingBranches(false);
     }
   }, [currentProject, t]);
 
@@ -186,7 +191,41 @@ export function TaskFormCreate({
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Card>
+      <Card className="relative">
+        {fetchingBranches && (
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center">
+            <div className="flex flex-col items-center space-y-3">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+              <p className="text-sm text-foreground">{t("tasks.form.fetchingBranches")}</p>
+            </div>
+          </div>
+        )}
+        
+        {branchFetchError && !fetchingBranches && (
+          <div className="absolute inset-0 bg-white/95 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center">
+            <div className="flex flex-col items-center space-y-4 max-w-md mx-auto p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <X className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {t("tasks.errors.fetchBranchesFailedTitle")}
+                </h3>
+                <p className="text-sm text-red-600 mb-4">{branchFetchError}</p>
+                <Button 
+                  onClick={() => {
+                    setBranchFetchError("");
+                    fetchProjectBranches();
+                  }}
+                  size="sm"
+                >
+                  {t("common.retry")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <CardHeader>
           <CardTitle>{t("tasks.actions.create")}</CardTitle>
           <CardDescription>
@@ -288,44 +327,25 @@ export function TaskFormCreate({
                 {t("tasks.fields.startBranch")}{" "}
                 <span className="text-red-500">*</span>
               </Label>
-              {availableBranches.length > 0 ? (
-                <Select
-                  value={formData.start_branch}
-                  onValueChange={(value) =>
-                    handleChange("start_branch", value)
-                  }
-                >
-                  <SelectTrigger
-                    className={errors.start_branch ? "border-red-500" : ""}
-                  >
-                    <SelectValue placeholder={t("tasks.form.selectBranch")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableBranches.map((branch) => (
-                      <SelectItem key={branch} value={branch}>
-                        {branch}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : loadingBranches ? (
-                <div className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                  <span className="text-sm text-gray-500">
-                    {t("common.loading")}...
-                  </span>
-                </div>
-              ) : (
-                <Input
-                  id="start_branch"
-                  type="text"
-                  value={formData.start_branch}
-                  onChange={(e) =>
-                    handleChange("start_branch", e.target.value)
-                  }
-                  placeholder={t("tasks.form.branchPlaceholder")}
+              <Select
+                value={formData.start_branch}
+                onValueChange={(value) =>
+                  handleChange("start_branch", value)
+                }
+              >
+                <SelectTrigger
                   className={errors.start_branch ? "border-red-500" : ""}
-                />
-              )}
+                >
+                  <SelectValue placeholder={t("tasks.form.selectBranch")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableBranches.map((branch) => (
+                    <SelectItem key={branch} value={branch}>
+                      {branch}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {errors.start_branch && (
                 <p className="text-sm text-red-500">{errors.start_branch}</p>
               )}
@@ -333,9 +353,7 @@ export function TaskFormCreate({
                 <p className="text-sm text-orange-500">{branchError}</p>
               )}
               <p className="text-sm text-gray-500">
-                {availableBranches.length > 0
-                  ? t("tasks.form.branchFromRepository")
-                  : t("tasks.form.branchHint")}
+                {t("tasks.form.branchFromRepository")}
               </p>
             </div>
 
