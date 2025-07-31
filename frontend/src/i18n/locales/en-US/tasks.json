@@ -135,6 +135,7 @@
   "errors": {
     "fetchBranchesFailed": "Failed to fetch repository branches",
     "fetchBranchesFailedTitle": "Failed to fetch branches",
+    "noBranchesFound": "No branches found in the repository",
     "noGitCredential": "Project has no associated Git credential, please associate a Git Credential before pushing"
   },
   "tabs": {

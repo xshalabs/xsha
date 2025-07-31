@@ -90,7 +90,7 @@ export function TaskFormCreate({
         credential_id: currentProject.credential_id || undefined,
       });
 
-      if (response.result.can_access) {
+      if (response.result.can_access && response.result.branches && response.result.branches.length > 0) {
         setAvailableBranches(response.result.branches);
         setFormData((prev) => {
           const currentBranch = prev.start_branch;
@@ -106,7 +106,8 @@ export function TaskFormCreate({
         });
         setFetchingBranches(false);
       } else {
-        const errorMsg = response.result.error_message || t("tasks.errors.fetchBranchesFailed");
+        const errorMsg = response.result.error_message || 
+          (response.result.can_access ? t("tasks.errors.noBranchesFound") : t("tasks.errors.fetchBranchesFailed"));
         setBranchError(errorMsg);
         setBranchFetchError(errorMsg);
         setFetchingBranches(false);
@@ -202,13 +203,13 @@ export function TaskFormCreate({
         )}
         
         {branchFetchError && !fetchingBranches && (
-          <div className="absolute inset-0 bg-white/95 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center">
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center">
             <div className="flex flex-col items-center space-y-4 max-w-md mx-auto p-6 text-center">
               <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                 <X className="h-6 w-6 text-red-600" />
               </div>
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className="text-lg font-medium text-foreground mb-2">
                   {t("tasks.errors.fetchBranchesFailedTitle")}
                 </h3>
                 <p className="text-sm text-red-600 mb-4">{branchFetchError}</p>

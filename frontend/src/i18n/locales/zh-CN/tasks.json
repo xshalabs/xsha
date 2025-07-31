@@ -134,6 +134,7 @@
   "errors": {
     "fetchBranchesFailed": "获取仓库分支失败",
     "fetchBranchesFailedTitle": "获取分支失败",
+    "noBranchesFound": "仓库中未找到任何分支",
     "noGitCredential": "项目未关联Git凭据，请先关联Git Credential后再推送"
   },
   "tabs": {
