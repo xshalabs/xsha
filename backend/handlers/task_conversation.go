@@ -23,15 +23,27 @@ func NewTaskConversationHandlers(conversationService services.TaskConversationSe
 
 // @Description Create conversation request
 type CreateConversationRequest struct {
-	TaskID  uint   `json:"task_id" binding:"required"`
-	Content string `json:"content" binding:"required"`
+	TaskID  uint   `json:"task_id" binding:"required" example:"1"`
+	Content string `json:"content" binding:"required" example:"Please implement the user authentication feature"`
 }
 
 // @Description Update conversation request
 type UpdateConversationRequest struct {
-	Content string `json:"content"`
+	Content string `json:"content" example:"Updated conversation content"`
 }
 
+// CreateConversation creates a new task conversation
+// @Summary Create task conversation
+// @Description Create a new conversation for a specific task
+// @Tags Task Conversations
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param conversation body CreateConversationRequest true "Conversation information"
+// @Success 201 {object} object{message=string,data=object} "Conversation created successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Router /conversations [post]
 func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -59,6 +71,19 @@ func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 	})
 }
 
+// GetConversation retrieves a specific conversation
+// @Summary Get task conversation
+// @Description Get a conversation by ID
+// @Tags Task Conversations
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Conversation ID"
+// @Success 200 {object} object{message=string,data=object} "Conversation retrieved successfully"
+// @Failure 400 {object} object{error=string} "Invalid conversation ID"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 404 {object} object{error=string} "Conversation not found"
+// @Router /conversations/{id} [get]
 func (h *TaskConversationHandlers) GetConversation(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -87,6 +112,21 @@ func (h *TaskConversationHandlers) GetConversation(c *gin.Context) {
 	})
 }
 
+// ListConversations lists conversations for a task
+// @Summary List task conversations
+// @Description Get paginated list of conversations for a specific task
+// @Tags Task Conversations
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param task_id query int true "Task ID"
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Page size" default(20)
+// @Success 200 {object} object{message=string,data=object{conversations=[]object,total=int,page=int,page_size=int}} "Conversations retrieved successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 500 {object} object{error=string} "Internal server error"
+// @Router /conversations [get]
 func (h *TaskConversationHandlers) ListConversations(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -128,6 +168,19 @@ func (h *TaskConversationHandlers) ListConversations(c *gin.Context) {
 	})
 }
 
+// UpdateConversation updates a conversation
+// @Summary Update task conversation
+// @Description Update a conversation's content
+// @Tags Task Conversations
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Conversation ID"
+// @Param conversation body UpdateConversationRequest true "Conversation update information"
+// @Success 200 {object} object{message=string} "Conversation updated successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Router /conversations/{id} [put]
 func (h *TaskConversationHandlers) UpdateConversation(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -163,6 +216,19 @@ func (h *TaskConversationHandlers) UpdateConversation(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "taskConversation.update_success")})
 }
 
+// DeleteConversation deletes a conversation
+// @Summary Delete task conversation
+// @Description Delete a conversation by ID
+// @Tags Task Conversations
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Conversation ID"
+// @Success 200 {object} object{message=string} "Conversation deleted successfully"
+// @Failure 400 {object} object{error=string} "Invalid conversation ID"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 404 {object} object{error=string} "Conversation not found"
+// @Router /conversations/{id} [delete]
 func (h *TaskConversationHandlers) DeleteConversation(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -187,6 +253,19 @@ func (h *TaskConversationHandlers) DeleteConversation(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "taskConversation.update_success")})
 }
 
+// GetLatestConversation retrieves the latest conversation for a task
+// @Summary Get latest task conversation
+// @Description Get the most recent conversation for a specific task
+// @Tags Task Conversations
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param task_id query int true "Task ID"
+// @Success 200 {object} object{message=string,data=object} "Latest conversation retrieved successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 404 {object} object{error=string} "Conversation not found"
+// @Router /conversations/latest [get]
 func (h *TaskConversationHandlers) GetLatestConversation(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -220,6 +299,20 @@ func (h *TaskConversationHandlers) GetLatestConversation(c *gin.Context) {
 	})
 }
 
+// GetConversationGitDiff retrieves Git diff for a conversation
+// @Summary Get conversation Git diff
+// @Description Get Git diff information for a specific conversation
+// @Tags Task Conversations
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Conversation ID"
+// @Param include_content query bool false "Include file content in diff" default(false)
+// @Success 200 {object} object{data=object} "Git diff retrieved successfully"
+// @Failure 400 {object} object{error=string} "Invalid conversation ID"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 500 {object} object{error=string} "Failed to get Git diff"
+// @Router /conversations/{id}/git-diff [get]
 func (h *TaskConversationHandlers) GetConversationGitDiff(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -254,6 +347,20 @@ func (h *TaskConversationHandlers) GetConversationGitDiff(c *gin.Context) {
 	})
 }
 
+// GetConversationGitDiffFile retrieves Git diff for a specific file
+// @Summary Get conversation file Git diff
+// @Description Get Git diff for a specific file in a conversation
+// @Tags Task Conversations
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Conversation ID"
+// @Param file_path query string true "File path"
+// @Success 200 {object} object{data=object{file_path=string,diff_content=string}} "File Git diff retrieved successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 500 {object} object{error=string} "Failed to get file Git diff"
+// @Router /conversations/{id}/git-diff/file [get]
 func (h *TaskConversationHandlers) GetConversationGitDiffFile(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
