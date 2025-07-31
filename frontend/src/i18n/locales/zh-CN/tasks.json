@@ -120,7 +120,10 @@
     "success_details": "分支 \"{{branch}}\" 已成功推送到仓库 \"{{repository}}\"。",
     "error_title": "推送失败",
     "error_message": "推送过程中发生错误",
-    "output": "推送输出"
+    "output": "推送输出",
+    "force_push": "强制推送 (--force)",
+    "force_push_warning_title": "强制推送警告",
+    "force_push_warning_description": "强制推送可能会覆盖远程仓库中的提交历史，这是一个危险操作。只有在确定这样做是安全的情况下才启用此选项。"
   },
   "batch": {
     "selectedCount": "已选择 {{count}} 个任务",

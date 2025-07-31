@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import {
   GitBranch,
@@ -49,11 +50,13 @@ export function PushBranchDialog({
   const { t } = useTranslation();
   const [step, setStep] = useState<PushStep>("confirm");
   const [pushResult, setPushResult] = useState<PushResult | null>(null);
+  const [forcePush, setForcePush] = useState(false);
 
   useEffect(() => {
     if (!open || !task) {
       setStep("confirm");
       setPushResult(null);
+      setForcePush(false);
     }
   }, [open, task]);
 
@@ -67,7 +70,10 @@ export function PushBranchDialog({
     setStep("pushing");
 
     try {
-      const response = await apiService.tasks.pushTaskBranch(task.id);
+      const response = await apiService.tasks.pushTaskBranch(
+        task.id,
+        forcePush
+      );
 
       setPushResult({
         success: true,
@@ -77,7 +83,6 @@ export function PushBranchDialog({
 
       setStep("result");
 
-      // 调用成功回调
       if (onSuccess) {
         onSuccess();
       }
@@ -170,6 +175,34 @@ export function PushBranchDialog({
                   </p>
                 </div>
               </div>
+
+              <div className="flex items-center space-x-2 p-3 border border-border rounded-lg">
+                <Checkbox
+                  id="force-push"
+                  checked={forcePush}
+                  onCheckedChange={(checked) => setForcePush(!!checked)}
+                />
+                <label
+                  htmlFor="force-push"
+                  className="text-sm font-medium text-foreground leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  {t("tasks.push.force_push")}
+                </label>
+              </div>
+
+              {forcePush && (
+                <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm">
+                    <p className="font-medium text-red-800">
+                      {t("tasks.push.force_push_warning_title")}
+                    </p>
+                    <p className="text-red-700 mt-1">
+                      {t("tasks.push.force_push_warning_description")}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <DialogFooter>

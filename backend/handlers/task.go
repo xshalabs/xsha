@@ -631,6 +631,7 @@ func (h *TaskHandlers) GetTaskGitDiffFile(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Task ID"
+// @Param request body object{force_push=bool} false "Push options"
 // @Success 200 {object} object{message=string,data=object{output=string}} "Branch pushed successfully"
 // @Failure 400 {object} object{error=string} "Invalid task ID"
 // @Failure 401 {object} object{error=string} "Authentication failed"
@@ -654,7 +655,14 @@ func (h *TaskHandlers) PushTaskBranch(c *gin.Context) {
 		return
 	}
 
-	output, err := h.taskService.PushTaskBranch(uint(taskID), username.(string))
+	var req struct {
+		ForcePush bool `json:"force_push"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		req.ForcePush = false
+	}
+
+	output, err := h.taskService.PushTaskBranch(uint(taskID), username.(string), req.ForcePush)
 	if err != nil {
 		utils.Error("Failed to push task branch", "taskID", taskID, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{

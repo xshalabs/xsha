@@ -83,7 +83,7 @@ type TaskService interface {
 	ValidateTaskData(title, startBranch string, projectID uint, createdBy string) error
 	GetTaskGitDiff(task *database.Task, includeContent bool) (*utils.GitDiffSummary, error)
 	GetTaskGitDiffFile(task *database.Task, filePath string) (string, error)
-	PushTaskBranch(id uint, createdBy string) (string, error)
+	PushTaskBranch(id uint, createdBy string, forcePush bool) (string, error)
 }
 
 type TaskConversationService interface {

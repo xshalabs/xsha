@@ -421,7 +421,7 @@ func (w *WorkspaceManager) validateCredential(credential *GitCredentialInfo) err
 	return nil
 }
 
-func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string, credential *GitCredentialInfo, sslVerify bool, proxyConfig *GitProxyConfig) (string, error) {
+func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string, credential *GitCredentialInfo, sslVerify bool, proxyConfig *GitProxyConfig, forcePush bool) (string, error) {
 	if workspacePath == "" {
 		return "", fmt.Errorf("workspace path cannot be empty")
 	}
@@ -483,7 +483,12 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 				return "", fmt.Errorf("failed to set remote repository URL: %v", err)
 			}
 
-			cmd = exec.CommandContext(ctx, "git", "push", "--porcelain", "origin", branchName)
+			args := []string{"push", "--porcelain"}
+			if forcePush {
+				args = append(args, "--force")
+			}
+			args = append(args, "origin", branchName)
+			cmd = exec.CommandContext(ctx, "git", args...)
 			cmd.Dir = workspacePath
 			cmd.Env = ApplyProxyToGitEnv(baseEnv, proxyConfig)
 
@@ -513,7 +518,12 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 			)
 			envVars = ApplyProxyToGitEnv(envVars, proxyConfig)
 
-			cmd = exec.CommandContext(ctx, "git", "push", "--porcelain", "origin", branchName)
+			args := []string{"push", "--porcelain"}
+			if forcePush {
+				args = append(args, "--force")
+			}
+			args = append(args, "origin", branchName)
+			cmd = exec.CommandContext(ctx, "git", args...)
 			cmd.Dir = workspacePath
 			cmd.Env = envVars
 		}
@@ -528,7 +538,12 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 			return "", fmt.Errorf("branch '%s' does not exist", branchName)
 		}
 
-		cmd = exec.CommandContext(ctx, "git", "push", "--porcelain", "origin", branchName)
+		args := []string{"push", "--porcelain"}
+		if forcePush {
+			args = append(args, "--force")
+		}
+		args = append(args, "origin", branchName)
+		cmd = exec.CommandContext(ctx, "git", args...)
 		cmd.Dir = workspacePath
 		cmd.Env = ApplyProxyToGitEnv(baseEnv, proxyConfig)
 	}

@@ -333,7 +333,7 @@ func (s *taskService) GetTaskGitDiffFile(task *database.Task, filePath string) (
 	return string(output), nil
 }
 
-func (s *taskService) PushTaskBranch(id uint, createdBy string) (string, error) {
+func (s *taskService) PushTaskBranch(id uint, createdBy string, forcePush bool) (string, error) {
 	task, err := s.GetTask(id, createdBy)
 	if err != nil {
 		return "", err
@@ -409,6 +409,7 @@ func (s *taskService) PushTaskBranch(id uint, createdBy string) (string, error) 
 		credential,
 		s.config.GitSSLVerify,
 		proxyConfig,
+		forcePush,
 	)
 
 	if err != nil {

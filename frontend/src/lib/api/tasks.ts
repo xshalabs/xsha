@@ -104,7 +104,7 @@ export const tasksApi = {
     });
   },
 
-  pushTaskBranch: async (taskId: number): Promise<{
+  pushTaskBranch: async (taskId: number, forcePush: boolean = false): Promise<{
     message: string;
     data: {
       output: string;
@@ -112,6 +112,7 @@ export const tasksApi = {
   }> => {
     return request(`/tasks/${taskId}/push`, {
       method: 'POST',
+      body: JSON.stringify({ force_push: forcePush }),
     });
   },
 };

@@ -121,7 +121,10 @@
     "success_details": "Branch \"{{branch}}\" has been successfully pushed to repository \"{{repository}}\".",
     "error_title": "Push Failed",
     "error_message": "An error occurred during the push process",
-    "output": "Push Output"
+    "output": "Push Output",
+    "force_push": "Force Push (--force)",
+    "force_push_warning_title": "Force Push Warning",
+    "force_push_warning_description": "Force pushing may overwrite commit history in the remote repository. This is a dangerous operation. Only enable this option if you are certain it is safe to do so."
   },
   "batch": {
     "selectedCount": "{{count}} tasks selected",
