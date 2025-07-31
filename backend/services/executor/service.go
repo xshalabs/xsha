@@ -3,7 +3,6 @@ package executor
 import (
 	"context"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 	"xsha-backend/config"
@@ -387,7 +386,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 
 	workBranch := conv.Task.WorkBranch
 	if workBranch == "" {
-		workBranch = s.generateWorkBranchName(conv.Task.Title, conv.Task.CreatedBy)
+		workBranch = utils.GenerateWorkBranchName(conv.Task.Title, conv.Task.CreatedBy)
 		conv.Task.WorkBranch = workBranch
 		if updateErr := s.taskRepo.Update(conv.Task); updateErr != nil {
 			utils.Error("Failed to update task work branch", "taskID", conv.Task.ID, "error", updateErr)
@@ -461,35 +460,6 @@ func (s *aiTaskExecutorService) prepareGitCredential(project *database.Project) 
 	}
 
 	return credential, nil
-}
-
-func (s *aiTaskExecutorService) generateWorkBranchName(title, createdBy string) string {
-	cleanTitle := strings.ToLower(strings.TrimSpace(title))
-
-	cleanTitle = strings.ReplaceAll(cleanTitle, " ", "-")
-	cleanTitle = strings.ReplaceAll(cleanTitle, "_", "-")
-
-	var result strings.Builder
-	for _, r := range cleanTitle {
-		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
-			result.WriteRune(r)
-		}
-	}
-	cleanTitle = result.String()
-
-	if len(cleanTitle) > 30 {
-		cleanTitle = cleanTitle[:30]
-	}
-
-	cleanTitle = strings.Trim(cleanTitle, "-")
-
-	if cleanTitle == "" {
-		cleanTitle = "task"
-	}
-
-	timestamp := time.Now().Format("20060102-150405")
-
-	return fmt.Sprintf("xsha/%s/%s-%s", createdBy, cleanTitle, timestamp)
 }
 
 func (s *aiTaskExecutorService) CleanupWorkspaceOnFailure(taskID uint, workspacePath string) error {
