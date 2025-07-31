@@ -29,7 +29,7 @@ const (
 type LogConfig struct {
 	Level  LogLevel  `json:"level" env:"LOG_LEVEL" default:"INFO"`
 	Format LogFormat `json:"format" env:"LOG_FORMAT" default:"JSON"`
-	Output string    `json:"output" env:"LOG_OUTPUT" default:"stdout"` // stdout, stderr, file path
+	Output string    `json:"output" env:"LOG_OUTPUT" default:"stdout"`
 }
 
 var defaultLogger *slog.Logger

@@ -4,7 +4,6 @@ import (
 	"strings"
 )
 
-// ErrorMapping 错误映射表
 var ErrorMapping = map[string]string{
 	// Task related errors
 	"task title is required":                             "task.title_required",
@@ -78,7 +77,6 @@ var ErrorMapping = map[string]string{
 	"dev_environment.delete_used_by_tasks":   "dev_environment.delete_used_by_tasks",
 }
 
-// MapErrorToI18nKey 将错误消息映射到国际化键值
 func MapErrorToI18nKey(err error, lang string) string {
 	if err == nil {
 		return ""
@@ -86,23 +84,19 @@ func MapErrorToI18nKey(err error, lang string) string {
 
 	errMsg := err.Error()
 
-	// 直接匹配
 	if key, exists := ErrorMapping[errMsg]; exists {
 		return T(lang, key)
 	}
 
-	// 模糊匹配（处理包含额外信息的错误）
 	for errorPattern, key := range ErrorMapping {
 		if strings.Contains(errMsg, errorPattern) {
 			return T(lang, key)
 		}
 	}
 
-	// 如果没有找到映射，返回原始错误消息
 	return errMsg
 }
 
-// MapErrorWithDetails 将错误消息映射到国际化键值，并保留详细信息
 func MapErrorWithDetails(err error, lang string) (string, string) {
 	if err == nil {
 		return "", ""
@@ -110,15 +104,12 @@ func MapErrorWithDetails(err error, lang string) (string, string) {
 
 	errMsg := err.Error()
 
-	// 直接匹配
 	if key, exists := ErrorMapping[errMsg]; exists {
 		return T(lang, key), ""
 	}
 
-	// 模糊匹配（处理包含额外信息的错误）
 	for errorPattern, key := range ErrorMapping {
 		if strings.Contains(errMsg, errorPattern) {
-			// 提取额外的详细信息
 			details := strings.TrimSpace(strings.Replace(errMsg, errorPattern, "", 1))
 			details = strings.TrimPrefix(details, ":")
 			details = strings.TrimSpace(details)
@@ -126,6 +117,5 @@ func MapErrorWithDetails(err error, lang string) (string, string) {
 		}
 	}
 
-	// 如果没有找到映射，返回原始错误消息
 	return errMsg, ""
 }

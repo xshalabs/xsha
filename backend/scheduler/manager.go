@@ -16,10 +16,9 @@ type schedulerManager struct {
 	interval  time.Duration
 }
 
-// NewSchedulerManager 创建定时器管理器
 func NewSchedulerManager(processor TaskProcessor, interval time.Duration) Scheduler {
 	if interval <= 0 {
-		interval = 30 * time.Second // 默认30秒
+		interval = 30 * time.Second
 	}
 
 	return &schedulerManager{
@@ -29,7 +28,6 @@ func NewSchedulerManager(processor TaskProcessor, interval time.Duration) Schedu
 	}
 }
 
-// Start 启动定时器
 func (s *schedulerManager) Start() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -48,7 +46,6 @@ func (s *schedulerManager) Start() error {
 	return nil
 }
 
-// Stop 停止定时器
 func (s *schedulerManager) Stop() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -66,18 +63,15 @@ func (s *schedulerManager) Stop() error {
 	return nil
 }
 
-// IsRunning 检查是否运行中
 func (s *schedulerManager) IsRunning() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.running
 }
 
-// run 运行循环
 func (s *schedulerManager) run() {
 	defer s.wg.Done()
 
-	// 立即执行一次
 	if err := s.processor.ProcessTasks(); err != nil {
 		utils.Error("Initial task processing failed", "error", err)
 	}

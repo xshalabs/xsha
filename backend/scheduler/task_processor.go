@@ -9,14 +9,12 @@ type taskProcessor struct {
 	aiTaskExecutor services.AITaskExecutorService
 }
 
-// NewTaskProcessor 创建任务处理器
 func NewTaskProcessor(aiTaskExecutor services.AITaskExecutorService) TaskProcessor {
 	return &taskProcessor{
 		aiTaskExecutor: aiTaskExecutor,
 	}
 }
 
-// ProcessTasks 处理任务
 func (p *taskProcessor) ProcessTasks() error {
 	utils.Info("Starting to process pending task conversations...")
 

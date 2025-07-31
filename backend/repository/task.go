@@ -10,17 +10,14 @@ type taskRepository struct {
 	db *gorm.DB
 }
 
-// NewTaskRepository 创建任务仓库实例
 func NewTaskRepository(db *gorm.DB) TaskRepository {
 	return &taskRepository{db: db}
 }
 
-// Create 创建任务
 func (r *taskRepository) Create(task *database.Task) error {
 	return r.db.Create(task).Error
 }
 
-// GetByID 根据ID获取任务
 func (r *taskRepository) GetByID(id uint, createdBy string) (*database.Task, error) {
 	var task database.Task
 	err := r.db.Preload("Project").Preload("DevEnvironment").Preload("Conversations").
@@ -31,7 +28,6 @@ func (r *taskRepository) GetByID(id uint, createdBy string) (*database.Task, err
 	return &task, nil
 }
 
-// List 分页获取任务列表
 func (r *taskRepository) List(projectID *uint, createdBy string, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error) {
 	var tasks []database.Task
 	var total int64
@@ -58,12 +54,10 @@ func (r *taskRepository) List(projectID *uint, createdBy string, status *databas
 		query = query.Where("dev_environment_id = ?", *devEnvID)
 	}
 
-	// 获取总数
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	// 分页查询
 	offset := (page - 1) * pageSize
 	if err := query.Preload("Project").Preload("DevEnvironment").Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&tasks).Error; err != nil {
 		return nil, 0, err
@@ -72,17 +66,14 @@ func (r *taskRepository) List(projectID *uint, createdBy string, status *databas
 	return tasks, total, nil
 }
 
-// Update 更新任务
 func (r *taskRepository) Update(task *database.Task) error {
 	return r.db.Save(task).Error
 }
 
-// Delete 删除任务
 func (r *taskRepository) Delete(id uint, createdBy string) error {
 	return r.db.Where("id = ? AND created_by = ?", id, createdBy).Delete(&database.Task{}).Error
 }
 
-// ListByProject 根据项目ID获取任务列表
 func (r *taskRepository) ListByProject(projectID uint, createdBy string) ([]database.Task, error) {
 	var tasks []database.Task
 	err := r.db.Where("project_id = ? AND created_by = ?", projectID, createdBy).
@@ -90,7 +81,6 @@ func (r *taskRepository) ListByProject(projectID uint, createdBy string) ([]data
 	return tasks, err
 }
 
-// GetConversationCounts 批量获取任务的对话统计数量（排除已删除的对话）
 func (r *taskRepository) GetConversationCounts(taskIDs []uint, createdBy string) (map[uint]int64, error) {
 	if len(taskIDs) == 0 {
 		return make(map[uint]int64), nil
@@ -112,13 +102,11 @@ func (r *taskRepository) GetConversationCounts(taskIDs []uint, createdBy string)
 		return nil, err
 	}
 
-	// 构建返回的map，确保所有任务都有统计数据（包括对话数为0的任务）
 	conversationCounts := make(map[uint]int64)
 	for _, taskID := range taskIDs {
-		conversationCounts[taskID] = 0 // 默认为0
+		conversationCounts[taskID] = 0
 	}
 
-	// 填充实际的统计数据
 	for _, result := range results {
 		conversationCounts[result.TaskID] = result.Count
 	}

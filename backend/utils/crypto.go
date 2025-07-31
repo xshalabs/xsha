@@ -72,14 +72,6 @@ func normalizeAESKey(key string) string {
 	return string(normalized)
 }
 
-func GenerateAESKey() (string, error) {
-	key := make([]byte, 32)
-	if _, err := rand.Read(key); err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(key), nil
-}
-
 func MaskSensitiveValue(value string) string {
 	if len(value) <= 4 {
 		return "****"

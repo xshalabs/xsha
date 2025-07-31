@@ -9,10 +9,9 @@ import (
 	"xsha-backend/utils"
 )
 
-// I18n internationalization structure
 type I18n struct {
 	mu          sync.RWMutex
-	messages    map[string]map[string]string // [language code][message key]message content
+	messages    map[string]map[string]string
 	defaultLang string
 }
 
@@ -21,7 +20,6 @@ var (
 	once     sync.Once
 )
 
-// GetInstance gets singleton instance
 func GetInstance() *I18n {
 	once.Do(func() {
 		instance = &I18n{
@@ -33,9 +31,7 @@ func GetInstance() *I18n {
 	return instance
 }
 
-// loadMessages loads message files
 func (i *I18n) loadMessages() {
-	// Try to load messages from file
 	langDir := "i18n/locales"
 	if _, err := os.Stat(langDir); os.IsNotExist(err) {
 		utils.Warn("Language file directory does not exist, using built-in messages", "langDir", langDir)
@@ -50,13 +46,12 @@ func (i *I18n) loadMessages() {
 
 	for _, file := range files {
 		if filepath.Ext(file.Name()) == ".json" {
-			lang := file.Name()[:len(file.Name())-5] // Remove .json extension
+			lang := file.Name()[:len(file.Name())-5]
 			i.loadMessageFile(filepath.Join(langDir, file.Name()), lang)
 		}
 	}
 }
 
-// loadMessageFile loads message file for specified language
 func (i *I18n) loadMessageFile(filename, lang string) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
@@ -77,19 +72,16 @@ func (i *I18n) loadMessageFile(filename, lang string) {
 	utils.Info("Language file loaded", "filename", filename, "messageCount", len(messages))
 }
 
-// GetMessage gets message for specified language
 func (i *I18n) GetMessage(lang, key string) string {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
 
-	// Try to get message for specified language
 	if messages, exists := i.messages[lang]; exists {
 		if message, found := messages[key]; found {
 			return message
 		}
 	}
 
-	// Fall back to default language
 	if lang != i.defaultLang {
 		if messages, exists := i.messages[i.defaultLang]; exists {
 			if message, found := messages[key]; found {
@@ -98,11 +90,9 @@ func (i *I18n) GetMessage(lang, key string) string {
 		}
 	}
 
-	// If not found, return key itself
 	return key
 }
 
-// GetMessageWithArgs gets message with arguments
 func (i *I18n) GetMessageWithArgs(lang, key string, args ...interface{}) string {
 	message := i.GetMessage(lang, key)
 	if len(args) > 0 {
@@ -111,7 +101,6 @@ func (i *I18n) GetMessageWithArgs(lang, key string, args ...interface{}) string 
 	return message
 }
 
-// GetSupportedLanguages gets list of supported languages
 func (i *I18n) GetSupportedLanguages() []string {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
@@ -123,7 +112,6 @@ func (i *I18n) GetSupportedLanguages() []string {
 	return langs
 }
 
-// T simplified translation function
 func T(lang, key string, args ...interface{}) string {
 	return GetInstance().GetMessageWithArgs(lang, key, args...)
 }

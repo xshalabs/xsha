@@ -29,14 +29,14 @@ func NewWorkspaceManager(baseDir string, gitCloneTimeout time.Duration) *Workspa
 
 func (w *WorkspaceManager) CreateTaskWorkspace(taskID uint) (string, error) {
 	if err := os.MkdirAll(w.baseDir, 0755); err != nil {
-		return "", fmt.Errorf("创建基础目录失败: %v", err)
+		return "", fmt.Errorf("failed to create base directory: %v", err)
 	}
 
 	dirName := fmt.Sprintf("task-%d-%d", taskID, time.Now().Unix())
 	workspacePath := filepath.Join(w.baseDir, dirName)
 
 	if err := os.MkdirAll(workspacePath, 0755); err != nil {
-		return "", fmt.Errorf("创建工作目录失败: %v", err)
+		return "", fmt.Errorf("failed to create workspace directory: %v", err)
 	}
 
 	return workspacePath, nil
@@ -68,7 +68,7 @@ func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, bra
 
 	if credential != nil {
 		if err := w.validateCredential(credential); err != nil {
-			return fmt.Errorf("凭据验证失败: %v", err)
+			return fmt.Errorf("credential validation failed: %v", err)
 		}
 
 		switch credential.Type {
@@ -83,7 +83,7 @@ func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, bra
 		case GitCredentialTypeSSHKey:
 			keyFile := filepath.Join(workspacePath, ".ssh_key")
 			if err := ioutil.WriteFile(keyFile, []byte(credential.PrivateKey), 0600); err != nil {
-				return fmt.Errorf("创建SSH密钥文件失败: %v", err)
+				return fmt.Errorf("failed to create SSH key file: %v", err)
 			}
 			defer os.Remove(keyFile)
 

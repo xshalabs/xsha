@@ -116,9 +116,7 @@ func parseHTTPSURL(repoURL string, info *GitURLInfo) *GitURLInfo {
 
 	path := strings.Trim(parsedURL.Path, "/")
 
-	if strings.HasSuffix(path, ".git") {
-		path = strings.TrimSuffix(path, ".git")
-	}
+	path = strings.TrimSuffix(path, ".git")
 
 	parts := strings.Split(path, "/")
 	if len(parts) >= 2 {
@@ -141,9 +139,7 @@ func parseSSHURL(repoURL string, info *GitURLInfo) *GitURLInfo {
 
 		path := strings.Trim(parsedURL.Path, "/")
 
-		if strings.HasSuffix(path, ".git") {
-			path = strings.TrimSuffix(path, ".git")
-		}
+		path = strings.TrimSuffix(path, ".git")
 
 		parts := strings.Split(path, "/")
 		if len(parts) >= 2 {
@@ -161,9 +157,7 @@ func parseSSHURL(repoURL string, info *GitURLInfo) *GitURLInfo {
 		info.Host = matches[2]
 		path := matches[3]
 
-		if strings.HasSuffix(path, ".git") {
-			path = strings.TrimSuffix(path, ".git")
-		}
+		path = strings.TrimSuffix(path, ".git")
 
 		parts := strings.Split(path, "/")
 		if len(parts) >= 2 {

@@ -10,12 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AuthMiddleware authentication middleware with service injection
 func AuthMiddlewareWithService(authService services.AuthService, cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		lang := GetLangFromContext(c)
 
-		// Get token from Authorization header
 		authHeader := c.GetHeader("Authorization")
 		token, err := utils.ExtractTokenFromAuthHeader(authHeader)
 		if err != nil {
@@ -26,7 +24,6 @@ func AuthMiddlewareWithService(authService services.AuthService, cfg *config.Con
 			return
 		}
 
-		// Check if token is in blacklist using service
 		isBlacklisted, err := authService.IsTokenBlacklisted(token)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -44,7 +41,6 @@ func AuthMiddlewareWithService(authService services.AuthService, cfg *config.Con
 			return
 		}
 
-		// Validate JWT token
 		claims, err := utils.ValidateJWT(token, cfg.JWTSecret)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -54,7 +50,6 @@ func AuthMiddlewareWithService(authService services.AuthService, cfg *config.Con
 			return
 		}
 
-		// Store user information in context for subsequent handlers
 		c.Set("username", claims.Username)
 		c.Next()
 	}
