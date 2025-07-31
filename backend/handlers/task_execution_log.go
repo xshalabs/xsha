@@ -14,7 +14,6 @@ type TaskExecutionLogHandlers struct {
 	aiTaskExecutor services.AITaskExecutorService
 }
 
-// NewTaskExecutionLogHandlers creates task execution log handler
 func NewTaskExecutionLogHandlers(aiTaskExecutor services.AITaskExecutorService) *TaskExecutionLogHandlers {
 	return &TaskExecutionLogHandlers{
 		aiTaskExecutor: aiTaskExecutor,
@@ -120,7 +119,6 @@ func (h *TaskExecutionLogHandlers) RetryExecution(c *gin.Context) {
 		return
 	}
 
-	// Get current username
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})

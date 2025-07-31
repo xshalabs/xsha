@@ -10,24 +10,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// TaskConversationResultHandlers task conversation result handlers struct
 type TaskConversationResultHandlers struct {
 	resultService services.TaskConversationResultService
 }
 
-// NewTaskConversationResultHandlers creates a new task conversation result handlers instance
 func NewTaskConversationResultHandlers(resultService services.TaskConversationResultService) *TaskConversationResultHandlers {
 	return &TaskConversationResultHandlers{
 		resultService: resultService,
 	}
 }
 
-// UpdateResultRequest update result request structure
+// @Description Update result request
 type UpdateResultRequest struct {
 	Updates map[string]interface{} `json:"updates"`
 }
 
-// GetResult gets result details
 func (h *TaskConversationResultHandlers) GetResult(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -38,7 +35,6 @@ func (h *TaskConversationResultHandlers) GetResult(c *gin.Context) {
 		return
 	}
 
-	// Get result
 	result, err := h.resultService.GetResult(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.result_not_found")})
@@ -51,7 +47,6 @@ func (h *TaskConversationResultHandlers) GetResult(c *gin.Context) {
 	})
 }
 
-// GetResultByConversationID gets result by conversation ID
 func (h *TaskConversationResultHandlers) GetResultByConversationID(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -62,7 +57,6 @@ func (h *TaskConversationResultHandlers) GetResultByConversationID(c *gin.Contex
 		return
 	}
 
-	// Get result
 	result, err := h.resultService.GetResultByConversationID(uint(conversationID))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.result_not_found")})
@@ -75,7 +69,6 @@ func (h *TaskConversationResultHandlers) GetResultByConversationID(c *gin.Contex
 	})
 }
 
-// ListResultsByTaskID gets result list by task ID
 func (h *TaskConversationResultHandlers) ListResultsByTaskID(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -91,7 +84,6 @@ func (h *TaskConversationResultHandlers) ListResultsByTaskID(c *gin.Context) {
 		return
 	}
 
-	// Parse pagination parameters
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 	if page < 1 {
@@ -101,7 +93,6 @@ func (h *TaskConversationResultHandlers) ListResultsByTaskID(c *gin.Context) {
 		pageSize = 10
 	}
 
-	// Get results
 	results, total, err := h.resultService.ListResultsByTaskID(uint(taskID), page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
@@ -119,7 +110,6 @@ func (h *TaskConversationResultHandlers) ListResultsByTaskID(c *gin.Context) {
 	})
 }
 
-// ListResultsByProjectID gets result list by project ID
 func (h *TaskConversationResultHandlers) ListResultsByProjectID(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -135,7 +125,6 @@ func (h *TaskConversationResultHandlers) ListResultsByProjectID(c *gin.Context) 
 		return
 	}
 
-	// Parse pagination parameters
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 	if page < 1 {
@@ -145,7 +134,6 @@ func (h *TaskConversationResultHandlers) ListResultsByProjectID(c *gin.Context) 
 		pageSize = 10
 	}
 
-	// Get result list
 	results, total, err := h.resultService.ListResultsByProjectID(uint(projectID), page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
@@ -163,7 +151,6 @@ func (h *TaskConversationResultHandlers) ListResultsByProjectID(c *gin.Context) 
 	})
 }
 
-// UpdateResult updates result
 func (h *TaskConversationResultHandlers) UpdateResult(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -180,7 +167,6 @@ func (h *TaskConversationResultHandlers) UpdateResult(c *gin.Context) {
 		return
 	}
 
-	// Update result
 	err = h.resultService.UpdateResult(uint(id), req.Updates)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
@@ -192,7 +178,6 @@ func (h *TaskConversationResultHandlers) UpdateResult(c *gin.Context) {
 	})
 }
 
-// DeleteResult deletes result
 func (h *TaskConversationResultHandlers) DeleteResult(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -203,7 +188,6 @@ func (h *TaskConversationResultHandlers) DeleteResult(c *gin.Context) {
 		return
 	}
 
-	// Delete result
 	err = h.resultService.DeleteResult(uint(id))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
@@ -215,7 +199,6 @@ func (h *TaskConversationResultHandlers) DeleteResult(c *gin.Context) {
 	})
 }
 
-// GetTaskStats gets task statistics
 func (h *TaskConversationResultHandlers) GetTaskStats(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -226,7 +209,6 @@ func (h *TaskConversationResultHandlers) GetTaskStats(c *gin.Context) {
 		return
 	}
 
-	// Get statistics
 	stats, err := h.resultService.GetTaskStats(uint(taskID))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
@@ -239,7 +221,6 @@ func (h *TaskConversationResultHandlers) GetTaskStats(c *gin.Context) {
 	})
 }
 
-// GetProjectStats gets project statistics
 func (h *TaskConversationResultHandlers) GetProjectStats(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -250,7 +231,6 @@ func (h *TaskConversationResultHandlers) GetProjectStats(c *gin.Context) {
 		return
 	}
 
-	// Get statistics
 	stats, err := h.resultService.GetProjectStats(uint(projectID))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})

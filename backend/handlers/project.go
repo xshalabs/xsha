@@ -13,19 +13,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ProjectHandlers project handler struct
 type ProjectHandlers struct {
 	projectService services.ProjectService
 }
 
-// NewProjectHandlers creates project handler instance
 func NewProjectHandlers(projectService services.ProjectService) *ProjectHandlers {
 	return &ProjectHandlers{
 		projectService: projectService,
 	}
 }
 
-// CreateProjectRequest create project request structure
+// @Description Create project request
 type CreateProjectRequest struct {
 	Name         string `json:"name" binding:"required"`
 	Description  string `json:"description"`
@@ -34,8 +32,7 @@ type CreateProjectRequest struct {
 	CredentialID *uint  `json:"credential_id"`
 }
 
-// UpdateProjectRequest update project request structure
-// @Description Update project request parameters
+// @Description Update project request
 type UpdateProjectRequest struct {
 	Name         string `json:"name" example:"Updated project name"`
 	Description  string `json:"description" example:"Updated project description"`
@@ -215,7 +212,6 @@ func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 		return
 	}
 
-	// 构建更新数据
 	updates := make(map[string]interface{})
 	if req.Name != "" {
 		updates["name"] = req.Name
@@ -227,7 +223,6 @@ func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 		updates["repo_url"] = req.RepoURL
 	}
 
-	// 处理凭据ID（包括设置为null的情况）
 	updates["credential_id"] = req.CredentialID
 
 	err = h.projectService.UpdateProject(uint(id), username.(string), updates)
@@ -319,14 +314,12 @@ func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	})
 }
 
-// ParseRepositoryURLRequest 解析仓库URL请求结构
-// @Description 解析Git仓库URL的请求参数
+// @Description Parse repository URL request
 type ParseRepositoryURLRequest struct {
 	RepoURL string `json:"repo_url" binding:"required" example:"https://github.com/user/repo.git"`
 }
 
-// ParseRepositoryURLResponse 解析仓库URL响应结构
-// @Description 解析Git仓库URL的响应
+// @Description Parse repository URL response
 type ParseRepositoryURLResponse struct {
 	Protocol string `json:"protocol" example:"https"`
 	Host     string `json:"host" example:"github.com"`
@@ -335,16 +328,15 @@ type ParseRepositoryURLResponse struct {
 	IsValid  bool   `json:"is_valid" example:"true"`
 }
 
-// ParseRepositoryURL 解析仓库URL
-// @Summary 解析Git仓库URL
-// @Description 根据输入的Git仓库URL自动检测协议类型并解析URL信息
-// @Tags 项目
+// @Summary Parse repository URL
+// @Description Parse repository URL automatically detect protocol type and parse URL information
+// @Tags Project
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body ParseRepositoryURLRequest true "仓库URL"
-// @Success 200 {object} object{message=string,result=ParseRepositoryURLResponse} "解析成功"
-// @Failure 400 {object} object{error=string} "请求参数错误"
+// @Param request body ParseRepositoryURLRequest true "Repository URL"
+// @Success 200 {object} object{message=string,result=ParseRepositoryURLResponse} "Parse successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
 // @Router /projects/parse-url [post]
 func (h *ProjectHandlers) ParseRepositoryURL(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
@@ -357,10 +349,8 @@ func (h *ProjectHandlers) ParseRepositoryURL(c *gin.Context) {
 		return
 	}
 
-	// 使用工具函数解析URL
 	urlInfo := utils.ParseGitURL(req.RepoURL)
 
-	// 构建响应
 	response := ParseRepositoryURLResponse{
 		Protocol: string(urlInfo.Protocol),
 		Host:     urlInfo.Host,
@@ -375,14 +365,12 @@ func (h *ProjectHandlers) ParseRepositoryURL(c *gin.Context) {
 	})
 }
 
-// FetchRepositoryBranchesRequest fetch repository branches request structure
 // @Description Request parameters for fetching Git repository branch list
 type FetchRepositoryBranchesRequest struct {
 	RepoURL      string `json:"repo_url" binding:"required" example:"https://github.com/user/repo.git"`
 	CredentialID *uint  `json:"credential_id" example:"1"`
 }
 
-// FetchRepositoryBranchesResponse fetch repository branches response structure
 // @Description Response for fetching Git repository branch list
 type FetchRepositoryBranchesResponse struct {
 	CanAccess    bool     `json:"can_access" example:"true"`
@@ -414,7 +402,6 @@ func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 		return
 	}
 
-	// 获取分支列表
 	result, err := h.projectService.FetchRepositoryBranches(req.RepoURL, req.CredentialID, username.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -423,7 +410,6 @@ func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 		return
 	}
 
-	// 构建响应
 	response := FetchRepositoryBranchesResponse{
 		CanAccess:    result.CanAccess,
 		ErrorMessage: result.ErrorMessage,
@@ -436,14 +422,12 @@ func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 	})
 }
 
-// ValidateRepositoryAccessRequest validate repository access request structure
 // @Description Request parameters for validating Git repository access permissions
 type ValidateRepositoryAccessRequest struct {
 	RepoURL      string `json:"repo_url" binding:"required" example:"https://github.com/user/repo.git"`
 	CredentialID *uint  `json:"credential_id" example:"1"`
 }
 
-// ValidateRepositoryAccess validates repository access permissions
 // @Summary Validate Git repository access permissions
 // @Description Validate whether the specified Git repository can be accessed using provided credentials
 // @Tags Project
@@ -466,7 +450,6 @@ func (h *ProjectHandlers) ValidateRepositoryAccess(c *gin.Context) {
 		return
 	}
 
-	// 验证仓库访问权限
 	err := h.projectService.ValidateRepositoryAccess(req.RepoURL, req.CredentialID, username.(string))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{

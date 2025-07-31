@@ -31,7 +31,6 @@ type BatchUpdateConfigsRequest struct {
 	Configs []ConfigUpdateItem `json:"configs" binding:"required"`
 }
 
-// ListAllConfigs gets all system configurations
 // @Summary Get all configurations
 // @Description Get all system configurations without pagination
 // @Tags System Configuration
@@ -79,7 +78,6 @@ func (h *SystemConfigHandlers) BatchUpdateConfigs(c *gin.Context) {
 		return
 	}
 
-	// Convert to service ConfigUpdateItem
 	var configItems []services.ConfigUpdateItem
 	for _, config := range req.Configs {
 		configItems = append(configItems, services.ConfigUpdateItem{

@@ -11,19 +11,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GitCredentialHandlers Git credential handler struct
 type GitCredentialHandlers struct {
 	gitCredService services.GitCredentialService
 }
 
-// NewGitCredentialHandlers creates a Git credential handler instance
 func NewGitCredentialHandlers(gitCredService services.GitCredentialService) *GitCredentialHandlers {
 	return &GitCredentialHandlers{
 		gitCredService: gitCredService,
 	}
 }
 
-// CreateCredentialRequest request structure for creating credentials
 // @Description Request parameters for creating Git credentials
 type CreateCredentialRequest struct {
 	Name        string            `json:"name" binding:"required" example:"My GitHub Credential"`
@@ -33,7 +30,6 @@ type CreateCredentialRequest struct {
 	SecretData  map[string]string `json:"secret_data" binding:"required" example:"{\"password\":\"mypassword\"}"`
 }
 
-// UpdateCredentialRequest request structure for updating credentials
 // @Description Request parameters for updating Git credentials
 type UpdateCredentialRequest struct {
 	Name        string            `json:"name" example:"Updated credential name"`

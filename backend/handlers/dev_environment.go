@@ -20,6 +20,7 @@ func NewDevEnvironmentHandlers(devEnvService services.DevEnvironmentService) *De
 	}
 }
 
+// @Description Create environment request
 type CreateEnvironmentRequest struct {
 	Name        string            `json:"name" binding:"required"`
 	Description string            `json:"description"`
@@ -29,6 +30,7 @@ type CreateEnvironmentRequest struct {
 	EnvVars     map[string]string `json:"env_vars"`
 }
 
+// @Description Update environment request
 type UpdateEnvironmentRequest struct {
 	Name        string            `json:"name"`
 	Description string            `json:"description"`
