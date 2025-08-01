@@ -101,10 +101,6 @@ npm run dev        # 启动开发服务器
 
 1. **Fork 仓库**并克隆您的 fork
 2. **创建功能分支**：`git checkout -b feature/amazing-feature`
-3. **遵循编码标准**：
-   - Go：遵循标准 Go 约定并运行 `make check`
-   - TypeScript：使用 ESLint 和 Prettier 配置
-   - 提交消息：使用常规提交格式
 
 ### Pull Request 流程
 

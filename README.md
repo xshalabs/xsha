@@ -103,10 +103,6 @@ We welcome contributions from the community! Here's how you can get involved:
 
 1. **Fork the repository** and clone your fork
 2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Follow the coding standards**:
-   - Go: Follow standard Go conventions and run `make check`
-   - TypeScript: Use ESLint and Prettier configurations
-   - Commit messages: Use conventional commit format
 
 ### Pull Request Process
 
