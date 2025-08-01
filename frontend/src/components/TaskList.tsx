@@ -126,13 +126,11 @@ export function TaskList({
   const { t } = useTranslation();
   const [showFilters, setShowFilters] = useState(false);
 
-  // 批量选择相关状态
   const [selectedTaskIds, setSelectedTaskIds] = useState<number[]>([]);
   const [showBatchStatusDialog, setShowBatchStatusDialog] = useState(false);
   const [batchTargetStatus, setBatchTargetStatus] =
     useState<TaskStatus>("todo");
 
-  // 删除确认对话框状态
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
 
@@ -559,7 +557,7 @@ export function TaskList({
                       <TableCell>
                         <div>
                           <div
-                            className="font-medium text-blue-600 hover:text-blue-800 cursor-pointer transition-colors"
+                            className="font-medium text-accent hover:opacity-80 dark:text-accent-foreground underline cursor-pointer transition-colors"
                             onClick={() => onViewConversation?.(task)}
                           >
                             {task.title}
