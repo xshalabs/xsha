@@ -195,10 +195,10 @@ func (d *dockerExecutor) ExecuteWithContext(ctx context.Context, dockerCmd strin
 
 	d.logAppender.AppendLog(execLogID, "✅ Docker availability check passed\n")
 
-	timeout, err := time.ParseDuration(d.config.DockerExecutionTimeout)
+	timeout, err := d.configService.GetDockerTimeout()
 	if err != nil {
-		utils.Warn("Failed to parse Docker timeout, using default 30 minutes", "error", err)
-		timeout = 30 * time.Minute
+		utils.Warn("Failed to get Docker timeout from system config, using default 120 minutes", "error", err)
+		timeout = 120 * time.Minute
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, timeout)

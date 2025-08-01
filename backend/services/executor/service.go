@@ -44,7 +44,12 @@ func NewAITaskExecutorService(
 	systemConfigService services.SystemConfigService,
 	cfg *config.Config,
 ) services.AITaskExecutorService {
-	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir, cfg.GitCloneTimeoutDuration)
+	gitCloneTimeout, err := systemConfigService.GetGitCloneTimeout()
+	if err != nil {
+		utils.Error("Failed to get git clone timeout from system config, using default", "error", err)
+		gitCloneTimeout = 5 * time.Minute
+	}
+	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir, gitCloneTimeout)
 
 	logAppender := &logAppenderImpl{
 		execLogRepo: execLogRepo,
@@ -375,12 +380,18 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 			return
 		}
 
+		gitSSLVerify, err := s.systemConfigService.GetGitSSLVerify()
+		if err != nil {
+			utils.Warn("Failed to get git SSL verify setting, using default false", "error", err)
+			gitSSLVerify = false
+		}
+
 		if err := s.workspaceManager.CloneRepositoryWithConfig(
 			workspacePath,
 			conv.Task.Project.RepoURL,
 			conv.Task.StartBranch,
 			credential,
-			s.config.GitSSLVerify,
+			gitSSLVerify,
 			proxyConfig,
 		); err != nil {
 			finalStatus = database.ConversationStatusFailed

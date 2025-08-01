@@ -17,6 +17,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 	"xsha-backend/config"
 	"xsha-backend/database"
 	"xsha-backend/handlers"
@@ -63,18 +64,25 @@ func main() {
 	taskConvResultRepo := repository.NewTaskConversationResultRepository(dbManager.GetDB())
 	systemConfigRepo := repository.NewSystemConfigRepository(dbManager.GetDB())
 
-	// Initialize workspace manager
-	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir, cfg.GitCloneTimeoutDuration)
-
 	// Initialize services
 	loginLogService := services.NewLoginLogService(loginLogRepo)
 	adminOperationLogService := services.NewAdminOperationLogService(adminOperationLogRepo)
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, systemConfigRepo, cfg)
 	gitCredService := services.NewGitCredentialService(gitCredRepo, projectRepo, cfg)
 	systemConfigService := services.NewSystemConfigService(systemConfigRepo)
+
+	// Get git clone timeout from system config
+	gitCloneTimeout, err := systemConfigService.GetGitCloneTimeout()
+	if err != nil {
+		utils.Error("Failed to get git clone timeout from system config, using default", "error", err)
+		gitCloneTimeout = 5 * time.Minute
+	}
+
+	// Initialize workspace manager
+	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir, gitCloneTimeout)
 	devEnvService := services.NewDevEnvironmentService(devEnvRepo, taskRepo, systemConfigService)
-	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, taskRepo, systemConfigRepo, cfg)
-	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, workspaceManager, cfg, gitCredService, systemConfigRepo)
+	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, taskRepo, systemConfigService, cfg)
+	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, workspaceManager, cfg, gitCredService, systemConfigService)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo)
 	taskConvResultService := services.NewTaskConversationResultService(taskConvResultRepo, taskConvRepo, taskRepo, projectRepo)
 	aiTaskExecutor := executor.NewAITaskExecutorService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, gitCredService, taskConvResultService, taskService, systemConfigService, cfg)

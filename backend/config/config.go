@@ -37,12 +37,7 @@ type Config struct {
 	SchedulerInterval         string
 	SchedulerIntervalDuration time.Duration
 	WorkspaceBaseDir          string
-	DockerExecutionTimeout    string
-	GitCloneTimeout           string
-	GitCloneTimeoutDuration   time.Duration
 	MaxConcurrentTasks        int
-
-	GitSSLVerify bool
 
 	LogLevel  LogLevel
 	LogFormat LogFormat
@@ -50,43 +45,27 @@ type Config struct {
 }
 
 func Load() *Config {
-
 	if err := godotenv.Load(); err != nil {
 		fmt.Printf("No .env file found or failed to load, using environment variables and default values: %v\n", err)
 	} else {
 		fmt.Println("Successfully loaded .env file")
 	}
 
-	aesKey := normalizeAESKey(getEnv("XSHA_AES_KEY", "default-aes-key-change-in-production"))
-
 	config := &Config{
-		Port:         getEnv("XSHA_PORT", "8080"),
-		Environment:  getEnv("XSHA_ENVIRONMENT", "production"),
-		DatabaseType: getEnv("XSHA_DATABASE_TYPE", "sqlite"),
-		SQLitePath:   getEnv("XSHA_SQLITE_PATH", "app.db"),
-		MySQLDSN:     getEnv("XSHA_MYSQL_DSN", ""),
-		JWTSecret:    getEnv("XSHA_JWT_SECRET", "your-jwt-secret-key-change-this-in-production"),
-		AESKey:       aesKey,
-
-		SchedulerInterval:      getEnv("XSHA_SCHEDULER_INTERVAL", "5s"),
-		WorkspaceBaseDir:       getEnv("XSHA_WORKSPACE_BASE_DIR", "/tmp/xsha-workspaces"),
-		DockerExecutionTimeout: getEnv("XSHA_DOCKER_TIMEOUT", "120m"),
-		GitCloneTimeout:        getEnv("XSHA_GIT_CLONE_TIMEOUT", "5m"),
-		MaxConcurrentTasks:     getEnvInt("XSHA_MAX_CONCURRENT_TASKS", 8),
-
-		GitSSLVerify: getEnvBool("XSHA_GIT_SSL_VERIFY", false),
-
-		LogLevel:  LogLevel(getEnv("XSHA_LOG_LEVEL", "INFO")),
-		LogFormat: LogFormat(getEnv("XSHA_LOG_FORMAT", "JSON")),
-		LogOutput: getEnv("XSHA_LOG_OUTPUT", "stdout"),
+		Port:               getEnv("XSHA_PORT", "8080"),
+		Environment:        getEnv("XSHA_ENVIRONMENT", "production"),
+		DatabaseType:       getEnv("XSHA_DATABASE_TYPE", "sqlite"),
+		SQLitePath:         getEnv("XSHA_SQLITE_PATH", "app.db"),
+		MySQLDSN:           getEnv("XSHA_MYSQL_DSN", ""),
+		JWTSecret:          getEnv("XSHA_JWT_SECRET", "your-jwt-secret-key-change-this-in-production"),
+		AESKey:             normalizeAESKey(getEnv("XSHA_AES_KEY", "default-aes-key-change-in-production")),
+		SchedulerInterval:  getEnv("XSHA_SCHEDULER_INTERVAL", "5s"),
+		WorkspaceBaseDir:   getEnv("XSHA_WORKSPACE_BASE_DIR", "/tmp/xsha-workspaces"),
+		MaxConcurrentTasks: getEnvInt("XSHA_MAX_CONCURRENT_TASKS", 8),
+		LogLevel:           LogLevel(getEnv("XSHA_LOG_LEVEL", "INFO")),
+		LogFormat:          LogFormat(getEnv("XSHA_LOG_FORMAT", "JSON")),
+		LogOutput:          getEnv("XSHA_LOG_OUTPUT", "stdout"),
 	}
-
-	gitCloneTimeout, err := time.ParseDuration(config.GitCloneTimeout)
-	if err != nil {
-		fmt.Printf("Warning: Failed to parse git clone timeout, using default 5 minutes. timeout=%s error=%v\n", config.GitCloneTimeout, err)
-		gitCloneTimeout = 5 * time.Minute
-	}
-	config.GitCloneTimeoutDuration = gitCloneTimeout
 
 	schedulerInterval, err := time.ParseDuration(config.SchedulerInterval)
 	if err != nil {
@@ -111,16 +90,6 @@ func getEnvInt(key string, defaultValue int) int {
 			return intValue
 		}
 		fmt.Printf("Warning: Failed to parse environment variable as integer, using default value. key=%s value=%s default=%d\n", key, value, defaultValue)
-	}
-	return defaultValue
-}
-
-func getEnvBool(key string, defaultValue bool) bool {
-	if value := os.Getenv(key); value != "" {
-		if boolValue, err := strconv.ParseBool(value); err == nil {
-			return boolValue
-		}
-		fmt.Printf("Warning: Failed to parse environment variable as boolean, using default value. key=%s value=%s default=%t\n", key, value, defaultValue)
 	}
 	return defaultValue
 }

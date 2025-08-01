@@ -14,24 +14,24 @@ import (
 )
 
 type taskService struct {
-	repo             repository.TaskRepository
-	projectRepo      repository.ProjectRepository
-	devEnvRepo       repository.DevEnvironmentRepository
-	workspaceManager *utils.WorkspaceManager
-	config           *config.Config
-	gitCredService   GitCredentialService
-	systemConfigRepo repository.SystemConfigRepository
+	repo                repository.TaskRepository
+	projectRepo         repository.ProjectRepository
+	devEnvRepo          repository.DevEnvironmentRepository
+	workspaceManager    *utils.WorkspaceManager
+	config              *config.Config
+	gitCredService      GitCredentialService
+	systemConfigService SystemConfigService
 }
 
-func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository, workspaceManager *utils.WorkspaceManager, cfg *config.Config, gitCredService GitCredentialService, systemConfigRepo repository.SystemConfigRepository) TaskService {
+func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository, workspaceManager *utils.WorkspaceManager, cfg *config.Config, gitCredService GitCredentialService, systemConfigService SystemConfigService) TaskService {
 	return &taskService{
-		repo:             repo,
-		projectRepo:      projectRepo,
-		devEnvRepo:       devEnvRepo,
-		workspaceManager: workspaceManager,
-		config:           cfg,
-		gitCredService:   gitCredService,
-		systemConfigRepo: systemConfigRepo,
+		repo:                repo,
+		projectRepo:         projectRepo,
+		devEnvRepo:          devEnvRepo,
+		workspaceManager:    workspaceManager,
+		config:              cfg,
+		gitCredService:      gitCredService,
+		systemConfigService: systemConfigService,
 	}
 }
 
@@ -402,12 +402,18 @@ func (s *taskService) PushTaskBranch(id uint, forcePush bool) (string, error) {
 		proxyConfig = nil
 	}
 
+	gitSSLVerify, err := s.systemConfigService.GetGitSSLVerify()
+	if err != nil {
+		utils.Warn("Failed to get git SSL verify setting, using default false", "error", err)
+		gitSSLVerify = false
+	}
+
 	output, err := s.workspaceManager.PushBranch(
 		task.WorkspacePath,
 		task.WorkBranch,
 		task.Project.RepoURL,
 		credential,
-		s.config.GitSSLVerify,
+		gitSSLVerify,
 		proxyConfig,
 		forcePush,
 	)
@@ -422,23 +428,5 @@ func (s *taskService) PushTaskBranch(id uint, forcePush bool) (string, error) {
 }
 
 func (s *taskService) getGitProxyConfig() (*utils.GitProxyConfig, error) {
-	enabled, err := s.systemConfigRepo.GetValue("git_proxy_enabled")
-	if err != nil {
-		return nil, err
-	}
-
-	if enabled != "true" {
-		return &utils.GitProxyConfig{Enabled: false}, nil
-	}
-
-	httpProxy, _ := s.systemConfigRepo.GetValue("git_proxy_http")
-	httpsProxy, _ := s.systemConfigRepo.GetValue("git_proxy_https")
-	noProxy, _ := s.systemConfigRepo.GetValue("git_proxy_no_proxy")
-
-	return &utils.GitProxyConfig{
-		Enabled:    true,
-		HttpProxy:  httpProxy,
-		HttpsProxy: httpsProxy,
-		NoProxy:    noProxy,
-	}, nil
+	return s.systemConfigService.GetGitProxyConfig()
 }

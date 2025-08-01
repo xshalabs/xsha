@@ -135,4 +135,7 @@ type SystemConfigService interface {
 	InitializeDefaultConfigs() error
 	ValidateConfigData(key, value, category string) error
 	GetGitProxyConfig() (*utils.GitProxyConfig, error)
+	GetGitCloneTimeout() (time.Duration, error)
+	GetGitSSLVerify() (bool, error)
+	GetDockerTimeout() (time.Duration, error)
 }

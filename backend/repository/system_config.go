@@ -175,6 +175,30 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			formType:    string(database.ConfigFormTypeInput),
 			sortOrder:   70,
 		},
+		{
+			key:         "git_clone_timeout",
+			value:       "5m",
+			description: "Timeout for Git clone operations (e.g., 5m, 300s)",
+			category:    "git",
+			formType:    string(database.ConfigFormTypeInput),
+			sortOrder:   80,
+		},
+		{
+			key:         "git_ssl_verify",
+			value:       "false",
+			description: "Enable or disable SSL verification for Git operations",
+			category:    "git",
+			formType:    string(database.ConfigFormTypeSwitch),
+			sortOrder:   90,
+		},
+		{
+			key:         "docker_timeout",
+			value:       "120m",
+			description: "Timeout for Docker execution operations (e.g., 120m, 7200s)",
+			category:    "docker",
+			formType:    string(database.ConfigFormTypeInput),
+			sortOrder:   100,
+		},
 	}
 
 	for _, config := range defaultConfigs {

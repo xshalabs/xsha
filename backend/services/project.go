@@ -12,12 +12,12 @@ import (
 )
 
 type projectService struct {
-	repo             repository.ProjectRepository
-	gitCredRepo      repository.GitCredentialRepository
-	gitCredService   GitCredentialService
-	taskRepo         repository.TaskRepository
-	systemConfigRepo repository.SystemConfigRepository
-	config           *config.Config
+	repo                repository.ProjectRepository
+	gitCredRepo         repository.GitCredentialRepository
+	gitCredService      GitCredentialService
+	taskRepo            repository.TaskRepository
+	systemConfigService SystemConfigService
+	config              *config.Config
 }
 
 type ProjectWithTaskCount struct {
@@ -25,14 +25,14 @@ type ProjectWithTaskCount struct {
 	TaskCount int64 `json:"task_count"`
 }
 
-func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository.GitCredentialRepository, gitCredService GitCredentialService, taskRepo repository.TaskRepository, systemConfigRepo repository.SystemConfigRepository, cfg *config.Config) ProjectService {
+func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository.GitCredentialRepository, gitCredService GitCredentialService, taskRepo repository.TaskRepository, systemConfigService SystemConfigService, cfg *config.Config) ProjectService {
 	return &projectService{
-		repo:             repo,
-		gitCredRepo:      gitCredRepo,
-		gitCredService:   gitCredService,
-		taskRepo:         taskRepo,
-		systemConfigRepo: systemConfigRepo,
-		config:           cfg,
+		repo:                repo,
+		gitCredRepo:         gitCredRepo,
+		gitCredService:      gitCredService,
+		taskRepo:            taskRepo,
+		systemConfigService: systemConfigService,
+		config:              cfg,
 	}
 }
 
@@ -277,29 +277,17 @@ func (s *projectService) FetchRepositoryBranches(repoURL string, credentialID *u
 		proxyConfig = nil
 	}
 
-	return utils.FetchRepositoryBranchesWithConfig(repoURL, credentialInfo, s.config.GitSSLVerify, proxyConfig)
+	gitSSLVerify, err := s.systemConfigService.GetGitSSLVerify()
+	if err != nil {
+		utils.Warn("Failed to get git SSL verify setting, using default false", "error", err)
+		gitSSLVerify = false
+	}
+
+	return utils.FetchRepositoryBranchesWithConfig(repoURL, credentialInfo, gitSSLVerify, proxyConfig)
 }
 
 func (s *projectService) getGitProxyConfig() (*utils.GitProxyConfig, error) {
-	enabled, err := s.systemConfigRepo.GetValue("git_proxy_enabled")
-	if err != nil {
-		return nil, err
-	}
-
-	if enabled != "true" {
-		return &utils.GitProxyConfig{Enabled: false}, nil
-	}
-
-	httpProxy, _ := s.systemConfigRepo.GetValue("git_proxy_http")
-	httpsProxy, _ := s.systemConfigRepo.GetValue("git_proxy_https")
-	noProxy, _ := s.systemConfigRepo.GetValue("git_proxy_no_proxy")
-
-	return &utils.GitProxyConfig{
-		Enabled:    true,
-		HttpProxy:  httpProxy,
-		HttpsProxy: httpsProxy,
-		NoProxy:    noProxy,
-	}, nil
+	return s.systemConfigService.GetGitProxyConfig()
 }
 
 func (s *projectService) ValidateRepositoryAccess(repoURL string, credentialID *uint) error {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 	"xsha-backend/database"
 	"xsha-backend/repository"
 	"xsha-backend/utils"
@@ -70,7 +71,6 @@ func (s *systemConfigService) ValidateConfigData(key, value, category string) er
 		return errors.New("configuration key is required")
 	}
 
-	// Git proxy configurations are optional and can be empty
 	allowEmptyValue := s.isOptionalConfig(key)
 	if !allowEmptyValue && strings.TrimSpace(value) == "" {
 		return errors.New("configuration value is required")
@@ -138,4 +138,58 @@ func (s *systemConfigService) GetGitProxyConfig() (*utils.GitProxyConfig, error)
 		HttpsProxy: httpsProxy,
 		NoProxy:    noProxy,
 	}, nil
+}
+
+func (s *systemConfigService) GetGitCloneTimeout() (time.Duration, error) {
+	timeoutStr, err := s.repo.GetValue("git_clone_timeout")
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return 5 * time.Minute, nil
+		}
+		return 0, fmt.Errorf("failed to get git_clone_timeout: %v", err)
+	}
+
+	timeout, err := time.ParseDuration(timeoutStr)
+	if err != nil {
+		utils.Error("Failed to parse git clone timeout, using default 5 minutes", "timeout", timeoutStr, "error", err)
+		return 5 * time.Minute, nil
+	}
+
+	return timeout, nil
+}
+
+func (s *systemConfigService) GetGitSSLVerify() (bool, error) {
+	verifyStr, err := s.repo.GetValue("git_ssl_verify")
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to get git_ssl_verify: %v", err)
+	}
+
+	verify, err := strconv.ParseBool(verifyStr)
+	if err != nil {
+		utils.Error("Failed to parse git SSL verify, using default false", "value", verifyStr, "error", err)
+		return false, nil
+	}
+
+	return verify, nil
+}
+
+func (s *systemConfigService) GetDockerTimeout() (time.Duration, error) {
+	timeoutStr, err := s.repo.GetValue("docker_timeout")
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return 120 * time.Minute, nil
+		}
+		return 0, fmt.Errorf("failed to get docker_timeout: %v", err)
+	}
+
+	timeout, err := time.ParseDuration(timeoutStr)
+	if err != nil {
+		utils.Error("Failed to parse docker timeout, using default 120 minutes", "timeout", timeoutStr, "error", err)
+		return 120 * time.Minute, nil
+	}
+
+	return timeout, nil
 }
