@@ -24,7 +24,7 @@ func NewGitCredentialService(repo repository.GitCredentialRepository, projectRep
 	}
 }
 
-func (s *gitCredentialService) CreateCredential(name, description, credType, username string, secretData map[string]string) (*database.GitCredential, error) {
+func (s *gitCredentialService) CreateCredential(name, description, credType, username string, secretData map[string]string, createdBy string) (*database.GitCredential, error) {
 	if err := s.ValidateCredentialData(credType, secretData); err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func (s *gitCredentialService) CreateCredential(name, description, credType, use
 		Description: description,
 		Type:        database.GitCredentialType(credType),
 		Username:    username,
-		CreatedBy:   "admin",
+		CreatedBy:   createdBy,
 	}
 
 	switch database.GitCredentialType(credType) {

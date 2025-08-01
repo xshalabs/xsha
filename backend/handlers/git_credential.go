@@ -53,6 +53,14 @@ type UpdateCredentialRequest struct {
 func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "auth.unauthorized"),
+		})
+		return
+	}
+
 	var req CreateCredentialRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -63,7 +71,7 @@ func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 
 	credential, err := h.gitCredService.CreateCredential(
 		req.Name, req.Description, req.Type, req.Username,
-		req.SecretData,
+		req.SecretData, username.(string),
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{

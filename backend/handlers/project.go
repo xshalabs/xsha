@@ -55,6 +55,14 @@ type UpdateProjectRequest struct {
 func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "auth.unauthorized"),
+		})
+		return
+	}
+
 	var req CreateProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -65,7 +73,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 
 	project, err := h.projectService.CreateProject(
 		req.Name, req.Description, req.RepoURL, req.Protocol,
-		req.CredentialID,
+		req.CredentialID, username.(string),
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{

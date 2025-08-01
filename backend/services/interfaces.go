@@ -19,7 +19,7 @@ type LoginLogService interface {
 }
 
 type GitCredentialService interface {
-	CreateCredential(name, description, credType, username string, secretData map[string]string) (*database.GitCredential, error)
+	CreateCredential(name, description, credType, username string, secretData map[string]string, createdBy string) (*database.GitCredential, error)
 	GetCredential(id uint) (*database.GitCredential, error)
 	ListCredentials(credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
 	UpdateCredential(id uint, updates map[string]interface{}, secretData map[string]string) error
@@ -30,7 +30,7 @@ type GitCredentialService interface {
 }
 
 type ProjectService interface {
-	CreateProject(name, description, repoURL, protocol string, credentialID *uint) (*database.Project, error)
+	CreateProject(name, description, repoURL, protocol string, credentialID *uint, createdBy string) (*database.Project, error)
 	GetProject(id uint) (*database.Project, error)
 	ListProjects(name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
 	ListProjectsWithTaskCount(name string, protocol *database.GitProtocolType, page, pageSize int) (interface{}, int64, error)
