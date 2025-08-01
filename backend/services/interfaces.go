@@ -125,10 +125,6 @@ type AITaskExecutorService interface {
 type ConfigUpdateItem struct {
 	ConfigKey   string
 	ConfigValue string
-	Description string
-	Category    string
-	FormType    string
-	IsEditable  *bool
 }
 
 type SystemConfigService interface {

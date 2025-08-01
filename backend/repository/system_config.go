@@ -30,7 +30,7 @@ func (r *systemConfigRepository) GetByKey(key string) (*database.SystemConfig, e
 
 func (r *systemConfigRepository) ListAll() ([]database.SystemConfig, error) {
 	var configs []database.SystemConfig
-	err := r.db.Order("category, config_key").Find(&configs).Error
+	err := r.db.Order("sort_order ASC").Find(&configs).Error
 	return configs, err
 }
 
@@ -65,11 +65,10 @@ func (r *systemConfigRepository) SetValue(key, value string) error {
 	return r.Update(config)
 }
 
-func (r *systemConfigRepository) SetValueWithCategory(key, value, description, category, formType string, isEditable bool) error {
+func (r *systemConfigRepository) SetValueWithCategoryAndSort(key, value, description, category, formType string, isEditable bool, sortOrder int) error {
 	config, err := r.GetByKey(key)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			// Set default FormType if not provided
 			if formType == "" {
 				formType = string(database.ConfigFormTypeInput)
 			}
@@ -80,6 +79,7 @@ func (r *systemConfigRepository) SetValueWithCategory(key, value, description, c
 				Category:    category,
 				FormType:    database.ConfigFormType(formType),
 				IsEditable:  isEditable,
+				SortOrder:   sortOrder,
 			}
 			return r.Create(newConfig)
 		}
@@ -93,6 +93,7 @@ func (r *systemConfigRepository) SetValueWithCategory(key, value, description, c
 		config.FormType = database.ConfigFormType(formType)
 	}
 	config.IsEditable = isEditable
+	config.SortOrder = sortOrder
 	return r.Update(config)
 }
 
@@ -110,13 +111,13 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		return err
 	}
 
-	// Define default configurations
 	defaultConfigs := []struct {
 		key         string
 		value       string
 		description string
 		category    string
 		formType    string
+		sortOrder   int
 	}{
 		{
 			key:         "admin_user",
@@ -124,6 +125,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			description: "Administrator username for system login",
 			category:    "auth",
 			formType:    string(database.ConfigFormTypeInput),
+			sortOrder:   10,
 		},
 		{
 			key:         "admin_password",
@@ -131,6 +133,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			description: "Administrator password for system login",
 			category:    "auth",
 			formType:    string(database.ConfigFormTypePassword),
+			sortOrder:   20,
 		},
 		{
 			key:         "dev_environment_types",
@@ -138,6 +141,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			description: "Development environment type configuration, defines available development environments and their corresponding Docker images",
 			category:    "dev_environment",
 			formType:    string(database.ConfigFormTypeTextarea),
+			sortOrder:   30,
 		},
 		{
 			key:         "git_proxy_enabled",
@@ -145,6 +149,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			description: "Enable or disable HTTP proxy for Git operations",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeSwitch),
+			sortOrder:   40,
 		},
 		{
 			key:         "git_proxy_http",
@@ -152,6 +157,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			description: "HTTP proxy URL for Git operations (e.g., http://proxy.example.com:8080)",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
+			sortOrder:   50,
 		},
 		{
 			key:         "git_proxy_https",
@@ -159,6 +165,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			description: "HTTPS proxy URL for Git operations (e.g., https://proxy.example.com:8080)",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
+			sortOrder:   60,
 		},
 		{
 			key:         "git_proxy_no_proxy",
@@ -166,29 +173,28 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			description: "Comma-separated list of domains to bypass proxy (e.g., localhost,127.0.0.1,.local)",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
+			sortOrder:   70,
 		},
 	}
 
-	// Initialize all configurations with duplicate check
 	for _, config := range defaultConfigs {
-		// Check if this config already exists
 		existingConfig, err := r.GetByKey(config.key)
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return err
 		}
 
-		// Skip if config already exists
 		if existingConfig != nil {
 			continue
 		}
 
-		if err := r.SetValueWithCategory(
+		if err := r.SetValueWithCategoryAndSort(
 			config.key,
 			config.value,
 			config.description,
 			config.category,
 			config.formType,
 			true,
+			config.sortOrder,
 		); err != nil {
 			return err
 		}

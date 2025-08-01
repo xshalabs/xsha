@@ -179,10 +179,6 @@ export default function SystemConfigEditPage() {
         .map((config) => ({
           config_key: config.config_key,
           config_value: formData[config.config_key] !== undefined ? formData[config.config_key] : config.config_value,
-          description: config.description,
-          category: config.category,
-          form_type: config.form_type,
-          is_editable: config.is_editable,
         }));
 
       await systemConfigsApi.batchUpdate({ configs: updateItems });

@@ -10,15 +10,12 @@ export interface SystemConfig {
   category: string;
   form_type: FormType;
   is_editable: boolean;
+  sort_order: number;
 }
 
 export interface ConfigUpdateItem {
   config_key: string;
   config_value: string;
-  description?: string;
-  category?: string;
-  form_type?: FormType;
-  is_editable?: boolean;
 }
 
 export interface SystemConfigListResponse {

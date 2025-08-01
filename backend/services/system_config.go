@@ -28,56 +28,25 @@ func (s *systemConfigService) ListAllConfigs() ([]database.SystemConfig, error) 
 
 func (s *systemConfigService) BatchUpdateConfigs(configItems []ConfigUpdateItem) error {
 	for _, item := range configItems {
-		if err := s.ValidateConfigData(item.ConfigKey, item.ConfigValue, item.Category); err != nil {
-			return fmt.Errorf("validation failed for key %s: %v", item.ConfigKey, err)
-		}
-
 		existingConfig, err := s.repo.GetByKey(item.ConfigKey)
-		if err != nil && err != gorm.ErrRecordNotFound {
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return fmt.Errorf("configuration %s does not exist", item.ConfigKey)
+			}
 			return fmt.Errorf("failed to check existing config for key %s: %v", item.ConfigKey, err)
 		}
 
-		if existingConfig != nil {
-			if !existingConfig.IsEditable {
-				return fmt.Errorf("configuration %s is not editable", item.ConfigKey)
-			}
+		if !existingConfig.IsEditable {
+			return fmt.Errorf("configuration %s is not editable", item.ConfigKey)
+		}
 
-			existingConfig.ConfigValue = item.ConfigValue
-			if item.Description != "" {
-				existingConfig.Description = item.Description
-			}
-			if item.Category != "" {
-				existingConfig.Category = item.Category
-			}
-			if item.FormType != "" {
-				existingConfig.FormType = database.ConfigFormType(item.FormType)
-			}
-			if item.IsEditable != nil {
-				existingConfig.IsEditable = *item.IsEditable
-			}
+		if err := s.ValidateConfigData(item.ConfigKey, item.ConfigValue, existingConfig.Category); err != nil {
+			return fmt.Errorf("validation failed for key %s: %v", item.ConfigKey, err)
+		}
 
-			if err := s.repo.Update(existingConfig); err != nil {
-				return fmt.Errorf("failed to update config %s: %v", item.ConfigKey, err)
-			}
-		} else {
-			isEditable := true
-			if item.IsEditable != nil {
-				isEditable = *item.IsEditable
-			}
-
-			category := item.Category
-			if category == "" {
-				category = "general"
-			}
-
-			formType := item.FormType
-			if formType == "" {
-				formType = string(database.ConfigFormTypeInput)
-			}
-
-			if err := s.repo.SetValueWithCategory(item.ConfigKey, item.ConfigValue, item.Description, category, formType, isEditable); err != nil {
-				return fmt.Errorf("failed to create config %s: %v", item.ConfigKey, err)
-			}
+		existingConfig.ConfigValue = item.ConfigValue
+		if err := s.repo.Update(existingConfig); err != nil {
+			return fmt.Errorf("failed to update config %s: %v", item.ConfigKey, err)
 		}
 	}
 

@@ -279,4 +279,5 @@ type SystemConfig struct {
 	Category    string         `gorm:"not null;index;default:'general'" json:"category"`
 	FormType    ConfigFormType `gorm:"not null;default:'input'" json:"form_type"`
 	IsEditable  bool           `gorm:"not null;default:true" json:"is_editable"`
+	SortOrder   int            `gorm:"not null;default:0;index" json:"sort_order"`
 }

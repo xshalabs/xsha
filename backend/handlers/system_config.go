@@ -22,10 +22,6 @@ func NewSystemConfigHandlers(configService services.SystemConfigService) *System
 type ConfigUpdateItem struct {
 	ConfigKey   string `json:"config_key" binding:"required"`
 	ConfigValue string `json:"config_value" binding:"required"`
-	Description string `json:"description"`
-	Category    string `json:"category"`
-	FormType    string `json:"form_type"`
-	IsEditable  *bool  `json:"is_editable"`
 }
 
 type BatchUpdateConfigsRequest struct {
@@ -84,10 +80,6 @@ func (h *SystemConfigHandlers) BatchUpdateConfigs(c *gin.Context) {
 		configItems = append(configItems, services.ConfigUpdateItem{
 			ConfigKey:   config.ConfigKey,
 			ConfigValue: config.ConfigValue,
-			Description: config.Description,
-			Category:    config.Category,
-			FormType:    config.FormType,
-			IsEditable:  config.IsEditable,
 		})
 	}
 
