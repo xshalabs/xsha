@@ -34,7 +34,7 @@ WORKDIR /app
 RUN apk add --no-cache git ca-certificates tzdata gcc musl-dev sqlite-dev
 
 # Set timezone
-ENV TZ=Asia/Shanghai
+ENV TZ=UTC
 
 # Copy go mod files
 COPY backend/go.mod backend/go.sum ./
@@ -58,7 +58,7 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates tzdata curl docker-cli sqlite
 
 # Set timezone
-ENV TZ=Asia/Shanghai
+ENV TZ=UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Create non-root user and add to docker group
@@ -74,9 +74,6 @@ COPY --from=backend-builder /app/main .
 
 # Copy internationalization files
 COPY --from=backend-builder /app/i18n/locales ./i18n/locales/
-
-# Copy frontend static files
-COPY --from=backend-builder /app/static ./static/
 
 # Set file permissions
 RUN chown -R appuser:appgroup /app
