@@ -12,10 +12,12 @@ env:
 
 jobs:
   build-and-push:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+      id-token: write
       
     steps:
       - name: Checkout repository
@@ -68,8 +70,3 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
-
-permissions:
-  contents: read
-  packages: write
-  id-token: write
