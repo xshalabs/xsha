@@ -54,7 +54,7 @@ cd xsha
 2. **启动应用程序**
 
 ```bash
-docker-compose up -d
+docker-compose -f docker-compose.cn.yml up -d
 ```
 
 3. **访问应用程序**
