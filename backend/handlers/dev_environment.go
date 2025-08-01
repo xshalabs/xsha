@@ -79,7 +79,7 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "dev_environment.create_failed") + ": " + err.Error(),
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
@@ -233,7 +233,7 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	err = h.devEnvService.UpdateEnvironment(uint(id), updates)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "dev_environment.update_failed") + ": " + err.Error(),
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
@@ -242,7 +242,7 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 		err = h.devEnvService.UpdateEnvironmentVars(uint(id), req.EnvVars)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": i18n.T(lang, "dev_environment.env_vars_update_failed") + ": " + err.Error(),
+				"error": i18n.MapErrorToI18nKey(err, lang),
 			})
 			return
 		}
@@ -279,7 +279,7 @@ func (h *DevEnvironmentHandlers) DeleteEnvironment(c *gin.Context) {
 	err = h.devEnvService.DeleteEnvironment(uint(id))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "dev_environment.delete_failed") + ": " + err.Error(),
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
@@ -315,7 +315,7 @@ func (h *DevEnvironmentHandlers) GetEnvironmentVars(c *gin.Context) {
 	envVars, err := h.devEnvService.GetEnvironmentVars(uint(id))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "dev_environment.env_vars_get_failed") + ": " + err.Error(),
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
@@ -360,7 +360,7 @@ func (h *DevEnvironmentHandlers) UpdateEnvironmentVars(c *gin.Context) {
 	err = h.devEnvService.UpdateEnvironmentVars(uint(id), envVars)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "dev_environment.env_vars_update_failed") + ": " + err.Error(),
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
@@ -385,7 +385,7 @@ func (h *DevEnvironmentHandlers) GetAvailableTypes(c *gin.Context) {
 	types, err := h.devEnvService.GetAvailableEnvironmentTypes()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "dev_environment.get_types_failed") + ": " + err.Error(),
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
