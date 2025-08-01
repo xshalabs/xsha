@@ -15,9 +15,10 @@ jobs:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
       id-token: write
+      attestations: write
       
     steps:
       - name: Checkout repository
