@@ -35,7 +35,7 @@ func NewTaskService(repo repository.TaskRepository, projectRepo repository.Proje
 	}
 }
 
-func (s *taskService) CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint) (*database.Task, error) {
+func (s *taskService) CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint, createdBy string) (*database.Task, error) {
 	if err := s.ValidateTaskData(title, startBranch, projectID); err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (s *taskService) CreateTask(title, startBranch string, projectID uint, devE
 		}
 	}
 
-	workBranch := utils.GenerateWorkBranchName(title, "admin")
+	workBranch := utils.GenerateWorkBranchName(title, createdBy)
 
 	task := &database.Task{
 		Title:            strings.TrimSpace(title),
@@ -62,7 +62,7 @@ func (s *taskService) CreateTask(title, startBranch string, projectID uint, devE
 		Status:           database.TaskStatusTodo,
 		ProjectID:        projectID,
 		DevEnvironmentID: devEnvironmentID,
-		CreatedBy:        "admin",
+		CreatedBy:        createdBy,
 	}
 
 	if err := s.repo.Create(task); err != nil {

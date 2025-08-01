@@ -53,6 +53,14 @@ type UpdateEnvironmentRequest struct {
 func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "auth.unauthorized"),
+		})
+		return
+	}
+
 	var req CreateEnvironmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -67,7 +75,7 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 
 	env, err := h.devEnvService.CreateEnvironment(
 		req.Name, req.Description, req.Type,
-		req.CPULimit, req.MemoryLimit, req.EnvVars,
+		req.CPULimit, req.MemoryLimit, req.EnvVars, username.(string),
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{

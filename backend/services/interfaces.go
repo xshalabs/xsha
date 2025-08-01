@@ -60,7 +60,7 @@ type AdminOperationLogService interface {
 }
 
 type DevEnvironmentService interface {
-	CreateEnvironment(name, description, envType string, cpuLimit float64, memoryLimit int64, envVars map[string]string) (*database.DevEnvironment, error)
+	CreateEnvironment(name, description, envType string, cpuLimit float64, memoryLimit int64, envVars map[string]string, createdBy string) (*database.DevEnvironment, error)
 	GetEnvironment(id uint) (*database.DevEnvironment, error)
 	ListEnvironments(envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
 	UpdateEnvironment(id uint, updates map[string]interface{}) error
@@ -73,7 +73,7 @@ type DevEnvironmentService interface {
 }
 
 type TaskService interface {
-	CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint) (*database.Task, error)
+	CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint, createdBy string) (*database.Task, error)
 	GetTask(id uint) (*database.Task, error)
 	ListTasks(projectID *uint, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error)
 	UpdateTask(id uint, updates map[string]interface{}) error
