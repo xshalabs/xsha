@@ -1,6 +1,6 @@
 # Multi-stage build Dockerfile
 # Stage 1: Frontend build environment
-FROM node:20-alpine AS frontend-builder
+FROM m.daocloud.io/docker.io/library/node:20-alpine AS frontend-builder
 
 # Install pnpm
 RUN npm install -g pnpm
@@ -21,7 +21,7 @@ COPY frontend/ .
 RUN pnpm run build
 
 # Stage 2: Backend build environment
-FROM golang:1.23.1-alpine AS backend-builder
+FROM m.daocloud.io/docker.io/library/golang:1.23.1-alpine AS backend-builder
 
 # Set working directory
 WORKDIR /app
@@ -49,7 +49,7 @@ COPY --from=frontend-builder /app/backend/static ./static
 RUN CGO_ENABLED=1 go build -ldflags="-w -s" -o main .
 
 # Stage 3: Runtime environment
-FROM alpine:latest
+FROM m.daocloud.io/docker.io/library/alpine:latest
 
 # Install necessary packages including Docker CLI and SQLite runtime
 RUN apk --no-cache add ca-certificates tzdata curl docker-cli sqlite

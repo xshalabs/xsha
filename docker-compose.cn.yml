@@ -4,7 +4,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile_CN
     container_name: xsha
     ports:
       - "8080:8080"
