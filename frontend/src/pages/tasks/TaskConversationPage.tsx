@@ -172,7 +172,7 @@ const TaskConversationPage: React.FC = () => {
   const handlePushBranch = async () => {
     if (!task?.work_branch) {
       toast.error(t("tasks.messages.push_failed"), {
-        description: "任务没有工作分支",
+        description: "Task has no work branch",
       });
       return;
     }

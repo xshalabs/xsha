@@ -293,7 +293,7 @@ const TaskListPage: React.FC = () => {
   const handlePushBranch = async (task: Task) => {
     if (!task.work_branch) {
       toast.error(t("tasks.messages.push_failed"), {
-        description: "任务没有工作分支",
+        description: "Task has no work branch",
       });
       return;
     }
@@ -303,7 +303,6 @@ const TaskListPage: React.FC = () => {
   };
 
   const handlePushSuccess = async () => {
-    // 刷新任务列表
     await loadTasks(
       currentPage,
       statusFilter,

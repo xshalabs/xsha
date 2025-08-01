@@ -1,4 +1,4 @@
-export type DevEnvironmentType = string; // 现在是动态的环境类型 key
+export type DevEnvironmentType = string;
 
 export interface DevEnvironment {
   id: number;

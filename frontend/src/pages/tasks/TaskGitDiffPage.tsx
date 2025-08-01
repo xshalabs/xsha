@@ -322,7 +322,9 @@ const TaskGitDiffPage: React.FC = () => {
               <span className="hidden sm:inline">{t("common.back")}</span>
             </Button>
             <Button variant="default" onClick={handleGoToConversation}>
-              <span className="hidden sm:inline">{t("tasks.actions.viewConversation")}</span>
+              <span className="hidden sm:inline">
+                {t("tasks.actions.viewConversation")}
+              </span>
               <span className="sm:hidden">{t("tasks.conversation")}</span>
             </Button>
           </div>
@@ -460,7 +462,10 @@ const TaskGitDiffPage: React.FC = () => {
                 ) : safeFiles.length > 0 ? (
                   <div className="space-y-2">
                     {safeFiles.map((file) => (
-                      <div key={file.path} className="border border-border rounded-lg overflow-hidden">
+                      <div
+                        key={file.path}
+                        className="border border-border rounded-lg overflow-hidden"
+                      >
                         <div
                           className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50"
                           onClick={() => toggleFileExpanded(file.path)}
@@ -510,8 +515,7 @@ const TaskGitDiffPage: React.FC = () => {
                             )}
                           </div>
                         </div>
-                        
-                        {/* 在小屏幕上显示状态标签 */}
+
                         <div className="sm:hidden px-4 pb-3">
                           <div className="flex items-center gap-2">
                             <Badge

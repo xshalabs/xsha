@@ -32,7 +32,6 @@ interface DevEnvironmentFormProps {
   mode: "create" | "edit";
 }
 
-// 默认资源配置，现在将从服务器动态获取
 const defaultResources = {
   cpu: 1.0,
   memory: 1024,
@@ -61,7 +60,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    type: "claude-code" as DevEnvironmentType, // 使用新的 key 格式
+    type: "claude-code" as DevEnvironmentType,
     cpu_limit: 1.0,
     memory_limit: 1024,
   });
@@ -75,21 +74,19 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
     Record<string, string>
   >({});
 
-  // Load available environment types from system configuration
   useEffect(() => {
     const loadEnvironmentTypes = async () => {
       try {
         setLoadingTypes(true);
         const response = await devEnvironmentsApi.getAvailableTypes();
         const types: EnvironmentTypeOption[] = response.types.map((type) => ({
-          value: type.key, // 使用 key 作为 value
-          label: type.name, // 使用 name 作为显示标签
+          value: type.key,
+          label: type.name,
           description: `Docker Image: ${type.image}`,
           image: type.image,
         }));
         setEnvironmentTypes(types);
 
-        // If this is a create form and there are types available, set the first one as default
         if (mode === "create" && types.length > 0) {
           setFormData((prev) => ({
             ...prev,
@@ -98,10 +95,9 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
         }
       } catch (error: any) {
         toast.error(error.message || t("dev_environments.load_types_failed"));
-        // Fallback to default Claude Code type
         setEnvironmentTypes([
           {
-            value: "claude-code", // 使用新的 key 格式
+            value: "claude-code",
             label: "Claude Code",
             description: "Docker Image: claude-code:latest",
             image: "claude-code:latest",
@@ -129,7 +125,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
       setFormData({
         name: "",
         description: "",
-        type: "claude-code", // 使用新的 key 格式
+        type: "claude-code",
         cpu_limit: 1.0,
         memory_limit: 1024,
       });
@@ -174,7 +170,6 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
   };
 
   const handleTypeChange = (type: DevEnvironmentType) => {
-    // 使用默认的资源配置
     setFormData((prev) => ({
       ...prev,
       type,

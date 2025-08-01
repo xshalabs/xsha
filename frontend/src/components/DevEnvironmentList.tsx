@@ -58,8 +58,13 @@ interface DevEnvironmentListProps {
   onDelete: (id: number) => void;
 }
 
-// 默认的颜色配置
-const defaultColors = ["text-blue-600", "text-purple-600", "text-green-600", "text-orange-600", "text-red-600"];
+const defaultColors = [
+  "text-blue-600",
+  "text-purple-600",
+  "text-green-600",
+  "text-orange-600",
+  "text-red-600",
+];
 
 const getTypeColor = (index: number) => {
   return defaultColors[index % defaultColors.length];
@@ -79,8 +84,12 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
 }) => {
   const { t } = useTranslation();
   const [showFilters, setShowFilters] = useState(false);
-  const [environmentTypes, setEnvironmentTypes] = useState<DevEnvironmentTypeConfig[]>([]);
-  const [typeConfigMap, setTypeConfigMap] = useState<Record<string, { label: string; color: string }>>({});
+  const [environmentTypes, setEnvironmentTypes] = useState<
+    DevEnvironmentTypeConfig[]
+  >([]);
+  const [typeConfigMap, setTypeConfigMap] = useState<
+    Record<string, { label: string; color: string }>
+  >({});
   const [localFilters, setLocalFilters] =
     useState<DevEnvironmentListParams>(params);
 
@@ -101,14 +110,12 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
     });
   };
 
-  // 加载环境类型配置
   useEffect(() => {
     const loadEnvironmentTypes = async () => {
       try {
         const response = await devEnvironmentsApi.getAvailableTypes();
         setEnvironmentTypes(response.types);
-        
-        // 创建类型配置映射
+
         const configMap: Record<string, { label: string; color: string }> = {};
         response.types.forEach((type, index) => {
           configMap[type.key] = {
@@ -119,7 +126,6 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
         setTypeConfigMap(configMap);
       } catch (error) {
         console.error("Failed to load environment types:", error);
-        // 使用 fallback 配置
         setTypeConfigMap({
           "claude-code": { label: "Claude Code", color: "text-blue-600" },
         });
@@ -278,9 +284,13 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className={typeConfigMap[environment.type]?.color || "text-gray-600"}
+                          className={
+                            typeConfigMap[environment.type]?.color ||
+                            "text-gray-600"
+                          }
                         >
-                          {typeConfigMap[environment.type]?.label || environment.type}
+                          {typeConfigMap[environment.type]?.label ||
+                            environment.type}
                         </Badge>
                       </TableCell>
                       <TableCell>

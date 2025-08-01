@@ -44,4 +44,4 @@ export const OperationStatsCard: React.FC<OperationStatsCardProps> = ({
       </CardContent>
     </Card>
   );
-}; 
+};

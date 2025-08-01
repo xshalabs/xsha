@@ -6,10 +6,7 @@ export function LanguageSwitcher() {
   const { i18n } = useTranslation();
 
   const handleLanguageChange = (languageCode: string) => {
-    // Update i18next language (this will also update localStorage "i18nextLng")
     i18n.changeLanguage(languageCode);
-    
-    // Also sync to our own storage for backward compatibility
     localStorage.setItem(STORAGE_KEYS.language, languageCode);
   };
 

@@ -19,12 +19,10 @@ export const tokenManager = {
 };
 
 export const getCurrentLanguage = (): string => {
-  // First try to get from i18next storage (primary source)
   const i18nextLang = localStorage.getItem("i18nextLng");
   if (i18nextLang && (i18nextLang === "zh-CN" || i18nextLang === "en-US")) {
     return i18nextLang;
   }
-  
-  // Fallback to our own storage, then default
+
   return localStorage.getItem(STORAGE_KEYS.language) || "zh-CN";
 };

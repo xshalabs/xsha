@@ -82,12 +82,14 @@ export const tasksApi = {
   ): Promise<TaskGitDiffResponse> => {
     const searchParams = new URLSearchParams();
     if (params?.include_content) {
-      searchParams.set('include_content', 'true');
+      searchParams.set("include_content", "true");
     }
-    
-    const url = `/tasks/${taskId}/git-diff${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+
+    const url = `/tasks/${taskId}/git-diff${
+      searchParams.toString() ? `?${searchParams.toString()}` : ""
+    }`;
     return request<TaskGitDiffResponse>(url, {
-      method: 'GET',
+      method: "GET",
     });
   },
 
@@ -96,31 +98,33 @@ export const tasksApi = {
     params: TaskGitDiffFileParams
   ): Promise<TaskGitDiffFileResponse> => {
     const searchParams = new URLSearchParams();
-    searchParams.set('file_path', params.file_path);
-    
+    searchParams.set("file_path", params.file_path);
+
     const url = `/tasks/${taskId}/git-diff/file?${searchParams.toString()}`;
     return request<TaskGitDiffFileResponse>(url, {
-      method: 'GET',
+      method: "GET",
     });
   },
 
-  pushTaskBranch: async (taskId: number, forcePush: boolean = false): Promise<{
+  pushTaskBranch: async (
+    taskId: number,
+    forcePush: boolean = false
+  ): Promise<{
     message: string;
     data: {
       output: string;
     };
   }> => {
     return request(`/tasks/${taskId}/push`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ force_push: forcePush }),
     });
   },
 };
 
-// Git diff types
 export interface GitDiffFile {
   path: string;
-  status: 'added' | 'modified' | 'deleted' | 'renamed';
+  status: "added" | "modified" | "deleted" | "renamed";
   additions: number;
   deletions: number;
   is_binary: boolean;
@@ -155,5 +159,3 @@ export interface TaskGitDiffFileResponse {
     diff_content: string;
   };
 }
-
-// Git diff types and interfaces are defined above in the tasksApi object
