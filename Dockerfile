@@ -70,6 +70,9 @@ WORKDIR /app
 # Copy executable from backend builder stage
 COPY --from=backend-builder /app/main .
 
+# Copy internationalization files
+COPY --from=backend-builder /app/i18n/locales ./i18n/locales/
+
 # Set file permissions
 RUN chown -R appuser:appgroup /app
 
