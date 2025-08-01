@@ -1,6 +1,10 @@
 package routes
 
 import (
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 	"xsha-backend/config"
 	"xsha-backend/handlers"
 	"xsha-backend/middleware"
@@ -15,7 +19,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
 
-	r.NoRoute(middleware.NotFoundHandler())
 	r.NoMethod(middleware.MethodNotAllowedHandler())
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -131,4 +134,46 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			systemConfigs.PUT("", systemConfigHandlers.BatchUpdateConfigs)
 		}
 	}
+
+	// Setup static file serving for frontend
+	setupStaticRoutes(r)
+}
+
+func setupStaticRoutes(r *gin.Engine) {
+	// Static files directory
+	staticDir := "static"
+
+	// Check if static directory exists
+	if _, err := os.Stat(staticDir); os.IsNotExist(err) {
+		return
+	}
+
+	// Serve static assets (CSS, JS, images, etc.)
+	r.Static("/assets", staticDir+"/assets")
+	r.StaticFile("/favicon.ico", staticDir+"/favicon.ico")
+	r.StaticFile("/vite.svg", staticDir+"/vite.svg")
+
+	// Serve index.html for all non-API routes (SPA support)
+	r.NoRoute(func(c *gin.Context) {
+		path := c.Request.URL.Path
+
+		// Skip API routes and static assets
+		if strings.HasPrefix(path, "/api") ||
+			strings.HasPrefix(path, "/assets") ||
+			strings.HasPrefix(path, "/swagger") ||
+			strings.HasPrefix(path, "/health") ||
+			path == "/favicon.ico" ||
+			path == "/vite.svg" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Not Found"})
+			return
+		}
+
+		// For all other routes, serve the React app
+		indexPath := filepath.Join(staticDir, "index.html")
+		if _, err := os.Stat(indexPath); err == nil {
+			c.File(indexPath)
+		} else {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Frontend not built"})
+		}
+	})
 }

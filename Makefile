@@ -6,9 +6,10 @@ help: ## Show help information
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 # Project configuration
-APP_NAME=xsha-backend
+APP_NAME=xsha
 BUILD_DIR=./build
 BACKEND_DIR=./backend
+FRONTEND_DIR=./frontend
 BINARY_NAME=$(APP_NAME)
 DOCKER_IMAGE=$(APP_NAME):latest
 
@@ -26,10 +27,6 @@ build-local: ## Build local version
 run: ## Run application (development mode)
 	@echo "Starting $(APP_NAME)..."
 	cd $(BACKEND_DIR) && go run main.go
-
-dev: deps ## Start development environment
-	@echo "Starting development environment..."
-	cd $(BACKEND_DIR) && air || go run main.go
 
 test: ## Run tests
 	@echo "Running tests..."
@@ -54,10 +51,6 @@ fmt: ## Format code
 	@echo "Formatting code..."
 	cd $(BACKEND_DIR) && go fmt ./...
 
-lint: ## Run golint
-	@echo "Running lint check..."
-	cd $(BACKEND_DIR) && golangci-lint run || echo "Please install golangci-lint: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest"
-
 vet: ## Run go vet
 	@echo "Running vet check..."
 	cd $(BACKEND_DIR) && go vet ./...
@@ -68,7 +61,7 @@ clean: ## Clean build files
 	rm -rf $(BACKEND_DIR)/coverage.out
 	rm -rf $(BACKEND_DIR)/coverage.html
 	rm -rf $(BACKEND_DIR)/app.db
-
+	
 # Database related
 db-reset: ## Reset database (delete SQLite file)
 	@echo "Resetting database..."
@@ -87,8 +80,112 @@ health: ## Check application health status
 # Complete check suite
 check: fmt vet lint test ## Run all checks (format, vet, lint, test)
 
+# Frontend related commands
+frontend-deps: ## Install frontend dependencies
+	@echo "Installing frontend dependencies..."
+	cd $(FRONTEND_DIR) && pnpm install
+
+frontend-build: frontend-deps ## Build frontend application
+	@echo "Building frontend application..."
+	cd $(FRONTEND_DIR) && pnpm run build
+	@echo "Frontend build completed! Static files are in $(BACKEND_DIR)/static/"
+
+frontend-dev: ## Start frontend development server
+	@echo "Starting frontend development server..."
+	cd $(FRONTEND_DIR) && pnpm run dev
+
+frontend-clean: ## Clean frontend build files
+	@echo "Cleaning frontend build files..."
+	rm -rf $(BACKEND_DIR)/static
+	rm -rf $(FRONTEND_DIR)/dist
+	rm -rf $(FRONTEND_DIR)/node_modules/.cache
+
+# Full-stack build commands
+build-fullstack: frontend-build build ## Build complete application (frontend + backend)
+	@echo "Full-stack build completed!"
+	@echo "Static files: $(BACKEND_DIR)/static/"
+	@echo "Backend binary: $(BACKEND_DIR)/$(BUILD_DIR)/$(BINARY_NAME)"
+
+build-fullstack-local: frontend-build build-local ## Build complete application for local development
+	@echo "Local full-stack build completed!"
+
+deploy-fullstack: frontend-build deploy-build ## Build production version with frontend
+	@echo "Production full-stack build completed!"
+
+run-fullstack: frontend-build ## Run full-stack application
+	@echo "Starting full-stack application..."
+	cd $(BACKEND_DIR) && go run main.go
+
+# Docker related commands
+docker-build: ## Build Docker image with full-stack (current platform)
+	@echo "Building Docker image with full-stack..."
+	docker build -t $(DOCKER_IMAGE) .
+	@echo "Docker image built successfully: $(DOCKER_IMAGE)"
+
+docker-build-multiplatform: ## Build Docker image with multi-platform support
+	@echo "Building multi-platform Docker image..."
+	docker buildx create --use --name multiplatform-builder 2>/dev/null || true
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(DOCKER_IMAGE) --push .
+	@echo "Multi-platform Docker image built and pushed successfully!"
+
+docker-build-arm64: ## Build Docker image for ARM64 platform
+	@echo "Building Docker image for ARM64..."
+	docker buildx create --use --name arm64-builder 2>/dev/null || true
+	docker buildx build --platform linux/arm64 -t $(DOCKER_IMAGE)-arm64 --load .
+	@echo "ARM64 Docker image built successfully: $(DOCKER_IMAGE)-arm64"
+
+docker-build-amd64: ## Build Docker image for AMD64 platform
+	@echo "Building Docker image for AMD64..."
+	docker buildx create --use --name amd64-builder 2>/dev/null || true
+	docker buildx build --platform linux/amd64 -t $(DOCKER_IMAGE)-amd64 --load .
+	@echo "AMD64 Docker image built successfully: $(DOCKER_IMAGE)-amd64"
+
+docker-run: ## Run application in Docker container
+	@echo "Running application in Docker container..."
+	docker run -p 8080:8080 --rm --name xsha-app $(DOCKER_IMAGE)
+
+docker-stop: ## Stop Docker container
+	@echo "Stopping Docker container..."
+	docker stop xsha-app || true
+
+docker-clean: ## Clean Docker images and containers
+	@echo "Cleaning Docker images and containers..."
+	docker stop xsha-app || true
+	docker rm xsha-app || true
+	docker rmi $(DOCKER_IMAGE) || true
+
+docker-compose-up: ## Start all services with docker-compose
+	@echo "Starting services with docker-compose..."
+	docker-compose up -d
+
+docker-compose-down: ## Stop all services with docker-compose
+	@echo "Stopping services with docker-compose..."
+	docker-compose down
+
+docker-compose-logs: ## View docker-compose logs
+	@echo "Viewing docker-compose logs..."
+	docker-compose logs -f
+
+docker-compose-rebuild: ## Rebuild and restart docker-compose services
+	@echo "Rebuilding and restarting services..."
+	docker-compose down
+	docker-compose build --no-cache
+	docker-compose up -d
+
+docker-setup-buildx: ## Setup Docker buildx for multi-platform builds
+	@echo "Setting up Docker buildx..."
+	docker buildx create --use --name multiplatform-builder --driver docker-container 2>/dev/null || true
+	docker buildx inspect --bootstrap
+	@echo "Docker buildx setup completed!"
+
 # Complete development workflow
-setup: deps install-tools ## Setup development environment
+setup: deps frontend-deps install-tools ## Setup development environment
 	@echo "Development environment setup completed!"
 	@echo "Run 'make dev' to start development server"
+	@echo "Run 'make frontend-dev' to start frontend development server"
+	@echo "Run 'make build-fullstack' to build complete application"
+	@echo "Run 'make docker-build' to build Docker image (current platform)"
+	@echo "Run 'make docker-build-multiplatform' to build multi-platform image"
+	@echo "Run 'make docker-setup-buildx' to setup multi-platform builds"
+	@echo "Run 'make docker-compose-up' to start with docker-compose"
 	@echo "Run 'make help' to view all available commands" 

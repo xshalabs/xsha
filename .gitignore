@@ -7,3 +7,11 @@
 .env.development
 .env.test
 .env.production
+
+# Build outputs
+backend/static/
+backend/build/
+frontend/dist/
+
+# Docker
+docker-compose.override.yml

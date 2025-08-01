@@ -1,76 +1,52 @@
-# Git related
+# Git files
 .git
 .gitignore
-.gitattributes
 
 # Documentation
 README.md
-*.md
-docs/
+README_CN.md
+LICENSE
 
-# Build artifacts
+# Build outputs
 backend/build/
-backend/dist/
-backend/bin/
-backend/*.exe
+backend/static/
+frontend/dist/
+frontend/node_modules/
 
-# Database files
-backend/*.db
-backend/*.sqlite
-backend/*.sqlite3
+# Environment files
+.env*
 
-# Log files
-backend/*.log
-backend/logs/
-
-# Test coverage
-backend/coverage.out
-backend/coverage.html
-backend/coverage.xml
-
-# IDE configuration files
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
-# Operating system files
+# OS files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
+# Runtime files
+runtime/
+logs/
+*.log
+
+# Test files
+backend/coverage.out
+backend/coverage.html
+*_test.go
+
 # Temporary files
-*.tmp
-*.temp
-.tmp/
+tmp/
+temp/
 
-# Environment variable files
-.env
-.env.local
-.env.development
-.env.test
-.env.production
+# Makefile (not needed in container)
+Makefile
 
-# Node.js related (if frontend exists)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Docker related
+# Docker files (not needed in container)
+docker/
+docker-compose.yml
 Dockerfile*
-docker-compose*.yml
-.dockerignore
 
-# Development tools configuration
-air.toml
-.air.toml
-
-# Others
-*.tar.gz
-*.zip 
+# Scripts (not needed in container)
+scripts/
