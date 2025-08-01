@@ -1,0 +1,143 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+        
+    - name: Setup pnpm cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.pnpm-store
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-
+        
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+        
+    - name: Setup Go cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+        
+    - name: Build frontend
+      run: |
+        cd frontend
+        pnpm install --frozen-lockfile
+        pnpm run build
+        
+    - name: Build embedded binaries
+      run: |
+        cd backend
+        
+        # Create build directory
+        mkdir -p build
+        
+        # Set build variables
+        VERSION=${GITHUB_REF_NAME}
+        BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+        GIT_COMMIT=${GITHUB_SHA::8}
+        
+        # Build flags with version info
+        BUILD_FLAGS="-w -s -X main.Version=${VERSION} -X main.BuildTime=${BUILD_TIME} -X main.GitCommit=${GIT_COMMIT}"
+        
+        # Build for AMD64
+        echo "Building for AMD64..."
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${BUILD_FLAGS}" -o build/xsha-embedded-linux-amd64 .
+        
+        # Build for ARM64
+        echo "Building for ARM64..."
+        CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="${BUILD_FLAGS}" -o build/xsha-embedded-linux-arm64 .
+        
+        # Verify builds
+        ls -la build/
+        
+        # Create checksums
+        cd build
+        sha256sum xsha-embedded-linux-amd64 > xsha-embedded-linux-amd64.sha256
+        sha256sum xsha-embedded-linux-arm64 > xsha-embedded-linux-arm64.sha256
+        
+        echo "Build completed successfully!"
+        echo "AMD64 size: $(stat -c%s xsha-embedded-linux-amd64 | numfmt --to=iec)"
+        echo "ARM64 size: $(stat -c%s xsha-embedded-linux-arm64 | numfmt --to=iec)"
+        
+    - name: Get build info
+      id: date
+      run: echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+      
+    - name: Get Go version
+      id: go-version
+      run: echo "go-version=$(go version | cut -d' ' -f3)" >> $GITHUB_OUTPUT
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: Release ${{ github.ref_name }}
+        body: |
+          ## Release ${{ github.ref_name }}
+          
+          ### Downloads
+          - **Linux AMD64**: `xsha-embedded-linux-amd64`
+          - **Linux ARM64**: `xsha-embedded-linux-arm64`
+          
+          ### Features
+          - Embedded frontend assets (React + TypeScript)
+          - Standalone executables (no dependencies required)
+          - Cross-platform support (AMD64 & ARM64)
+          - Built with Go ${{ steps.go-version.outputs.go-version }}
+          
+          ### Installation
+          1. Download the appropriate binary for your architecture
+          2. Make it executable: `chmod +x xsha-embedded-linux-*`
+          3. Run: `./xsha-embedded-linux-*`
+          
+          ### Verification
+          Verify download integrity using the provided SHA256 checksums:
+          ```bash
+          # For AMD64
+          sha256sum -c xsha-embedded-linux-amd64.sha256
+          
+          # For ARM64
+          sha256sum -c xsha-embedded-linux-arm64.sha256
+          ```
+          
+          ### Build Information
+          - **Git Commit**: ${{ github.sha }}
+          - **Build Date**: ${{ steps.date.outputs.date }}
+          - **Go Version**: ${{ steps.go-version.outputs.go-version }}
+        files: |
+          backend/build/xsha-embedded-linux-amd64
+          backend/build/xsha-embedded-linux-amd64.sha256
+          backend/build/xsha-embedded-linux-arm64
+          backend/build/xsha-embedded-linux-arm64.sha256
+        draft: false
+        prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
