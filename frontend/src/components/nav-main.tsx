@@ -24,6 +24,12 @@ export function NavMain({
     if (itemUrl === "/projects") {
       return location.pathname.startsWith("/projects");
     }
+    if (itemUrl === "/git-credentials") {
+      return location.pathname.startsWith("/git-credentials");
+    }
+    if (itemUrl === "/dev-environments") {
+      return location.pathname.startsWith("/dev-environments");
+    }
     return location.pathname === itemUrl;
   };
 
