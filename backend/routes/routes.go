@@ -1,8 +1,9 @@
 package routes
 
 import (
+	"embed"
+	"io/fs"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 	"xsha-backend/config"
@@ -15,7 +16,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskConvResultHandlers *handlers.TaskConversationResultHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, systemConfigHandlers *handlers.SystemConfigHandlers) {
+func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskConvResultHandlers *handlers.TaskConversationResultHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, staticFiles *embed.FS) {
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
 
@@ -136,17 +137,109 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 	}
 
 	// Setup static file serving for frontend
-	setupStaticRoutes(r)
+	setupStaticRoutes(r, staticFiles)
 }
 
-func setupStaticRoutes(r *gin.Engine) {
-	// Static files directory
-	staticDir := "static"
+func setupStaticRoutes(r *gin.Engine, embeddedFiles *embed.FS) {
+	// Try to get embedded filesystem first
+	var staticFS fs.FS
+	var assetsFS fs.FS
+	var err error
 
-	// Check if static directory exists
-	if _, err := os.Stat(staticDir); os.IsNotExist(err) {
+	if embeddedFiles != nil {
+		staticFS, err = fs.Sub(*embeddedFiles, "static")
+		if err != nil {
+			staticFS = nil
+		} else {
+			// Create assets subdirectory filesystem
+			assetsFS, err = fs.Sub(staticFS, "assets")
+			if err != nil {
+				staticFS = nil
+				assetsFS = nil
+			}
+		}
+	}
+
+	// If embed fails or is nil, fallback to file system
+	if staticFS == nil || assetsFS == nil {
+		setupFallbackStaticRoutes(r)
 		return
 	}
+
+	// Serve static assets from embedded assets filesystem
+	r.StaticFS("/assets", http.FS(assetsFS))
+
+	// Serve individual static files
+	serveSingleFile(r, "/favicon.ico", staticFS)
+	serveSingleFile(r, "/vite.svg", staticFS)
+
+	// Serve index.html for all non-API routes (SPA support)
+	r.NoRoute(func(c *gin.Context) {
+		path := c.Request.URL.Path
+
+		// Skip API routes and static assets
+		if strings.HasPrefix(path, "/api") ||
+			strings.HasPrefix(path, "/assets") ||
+			strings.HasPrefix(path, "/swagger") ||
+			strings.HasPrefix(path, "/health") ||
+			path == "/favicon.ico" ||
+			path == "/vite.svg" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Not Found"})
+			return
+		}
+
+		// For all other routes, serve the React app
+		indexData, err := staticFS.Open("index.html")
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Frontend not built"})
+			return
+		}
+		defer indexData.Close()
+
+		stat, err := indexData.Stat()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get file info"})
+			return
+		}
+
+		c.DataFromReader(http.StatusOK, stat.Size(), "text/html; charset=utf-8", indexData, nil)
+	})
+}
+
+// Helper function to serve single files from embedded filesystem
+func serveSingleFile(r *gin.Engine, path string, staticFS fs.FS) {
+	r.GET(path, func(c *gin.Context) {
+		file, err := staticFS.Open(strings.TrimPrefix(path, "/"))
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
+			return
+		}
+		defer file.Close()
+
+		stat, err := file.Stat()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get file info"})
+			return
+		}
+
+		// Determine content type based on file extension
+		contentType := "application/octet-stream"
+		ext := filepath.Ext(path)
+		switch ext {
+		case ".ico":
+			contentType = "image/x-icon"
+		case ".svg":
+			contentType = "image/svg+xml"
+		}
+
+		c.DataFromReader(http.StatusOK, stat.Size(), contentType, file, nil)
+	})
+}
+
+// Fallback function for development mode when static files are not embedded
+func setupFallbackStaticRoutes(r *gin.Engine) {
+	// Static files directory
+	staticDir := "static"
 
 	// Serve static assets (CSS, JS, images, etc.)
 	r.Static("/assets", staticDir+"/assets")
@@ -170,10 +263,6 @@ func setupStaticRoutes(r *gin.Engine) {
 
 		// For all other routes, serve the React app
 		indexPath := filepath.Join(staticDir, "index.html")
-		if _, err := os.Stat(indexPath); err == nil {
-			c.File(indexPath)
-		} else {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Frontend not built"})
-		}
+		c.File(indexPath)
 	})
 }

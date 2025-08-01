@@ -13,6 +13,7 @@
 package main
 
 import (
+	"embed"
 	"os"
 	"os/signal"
 	"syscall"
@@ -30,6 +31,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+//go:embed static/*
+var StaticFiles embed.FS
 
 func main() {
 	// Load configuration
@@ -105,8 +109,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Setup routes - Pass all handler instances
-	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvResultHandlers, taskExecLogHandlers, systemConfigHandlers)
+	// Setup routes - Pass all handler instances including static files
+	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvResultHandlers, taskExecLogHandlers, systemConfigHandlers, &StaticFiles)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

@@ -9,7 +9,6 @@
 .env.production
 
 # Build outputs
-backend/static/
 backend/build/
 frontend/dist/
 

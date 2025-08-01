@@ -24,6 +24,28 @@ build-local: ## Build local version
 	cd $(BACKEND_DIR) && go build -o $(BUILD_DIR)/$(BINARY_NAME) .
 	@echo "Build completed: $(BACKEND_DIR)/$(BUILD_DIR)/$(BINARY_NAME)"
 
+build-embedded: ## Build application with embedded frontend (Linux) - works with existing static files
+	@echo "Building $(APP_NAME) with embedded frontend..."
+	cd $(BACKEND_DIR) && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o $(BUILD_DIR)/$(BINARY_NAME)-embedded .
+	@echo "Embedded build completed: $(BACKEND_DIR)/$(BUILD_DIR)/$(BINARY_NAME)-embedded"
+	@echo "This binary contains all frontend assets and can run standalone!"
+
+build-embedded-local: ## Build local version with embedded frontend - works with existing static files
+	@echo "Building local version with embedded frontend..."
+	cd $(BACKEND_DIR) && go build -o $(BUILD_DIR)/$(BINARY_NAME)-embedded .
+	@echo "Embedded local build completed: $(BACKEND_DIR)/$(BUILD_DIR)/$(BINARY_NAME)-embedded"
+	@echo "This binary contains all frontend assets and can run standalone!"
+
+build-embedded-production: ## Build production version with embedded frontend - works with existing static files
+	@echo "Building production version with embedded frontend..."
+	cd $(BACKEND_DIR) && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o $(BUILD_DIR)/$(BINARY_NAME)-embedded .
+	@echo "Embedded production build completed: $(BACKEND_DIR)/$(BUILD_DIR)/$(BINARY_NAME)-embedded"
+	@echo "This binary contains all frontend assets and can run standalone!"
+
+build-embedded-with-frontend: frontend-build build-embedded-local ## Build frontend then embedded backend in one command
+	@echo "Complete embedded build with fresh frontend completed!"
+	@echo "Binary: $(BACKEND_DIR)/$(BUILD_DIR)/$(BINARY_NAME)-embedded"
+
 run: ## Run application (development mode)
 	@echo "Starting $(APP_NAME)..."
 	cd $(BACKEND_DIR) && go run main.go
@@ -112,6 +134,10 @@ build-fullstack-local: frontend-build build-local ## Build complete application 
 deploy-fullstack: frontend-build deploy-build ## Build production version with frontend
 	@echo "Production full-stack build completed!"
 
+deploy-embedded: build-embedded-production ## Build production version with embedded frontend
+	@echo "Production embedded build completed!"
+	@echo "Single binary ready for deployment: $(BACKEND_DIR)/$(BUILD_DIR)/$(BINARY_NAME)"
+
 run-fullstack: frontend-build ## Run full-stack application
 	@echo "Starting full-stack application..."
 	cd $(BACKEND_DIR) && go run main.go
@@ -184,6 +210,8 @@ setup: deps frontend-deps install-tools ## Setup development environment
 	@echo "Run 'make dev' to start development server"
 	@echo "Run 'make frontend-dev' to start frontend development server"
 	@echo "Run 'make build-fullstack' to build complete application"
+	@echo "Run 'make build-embedded-local' to build standalone binary with embedded frontend"
+	@echo "Run 'make build-embedded-production' to build production standalone binary"
 	@echo "Run 'make docker-build' to build Docker image (current platform)"
 	@echo "Run 'make docker-build-multiplatform' to build multi-platform image"
 	@echo "Run 'make docker-setup-buildx' to setup multi-platform builds"
