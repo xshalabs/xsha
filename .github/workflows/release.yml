@@ -140,4 +140,9 @@ jobs:
         draft: false
         prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_RELEASE_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
