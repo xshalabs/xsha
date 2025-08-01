@@ -61,18 +61,18 @@ func Load() *Config {
 
 	config := &Config{
 		Port:         getEnv("XSHA_PORT", "8080"),
-		Environment:  getEnv("XSHA_ENVIRONMENT", "development"),
+		Environment:  getEnv("XSHA_ENVIRONMENT", "production"),
 		DatabaseType: getEnv("XSHA_DATABASE_TYPE", "sqlite"),
 		SQLitePath:   getEnv("XSHA_SQLITE_PATH", "app.db"),
 		MySQLDSN:     getEnv("XSHA_MYSQL_DSN", ""),
 		JWTSecret:    getEnv("XSHA_JWT_SECRET", "your-jwt-secret-key-change-this-in-production"),
 		AESKey:       aesKey,
 
-		SchedulerInterval:      getEnv("XSHA_SCHEDULER_INTERVAL", "30s"),
+		SchedulerInterval:      getEnv("XSHA_SCHEDULER_INTERVAL", "5s"),
 		WorkspaceBaseDir:       getEnv("XSHA_WORKSPACE_BASE_DIR", "/tmp/xsha-workspaces"),
-		DockerExecutionTimeout: getEnv("XSHA_DOCKER_TIMEOUT", "30m"),
+		DockerExecutionTimeout: getEnv("XSHA_DOCKER_TIMEOUT", "120m"),
 		GitCloneTimeout:        getEnv("XSHA_GIT_CLONE_TIMEOUT", "5m"),
-		MaxConcurrentTasks:     getEnvInt("XSHA_MAX_CONCURRENT_TASKS", 5),
+		MaxConcurrentTasks:     getEnvInt("XSHA_MAX_CONCURRENT_TASKS", 8),
 
 		GitSSLVerify: getEnvBool("XSHA_GIT_SSL_VERIFY", false),
 
