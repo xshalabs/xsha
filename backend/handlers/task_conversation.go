@@ -47,13 +47,19 @@ type UpdateConversationRequest struct {
 func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+
 	var req CreateConversationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error()})
 		return
 	}
 
-	conversation, err := h.conversationService.CreateConversation(req.TaskID, req.Content)
+	conversation, err := h.conversationService.CreateConversation(req.TaskID, req.Content, username.(string))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return

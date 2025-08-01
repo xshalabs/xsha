@@ -22,7 +22,7 @@ func NewTaskConversationService(repo repository.TaskConversationRepository, task
 	}
 }
 
-func (s *taskConversationService) CreateConversation(taskID uint, content string) (*database.TaskConversation, error) {
+func (s *taskConversationService) CreateConversation(taskID uint, content, createdBy string) (*database.TaskConversation, error) {
 	if err := s.ValidateConversationData(taskID, content); err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (s *taskConversationService) CreateConversation(taskID uint, content string
 		TaskID:    taskID,
 		Content:   strings.TrimSpace(content),
 		Status:    database.ConversationStatusPending,
-		CreatedBy: "admin",
+		CreatedBy: createdBy,
 	}
 
 	if err := s.repo.Create(conversation); err != nil {

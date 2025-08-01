@@ -88,6 +88,7 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 		_, err := h.conversationService.CreateConversation(
 			task.ID,
 			req.RequirementDesc,
+			username.(string),
 		)
 		if err != nil {
 			utils.Error("Failed to create conversation", "taskID", task.ID, "error", err)
