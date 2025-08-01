@@ -81,6 +81,14 @@ jobs:
         echo "Building for ARM64..."
         CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="${BUILD_FLAGS}" -o build/xsha-embedded-linux-arm64 .
         
+        # Build for Windows AMD64
+        echo "Building for Windows AMD64..."
+        CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="${BUILD_FLAGS}" -o build/xsha-embedded-windows-amd64.exe .
+        
+        # Build for Windows ARM64
+        echo "Building for Windows ARM64..."
+        CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -ldflags="${BUILD_FLAGS}" -o build/xsha-embedded-windows-arm64.exe .
+        
         # Verify builds
         ls -la build/
         
@@ -88,10 +96,14 @@ jobs:
         cd build
         sha256sum xsha-embedded-linux-amd64 > xsha-embedded-linux-amd64.sha256
         sha256sum xsha-embedded-linux-arm64 > xsha-embedded-linux-arm64.sha256
+        sha256sum xsha-embedded-windows-amd64.exe > xsha-embedded-windows-amd64.exe.sha256
+        sha256sum xsha-embedded-windows-arm64.exe > xsha-embedded-windows-arm64.exe.sha256
         
         echo "Build completed successfully!"
-        echo "AMD64 size: $(stat -c%s xsha-embedded-linux-amd64 | numfmt --to=iec)"
-        echo "ARM64 size: $(stat -c%s xsha-embedded-linux-arm64 | numfmt --to=iec)"
+        echo "Linux AMD64 size: $(stat -c%s xsha-embedded-linux-amd64 | numfmt --to=iec)"
+        echo "Linux ARM64 size: $(stat -c%s xsha-embedded-linux-arm64 | numfmt --to=iec)"
+        echo "Windows AMD64 size: $(stat -c%s xsha-embedded-windows-amd64.exe | numfmt --to=iec)"
+        echo "Windows ARM64 size: $(stat -c%s xsha-embedded-windows-arm64.exe | numfmt --to=iec)"
         
     - name: Get build info
       id: date
@@ -111,26 +123,46 @@ jobs:
           ### Downloads
           - **Linux AMD64**: `xsha-embedded-linux-amd64`
           - **Linux ARM64**: `xsha-embedded-linux-arm64`
+          - **Windows AMD64**: `xsha-embedded-windows-amd64.exe`
+          - **Windows ARM64**: `xsha-embedded-windows-arm64.exe`
           
           ### Features
           - Embedded frontend assets (React + TypeScript)
           - Standalone executables (no dependencies required)
-          - Cross-platform support (AMD64 & ARM64)
+          - Cross-platform support (Linux & Windows, AMD64 & ARM64)
           - Built with Go ${{ steps.go-version.outputs.go-version }}
           
           ### Installation
+          #### Linux
           1. Download the appropriate binary for your architecture
           2. Make it executable: `chmod +x xsha-embedded-linux-*`
           3. Run: `./xsha-embedded-linux-*`
           
+          #### Windows
+          1. Download the appropriate binary for your architecture
+          2. Run: `xsha-embedded-windows-*.exe`
+          
           ### Verification
           Verify download integrity using the provided SHA256 checksums:
+          
+          #### Linux
           ```bash
           # For AMD64
           sha256sum -c xsha-embedded-linux-amd64.sha256
           
           # For ARM64
           sha256sum -c xsha-embedded-linux-arm64.sha256
+          ```
+          
+          #### Windows
+          ```powershell
+          # For AMD64
+          certutil -hashfile xsha-embedded-windows-amd64.exe SHA256
+          # Compare with content of xsha-embedded-windows-amd64.exe.sha256
+          
+          # For ARM64
+          certutil -hashfile xsha-embedded-windows-arm64.exe SHA256
+          # Compare with content of xsha-embedded-windows-arm64.exe.sha256
           ```
           
           ### Build Information
@@ -142,6 +174,10 @@ jobs:
           backend/build/xsha-embedded-linux-amd64.sha256
           backend/build/xsha-embedded-linux-arm64
           backend/build/xsha-embedded-linux-arm64.sha256
+          backend/build/xsha-embedded-windows-amd64.exe
+          backend/build/xsha-embedded-windows-amd64.exe.sha256
+          backend/build/xsha-embedded-windows-arm64.exe
+          backend/build/xsha-embedded-windows-arm64.exe.sha256
         draft: false
         prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
       env:
