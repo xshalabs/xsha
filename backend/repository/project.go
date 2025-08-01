@@ -19,29 +19,29 @@ func (r *projectRepository) Create(project *database.Project) error {
 	return r.db.Create(project).Error
 }
 
-func (r *projectRepository) GetByID(id uint, createdBy string) (*database.Project, error) {
+func (r *projectRepository) GetByID(id uint) (*database.Project, error) {
 	var project database.Project
-	err := r.db.Preload("Credential").Where("id = ? AND created_by = ?", id, createdBy).First(&project).Error
+	err := r.db.Preload("Credential").Where("id = ?", id).First(&project).Error
 	if err != nil {
 		return nil, err
 	}
 	return &project, nil
 }
 
-func (r *projectRepository) GetByName(name, createdBy string) (*database.Project, error) {
+func (r *projectRepository) GetByName(name string) (*database.Project, error) {
 	var project database.Project
-	err := r.db.Preload("Credential").Where("name = ? AND created_by = ?", name, createdBy).First(&project).Error
+	err := r.db.Preload("Credential").Where("name = ?", name).First(&project).Error
 	if err != nil {
 		return nil, err
 	}
 	return &project, nil
 }
 
-func (r *projectRepository) List(createdBy string, name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error) {
+func (r *projectRepository) List(name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error) {
 	var projects []database.Project
 	var total int64
 
-	query := r.db.Model(&database.Project{}).Where("created_by = ?", createdBy)
+	query := r.db.Model(&database.Project{})
 
 	if name != "" {
 		query = query.Where("name LIKE ?", "%"+name+"%")
@@ -67,24 +67,24 @@ func (r *projectRepository) Update(project *database.Project) error {
 	return r.db.Save(project).Error
 }
 
-func (r *projectRepository) Delete(id uint, createdBy string) error {
-	return r.db.Where("id = ? AND created_by = ?", id, createdBy).Delete(&database.Project{}).Error
+func (r *projectRepository) Delete(id uint) error {
+	return r.db.Where("id = ?", id).Delete(&database.Project{}).Error
 }
 
-func (r *projectRepository) UpdateLastUsed(id uint, createdBy string) error {
+func (r *projectRepository) UpdateLastUsed(id uint) error {
 	now := time.Now()
 	return r.db.Model(&database.Project{}).
-		Where("id = ? AND created_by = ?", id, createdBy).
+		Where("id = ?", id).
 		Update("last_used", now).Error
 }
 
-func (r *projectRepository) GetByCredentialID(credentialID uint, createdBy string) ([]database.Project, error) {
+func (r *projectRepository) GetByCredentialID(credentialID uint) ([]database.Project, error) {
 	var projects []database.Project
-	err := r.db.Where("credential_id = ? AND created_by = ?", credentialID, createdBy).Find(&projects).Error
+	err := r.db.Where("credential_id = ?", credentialID).Find(&projects).Error
 	return projects, err
 }
 
-func (r *projectRepository) GetTaskCounts(projectIDs []uint, createdBy string) (map[uint]int64, error) {
+func (r *projectRepository) GetTaskCounts(projectIDs []uint) (map[uint]int64, error) {
 	if len(projectIDs) == 0 {
 		return make(map[uint]int64), nil
 	}
@@ -97,7 +97,7 @@ func (r *projectRepository) GetTaskCounts(projectIDs []uint, createdBy string) (
 	var results []TaskCountResult
 	err := r.db.Table("tasks").
 		Select("project_id, COUNT(*) as count").
-		Where("project_id IN ? AND created_by = ? AND deleted_at IS NULL", projectIDs, createdBy).
+		Where("project_id IN ? AND deleted_at IS NULL", projectIDs).
 		Group("project_id").
 		Find(&results).Error
 

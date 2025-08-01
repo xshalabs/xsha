@@ -18,25 +18,25 @@ func (r *taskConversationRepository) Create(conversation *database.TaskConversat
 	return r.db.Create(conversation).Error
 }
 
-func (r *taskConversationRepository) GetByID(id uint, createdBy string) (*database.TaskConversation, error) {
+func (r *taskConversationRepository) GetByID(id uint) (*database.TaskConversation, error) {
 	var conversation database.TaskConversation
 	err := r.db.Preload("Task").
 		Preload("Task.Project").
 		Preload("Task.Project.Credential").
 		Preload("Task.DevEnvironment").
-		Where("id = ? AND created_by = ?", id, createdBy).First(&conversation).Error
+		Where("id = ?", id).First(&conversation).Error
 	if err != nil {
 		return nil, err
 	}
 	return &conversation, nil
 }
 
-func (r *taskConversationRepository) List(taskID uint, createdBy string, page, pageSize int) ([]database.TaskConversation, int64, error) {
+func (r *taskConversationRepository) List(taskID uint, page, pageSize int) ([]database.TaskConversation, int64, error) {
 	var conversations []database.TaskConversation
 	var total int64
 
 	query := r.db.Model(&database.TaskConversation{}).
-		Where("task_id = ? AND created_by = ?", taskID, createdBy)
+		Where("task_id = ?", taskID)
 
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -54,20 +54,20 @@ func (r *taskConversationRepository) Update(conversation *database.TaskConversat
 	return r.db.Save(conversation).Error
 }
 
-func (r *taskConversationRepository) Delete(id uint, createdBy string) error {
-	return r.db.Where("id = ? AND created_by = ?", id, createdBy).Delete(&database.TaskConversation{}).Error
+func (r *taskConversationRepository) Delete(id uint) error {
+	return r.db.Where("id = ?", id).Delete(&database.TaskConversation{}).Error
 }
 
-func (r *taskConversationRepository) ListByTask(taskID uint, createdBy string) ([]database.TaskConversation, error) {
+func (r *taskConversationRepository) ListByTask(taskID uint) ([]database.TaskConversation, error) {
 	var conversations []database.TaskConversation
-	err := r.db.Where("task_id = ? AND created_by = ?", taskID, createdBy).
+	err := r.db.Where("task_id = ?", taskID).
 		Order("created_at ASC").Find(&conversations).Error
 	return conversations, err
 }
 
-func (r *taskConversationRepository) GetLatestByTask(taskID uint, createdBy string) (*database.TaskConversation, error) {
+func (r *taskConversationRepository) GetLatestByTask(taskID uint) (*database.TaskConversation, error) {
 	var conversation database.TaskConversation
-	err := r.db.Where("task_id = ? AND created_by = ?", taskID, createdBy).
+	err := r.db.Where("task_id = ?", taskID).
 		Order("created_at DESC").First(&conversation).Error
 	if err != nil {
 		return nil, err
@@ -94,11 +94,11 @@ func (r *taskConversationRepository) GetPendingConversationsWithDetails() ([]dat
 	return conversations, err
 }
 
-func (r *taskConversationRepository) HasPendingOrRunningConversations(taskID uint, createdBy string) (bool, error) {
+func (r *taskConversationRepository) HasPendingOrRunningConversations(taskID uint) (bool, error) {
 	var count int64
 	err := r.db.Model(&database.TaskConversation{}).
-		Where("task_id = ? AND created_by = ? AND status IN (?)",
-			taskID, createdBy, []database.ConversationStatus{
+		Where("task_id = ? AND status IN (?)",
+			taskID, []database.ConversationStatus{
 				database.ConversationStatusPending,
 				database.ConversationStatusRunning,
 			}).

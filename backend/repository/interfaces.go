@@ -19,24 +19,24 @@ type LoginLogRepository interface {
 
 type GitCredentialRepository interface {
 	Create(credential *database.GitCredential) error
-	GetByID(id uint, createdBy string) (*database.GitCredential, error)
-	GetByName(name, createdBy string) (*database.GitCredential, error)
-	List(createdBy string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
+	GetByID(id uint) (*database.GitCredential, error)
+	GetByName(name string) (*database.GitCredential, error)
+	List(credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
 	Update(credential *database.GitCredential) error
-	Delete(id uint, createdBy string) error
+	Delete(id uint) error
 }
 
 type ProjectRepository interface {
 	Create(project *database.Project) error
-	GetByID(id uint, createdBy string) (*database.Project, error)
-	GetByName(name, createdBy string) (*database.Project, error)
-	List(createdBy string, name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
+	GetByID(id uint) (*database.Project, error)
+	GetByName(name string) (*database.Project, error)
+	List(name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
 	Update(project *database.Project) error
-	Delete(id uint, createdBy string) error
+	Delete(id uint) error
 
-	UpdateLastUsed(id uint, createdBy string) error
-	GetByCredentialID(credentialID uint, createdBy string) ([]database.Project, error)
-	GetTaskCounts(projectIDs []uint, createdBy string) (map[uint]int64, error)
+	UpdateLastUsed(id uint) error
+	GetByCredentialID(credentialID uint) ([]database.Project, error)
+	GetTaskCounts(projectIDs []uint) (map[uint]int64, error)
 }
 
 type AdminOperationLogRepository interface {
@@ -54,37 +54,37 @@ type AdminOperationLogRepository interface {
 
 type DevEnvironmentRepository interface {
 	Create(env *database.DevEnvironment) error
-	GetByID(id uint, createdBy string) (*database.DevEnvironment, error)
-	GetByName(name, createdBy string) (*database.DevEnvironment, error)
-	List(createdBy string, envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
+	GetByID(id uint) (*database.DevEnvironment, error)
+	GetByName(name string) (*database.DevEnvironment, error)
+	List(envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
 	Update(env *database.DevEnvironment) error
-	Delete(id uint, createdBy string) error
+	Delete(id uint) error
 }
 
 type TaskRepository interface {
 	Create(task *database.Task) error
-	GetByID(id uint, createdBy string) (*database.Task, error)
-	List(projectID *uint, createdBy string, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error)
+	GetByID(id uint) (*database.Task, error)
+	List(projectID *uint, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error)
 	Update(task *database.Task) error
-	Delete(id uint, createdBy string) error
+	Delete(id uint) error
 
-	ListByProject(projectID uint, createdBy string) ([]database.Task, error)
-	GetConversationCounts(taskIDs []uint, createdBy string) (map[uint]int64, error)
+	ListByProject(projectID uint) ([]database.Task, error)
+	GetConversationCounts(taskIDs []uint) (map[uint]int64, error)
 }
 
 type TaskConversationRepository interface {
 	Create(conversation *database.TaskConversation) error
-	GetByID(id uint, createdBy string) (*database.TaskConversation, error)
-	List(taskID uint, createdBy string, page, pageSize int) ([]database.TaskConversation, int64, error)
+	GetByID(id uint) (*database.TaskConversation, error)
+	List(taskID uint, page, pageSize int) ([]database.TaskConversation, int64, error)
 	Update(conversation *database.TaskConversation) error
-	Delete(id uint, createdBy string) error
+	Delete(id uint) error
 
-	ListByTask(taskID uint, createdBy string) ([]database.TaskConversation, error)
-	GetLatestByTask(taskID uint, createdBy string) (*database.TaskConversation, error)
+	ListByTask(taskID uint) ([]database.TaskConversation, error)
+	GetLatestByTask(taskID uint) (*database.TaskConversation, error)
 
 	ListByStatus(status database.ConversationStatus) ([]database.TaskConversation, error)
 	GetPendingConversationsWithDetails() ([]database.TaskConversation, error)
-	HasPendingOrRunningConversations(taskID uint, createdBy string) (bool, error)
+	HasPendingOrRunningConversations(taskID uint) (bool, error)
 	UpdateCommitHash(id uint, commitHash string) error
 }
 

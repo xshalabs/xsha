@@ -130,7 +130,7 @@ func (s *aiTaskExecutorService) GetExecutionLog(conversationID uint) (*database.
 }
 
 func (s *aiTaskExecutorService) CancelExecution(conversationID uint, createdBy string) error {
-	conv, err := s.taskConvRepo.GetByID(conversationID, createdBy)
+	conv, err := s.taskConvRepo.GetByID(conversationID)
 	if err != nil {
 		return fmt.Errorf("failed to get conversation info: %v", err)
 	}
@@ -160,7 +160,7 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint, createdBy s
 }
 
 func (s *aiTaskExecutorService) RetryExecution(conversationID uint, createdBy string) error {
-	conv, err := s.taskConvRepo.GetByID(conversationID, createdBy)
+	conv, err := s.taskConvRepo.GetByID(conversationID)
 	if err != nil {
 		return fmt.Errorf("failed to get conversation info: %v", err)
 	}
@@ -218,7 +218,7 @@ func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversat
 	}
 
 	if conv.Task.Status == database.TaskStatusTodo {
-		if err := s.taskService.UpdateTaskStatus(conv.Task.ID, conv.CreatedBy, database.TaskStatusInProgress); err != nil {
+		if err := s.taskService.UpdateTaskStatus(conv.Task.ID, database.TaskStatusInProgress); err != nil {
 			utils.Error("Failed to update task status", "task_id", conv.Task.ID, "error", err)
 		} else {
 			utils.Info("Task status updated", "task_id", conv.Task.ID, "old_status", "todo", "new_status", "in_progress")

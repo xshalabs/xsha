@@ -18,21 +18,21 @@ func (r *taskRepository) Create(task *database.Task) error {
 	return r.db.Create(task).Error
 }
 
-func (r *taskRepository) GetByID(id uint, createdBy string) (*database.Task, error) {
+func (r *taskRepository) GetByID(id uint) (*database.Task, error) {
 	var task database.Task
 	err := r.db.Preload("Project").Preload("DevEnvironment").Preload("Conversations").
-		Where("id = ? AND created_by = ?", id, createdBy).First(&task).Error
+		Where("id = ?", id).First(&task).Error
 	if err != nil {
 		return nil, err
 	}
 	return &task, nil
 }
 
-func (r *taskRepository) List(projectID *uint, createdBy string, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error) {
+func (r *taskRepository) List(projectID *uint, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error) {
 	var tasks []database.Task
 	var total int64
 
-	query := r.db.Model(&database.Task{}).Where("created_by = ?", createdBy)
+	query := r.db.Model(&database.Task{})
 
 	if projectID != nil {
 		query = query.Where("project_id = ?", *projectID)
@@ -70,18 +70,18 @@ func (r *taskRepository) Update(task *database.Task) error {
 	return r.db.Save(task).Error
 }
 
-func (r *taskRepository) Delete(id uint, createdBy string) error {
-	return r.db.Where("id = ? AND created_by = ?", id, createdBy).Delete(&database.Task{}).Error
+func (r *taskRepository) Delete(id uint) error {
+	return r.db.Where("id = ?", id).Delete(&database.Task{}).Error
 }
 
-func (r *taskRepository) ListByProject(projectID uint, createdBy string) ([]database.Task, error) {
+func (r *taskRepository) ListByProject(projectID uint) ([]database.Task, error) {
 	var tasks []database.Task
-	err := r.db.Where("project_id = ? AND created_by = ?", projectID, createdBy).
+	err := r.db.Where("project_id = ?", projectID).
 		Order("created_at DESC").Find(&tasks).Error
 	return tasks, err
 }
 
-func (r *taskRepository) GetConversationCounts(taskIDs []uint, createdBy string) (map[uint]int64, error) {
+func (r *taskRepository) GetConversationCounts(taskIDs []uint) (map[uint]int64, error) {
 	if len(taskIDs) == 0 {
 		return make(map[uint]int64), nil
 	}
@@ -94,7 +94,7 @@ func (r *taskRepository) GetConversationCounts(taskIDs []uint, createdBy string)
 	var results []ConversationCountResult
 	err := r.db.Table("task_conversations").
 		Select("task_id, COUNT(*) as count").
-		Where("task_id IN ? AND created_by = ? AND deleted_at IS NULL", taskIDs, createdBy).
+		Where("task_id IN ? AND deleted_at IS NULL", taskIDs).
 		Group("task_id").
 		Find(&results).Error
 

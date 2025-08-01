@@ -36,12 +36,12 @@ func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository
 	}
 }
 
-func (s *projectService) CreateProject(name, description, repoURL, protocol, createdBy string, credentialID *uint) (*database.Project, error) {
+func (s *projectService) CreateProject(name, description, repoURL, protocol string, credentialID *uint) (*database.Project, error) {
 	if err := s.validateProjectData(name, repoURL, protocol); err != nil {
 		return nil, err
 	}
 
-	if existing, _ := s.repo.GetByName(name, createdBy); existing != nil {
+	if existing, _ := s.repo.GetByName(name); existing != nil {
 		return nil, errors.New("project name already exists")
 	}
 
@@ -50,7 +50,7 @@ func (s *projectService) CreateProject(name, description, repoURL, protocol, cre
 		return nil, err
 	}
 
-	if err := s.ValidateProtocolCredential(protocolType, credentialID, createdBy); err != nil {
+	if err := s.ValidateProtocolCredential(protocolType, credentialID); err != nil {
 		return nil, err
 	}
 
@@ -60,7 +60,7 @@ func (s *projectService) CreateProject(name, description, repoURL, protocol, cre
 		RepoURL:      repoURL,
 		Protocol:     protocolType,
 		CredentialID: credentialID,
-		CreatedBy:    createdBy,
+		CreatedBy:    "admin",
 		IsActive:     true,
 	}
 
@@ -71,16 +71,16 @@ func (s *projectService) CreateProject(name, description, repoURL, protocol, cre
 	return project, nil
 }
 
-func (s *projectService) GetProject(id uint, createdBy string) (*database.Project, error) {
-	return s.repo.GetByID(id, createdBy)
+func (s *projectService) GetProject(id uint) (*database.Project, error) {
+	return s.repo.GetByID(id)
 }
 
-func (s *projectService) ListProjects(createdBy string, name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error) {
-	return s.repo.List(createdBy, name, protocol, page, pageSize)
+func (s *projectService) ListProjects(name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error) {
+	return s.repo.List(name, protocol, page, pageSize)
 }
 
-func (s *projectService) ListProjectsWithTaskCount(createdBy string, name string, protocol *database.GitProtocolType, page, pageSize int) (interface{}, int64, error) {
-	projects, total, err := s.repo.List(createdBy, name, protocol, page, pageSize)
+func (s *projectService) ListProjectsWithTaskCount(name string, protocol *database.GitProtocolType, page, pageSize int) (interface{}, int64, error) {
+	projects, total, err := s.repo.List(name, protocol, page, pageSize)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -94,7 +94,7 @@ func (s *projectService) ListProjectsWithTaskCount(createdBy string, name string
 		projectIDs[i] = project.ID
 	}
 
-	taskCounts, err := s.repo.GetTaskCounts(projectIDs, createdBy)
+	taskCounts, err := s.repo.GetTaskCounts(projectIDs)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -110,8 +110,8 @@ func (s *projectService) ListProjectsWithTaskCount(createdBy string, name string
 	return projectsWithTaskCount, total, nil
 }
 
-func (s *projectService) UpdateProject(id uint, createdBy string, updates map[string]interface{}) error {
-	project, err := s.repo.GetByID(id, createdBy)
+func (s *projectService) UpdateProject(id uint, updates map[string]interface{}) error {
+	project, err := s.repo.GetByID(id)
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func (s *projectService) UpdateProject(id uint, createdBy string, updates map[st
 				}
 			}
 		}
-		if err := s.ValidateProtocolCredential(project.Protocol, project.CredentialID, createdBy); err != nil {
+		if err := s.ValidateProtocolCredential(project.Protocol, project.CredentialID); err != nil {
 			return err
 		}
 	}
@@ -151,14 +151,14 @@ func (s *projectService) UpdateProject(id uint, createdBy string, updates map[st
 	return s.repo.Update(project)
 }
 
-func (s *projectService) DeleteProject(id uint, createdBy string) error {
-	project, err := s.repo.GetByID(id, createdBy)
+func (s *projectService) DeleteProject(id uint) error {
+	project, err := s.repo.GetByID(id)
 	if err != nil {
 		return err
 	}
 
 	inProgressStatus := database.TaskStatusInProgress
-	tasks, _, err := s.taskRepo.List(&project.ID, createdBy, &inProgressStatus, nil, nil, nil, 1, 1)
+	tasks, _, err := s.taskRepo.List(&project.ID, &inProgressStatus, nil, nil, nil, 1, 1)
 	if err != nil {
 		return fmt.Errorf("failed to check project tasks: %v", err)
 	}
@@ -166,15 +166,15 @@ func (s *projectService) DeleteProject(id uint, createdBy string) error {
 		return errors.New("project.delete_has_in_progress_tasks")
 	}
 
-	return s.repo.Delete(id, createdBy)
+	return s.repo.Delete(id)
 }
 
-func (s *projectService) ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint, createdBy string) error {
+func (s *projectService) ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint) error {
 	if credentialID == nil {
 		return nil
 	}
 
-	credential, err := s.gitCredRepo.GetByID(*credentialID, createdBy)
+	credential, err := s.gitCredRepo.GetByID(*credentialID)
 	if err != nil {
 		return fmt.Errorf("credential not found: %v", err)
 	}
@@ -195,17 +195,17 @@ func (s *projectService) ValidateProtocolCredential(protocol database.GitProtoco
 	return nil
 }
 
-func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolType, createdBy string) ([]database.GitCredential, error) {
+func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolType) ([]database.GitCredential, error) {
 	switch protocol {
 	case database.GitProtocolHTTPS:
 		passwordType := database.GitCredentialTypePassword
-		passwordCreds, err := s.gitCredService.ListActiveCredentials(createdBy, &passwordType)
+		passwordCreds, err := s.gitCredService.ListActiveCredentials(&passwordType)
 		if err != nil {
 			return nil, err
 		}
 
 		tokenType := database.GitCredentialTypeToken
-		tokenCreds, err := s.gitCredService.ListActiveCredentials(createdBy, &tokenType)
+		tokenCreds, err := s.gitCredService.ListActiveCredentials(&tokenType)
 		if err != nil {
 			return nil, err
 		}
@@ -215,14 +215,14 @@ func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolT
 
 	case database.GitProtocolSSH:
 		sshType := database.GitCredentialTypeSSHKey
-		return s.gitCredService.ListActiveCredentials(createdBy, &sshType)
+		return s.gitCredService.ListActiveCredentials(&sshType)
 
 	default:
 		return nil, errors.New("unsupported protocol type")
 	}
 }
 
-func (s *projectService) FetchRepositoryBranches(repoURL string, credentialID *uint, createdBy string) (*utils.GitAccessResult, error) {
+func (s *projectService) FetchRepositoryBranches(repoURL string, credentialID *uint) (*utils.GitAccessResult, error) {
 	if err := utils.ValidateGitURL(repoURL); err != nil {
 		return &utils.GitAccessResult{
 			CanAccess:    false,
@@ -232,7 +232,7 @@ func (s *projectService) FetchRepositoryBranches(repoURL string, credentialID *u
 
 	var credentialInfo *utils.GitCredentialInfo
 	if credentialID != nil {
-		credential, err := s.gitCredRepo.GetByID(*credentialID, createdBy)
+		credential, err := s.gitCredRepo.GetByID(*credentialID)
 		if err != nil {
 			return &utils.GitAccessResult{
 				CanAccess:    false,
@@ -303,8 +303,8 @@ func (s *projectService) getGitProxyConfig() (*utils.GitProxyConfig, error) {
 	}, nil
 }
 
-func (s *projectService) ValidateRepositoryAccess(repoURL string, credentialID *uint, createdBy string) error {
-	result, err := s.FetchRepositoryBranches(repoURL, credentialID, createdBy)
+func (s *projectService) ValidateRepositoryAccess(repoURL string, credentialID *uint) error {
+	result, err := s.FetchRepositoryBranches(repoURL, credentialID)
 	if err != nil {
 		return err
 	}

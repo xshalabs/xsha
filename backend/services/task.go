@@ -35,25 +35,25 @@ func NewTaskService(repo repository.TaskRepository, projectRepo repository.Proje
 	}
 }
 
-func (s *taskService) CreateTask(title, startBranch, createdBy string, projectID uint, devEnvironmentID *uint) (*database.Task, error) {
-	if err := s.ValidateTaskData(title, startBranch, projectID, createdBy); err != nil {
+func (s *taskService) CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint) (*database.Task, error) {
+	if err := s.ValidateTaskData(title, startBranch, projectID); err != nil {
 		return nil, err
 	}
 
-	project, err := s.projectRepo.GetByID(projectID, createdBy)
+	project, err := s.projectRepo.GetByID(projectID)
 	if err != nil {
 		return nil, errors.New("project not found or access denied")
 	}
 
 	var devEnv *database.DevEnvironment
 	if devEnvironmentID != nil {
-		devEnv, err = s.devEnvRepo.GetByID(*devEnvironmentID, createdBy)
+		devEnv, err = s.devEnvRepo.GetByID(*devEnvironmentID)
 		if err != nil {
 			return nil, errors.New("development environment not found or access denied")
 		}
 	}
 
-	workBranch := utils.GenerateWorkBranchName(title, createdBy)
+	workBranch := utils.GenerateWorkBranchName(title, "admin")
 
 	task := &database.Task{
 		Title:            strings.TrimSpace(title),
@@ -62,7 +62,7 @@ func (s *taskService) CreateTask(title, startBranch, createdBy string, projectID
 		Status:           database.TaskStatusTodo,
 		ProjectID:        projectID,
 		DevEnvironmentID: devEnvironmentID,
-		CreatedBy:        createdBy,
+		CreatedBy:        "admin",
 	}
 
 	if err := s.repo.Create(task); err != nil {
@@ -74,11 +74,11 @@ func (s *taskService) CreateTask(title, startBranch, createdBy string, projectID
 	return task, nil
 }
 
-func (s *taskService) GetTask(id uint, createdBy string) (*database.Task, error) {
-	return s.repo.GetByID(id, createdBy)
+func (s *taskService) GetTask(id uint) (*database.Task, error) {
+	return s.repo.GetByID(id)
 }
 
-func (s *taskService) ListTasks(projectID *uint, createdBy string, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error) {
+func (s *taskService) ListTasks(projectID *uint, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -86,7 +86,7 @@ func (s *taskService) ListTasks(projectID *uint, createdBy string, status *datab
 		pageSize = 20
 	}
 
-	tasks, total, err := s.repo.List(projectID, createdBy, status, title, branch, devEnvID, page, pageSize)
+	tasks, total, err := s.repo.List(projectID, status, title, branch, devEnvID, page, pageSize)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -100,7 +100,7 @@ func (s *taskService) ListTasks(projectID *uint, createdBy string, status *datab
 		taskIDs[i] = task.ID
 	}
 
-	conversationCounts, err := s.repo.GetConversationCounts(taskIDs, createdBy)
+	conversationCounts, err := s.repo.GetConversationCounts(taskIDs)
 	if err != nil {
 		utils.Error("Failed to get conversation counts", "error", err)
 		return tasks, total, nil
@@ -113,8 +113,8 @@ func (s *taskService) ListTasks(projectID *uint, createdBy string, status *datab
 	return tasks, total, nil
 }
 
-func (s *taskService) UpdateTask(id uint, createdBy string, updates map[string]interface{}) error {
-	task, err := s.repo.GetByID(id, createdBy)
+func (s *taskService) UpdateTask(id uint, updates map[string]interface{}) error {
+	task, err := s.repo.GetByID(id)
 	if err != nil {
 		return err
 	}
@@ -138,8 +138,8 @@ func (s *taskService) UpdateTask(id uint, createdBy string, updates map[string]i
 	return s.repo.Update(task)
 }
 
-func (s *taskService) UpdateTaskStatus(id uint, createdBy string, status database.TaskStatus) error {
-	task, err := s.repo.GetByID(id, createdBy)
+func (s *taskService) UpdateTaskStatus(id uint, status database.TaskStatus) error {
+	task, err := s.repo.GetByID(id)
 	if err != nil {
 		return err
 	}
@@ -153,15 +153,15 @@ func (s *taskService) UpdateTaskStatus(id uint, createdBy string, status databas
 
 	utils.Info("Task status updated",
 		"task_id", id,
-		"created_by", createdBy,
+		"created_by", "admin",
 		"old_status", string(oldStatus),
 		"new_status", string(status),
 	)
 	return nil
 }
 
-func (s *taskService) DeleteTask(id uint, createdBy string) error {
-	task, err := s.repo.GetByID(id, createdBy)
+func (s *taskService) DeleteTask(id uint) error {
+	task, err := s.repo.GetByID(id)
 	if err != nil {
 		return err
 	}
@@ -181,18 +181,18 @@ func (s *taskService) DeleteTask(id uint, createdBy string) error {
 		}
 	}
 
-	if err := s.repo.Delete(id, createdBy); err != nil {
+	if err := s.repo.Delete(id); err != nil {
 		return err
 	}
 
 	utils.Info("Task deleted",
 		"task_id", id,
-		"created_by", createdBy,
+		"created_by", "admin",
 	)
 	return nil
 }
 
-func (s *taskService) ValidateTaskData(title, startBranch string, projectID uint, createdBy string) error {
+func (s *taskService) ValidateTaskData(title, startBranch string, projectID uint) error {
 	if strings.TrimSpace(title) == "" {
 		return errors.New("task title is required")
 	}
@@ -212,7 +212,7 @@ func (s *taskService) ValidateTaskData(title, startBranch string, projectID uint
 	return nil
 }
 
-func (s *taskService) UpdateTaskStatusBatch(taskIDs []uint, createdBy string, status database.TaskStatus) ([]uint, []uint, error) {
+func (s *taskService) UpdateTaskStatusBatch(taskIDs []uint, status database.TaskStatus) ([]uint, []uint, error) {
 	if len(taskIDs) == 0 {
 		return nil, nil, errors.New("task IDs cannot be empty")
 	}
@@ -225,12 +225,12 @@ func (s *taskService) UpdateTaskStatusBatch(taskIDs []uint, createdBy string, st
 	var failedIDs []uint
 
 	for _, taskID := range taskIDs {
-		task, err := s.repo.GetByID(taskID, createdBy)
+		task, err := s.repo.GetByID(taskID)
 		if err != nil {
 			failedIDs = append(failedIDs, taskID)
 			utils.Warn("Failed to get task for batch status update",
 				"task_id", taskID,
-				"created_by", createdBy,
+				"created_by", "admin",
 				"error", err.Error(),
 			)
 			continue
@@ -243,7 +243,7 @@ func (s *taskService) UpdateTaskStatusBatch(taskIDs []uint, createdBy string, st
 			failedIDs = append(failedIDs, taskID)
 			utils.Error("Failed to update task status in batch",
 				"task_id", taskID,
-				"created_by", createdBy,
+				"created_by", "admin",
 				"error", err.Error(),
 			)
 			continue
@@ -252,7 +252,7 @@ func (s *taskService) UpdateTaskStatusBatch(taskIDs []uint, createdBy string, st
 		successIDs = append(successIDs, taskID)
 		utils.Info("Task status updated in batch",
 			"task_id", taskID,
-			"created_by", createdBy,
+			"created_by", "admin",
 			"old_status", string(oldStatus),
 			"new_status", string(status),
 		)
@@ -333,8 +333,8 @@ func (s *taskService) GetTaskGitDiffFile(task *database.Task, filePath string) (
 	return string(output), nil
 }
 
-func (s *taskService) PushTaskBranch(id uint, createdBy string, forcePush bool) (string, error) {
-	task, err := s.GetTask(id, createdBy)
+func (s *taskService) PushTaskBranch(id uint, forcePush bool) (string, error) {
+	task, err := s.GetTask(id)
 	if err != nil {
 		return "", err
 	}
@@ -361,7 +361,7 @@ func (s *taskService) PushTaskBranch(id uint, createdBy string, forcePush bool) 
 
 	var credential *utils.GitCredentialInfo
 	if task.Project.CredentialID != nil {
-		cred, err := s.gitCredService.GetCredential(*task.Project.CredentialID, createdBy)
+		cred, err := s.gitCredService.GetCredential(*task.Project.CredentialID)
 		if err != nil {
 			return "", fmt.Errorf("failed to get Git credential: %v", err)
 		}

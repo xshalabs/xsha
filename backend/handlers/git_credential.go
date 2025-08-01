@@ -52,7 +52,6 @@ type UpdateCredentialRequest struct {
 // @Router /git-credentials [post]
 func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	var req CreateCredentialRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -64,7 +63,7 @@ func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 
 	credential, err := h.gitCredService.CreateCredential(
 		req.Name, req.Description, req.Type, req.Username,
-		username.(string), req.SecretData,
+		req.SecretData,
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -93,7 +92,6 @@ func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 // @Router /git-credentials/{id} [get]
 func (h *GitCredentialHandlers) GetCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -104,7 +102,7 @@ func (h *GitCredentialHandlers) GetCredential(c *gin.Context) {
 		return
 	}
 
-	credential, err := h.gitCredService.GetCredential(uint(id), username.(string))
+	credential, err := h.gitCredService.GetCredential(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": i18n.T(lang, "git_credential.not_found"),
@@ -132,7 +130,6 @@ func (h *GitCredentialHandlers) GetCredential(c *gin.Context) {
 // @Router /git-credentials [get]
 func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	// Parse query parameters
 	page := 1
@@ -154,7 +151,7 @@ func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 		credType = &credTypeValue
 	}
 
-	credentials, total, err := h.gitCredService.ListCredentials(username.(string), credType, page, pageSize)
+	credentials, total, err := h.gitCredService.ListCredentials(credType, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "common.internal_error"),
@@ -189,7 +186,6 @@ func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 // @Router /git-credentials/{id} [put]
 func (h *GitCredentialHandlers) UpdateCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -220,7 +216,7 @@ func (h *GitCredentialHandlers) UpdateCredential(c *gin.Context) {
 		updates["username"] = req.Username
 	}
 
-	err = h.gitCredService.UpdateCredential(uint(id), username.(string), updates, req.SecretData)
+	err = h.gitCredService.UpdateCredential(uint(id), updates, req.SecretData)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.MapErrorToI18nKey(err, lang),
@@ -247,7 +243,6 @@ func (h *GitCredentialHandlers) UpdateCredential(c *gin.Context) {
 // @Router /git-credentials/{id} [delete]
 func (h *GitCredentialHandlers) DeleteCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -258,7 +253,7 @@ func (h *GitCredentialHandlers) DeleteCredential(c *gin.Context) {
 		return
 	}
 
-	err = h.gitCredService.DeleteCredential(uint(id), username.(string))
+	err = h.gitCredService.DeleteCredential(uint(id))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.MapErrorToI18nKey(err, lang),

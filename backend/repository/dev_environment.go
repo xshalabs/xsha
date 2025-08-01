@@ -18,29 +18,29 @@ func (r *devEnvironmentRepository) Create(env *database.DevEnvironment) error {
 	return r.db.Create(env).Error
 }
 
-func (r *devEnvironmentRepository) GetByID(id uint, createdBy string) (*database.DevEnvironment, error) {
+func (r *devEnvironmentRepository) GetByID(id uint) (*database.DevEnvironment, error) {
 	var env database.DevEnvironment
-	err := r.db.Where("id = ? AND created_by = ?", id, createdBy).First(&env).Error
+	err := r.db.Where("id = ?", id).First(&env).Error
 	if err != nil {
 		return nil, err
 	}
 	return &env, nil
 }
 
-func (r *devEnvironmentRepository) GetByName(name, createdBy string) (*database.DevEnvironment, error) {
+func (r *devEnvironmentRepository) GetByName(name string) (*database.DevEnvironment, error) {
 	var env database.DevEnvironment
-	err := r.db.Where("name = ? AND created_by = ?", name, createdBy).First(&env).Error
+	err := r.db.Where("name = ?", name).First(&env).Error
 	if err != nil {
 		return nil, err
 	}
 	return &env, nil
 }
 
-func (r *devEnvironmentRepository) List(createdBy string, envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
+func (r *devEnvironmentRepository) List(envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
 	var environments []database.DevEnvironment
 	var total int64
 
-	query := r.db.Model(&database.DevEnvironment{}).Where("created_by = ?", createdBy)
+	query := r.db.Model(&database.DevEnvironment{})
 
 	if envType != nil {
 		query = query.Where("type = ?", *envType)
@@ -66,6 +66,6 @@ func (r *devEnvironmentRepository) Update(env *database.DevEnvironment) error {
 	return r.db.Save(env).Error
 }
 
-func (r *devEnvironmentRepository) Delete(id uint, createdBy string) error {
-	return r.db.Where("id = ? AND created_by = ?", id, createdBy).Delete(&database.DevEnvironment{}).Error
+func (r *devEnvironmentRepository) Delete(id uint) error {
+	return r.db.Where("id = ?", id).Delete(&database.DevEnvironment{}).Error
 }

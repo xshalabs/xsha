@@ -22,12 +22,12 @@ func NewTaskConversationService(repo repository.TaskConversationRepository, task
 	}
 }
 
-func (s *taskConversationService) CreateConversation(taskID uint, content, createdBy string) (*database.TaskConversation, error) {
-	if err := s.ValidateConversationData(taskID, content, createdBy); err != nil {
+func (s *taskConversationService) CreateConversation(taskID uint, content string) (*database.TaskConversation, error) {
+	if err := s.ValidateConversationData(taskID, content); err != nil {
 		return nil, err
 	}
 
-	task, err := s.taskRepo.GetByID(taskID, createdBy)
+	task, err := s.taskRepo.GetByID(taskID)
 	if err != nil {
 		return nil, errors.New("task not found or access denied")
 	}
@@ -36,7 +36,7 @@ func (s *taskConversationService) CreateConversation(taskID uint, content, creat
 		return nil, errors.New("cannot create conversation for completed or cancelled task")
 	}
 
-	hasPendingOrRunning, err := s.repo.HasPendingOrRunningConversations(taskID, createdBy)
+	hasPendingOrRunning, err := s.repo.HasPendingOrRunningConversations(taskID)
 	if err != nil {
 		return nil, errors.New("failed to check conversation status")
 	}
@@ -48,7 +48,7 @@ func (s *taskConversationService) CreateConversation(taskID uint, content, creat
 		TaskID:    taskID,
 		Content:   strings.TrimSpace(content),
 		Status:    database.ConversationStatusPending,
-		CreatedBy: createdBy,
+		CreatedBy: "admin",
 	}
 
 	if err := s.repo.Create(conversation); err != nil {
@@ -59,11 +59,11 @@ func (s *taskConversationService) CreateConversation(taskID uint, content, creat
 	return conversation, nil
 }
 
-func (s *taskConversationService) GetConversation(id uint, createdBy string) (*database.TaskConversation, error) {
-	return s.repo.GetByID(id, createdBy)
+func (s *taskConversationService) GetConversation(id uint) (*database.TaskConversation, error) {
+	return s.repo.GetByID(id)
 }
 
-func (s *taskConversationService) ListConversations(taskID uint, createdBy string, page, pageSize int) ([]database.TaskConversation, int64, error) {
+func (s *taskConversationService) ListConversations(taskID uint, page, pageSize int) ([]database.TaskConversation, int64, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -71,11 +71,11 @@ func (s *taskConversationService) ListConversations(taskID uint, createdBy strin
 		pageSize = 20
 	}
 
-	return s.repo.List(taskID, createdBy, page, pageSize)
+	return s.repo.List(taskID, page, pageSize)
 }
 
-func (s *taskConversationService) UpdateConversation(id uint, createdBy string, updates map[string]interface{}) error {
-	conversation, err := s.repo.GetByID(id, createdBy)
+func (s *taskConversationService) UpdateConversation(id uint, updates map[string]interface{}) error {
+	conversation, err := s.repo.GetByID(id)
 	if err != nil {
 		return err
 	}
@@ -98,8 +98,8 @@ func (s *taskConversationService) UpdateConversation(id uint, createdBy string, 
 	return s.repo.Update(conversation)
 }
 
-func (s *taskConversationService) DeleteConversation(id uint, createdBy string) error {
-	conversation, err := s.repo.GetByID(id, createdBy)
+func (s *taskConversationService) DeleteConversation(id uint) error {
+	conversation, err := s.repo.GetByID(id)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (s *taskConversationService) DeleteConversation(id uint, createdBy string) 
 		return errors.New("cannot delete conversation while it is running")
 	}
 
-	latestConversation, err := s.repo.GetLatestByTask(conversation.TaskID, createdBy)
+	latestConversation, err := s.repo.GetLatestByTask(conversation.TaskID)
 	if err != nil {
 		return errors.New("failed to get latest conversation")
 	}
@@ -136,14 +136,14 @@ func (s *taskConversationService) DeleteConversation(id uint, createdBy string) 
 		return errors.New("failed to delete related execution logs")
 	}
 
-	return s.repo.Delete(id, createdBy)
+	return s.repo.Delete(id)
 }
 
-func (s *taskConversationService) GetLatestConversation(taskID uint, createdBy string) (*database.TaskConversation, error) {
-	return s.repo.GetLatestByTask(taskID, createdBy)
+func (s *taskConversationService) GetLatestConversation(taskID uint) (*database.TaskConversation, error) {
+	return s.repo.GetLatestByTask(taskID)
 }
 
-func (s *taskConversationService) ValidateConversationData(taskID uint, content string, createdBy string) error {
+func (s *taskConversationService) ValidateConversationData(taskID uint, content string) error {
 	if strings.TrimSpace(content) == "" {
 		return errors.New("conversation content is required")
 	}
@@ -159,8 +159,8 @@ func (s *taskConversationService) ValidateConversationData(taskID uint, content 
 	return nil
 }
 
-func (s *taskConversationService) GetConversationGitDiff(conversationID uint, createdBy string, includeContent bool) (*utils.GitDiffSummary, error) {
-	conversation, err := s.repo.GetByID(conversationID, createdBy)
+func (s *taskConversationService) GetConversationGitDiff(conversationID uint, includeContent bool) (*utils.GitDiffSummary, error) {
+	conversation, err := s.repo.GetByID(conversationID)
 	if err != nil {
 		return nil, errors.New("conversation not found or access denied")
 	}
@@ -169,7 +169,7 @@ func (s *taskConversationService) GetConversationGitDiff(conversationID uint, cr
 		return nil, errors.New("conversation has no commit hash")
 	}
 
-	task, err := s.taskRepo.GetByID(conversation.TaskID, createdBy)
+	task, err := s.taskRepo.GetByID(conversation.TaskID)
 	if err != nil {
 		return nil, errors.New("task not found or access denied")
 	}
@@ -186,12 +186,12 @@ func (s *taskConversationService) GetConversationGitDiff(conversationID uint, cr
 	return diff, nil
 }
 
-func (s *taskConversationService) GetConversationGitDiffFile(conversationID uint, createdBy string, filePath string) (string, error) {
+func (s *taskConversationService) GetConversationGitDiffFile(conversationID uint, filePath string) (string, error) {
 	if filePath == "" {
 		return "", errors.New("file path cannot be empty")
 	}
 
-	conversation, err := s.repo.GetByID(conversationID, createdBy)
+	conversation, err := s.repo.GetByID(conversationID)
 	if err != nil {
 		return "", errors.New("conversation not found or access denied")
 	}
@@ -200,7 +200,7 @@ func (s *taskConversationService) GetConversationGitDiffFile(conversationID uint
 		return "", errors.New("conversation has no commit hash")
 	}
 
-	task, err := s.taskRepo.GetByID(conversation.TaskID, createdBy)
+	task, err := s.taskRepo.GetByID(conversation.TaskID)
 	if err != nil {
 		return "", errors.New("task not found or access denied")
 	}

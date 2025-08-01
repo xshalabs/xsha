@@ -52,7 +52,6 @@ type UpdateEnvironmentRequest struct {
 // @Router /dev-environments [post]
 func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	var req CreateEnvironmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -67,7 +66,7 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 	}
 
 	env, err := h.devEnvService.CreateEnvironment(
-		req.Name, req.Description, req.Type, username.(string),
+		req.Name, req.Description, req.Type,
 		req.CPULimit, req.MemoryLimit, req.EnvVars,
 	)
 	if err != nil {
@@ -96,7 +95,6 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 // @Router /dev-environments/{id} [get]
 func (h *DevEnvironmentHandlers) GetEnvironment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -107,7 +105,7 @@ func (h *DevEnvironmentHandlers) GetEnvironment(c *gin.Context) {
 		return
 	}
 
-	env, err := h.devEnvService.GetEnvironment(uint(id), username.(string))
+	env, err := h.devEnvService.GetEnvironment(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": i18n.T(lang, "dev_environment.not_found"),
@@ -135,7 +133,6 @@ func (h *DevEnvironmentHandlers) GetEnvironment(c *gin.Context) {
 // @Router /dev-environments [get]
 func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	page := 1
 	pageSize := 10
@@ -159,7 +156,7 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 		name = &n
 	}
 
-	environments, total, err := h.devEnvService.ListEnvironments(username.(string), envType, name, page, pageSize)
+	environments, total, err := h.devEnvService.ListEnvironments(envType, name, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "dev_environment.list_failed"),
@@ -193,7 +190,6 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 // @Router /dev-environments/{id} [put]
 func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -226,7 +222,7 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 		updates["memory_limit"] = req.MemoryLimit
 	}
 
-	err = h.devEnvService.UpdateEnvironment(uint(id), username.(string), updates)
+	err = h.devEnvService.UpdateEnvironment(uint(id), updates)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.T(lang, "dev_environment.update_failed") + ": " + err.Error(),
@@ -235,7 +231,7 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	}
 
 	if req.EnvVars != nil {
-		err = h.devEnvService.UpdateEnvironmentVars(uint(id), username.(string), req.EnvVars)
+		err = h.devEnvService.UpdateEnvironmentVars(uint(id), req.EnvVars)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": i18n.T(lang, "dev_environment.env_vars_update_failed") + ": " + err.Error(),
@@ -262,7 +258,6 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 // @Router /dev-environments/{id} [delete]
 func (h *DevEnvironmentHandlers) DeleteEnvironment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -273,7 +268,7 @@ func (h *DevEnvironmentHandlers) DeleteEnvironment(c *gin.Context) {
 		return
 	}
 
-	err = h.devEnvService.DeleteEnvironment(uint(id), username.(string))
+	err = h.devEnvService.DeleteEnvironment(uint(id))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.T(lang, "dev_environment.delete_failed") + ": " + err.Error(),
@@ -299,7 +294,6 @@ func (h *DevEnvironmentHandlers) DeleteEnvironment(c *gin.Context) {
 // @Router /dev-environments/{id}/env-vars [get]
 func (h *DevEnvironmentHandlers) GetEnvironmentVars(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -310,7 +304,7 @@ func (h *DevEnvironmentHandlers) GetEnvironmentVars(c *gin.Context) {
 		return
 	}
 
-	envVars, err := h.devEnvService.GetEnvironmentVars(uint(id), username.(string))
+	envVars, err := h.devEnvService.GetEnvironmentVars(uint(id))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.T(lang, "dev_environment.env_vars_get_failed") + ": " + err.Error(),
@@ -337,7 +331,6 @@ func (h *DevEnvironmentHandlers) GetEnvironmentVars(c *gin.Context) {
 // @Router /dev-environments/{id}/env-vars [put]
 func (h *DevEnvironmentHandlers) UpdateEnvironmentVars(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -356,7 +349,7 @@ func (h *DevEnvironmentHandlers) UpdateEnvironmentVars(c *gin.Context) {
 		return
 	}
 
-	err = h.devEnvService.UpdateEnvironmentVars(uint(id), username.(string), envVars)
+	err = h.devEnvService.UpdateEnvironmentVars(uint(id), envVars)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.T(lang, "dev_environment.env_vars_update_failed") + ": " + err.Error(),

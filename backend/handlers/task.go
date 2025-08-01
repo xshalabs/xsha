@@ -70,13 +70,7 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	task, err := h.taskService.CreateTask(req.Title, req.StartBranch, username.(string), req.ProjectID, req.DevEnvironmentID)
+	task, err := h.taskService.CreateTask(req.Title, req.StartBranch, req.ProjectID, req.DevEnvironmentID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
@@ -86,7 +80,6 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 		_, err := h.conversationService.CreateConversation(
 			task.ID,
 			req.RequirementDesc,
-			username.(string),
 		)
 		if err != nil {
 			utils.Error("Failed to create conversation", "taskID", task.ID, "error", err)
@@ -102,7 +95,6 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 			branchResult, err := h.projectService.FetchRepositoryBranches(
 				task.Project.RepoURL,
 				task.Project.CredentialID,
-				username.(string),
 			)
 			if err != nil {
 				response.BranchError = err.Error()
@@ -145,13 +137,7 @@ func (h *TaskHandlers) GetTask(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	task, err := h.taskService.GetTask(uint(id), username.(string))
+	task, err := h.taskService.GetTask(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "task.not_found")})
 		return
@@ -183,12 +169,6 @@ func (h *TaskHandlers) GetTask(c *gin.Context) {
 // @Router /tasks [get]
 func (h *TaskHandlers) ListTasks(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
 
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
@@ -225,7 +205,7 @@ func (h *TaskHandlers) ListTasks(c *gin.Context) {
 		}
 	}
 
-	tasks, total, err := h.taskService.ListTasks(projectID, username.(string), status, title, branch, devEnvID, page, pageSize)
+	tasks, total, err := h.taskService.ListTasks(projectID, status, title, branch, devEnvID, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
 		return
@@ -271,16 +251,10 @@ func (h *TaskHandlers) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
 	updates := make(map[string]interface{})
 	updates["title"] = req.Title
 
-	if err := h.taskService.UpdateTask(uint(id), username.(string), updates); err != nil {
+	if err := h.taskService.UpdateTask(uint(id), updates); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
 	}
@@ -322,12 +296,6 @@ func (h *TaskHandlers) UpdateTaskStatus(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
 	var status database.TaskStatus
 	switch req.Status {
 	case "todo":
@@ -343,7 +311,7 @@ func (h *TaskHandlers) UpdateTaskStatus(c *gin.Context) {
 		return
 	}
 
-	if err := h.taskService.UpdateTaskStatus(uint(id), username.(string), status); err != nil {
+	if err := h.taskService.UpdateTaskStatus(uint(id), status); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
 	}
@@ -374,13 +342,7 @@ func (h *TaskHandlers) DeleteTask(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	if err := h.taskService.DeleteTask(uint(id), username.(string)); err != nil {
+	if err := h.taskService.DeleteTask(uint(id)); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
 	}
@@ -423,12 +385,6 @@ func (h *TaskHandlers) BatchUpdateTaskStatus(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
 	var status database.TaskStatus
 	switch req.Status {
 	case "todo":
@@ -444,7 +400,7 @@ func (h *TaskHandlers) BatchUpdateTaskStatus(c *gin.Context) {
 		return
 	}
 
-	successIDs, failedIDs, err := h.taskService.UpdateTaskStatusBatch(req.TaskIDs, username.(string), status)
+	successIDs, failedIDs, err := h.taskService.UpdateTaskStatusBatch(req.TaskIDs, status)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
@@ -493,23 +449,10 @@ func (h *TaskHandlers) GetTaskGitDiff(c *gin.Context) {
 
 	includeContent := c.DefaultQuery("include_content", "false") == "true"
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	task, err := h.taskService.GetTask(uint(taskID), username.(string))
+	task, err := h.taskService.GetTask(uint(taskID))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": i18n.T(lang, "tasks.errors.not_found"),
-		})
-		return
-	}
-
-	if task.CreatedBy != username.(string) {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": i18n.T(lang, "common.no_permission"),
 		})
 		return
 	}
@@ -585,23 +528,10 @@ func (h *TaskHandlers) GetTaskGitDiffFile(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	task, err := h.taskService.GetTask(uint(taskID), username.(string))
+	task, err := h.taskService.GetTask(uint(taskID))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": i18n.T(lang, "tasks.errors.not_found"),
-		})
-		return
-	}
-
-	if task.CreatedBy != username.(string) {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": i18n.T(lang, "common.no_permission"),
 		})
 		return
 	}
@@ -649,12 +579,6 @@ func (h *TaskHandlers) PushTaskBranch(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
 	var req struct {
 		ForcePush bool `json:"force_push"`
 	}
@@ -662,7 +586,7 @@ func (h *TaskHandlers) PushTaskBranch(c *gin.Context) {
 		req.ForcePush = false
 	}
 
-	output, err := h.taskService.PushTaskBranch(uint(taskID), username.(string), req.ForcePush)
+	output, err := h.taskService.PushTaskBranch(uint(taskID), req.ForcePush)
 	if err != nil {
 		utils.Error("Failed to push task branch", "taskID", taskID, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{

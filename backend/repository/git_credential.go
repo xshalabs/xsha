@@ -18,29 +18,29 @@ func (r *gitCredentialRepository) Create(credential *database.GitCredential) err
 	return r.db.Create(credential).Error
 }
 
-func (r *gitCredentialRepository) GetByID(id uint, createdBy string) (*database.GitCredential, error) {
+func (r *gitCredentialRepository) GetByID(id uint) (*database.GitCredential, error) {
 	var credential database.GitCredential
-	err := r.db.Where("id = ? AND created_by = ?", id, createdBy).First(&credential).Error
+	err := r.db.Where("id = ?", id).First(&credential).Error
 	if err != nil {
 		return nil, err
 	}
 	return &credential, nil
 }
 
-func (r *gitCredentialRepository) GetByName(name, createdBy string) (*database.GitCredential, error) {
+func (r *gitCredentialRepository) GetByName(name string) (*database.GitCredential, error) {
 	var credential database.GitCredential
-	err := r.db.Where("name = ? AND created_by = ?", name, createdBy).First(&credential).Error
+	err := r.db.Where("name = ?", name).First(&credential).Error
 	if err != nil {
 		return nil, err
 	}
 	return &credential, nil
 }
 
-func (r *gitCredentialRepository) List(createdBy string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error) {
+func (r *gitCredentialRepository) List(credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error) {
 	var credentials []database.GitCredential
 	var total int64
 
-	query := r.db.Model(&database.GitCredential{}).Where("created_by = ?", createdBy)
+	query := r.db.Model(&database.GitCredential{})
 
 	if credType != nil {
 		query = query.Where("type = ?", *credType)
@@ -62,6 +62,6 @@ func (r *gitCredentialRepository) Update(credential *database.GitCredential) err
 	return r.db.Save(credential).Error
 }
 
-func (r *gitCredentialRepository) Delete(id uint, createdBy string) error {
-	return r.db.Where("id = ? AND created_by = ?", id, createdBy).Delete(&database.GitCredential{}).Error
+func (r *gitCredentialRepository) Delete(id uint) error {
+	return r.db.Where("id = ?", id).Delete(&database.GitCredential{}).Error
 }

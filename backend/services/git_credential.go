@@ -24,12 +24,12 @@ func NewGitCredentialService(repo repository.GitCredentialRepository, projectRep
 	}
 }
 
-func (s *gitCredentialService) CreateCredential(name, description, credType, username, createdBy string, secretData map[string]string) (*database.GitCredential, error) {
+func (s *gitCredentialService) CreateCredential(name, description, credType, username string, secretData map[string]string) (*database.GitCredential, error) {
 	if err := s.ValidateCredentialData(credType, secretData); err != nil {
 		return nil, err
 	}
 
-	if existing, _ := s.repo.GetByName(name, createdBy); existing != nil {
+	if existing, _ := s.repo.GetByName(name); existing != nil {
 		return nil, errors.New("credential name already exists")
 	}
 
@@ -38,7 +38,7 @@ func (s *gitCredentialService) CreateCredential(name, description, credType, use
 		Description: description,
 		Type:        database.GitCredentialType(credType),
 		Username:    username,
-		CreatedBy:   createdBy,
+		CreatedBy:   "admin",
 	}
 
 	switch database.GitCredentialType(credType) {
@@ -70,16 +70,16 @@ func (s *gitCredentialService) CreateCredential(name, description, credType, use
 	return credential, nil
 }
 
-func (s *gitCredentialService) GetCredential(id uint, createdBy string) (*database.GitCredential, error) {
-	return s.repo.GetByID(id, createdBy)
+func (s *gitCredentialService) GetCredential(id uint) (*database.GitCredential, error) {
+	return s.repo.GetByID(id)
 }
 
-func (s *gitCredentialService) ListCredentials(createdBy string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error) {
-	return s.repo.List(createdBy, credType, page, pageSize)
+func (s *gitCredentialService) ListCredentials(credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error) {
+	return s.repo.List(credType, page, pageSize)
 }
 
-func (s *gitCredentialService) UpdateCredential(id uint, createdBy string, updates map[string]interface{}, secretData map[string]string) error {
-	credential, err := s.repo.GetByID(id, createdBy)
+func (s *gitCredentialService) UpdateCredential(id uint, updates map[string]interface{}, secretData map[string]string) error {
+	credential, err := s.repo.GetByID(id)
 	if err != nil {
 		return err
 	}
@@ -121,13 +121,13 @@ func (s *gitCredentialService) UpdateCredential(id uint, createdBy string, updat
 	return s.repo.Update(credential)
 }
 
-func (s *gitCredentialService) DeleteCredential(id uint, createdBy string) error {
-	credential, err := s.repo.GetByID(id, createdBy)
+func (s *gitCredentialService) DeleteCredential(id uint) error {
+	credential, err := s.repo.GetByID(id)
 	if err != nil {
 		return err
 	}
 
-	projects, _, err := s.projectRepo.List(createdBy, "", nil, 1, 1000)
+	projects, _, err := s.projectRepo.List("", nil, 1, 1000)
 	if err != nil {
 		return fmt.Errorf("failed to check credential usage: %v", err)
 	}
@@ -138,11 +138,11 @@ func (s *gitCredentialService) DeleteCredential(id uint, createdBy string) error
 		}
 	}
 
-	return s.repo.Delete(id, createdBy)
+	return s.repo.Delete(id)
 }
 
-func (s *gitCredentialService) ListActiveCredentials(createdBy string, credType *database.GitCredentialType) ([]database.GitCredential, error) {
-	credentials, _, err := s.repo.List(createdBy, credType, 1, 1000)
+func (s *gitCredentialService) ListActiveCredentials(credType *database.GitCredentialType) ([]database.GitCredential, error) {
+	credentials, _, err := s.repo.List(credType, 1, 1000)
 	return credentials, err
 }
 

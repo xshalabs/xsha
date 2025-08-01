@@ -23,7 +23,7 @@ func NewDevEnvironmentService(repo repository.DevEnvironmentRepository, taskRepo
 	}
 }
 
-func (s *devEnvironmentService) CreateEnvironment(name, description, envType, createdBy string, cpuLimit float64, memoryLimit int64, envVars map[string]string) (*database.DevEnvironment, error) {
+func (s *devEnvironmentService) CreateEnvironment(name, description, envType string, cpuLimit float64, memoryLimit int64, envVars map[string]string) (*database.DevEnvironment, error) {
 	if err := s.validateEnvironmentData(name, envType, cpuLimit, memoryLimit); err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, envType, cr
 		return nil, err
 	}
 
-	if existing, _ := s.repo.GetByName(name, createdBy); existing != nil {
+	if existing, _ := s.repo.GetByName(name); existing != nil {
 		return nil, errors.New("environment name already exists")
 	}
 
@@ -48,7 +48,7 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, envType, cr
 		CPULimit:    cpuLimit,
 		MemoryLimit: memoryLimit,
 		EnvVars:     string(envVarsJSON),
-		CreatedBy:   createdBy,
+		CreatedBy:   "admin",
 	}
 
 	if err := s.repo.Create(env); err != nil {
@@ -58,16 +58,16 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, envType, cr
 	return env, nil
 }
 
-func (s *devEnvironmentService) GetEnvironment(id uint, createdBy string) (*database.DevEnvironment, error) {
-	return s.repo.GetByID(id, createdBy)
+func (s *devEnvironmentService) GetEnvironment(id uint) (*database.DevEnvironment, error) {
+	return s.repo.GetByID(id)
 }
 
-func (s *devEnvironmentService) ListEnvironments(createdBy string, envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
-	return s.repo.List(createdBy, envType, name, page, pageSize)
+func (s *devEnvironmentService) ListEnvironments(envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
+	return s.repo.List(envType, name, page, pageSize)
 }
 
-func (s *devEnvironmentService) UpdateEnvironment(id uint, createdBy string, updates map[string]interface{}) error {
-	env, err := s.repo.GetByID(id, createdBy)
+func (s *devEnvironmentService) UpdateEnvironment(id uint, updates map[string]interface{}) error {
+	env, err := s.repo.GetByID(id)
 	if err != nil {
 		return err
 	}
@@ -92,13 +92,13 @@ func (s *devEnvironmentService) UpdateEnvironment(id uint, createdBy string, upd
 	return s.repo.Update(env)
 }
 
-func (s *devEnvironmentService) DeleteEnvironment(id uint, createdBy string) error {
-	env, err := s.repo.GetByID(id, createdBy)
+func (s *devEnvironmentService) DeleteEnvironment(id uint) error {
+	env, err := s.repo.GetByID(id)
 	if err != nil {
 		return err
 	}
 
-	tasks, _, err := s.taskRepo.List(nil, createdBy, nil, nil, nil, &env.ID, 1, 1)
+	tasks, _, err := s.taskRepo.List(nil, nil, nil, nil, &env.ID, 1, 1)
 	if err != nil {
 		return fmt.Errorf("failed to check environment usage: %v", err)
 	}
@@ -106,7 +106,7 @@ func (s *devEnvironmentService) DeleteEnvironment(id uint, createdBy string) err
 		return errors.New("dev_environment.delete_used_by_tasks")
 	}
 
-	return s.repo.Delete(id, createdBy)
+	return s.repo.Delete(id)
 }
 
 func (s *devEnvironmentService) ValidateEnvVars(envVars map[string]string) error {
@@ -122,8 +122,8 @@ func (s *devEnvironmentService) ValidateEnvVars(envVars map[string]string) error
 	return nil
 }
 
-func (s *devEnvironmentService) GetEnvironmentVars(id uint, createdBy string) (map[string]string, error) {
-	env, err := s.repo.GetByID(id, createdBy)
+func (s *devEnvironmentService) GetEnvironmentVars(id uint) (map[string]string, error) {
+	env, err := s.repo.GetByID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -142,8 +142,8 @@ func (s *devEnvironmentService) GetEnvironmentVars(id uint, createdBy string) (m
 	return envVars, nil
 }
 
-func (s *devEnvironmentService) UpdateEnvironmentVars(id uint, createdBy string, envVars map[string]string) error {
-	env, err := s.repo.GetByID(id, createdBy)
+func (s *devEnvironmentService) UpdateEnvironmentVars(id uint, envVars map[string]string) error {
+	env, err := s.repo.GetByID(id)
 	if err != nil {
 		return err
 	}

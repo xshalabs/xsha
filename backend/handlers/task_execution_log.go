@@ -75,18 +75,8 @@ func (h *TaskExecutionLogHandlers) CancelExecution(c *gin.Context) {
 		return
 	}
 
-	// Get current username
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	createdBy, ok := username.(string)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "user.info_format_error")})
-		return
-	}
+	username, _ := c.Get("username")
+	createdBy, _ := username.(string)
 
 	if err := h.aiTaskExecutor.CancelExecution(uint(conversationID), createdBy); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -119,17 +109,8 @@ func (h *TaskExecutionLogHandlers) RetryExecution(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	createdBy, ok := username.(string)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "user.info_format_error")})
-		return
-	}
+	username, _ := c.Get("username")
+	createdBy, _ := username.(string)
 
 	if err := h.aiTaskExecutor.RetryExecution(uint(conversationID), createdBy); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

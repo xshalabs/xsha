@@ -53,13 +53,7 @@ func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	conversation, err := h.conversationService.CreateConversation(req.TaskID, req.Content, username.(string))
+	conversation, err := h.conversationService.CreateConversation(req.TaskID, req.Content)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
@@ -94,13 +88,7 @@ func (h *TaskConversationHandlers) GetConversation(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	conversation, err := h.conversationService.GetConversation(uint(id), username.(string))
+	conversation, err := h.conversationService.GetConversation(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.not_found")})
 		return
@@ -142,16 +130,10 @@ func (h *TaskConversationHandlers) ListConversations(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 
-	conversations, total, err := h.conversationService.ListConversations(uint(taskID), username.(string), page, pageSize)
+	conversations, total, err := h.conversationService.ListConversations(uint(taskID), page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
 		return
@@ -197,18 +179,12 @@ func (h *TaskConversationHandlers) UpdateConversation(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
 	updates := make(map[string]interface{})
 	if req.Content != "" {
 		updates["content"] = req.Content
 	}
 
-	if err := h.conversationService.UpdateConversation(uint(id), username.(string), updates); err != nil {
+	if err := h.conversationService.UpdateConversation(uint(id), updates); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
 	}
@@ -239,13 +215,7 @@ func (h *TaskConversationHandlers) DeleteConversation(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	if err := h.conversationService.DeleteConversation(uint(id), username.(string)); err != nil {
+	if err := h.conversationService.DeleteConversation(uint(id)); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
 	}
@@ -281,13 +251,7 @@ func (h *TaskConversationHandlers) GetLatestConversation(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	conversation, err := h.conversationService.GetLatestConversation(uint(taskID), username.(string))
+	conversation, err := h.conversationService.GetLatestConversation(uint(taskID))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.not_found")})
 		return
@@ -327,13 +291,7 @@ func (h *TaskConversationHandlers) GetConversationGitDiff(c *gin.Context) {
 
 	includeContent := c.DefaultQuery("include_content", "false") == "true"
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	diff, err := h.conversationService.GetConversationGitDiff(uint(conversationID), username.(string), includeContent)
+	diff, err := h.conversationService.GetConversationGitDiff(uint(conversationID), includeContent)
 	if err != nil {
 		utils.Error("Failed to get conversation Git diff", "conversationID", conversationID, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -381,13 +339,7 @@ func (h *TaskConversationHandlers) GetConversationGitDiffFile(c *gin.Context) {
 		return
 	}
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	diffContent, err := h.conversationService.GetConversationGitDiffFile(uint(conversationID), username.(string), filePath)
+	diffContent, err := h.conversationService.GetConversationGitDiffFile(uint(conversationID), filePath)
 	if err != nil {
 		utils.Error("Failed to get conversation file Git diff", "conversationID", conversationID, "filePath", filePath, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{

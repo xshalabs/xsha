@@ -54,7 +54,6 @@ type UpdateProjectRequest struct {
 // @Router /projects [post]
 func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	var req CreateProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -66,7 +65,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 
 	project, err := h.projectService.CreateProject(
 		req.Name, req.Description, req.RepoURL, req.Protocol,
-		username.(string), req.CredentialID,
+		req.CredentialID,
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -95,7 +94,6 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 // @Router /projects/{id} [get]
 func (h *ProjectHandlers) GetProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -106,7 +104,7 @@ func (h *ProjectHandlers) GetProject(c *gin.Context) {
 		return
 	}
 
-	project, err := h.projectService.GetProject(uint(id), username.(string))
+	project, err := h.projectService.GetProject(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": i18n.T(lang, "project.not_found"),
@@ -135,7 +133,6 @@ func (h *ProjectHandlers) GetProject(c *gin.Context) {
 // @Router /projects [get]
 func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	// Parse query parameters
 	page := 1
@@ -158,7 +155,7 @@ func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 		protocol = &protocolValue
 	}
 
-	projects, total, err := h.projectService.ListProjectsWithTaskCount(username.(string), name, protocol, page, pageSize)
+	projects, total, err := h.projectService.ListProjectsWithTaskCount(name, protocol, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "common.internal_error"),
@@ -193,7 +190,6 @@ func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 // @Router /projects/{id} [put]
 func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -225,7 +221,7 @@ func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 
 	updates["credential_id"] = req.CredentialID
 
-	err = h.projectService.UpdateProject(uint(id), username.(string), updates)
+	err = h.projectService.UpdateProject(uint(id), updates)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.T(lang, "project.update_failed") + ": " + err.Error(),
@@ -252,7 +248,6 @@ func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 // @Router /projects/{id} [delete]
 func (h *ProjectHandlers) DeleteProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -263,7 +258,7 @@ func (h *ProjectHandlers) DeleteProject(c *gin.Context) {
 		return
 	}
 
-	err = h.projectService.DeleteProject(uint(id), username.(string))
+	err = h.projectService.DeleteProject(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": i18n.T(lang, "project.delete_failed") + ": " + err.Error(),
@@ -289,7 +284,6 @@ func (h *ProjectHandlers) DeleteProject(c *gin.Context) {
 // @Router /projects/credentials [get]
 func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	protocol := c.Query("protocol")
 	if protocol == "" {
@@ -300,7 +294,7 @@ func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	}
 
 	protocolType := database.GitProtocolType(protocol)
-	credentials, err := h.projectService.GetCompatibleCredentials(protocolType, username.(string))
+	credentials, err := h.projectService.GetCompatibleCredentials(protocolType)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.T(lang, "project.get_credentials_failed") + ": " + err.Error(),
@@ -392,7 +386,6 @@ type FetchRepositoryBranchesResponse struct {
 // @Router /projects/branches [post]
 func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	var req FetchRepositoryBranchesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -402,7 +395,7 @@ func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 		return
 	}
 
-	result, err := h.projectService.FetchRepositoryBranches(req.RepoURL, req.CredentialID, username.(string))
+	result, err := h.projectService.FetchRepositoryBranches(req.RepoURL, req.CredentialID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "project.fetch_branches_failed") + ": " + err.Error(),
@@ -440,7 +433,6 @@ type ValidateRepositoryAccessRequest struct {
 // @Router /projects/validate-access [post]
 func (h *ProjectHandlers) ValidateRepositoryAccess(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
-	username, _ := c.Get("username")
 
 	var req ValidateRepositoryAccessRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -450,7 +442,7 @@ func (h *ProjectHandlers) ValidateRepositoryAccess(c *gin.Context) {
 		return
 	}
 
-	err := h.projectService.ValidateRepositoryAccess(req.RepoURL, req.CredentialID, username.(string))
+	err := h.projectService.ValidateRepositoryAccess(req.RepoURL, req.CredentialID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":      i18n.T(lang, "project.access_validation_failed") + ": " + err.Error(),

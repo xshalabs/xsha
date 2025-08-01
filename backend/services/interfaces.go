@@ -19,27 +19,27 @@ type LoginLogService interface {
 }
 
 type GitCredentialService interface {
-	CreateCredential(name, description, credType, username, createdBy string, secretData map[string]string) (*database.GitCredential, error)
-	GetCredential(id uint, createdBy string) (*database.GitCredential, error)
-	ListCredentials(createdBy string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
-	UpdateCredential(id uint, createdBy string, updates map[string]interface{}, secretData map[string]string) error
-	DeleteCredential(id uint, createdBy string) error
-	ListActiveCredentials(createdBy string, credType *database.GitCredentialType) ([]database.GitCredential, error)
+	CreateCredential(name, description, credType, username string, secretData map[string]string) (*database.GitCredential, error)
+	GetCredential(id uint) (*database.GitCredential, error)
+	ListCredentials(credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
+	UpdateCredential(id uint, updates map[string]interface{}, secretData map[string]string) error
+	DeleteCredential(id uint) error
+	ListActiveCredentials(credType *database.GitCredentialType) ([]database.GitCredential, error)
 	DecryptCredentialSecret(credential *database.GitCredential, secretType string) (string, error)
 	ValidateCredentialData(credType string, data map[string]string) error
 }
 
 type ProjectService interface {
-	CreateProject(name, description, repoURL, protocol, createdBy string, credentialID *uint) (*database.Project, error)
-	GetProject(id uint, createdBy string) (*database.Project, error)
-	ListProjects(createdBy string, name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
-	ListProjectsWithTaskCount(createdBy string, name string, protocol *database.GitProtocolType, page, pageSize int) (interface{}, int64, error)
-	UpdateProject(id uint, createdBy string, updates map[string]interface{}) error
-	DeleteProject(id uint, createdBy string) error
-	ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint, createdBy string) error
-	GetCompatibleCredentials(protocol database.GitProtocolType, createdBy string) ([]database.GitCredential, error)
-	FetchRepositoryBranches(repoURL string, credentialID *uint, createdBy string) (*utils.GitAccessResult, error)
-	ValidateRepositoryAccess(repoURL string, credentialID *uint, createdBy string) error
+	CreateProject(name, description, repoURL, protocol string, credentialID *uint) (*database.Project, error)
+	GetProject(id uint) (*database.Project, error)
+	ListProjects(name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
+	ListProjectsWithTaskCount(name string, protocol *database.GitProtocolType, page, pageSize int) (interface{}, int64, error)
+	UpdateProject(id uint, updates map[string]interface{}) error
+	DeleteProject(id uint) error
+	ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint) error
+	GetCompatibleCredentials(protocol database.GitProtocolType) ([]database.GitCredential, error)
+	FetchRepositoryBranches(repoURL string, credentialID *uint) (*utils.GitAccessResult, error)
+	ValidateRepositoryAccess(repoURL string, credentialID *uint) error
 }
 
 type AdminOperationLogService interface {
@@ -60,42 +60,42 @@ type AdminOperationLogService interface {
 }
 
 type DevEnvironmentService interface {
-	CreateEnvironment(name, description, envType, createdBy string, cpuLimit float64, memoryLimit int64, envVars map[string]string) (*database.DevEnvironment, error)
-	GetEnvironment(id uint, createdBy string) (*database.DevEnvironment, error)
-	ListEnvironments(createdBy string, envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
-	UpdateEnvironment(id uint, createdBy string, updates map[string]interface{}) error
-	DeleteEnvironment(id uint, createdBy string) error
+	CreateEnvironment(name, description, envType string, cpuLimit float64, memoryLimit int64, envVars map[string]string) (*database.DevEnvironment, error)
+	GetEnvironment(id uint) (*database.DevEnvironment, error)
+	ListEnvironments(envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
+	UpdateEnvironment(id uint, updates map[string]interface{}) error
+	DeleteEnvironment(id uint) error
 	ValidateEnvVars(envVars map[string]string) error
-	GetEnvironmentVars(id uint, createdBy string) (map[string]string, error)
-	UpdateEnvironmentVars(id uint, createdBy string, envVars map[string]string) error
+	GetEnvironmentVars(id uint) (map[string]string, error)
+	UpdateEnvironmentVars(id uint, envVars map[string]string) error
 	ValidateResourceLimits(cpuLimit float64, memoryLimit int64) error
 	GetAvailableEnvironmentTypes() ([]map[string]interface{}, error)
 }
 
 type TaskService interface {
-	CreateTask(title, startBranch, createdBy string, projectID uint, devEnvironmentID *uint) (*database.Task, error)
-	GetTask(id uint, createdBy string) (*database.Task, error)
-	ListTasks(projectID *uint, createdBy string, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error)
-	UpdateTask(id uint, createdBy string, updates map[string]interface{}) error
-	UpdateTaskStatus(id uint, createdBy string, status database.TaskStatus) error
-	UpdateTaskStatusBatch(taskIDs []uint, createdBy string, status database.TaskStatus) ([]uint, []uint, error)
-	DeleteTask(id uint, createdBy string) error
-	ValidateTaskData(title, startBranch string, projectID uint, createdBy string) error
+	CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint) (*database.Task, error)
+	GetTask(id uint) (*database.Task, error)
+	ListTasks(projectID *uint, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error)
+	UpdateTask(id uint, updates map[string]interface{}) error
+	UpdateTaskStatus(id uint, status database.TaskStatus) error
+	UpdateTaskStatusBatch(taskIDs []uint, status database.TaskStatus) ([]uint, []uint, error)
+	DeleteTask(id uint) error
+	ValidateTaskData(title, startBranch string, projectID uint) error
 	GetTaskGitDiff(task *database.Task, includeContent bool) (*utils.GitDiffSummary, error)
 	GetTaskGitDiffFile(task *database.Task, filePath string) (string, error)
-	PushTaskBranch(id uint, createdBy string, forcePush bool) (string, error)
+	PushTaskBranch(id uint, forcePush bool) (string, error)
 }
 
 type TaskConversationService interface {
-	CreateConversation(taskID uint, content, createdBy string) (*database.TaskConversation, error)
-	GetConversation(id uint, createdBy string) (*database.TaskConversation, error)
-	ListConversations(taskID uint, createdBy string, page, pageSize int) ([]database.TaskConversation, int64, error)
-	UpdateConversation(id uint, createdBy string, updates map[string]interface{}) error
-	DeleteConversation(id uint, createdBy string) error
-	GetLatestConversation(taskID uint, createdBy string) (*database.TaskConversation, error)
-	GetConversationGitDiff(conversationID uint, createdBy string, includeContent bool) (*utils.GitDiffSummary, error)
-	GetConversationGitDiffFile(conversationID uint, createdBy string, filePath string) (string, error)
-	ValidateConversationData(taskID uint, content string, createdBy string) error
+	CreateConversation(taskID uint, content string) (*database.TaskConversation, error)
+	GetConversation(id uint) (*database.TaskConversation, error)
+	ListConversations(taskID uint, page, pageSize int) ([]database.TaskConversation, int64, error)
+	UpdateConversation(id uint, updates map[string]interface{}) error
+	DeleteConversation(id uint) error
+	GetLatestConversation(taskID uint) (*database.TaskConversation, error)
+	GetConversationGitDiff(conversationID uint, includeContent bool) (*utils.GitDiffSummary, error)
+	GetConversationGitDiffFile(conversationID uint, filePath string) (string, error)
+	ValidateConversationData(taskID uint, content string) error
 }
 
 type TaskConversationResultService interface {
