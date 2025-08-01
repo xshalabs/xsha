@@ -557,7 +557,7 @@ export function TaskList({
                       <TableCell>
                         <div>
                           <div
-                            className="font-medium text-accent hover:opacity-80 dark:text-accent-foreground underline cursor-pointer transition-colors"
+                            className="font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer transition-colors"
                             onClick={() => onViewConversation?.(task)}
                           >
                             {task.title}

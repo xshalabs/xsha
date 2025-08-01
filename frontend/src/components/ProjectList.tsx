@@ -252,7 +252,7 @@ export const ProjectList = forwardRef<ProjectListRef, ProjectListProps>(
                         <TableCell>
                           <div>
                             <div
-                              className="font-medium text-accent hover:opacity-80 dark:text-accent-foreground underline cursor-pointer transition-colors"
+                              className="font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer transition-colors"
                               onClick={() =>
                                 navigate(ROUTES.projectTasks(project.id))
                               }
@@ -267,7 +267,7 @@ export const ProjectList = forwardRef<ProjectListRef, ProjectListProps>(
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-accent dark:text-accent-foreground truncate max-w-xs">
+                          <div className="truncate max-w-xs">
                             {project.repo_url}
                           </div>
                         </TableCell>
