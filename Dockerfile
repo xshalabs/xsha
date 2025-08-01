@@ -61,6 +61,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 # Create non-root user and add to docker group
 RUN addgroup -g 1001 -S appgroup && \
     adduser -u 1001 -S appuser -G appgroup && \
+    addgroup -S docker && \
     addgroup appuser docker
 
 # Set working directory
