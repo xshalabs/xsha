@@ -69,7 +69,7 @@ func main() {
 	// Initialize services
 	loginLogService := services.NewLoginLogService(loginLogRepo)
 	adminOperationLogService := services.NewAdminOperationLogService(adminOperationLogRepo)
-	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, cfg)
+	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, systemConfigRepo, cfg)
 	gitCredService := services.NewGitCredentialService(gitCredRepo, projectRepo, cfg)
 	systemConfigService := services.NewSystemConfigService(systemConfigRepo)
 	devEnvService := services.NewDevEnvironmentService(devEnvRepo, taskRepo, systemConfigService)

@@ -10,14 +10,16 @@ type authService struct {
 	tokenRepo           repository.TokenBlacklistRepository
 	loginLogRepo        repository.LoginLogRepository
 	operationLogService AdminOperationLogService
+	systemConfigRepo    repository.SystemConfigRepository
 	config              *config.Config
 }
 
-func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, operationLogService AdminOperationLogService, cfg *config.Config) AuthService {
+func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, operationLogService AdminOperationLogService, systemConfigRepo repository.SystemConfigRepository, cfg *config.Config) AuthService {
 	return &authService{
 		tokenRepo:           tokenRepo,
 		loginLogRepo:        loginLogRepo,
 		operationLogService: operationLogService,
+		systemConfigRepo:    systemConfigRepo,
 		config:              cfg,
 	}
 }
@@ -27,7 +29,22 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 	var failureReason string
 	var token string
 
-	if username == s.config.AdminUser && password == s.config.AdminPass {
+	// Get admin username and password from system config
+	adminUser, err := s.systemConfigRepo.GetValue("admin_user")
+	if err != nil {
+		utils.Error("Failed to get admin username from system config",
+			"error", err.Error(),
+		)
+	}
+
+	adminPassword, err := s.systemConfigRepo.GetValue("admin_password")
+	if err != nil {
+		utils.Error("Failed to get admin password from system config",
+			"error", err.Error(),
+		)
+	}
+
+	if username == adminUser && password == adminPassword {
 		loginSuccess = true
 
 		var err error
@@ -56,7 +73,7 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 		}
 	} else {
 		loginSuccess = false
-		if username != s.config.AdminUser {
+		if username != adminUser {
 			failureReason = "invalid_username"
 		} else {
 			failureReason = "invalid_password"

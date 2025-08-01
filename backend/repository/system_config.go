@@ -119,6 +119,20 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		formType    string
 	}{
 		{
+			key:         "admin_user",
+			value:       "xshauser",
+			description: "Administrator username for system login",
+			category:    "auth",
+			formType:    string(database.ConfigFormTypeInput),
+		},
+		{
+			key:         "admin_password",
+			value:       "xshapass",
+			description: "Administrator password for system login",
+			category:    "auth",
+			formType:    string(database.ConfigFormTypePassword),
+		},
+		{
 			key:         "dev_environment_types",
 			value:       string(devEnvTypesJSON),
 			description: "Development environment type configuration, defines available development environments and their corresponding Docker images",

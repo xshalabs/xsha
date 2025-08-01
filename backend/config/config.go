@@ -31,8 +31,6 @@ type Config struct {
 	DatabaseType string
 	SQLitePath   string
 	MySQLDSN     string
-	AdminUser    string
-	AdminPass    string
 	JWTSecret    string
 	AESKey       string
 
@@ -67,8 +65,6 @@ func Load() *Config {
 		DatabaseType: getEnv("XSHA_DATABASE_TYPE", "sqlite"),
 		SQLitePath:   getEnv("XSHA_SQLITE_PATH", "app.db"),
 		MySQLDSN:     getEnv("XSHA_MYSQL_DSN", ""),
-		AdminUser:    getEnv("XSHA_ADMIN_USER", "admin"),
-		AdminPass:    getEnv("XSHA_ADMIN_PASS", "admin123"),
 		JWTSecret:    getEnv("XSHA_JWT_SECRET", "your-jwt-secret-key-change-this-in-production"),
 		AESKey:       aesKey,
 
