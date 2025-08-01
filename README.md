@@ -1,14 +1,14 @@
 # XSHA
 
-XSHA is a powerful full-stack development automation platform designed to streamline project management, Git operations, and development environment orchestration for modern software teams.
-
-## Overview
-
-XSHA provides an integrated solution for managing development workflows, automating Git operations, and orchestrating development environments. Built with clean architecture principles, it offers a robust backend API powered by Go and an intuitive frontend interface built with React and TypeScript.
-
-The platform combines project management capabilities with intelligent task automation, making it an essential tool for development teams looking to optimize their workflow efficiency and maintain consistent development practices across multiple projects.
+XSHA is a modern full-stack application development platform that integrates project management, task assignment, AI self-driven development, and Git code management.
 
 ## Key Features
+
+### 🤖 **AI-Powered Task Automation**
+
+- **Intelligent Task Execution**: AI-driven task processing and automation
+- **Conversation-based Workflows**: Natural language task descriptions and execution
+- **Task Scheduling**: Automated task execution with flexible scheduling options
 
 ### 🎯 **Project Management**
 
@@ -27,12 +27,6 @@ The platform combines project management capabilities with intelligent task auto
 - **Environment Templates**: Predefined development environment configurations
 - **Docker Integration**: Containerized development environments for consistency
 - **Environment Provisioning**: Automated setup and teardown of development environments
-
-### 🤖 **AI-Powered Task Automation**
-
-- **Intelligent Task Execution**: AI-driven task processing and automation
-- **Conversation-based Workflows**: Natural language task descriptions and execution
-- **Task Scheduling**: Automated task execution with flexible scheduling options
 
 ### 📊 **Admin & Monitoring**
 
