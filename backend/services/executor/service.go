@@ -220,8 +220,12 @@ func (s *aiTaskExecutorService) processConversation(conv *database.TaskConversat
 	if conv.Task.Status == database.TaskStatusTodo {
 		if err := s.taskService.UpdateTaskStatus(conv.Task.ID, database.TaskStatusInProgress); err != nil {
 			utils.Error("Failed to update task status", "task_id", conv.Task.ID, "error", err)
+			s.stateManager.SetFailed(conv, fmt.Sprintf("failed to update task status: %v", err))
+			return fmt.Errorf("failed to update task status: %v", err)
 		} else {
 			utils.Info("Task status updated", "task_id", conv.Task.ID, "old_status", "todo", "new_status", "in_progress")
+			// Update the in-memory task object to reflect the database change
+			conv.Task.Status = database.TaskStatusInProgress
 		}
 	}
 
