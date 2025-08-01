@@ -1,6 +1,6 @@
 # XSHA
 
-XSHA is a modern full-stack application development platform that integrates project management, task assignment, AI self-driven development, and Git code management.
+XSHA is an AI-powered (currently supporting `Claude Code`) project task automation development platform.
 
 ## Key Features
 
@@ -44,15 +44,6 @@ XSHA is a modern full-stack application development platform that integrates pro
 
 ## Quick Start
 
-### Prerequisites
-
-- **Docker & Docker Compose**: For containerized deployment
-- **Go 1.21+**: For local development (optional)
-- **Node.js 18+**: For frontend development (optional)
-- **Make**: For build automation (optional)
-
-### Using Docker Compose (Recommended)
-
 1. **Clone the repository**
 
 ```bash
@@ -69,14 +60,22 @@ docker-compose up -d
 3. **Access the application**
 
 - **Frontend**: http://localhost:8080
-- **Database Admin**: http://localhost:8081 (phpMyAdmin, optional)
 
 4. **Default credentials**
 
-- **Username**: admin
-- **Password**: admin123
+- **Username**: xshauser
+- **Password**: xshapass
 
-### Local Development
+## Local Development
+
+### Prerequisites
+
+- **Docker & Docker Compose**: For containerized deployment
+- **Go 1.21+**: For local development (optional)
+- **Node.js 18+**: For frontend development (optional)
+- **Make**: For build automation (optional)
+
+### Getting Started
 
 1. **Backend setup**
 
@@ -94,44 +93,6 @@ npm install        # Install dependencies
 npm run dev        # Start development server
 ```
 
-3. **Database setup**
-
-```bash
-docker-compose up mysql -d  # Start MySQL only
-make db-reset               # Reset database (if needed)
-```
-
-### Environment Configuration
-
-Copy and customize the environment variables:
-
-```bash
-# Backend configuration
-export XSHA_PORT=8080
-export XSHA_ENVIRONMENT=development
-export XSHA_DATABASE_TYPE=mysql
-export XSHA_MYSQL_DSN="root:password@tcp(localhost:3306)/xsha?charset=utf8mb4&parseTime=True&loc=Local"
-export XSHA_JWT_SECRET="your-secret-key"
-export XSHA_WORKSPACE_BASE_DIR="/tmp/workspaces"
-```
-
-### Available Commands
-
-```bash
-# Development
-make dev           # Start development server
-make build         # Build production binary
-make test          # Run tests
-make check         # Run all checks (format, vet, lint, test)
-
-# Database
-make db-reset      # Reset database
-
-# Deployment
-docker-compose up -d              # Start all services
-docker-compose up -d --profile tools  # Include phpMyAdmin
-```
-
 ## Contributing
 
 We welcome contributions from the community! Here's how you can get involved:
@@ -144,26 +105,6 @@ We welcome contributions from the community! Here's how you can get involved:
    - Go: Follow standard Go conventions and run `make check`
    - TypeScript: Use ESLint and Prettier configurations
    - Commit messages: Use conventional commit format
-
-### Code Organization
-
-- **Backend**: Clean architecture with Repository → Service → Handler layers
-- **Frontend**: Component-based architecture with hooks and contexts
-- **Database**: GORM models with automated migrations
-- **API**: RESTful API design with OpenAPI documentation
-
-### Testing
-
-```bash
-# Backend tests
-cd backend
-make test              # Run all tests
-make test-coverage     # Generate coverage report
-
-# Frontend tests
-cd frontend
-npm run test          # Run frontend tests
-```
 
 ### Pull Request Process
 
