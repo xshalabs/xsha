@@ -23,10 +23,6 @@ RUN pnpm run build
 # Stage 2: Backend build environment
 FROM golang:1.23.1-alpine AS backend-builder
 
-# Multi-platform build arguments
-ARG TARGETOS
-ARG TARGETARCH
-
 # Set working directory
 WORKDIR /app
 
@@ -48,8 +44,9 @@ COPY backend/ .
 # Copy frontend build output from previous stage
 COPY --from=frontend-builder /app/backend/static ./static
 
-# Build application with CGO enabled for SQLite support, supporting multi-platform
-RUN CGO_ENABLED=1 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} go build -ldflags="-w -s" -o main .
+# Build application with CGO enabled for SQLite support
+# Docker buildx automatically handles cross-platform builds based on --platform
+RUN CGO_ENABLED=1 go build -ldflags="-w -s" -o main .
 
 # Stage 3: Runtime environment
 FROM alpine:latest
