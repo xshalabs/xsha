@@ -1,3 +1,5 @@
+export type FormType = 'input' | 'textarea' | 'switch' | 'select' | 'number' | 'password';
+
 export interface SystemConfig {
   id: number;
   created_at: string;
@@ -6,6 +8,7 @@ export interface SystemConfig {
   config_value: string;
   description: string;
   category: string;
+  form_type: FormType;
   is_editable: boolean;
 }
 
@@ -14,6 +17,7 @@ export interface ConfigUpdateItem {
   config_value: string;
   description?: string;
   category?: string;
+  form_type?: FormType;
   is_editable?: boolean;
 }
 

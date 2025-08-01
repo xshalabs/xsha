@@ -64,6 +64,86 @@ export default function SystemConfigEditPage() {
     }));
   };
 
+  const renderFormField = (config: SystemConfig) => {
+    switch (config.form_type) {
+      case 'switch':
+        return (
+          <div className="flex items-center space-x-2">
+            <Switch
+              id={config.config_key}
+              checked={formData[config.config_key] === "true"}
+              onCheckedChange={(checked) =>
+                handleSwitchChange(config.config_key, checked)
+              }
+              disabled={!config.is_editable}
+            />
+            <Label htmlFor={config.config_key} className="text-sm">
+              {formData[config.config_key] === "true" 
+                ? t("common.enabled") 
+                : t("common.disabled")}
+            </Label>
+          </div>
+        );
+      
+      case 'textarea':
+        return (
+          <Textarea
+            id={config.config_key}
+            value={formData[config.config_key] || ""}
+            onChange={(e) =>
+              handleInputChange(config.config_key, e.target.value)
+            }
+            disabled={!config.is_editable}
+            rows={4}
+            className="resize-none"
+            placeholder={getPlaceholder(config.config_key)}
+          />
+        );
+      
+      case 'number':
+        return (
+          <Input
+            id={config.config_key}
+            type="number"
+            value={formData[config.config_key] || ""}
+            onChange={(e) =>
+              handleInputChange(config.config_key, e.target.value)
+            }
+            disabled={!config.is_editable}
+            placeholder={getPlaceholder(config.config_key)}
+          />
+        );
+      
+      case 'password':
+        return (
+          <Input
+            id={config.config_key}
+            type="password"
+            value={formData[config.config_key] || ""}
+            onChange={(e) =>
+              handleInputChange(config.config_key, e.target.value)
+            }
+            disabled={!config.is_editable}
+            placeholder={getPlaceholder(config.config_key)}
+          />
+        );
+      
+      case 'input':
+      default:
+        return (
+          <Input
+            id={config.config_key}
+            value={formData[config.config_key] || ""}
+            onChange={(e) =>
+              handleInputChange(config.config_key, e.target.value)
+            }
+            disabled={!config.is_editable}
+            placeholder={getPlaceholder(config.config_key)}
+          />
+        );
+    }
+  };
+
   const getPlaceholder = (configKey: string) => {
     switch (configKey) {
       case "git_proxy_http":
@@ -101,6 +181,7 @@ export default function SystemConfigEditPage() {
           config_value: formData[config.config_key] !== undefined ? formData[config.config_key] : config.config_value,
           description: config.description,
           category: config.category,
+          form_type: config.form_type,
           is_editable: config.is_editable,
         }));
 
@@ -204,51 +285,7 @@ export default function SystemConfigEditPage() {
                         </p>
                       )}
                       <div className="mt-2">
-                        {config.config_key === "git_proxy_enabled" ? (
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id={config.config_key}
-                              checked={formData[config.config_key] === "true"}
-                              onCheckedChange={(checked) =>
-                                handleSwitchChange(config.config_key, checked)
-                              }
-                              disabled={!config.is_editable}
-                            />
-                            <Label htmlFor={config.config_key} className="text-sm">
-                              {formData[config.config_key] === "true" 
-                                ? t("common.enabled") 
-                                : t("common.disabled")}
-                            </Label>
-                          </div>
-                        ) : config.config_value.length > 100 ? (
-                          <Textarea
-                            id={config.config_key}
-                            value={formData[config.config_key] || ""}
-                            onChange={(e) =>
-                              handleInputChange(
-                                config.config_key,
-                                e.target.value
-                              )
-                            }
-                            disabled={!config.is_editable}
-                            rows={4}
-                            className="resize-none"
-                            placeholder={getPlaceholder(config.config_key)}
-                          />
-                        ) : (
-                          <Input
-                            id={config.config_key}
-                            value={formData[config.config_key] || ""}
-                            onChange={(e) =>
-                              handleInputChange(
-                                config.config_key,
-                                e.target.value
-                              )
-                            }
-                            disabled={!config.is_editable}
-                            placeholder={getPlaceholder(config.config_key)}
-                          />
-                        )}
+                        {renderFormField(config)}
                       </div>
                     </div>
                   </div>

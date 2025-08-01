@@ -127,6 +127,7 @@ type ConfigUpdateItem struct {
 	ConfigValue string
 	Description string
 	Category    string
+	FormType    string
 	IsEditable  *bool
 }
 

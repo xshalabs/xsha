@@ -259,15 +259,27 @@ type TaskConversationResult struct {
 	Usage string `gorm:"type:text" json:"usage"`
 }
 
+type ConfigFormType string
+
+const (
+	ConfigFormTypeInput    ConfigFormType = "input"
+	ConfigFormTypeTextarea ConfigFormType = "textarea"
+	ConfigFormTypeSwitch   ConfigFormType = "switch"
+	ConfigFormTypeSelect   ConfigFormType = "select"
+	ConfigFormTypeNumber   ConfigFormType = "number"
+	ConfigFormTypePassword ConfigFormType = "password"
+)
+
 type SystemConfig struct {
 	ID        uint           `gorm:"primarykey" json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
-	ConfigKey   string `gorm:"not null;uniqueIndex" json:"config_key"`
-	ConfigValue string `gorm:"type:text;not null" json:"config_value"`
-	Description string `gorm:"type:text" json:"description"`
-	Category    string `gorm:"not null;index;default:'general'" json:"category"`
-	IsEditable  bool   `gorm:"not null;default:true" json:"is_editable"`
+	ConfigKey   string         `gorm:"not null;uniqueIndex" json:"config_key"`
+	ConfigValue string         `gorm:"type:text;not null" json:"config_value"`
+	Description string         `gorm:"type:text" json:"description"`
+	Category    string         `gorm:"not null;index;default:'general'" json:"category"`
+	FormType    ConfigFormType `gorm:"not null;default:'input'" json:"form_type"`
+	IsEditable  bool           `gorm:"not null;default:true" json:"is_editable"`
 }

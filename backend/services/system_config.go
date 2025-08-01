@@ -49,6 +49,9 @@ func (s *systemConfigService) BatchUpdateConfigs(configItems []ConfigUpdateItem)
 			if item.Category != "" {
 				existingConfig.Category = item.Category
 			}
+			if item.FormType != "" {
+				existingConfig.FormType = database.ConfigFormType(item.FormType)
+			}
 			if item.IsEditable != nil {
 				existingConfig.IsEditable = *item.IsEditable
 			}
@@ -67,7 +70,12 @@ func (s *systemConfigService) BatchUpdateConfigs(configItems []ConfigUpdateItem)
 				category = "general"
 			}
 
-			if err := s.repo.SetValueWithCategory(item.ConfigKey, item.ConfigValue, item.Description, category, isEditable); err != nil {
+			formType := item.FormType
+			if formType == "" {
+				formType = string(database.ConfigFormTypeInput)
+			}
+
+			if err := s.repo.SetValueWithCategory(item.ConfigKey, item.ConfigValue, item.Description, category, formType, isEditable); err != nil {
 				return fmt.Errorf("failed to create config %s: %v", item.ConfigKey, err)
 			}
 		}

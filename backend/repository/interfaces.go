@@ -124,6 +124,6 @@ type SystemConfigRepository interface {
 
 	GetValue(key string) (string, error)
 	SetValue(key, value string) error
-	SetValueWithCategory(key, value, description, category string, isEditable bool) error
+	SetValueWithCategory(key, value, description, category, formType string, isEditable bool) error
 	InitializeDefaultConfigs() error
 }

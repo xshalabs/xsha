@@ -65,15 +65,20 @@ func (r *systemConfigRepository) SetValue(key, value string) error {
 	return r.Update(config)
 }
 
-func (r *systemConfigRepository) SetValueWithCategory(key, value, description, category string, isEditable bool) error {
+func (r *systemConfigRepository) SetValueWithCategory(key, value, description, category, formType string, isEditable bool) error {
 	config, err := r.GetByKey(key)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
+			// Set default FormType if not provided
+			if formType == "" {
+				formType = string(database.ConfigFormTypeInput)
+			}
 			newConfig := &database.SystemConfig{
 				ConfigKey:   key,
 				ConfigValue: value,
 				Description: description,
 				Category:    category,
+				FormType:    database.ConfigFormType(formType),
 				IsEditable:  isEditable,
 			}
 			return r.Create(newConfig)
@@ -84,6 +89,9 @@ func (r *systemConfigRepository) SetValueWithCategory(key, value, description, c
 	config.ConfigValue = value
 	config.Description = description
 	config.Category = category
+	if formType != "" {
+		config.FormType = database.ConfigFormType(formType)
+	}
 	config.IsEditable = isEditable
 	return r.Update(config)
 }
@@ -108,36 +116,42 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		value       string
 		description string
 		category    string
+		formType    string
 	}{
 		{
 			key:         "dev_environment_types",
 			value:       string(devEnvTypesJSON),
 			description: "Development environment type configuration, defines available development environments and their corresponding Docker images",
 			category:    "dev_environment",
+			formType:    string(database.ConfigFormTypeTextarea),
 		},
 		{
 			key:         "git_proxy_enabled",
 			value:       "false",
 			description: "Enable or disable HTTP proxy for Git operations",
 			category:    "git",
+			formType:    string(database.ConfigFormTypeSwitch),
 		},
 		{
 			key:         "git_proxy_http",
 			value:       "",
 			description: "HTTP proxy URL for Git operations (e.g., http://proxy.example.com:8080)",
 			category:    "git",
+			formType:    string(database.ConfigFormTypeInput),
 		},
 		{
 			key:         "git_proxy_https",
 			value:       "",
 			description: "HTTPS proxy URL for Git operations (e.g., https://proxy.example.com:8080)",
 			category:    "git",
+			formType:    string(database.ConfigFormTypeInput),
 		},
 		{
 			key:         "git_proxy_no_proxy",
 			value:       "",
 			description: "Comma-separated list of domains to bypass proxy (e.g., localhost,127.0.0.1,.local)",
 			category:    "git",
+			formType:    string(database.ConfigFormTypeInput),
 		},
 	}
 
@@ -159,6 +173,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			config.value,
 			config.description,
 			config.category,
+			config.formType,
 			true,
 		); err != nil {
 			return err
