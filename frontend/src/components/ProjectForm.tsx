@@ -39,7 +39,6 @@ interface CredentialOption {
   name: string;
   type: string;
   username: string;
-  is_active: boolean;
 }
 
 export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {

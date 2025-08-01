@@ -14,10 +14,8 @@ export interface Project {
   protocol: GitProtocolType;
   credential_id?: number;
   created_by: string;
-  is_active: boolean;
   created_at: string;
   updated_at: string;
-  last_used?: string;
   task_count?: number;
   credential?: {
     id: number;
@@ -67,7 +65,6 @@ export interface CompatibleCredentialsResponse {
     name: string;
     type: string;
     username: string;
-    is_active: boolean;
   }>;
 }
 

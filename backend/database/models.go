@@ -78,9 +78,6 @@ type Project struct {
 	CredentialID *uint           `gorm:"index" json:"credential_id"`
 	Credential   *GitCredential  `gorm:"foreignKey:CredentialID" json:"credential"`
 
-	IsActive bool       `gorm:"default:true;index" json:"is_active"`
-	LastUsed *time.Time `json:"last_used"`
-
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 

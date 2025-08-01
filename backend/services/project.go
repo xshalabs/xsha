@@ -61,7 +61,6 @@ func (s *projectService) CreateProject(name, description, repoURL, protocol stri
 		Protocol:     protocolType,
 		CredentialID: credentialID,
 		CreatedBy:    createdBy,
-		IsActive:     true,
 	}
 
 	if err := s.repo.Create(project); err != nil {
