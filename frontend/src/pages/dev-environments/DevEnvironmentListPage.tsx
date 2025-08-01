@@ -13,6 +13,7 @@ import {
 import { Plus } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { apiService } from "@/lib/api/index";
+import { logError } from "@/lib/errors";
 import { toast } from "sonner";
 import type {
   DevEnvironment,
@@ -76,8 +77,12 @@ const DevEnvironmentListPage: React.FC = () => {
       setTotalPages(response.total_pages);
       setTotal(response.total);
     } catch (error) {
-      console.error("Failed to fetch environments:", error);
-      toast.error(t("dev_environments.fetch_failed"));
+      logError(error as Error, "Failed to fetch environments");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("dev_environments.fetch_failed")
+      );
     } finally {
       setLoading(false);
     }
@@ -96,8 +101,12 @@ const DevEnvironmentListPage: React.FC = () => {
       toast.success(t("dev_environments.delete_success"));
       await fetchEnvironments();
     } catch (error) {
-      console.error("Failed to delete environment:", error);
-      toast.error(t("dev_environments.delete_failed"));
+      logError(error as Error, "Failed to delete environment");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("dev_environments.delete_failed")
+      );
     } finally {
       setDeleteDialogOpen(false);
       setEnvironmentToDelete(null);
