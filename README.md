@@ -1,6 +1,6 @@
 # XSHA
 
-[Chinese🇨🇳](README_CN.md)
+[README-Chinese🇨🇳](README_CN.md)
 
 XSHA is an AI-powered (currently supporting `Claude Code`) project task automation development platform.
 

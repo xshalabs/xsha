@@ -1,13 +1,17 @@
 package i18n
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
-	"os"
+	"io/fs"
 	"path/filepath"
 	"sync"
 	"xsha-backend/utils"
 )
+
+//go:embed locales/*.json
+var localesFS embed.FS
 
 type I18n struct {
 	mu          sync.RWMutex
@@ -32,36 +36,30 @@ func GetInstance() *I18n {
 }
 
 func (i *I18n) loadMessages() {
-	langDir := "i18n/locales"
-	if _, err := os.Stat(langDir); os.IsNotExist(err) {
-		utils.Warn("Language file directory does not exist, using built-in messages", "langDir", langDir)
-		return
-	}
-
-	files, err := os.ReadDir(langDir)
+	files, err := fs.ReadDir(localesFS, "locales")
 	if err != nil {
-		utils.Error("Failed to read language file directory", "error", err)
+		utils.Error("Failed to read embedded language files", "error", err)
 		return
 	}
 
 	for _, file := range files {
 		if filepath.Ext(file.Name()) == ".json" {
 			lang := file.Name()[:len(file.Name())-5]
-			i.loadMessageFile(filepath.Join(langDir, file.Name()), lang)
+			i.loadEmbeddedMessageFile(filepath.Join("locales", file.Name()), lang)
 		}
 	}
 }
 
-func (i *I18n) loadMessageFile(filename, lang string) {
-	data, err := os.ReadFile(filename)
+func (i *I18n) loadEmbeddedMessageFile(filename, lang string) {
+	data, err := localesFS.ReadFile(filename)
 	if err != nil {
-		utils.Error("Failed to read language file", "filename", filename, "error", err)
+		utils.Error("Failed to read embedded language file", "filename", filename, "error", err)
 		return
 	}
 
 	var messages map[string]string
 	if err := json.Unmarshal(data, &messages); err != nil {
-		utils.Error("Failed to parse language file", "filename", filename, "error", err)
+		utils.Error("Failed to parse embedded language file", "filename", filename, "error", err)
 		return
 	}
 
@@ -69,7 +67,7 @@ func (i *I18n) loadMessageFile(filename, lang string) {
 	i.messages[lang] = messages
 	i.mu.Unlock()
 
-	utils.Info("Language file loaded", "filename", filename, "messageCount", len(messages))
+	utils.Info("Embedded language file loaded", "filename", filename, "messageCount", len(messages))
 }
 
 func (i *I18n) GetMessage(lang, key string) string {
