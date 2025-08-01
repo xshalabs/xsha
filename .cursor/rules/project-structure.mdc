@@ -1,63 +1,47 @@
 ---
 alwaysApply: true
 ---
-
 # XSHA Project Structure Guide
 
-This is a full-stack Go + React application with clean architecture principles.
+XSHA is an AI-powered project task automation development platform with a clear full-stack architecture.
 
-## Project Overview
+## Main Entry Points
+- **Backend**: [backend/main.go](mdc:backend/main.go) - Go application with Gin framework
+- **Frontend**: [frontend/src/main.tsx](mdc:frontend/src/main.tsx) - React application with TypeScript
 
-**Backend**: Go with Gin framework using clean architecture (Repository → Service → Handler layers)  
-**Frontend**: React + TypeScript with Vite, using shadcn/ui components  
-**Database**: MySQL/SQLite with GORM ORM  
-**Authentication**: JWT-based with blacklist support  
-**Deployment**: Docker Compose with multi-service architecture  
-**Features**: Project management, Git credentials, development environments, AI task automation
+## Backend Architecture (Go)
+The backend follows a clean layered architecture:
 
-## Directory Structure
+### Core Layers
+- **Handlers** ([backend/handlers/](mdc:backend/handlers/)) - HTTP request handling and validation
+- **Services** ([backend/services/](mdc:backend/services/)) - Business logic implementation
+- **Repository** ([backend/repository/](mdc:backend/repository/)) - Data access layer
+- **Database** ([backend/database/](mdc:backend/database/)) - Database models and migrations
 
-### Backend ([backend/](mdc:backend/))
-```
-backend/
-├── main.go                   # Application entry point
-├── config/config.go          # Environment configuration
-├── database/                 # Database layer
-│   ├── database.go          # Connection management  
-│   └── models.go            # GORM model definitions
-├── repository/              # Data access layer (interfaces + implementations)
-├── services/                # Business logic layer (interfaces + implementations)  
-├── handlers/                # HTTP request handlers (API endpoints)
-├── middleware/              # Gin middleware (auth, i18n, logging, etc.)
-├── routes/routes.go         # Route registration and grouping
-├── scheduler/               # Background task processing
-├── utils/                   # Shared utilities (crypto, jwt, git, workspace)
-└── i18n/                    # Internationalization support
-```
+### Supporting Modules
+- **Middleware** ([backend/middleware/](mdc:backend/middleware/)) - Authentication, logging, i18n, rate limiting
+- **Routes** ([backend/routes/routes.go](mdc:backend/routes/routes.go)) - API route definitions
+- **Config** ([backend/config/config.go](mdc:backend/config/config.go)) - Application configuration
+- **Utils** ([backend/utils/](mdc:backend/utils/)) - Utility functions
+- **Scheduler** ([backend/scheduler/](mdc:backend/scheduler/)) - Task scheduling system
+- **I18n** ([backend/i18n/](mdc:backend/i18n/)) - Internationalization support
 
-### Frontend ([frontend/src/](mdc:frontend/src/))
-```
-frontend/src/
-├── main.tsx                 # Application entry point
-├── App.tsx                  # Main app with routing
-├── components/              # Reusable React components
-│   ├── ui/                 # shadcn/ui base components
-│   └── [Feature]Form.tsx   # Feature-specific components
-├── pages/                   # Page components organized by feature
-│   ├── [feature]/          # Feature-specific page groups
-├── lib/                     # Utilities and configurations
-│   ├── api/                # API client functions
-│   └── utils.ts            # Shared utilities
-├── contexts/               # React contexts (auth, theme)
-├── hooks/                  # Custom React hooks  
-├── types/                  # TypeScript type definitions
-└── i18n/                   # Frontend internationalization
-```
+## Frontend Architecture (React + TypeScript)
+- **Components** ([frontend/src/components/](mdc:frontend/src/components/)) - Reusable UI components
+- **Pages** ([frontend/src/pages/](mdc:frontend/src/pages/)) - Route-based page components
+- **API Layer** ([frontend/src/lib/api/](mdc:frontend/src/lib/api/)) - Backend API integration
+- **Types** ([frontend/src/types/](mdc:frontend/src/types/)) - TypeScript type definitions
+- **Contexts** ([frontend/src/contexts/](mdc:frontend/src/contexts/)) - React context providers
+- **I18n** ([frontend/src/i18n/](mdc:frontend/src/i18n/)) - Frontend internationalization
 
-## Architecture Principles
+## Key Dependencies
+- **Backend**: Gin (web framework), GORM (ORM), JWT (authentication)
+- **Frontend**: React 19, TypeScript, Vite, shadcn/ui, Tailwind CSS
+- **Database**: MySQL/SQLite support
+- **Deployment**: Docker & Docker Compose
 
-1. **Clean Architecture**: Repository → Service → Handler layers with dependency injection
-2. **Interface-Based Design**: All layers communicate through interfaces
-3. **Feature Organization**: Code organized by business features, not technical layers
-4. **Consistent Naming**: Use descriptive names following Go/TypeScript conventions
-5. **Error Handling**: Structured error responses with i18n support
+## Directory Navigation Tips
+- Always respect the layered architecture when making changes
+- API routes are defined in [backend/routes/routes.go](mdc:backend/routes/routes.go)
+- Database models are in [backend/database/models.go](mdc:backend/database/models.go)
+- Frontend API types are in [frontend/src/lib/api/types.ts](mdc:frontend/src/lib/api/types.ts)

@@ -1,132 +1,115 @@
+---
+globs: backend/**/*.go
+---
 # Backend Architecture Patterns
 
-The XSHA backend follows clean architecture with strict layer separation.
+## Layered Architecture
+XSHA follows a strict 3-layer architecture pattern:
 
-## Layer Structure
-
-```
-Handlers → Services → Repository → Database
-```
-
-Each layer has specific responsibilities and communicates only with adjacent layers.
-
-## Repository Layer ([backend/repository/](mdc:backend/repository/))
-
-**Purpose**: Data access abstraction  
-**Pattern**: Interface + Implementation
+### 1. Handler Layer ([backend/handlers/](mdc:backend/handlers/))
+- **Responsibility**: HTTP request/response handling, input validation, response formatting
+- **Pattern**: Each domain has its own handler struct (e.g., `AuthHandlers`, `TaskHandlers`)
+- **Dependencies**: Only depends on Service layer
+- **Example**: [backend/handlers/auth.go](mdc:backend/handlers/auth.go)
 
 ```go
-// Define interface in interfaces.go
-type ProjectRepository interface {
-    Create(project *database.Project) error
-    GetByID(id uint, createdBy string) (*database.Project, error)
-    // ... other methods
+type TaskHandlers struct {
+    taskService services.TaskService
+    // other service dependencies
 }
 
-// Implement in separate file (project.go)
-type projectRepository struct {
-    db *gorm.DB
-}
-
-func NewProjectRepository(db *gorm.DB) ProjectRepository {
-    return &projectRepository{db: db}
+func (h *TaskHandlers) CreateTask(c *gin.Context) {
+    // 1. Get language for i18n
+    // 2. Validate input
+    // 3. Call service method
+    // 4. Return formatted response
 }
 ```
 
-**Key Conventions**:
-- All methods include `createdBy` parameter for user isolation
-- Return `(entity, error)` or `([]entity, int64, error)` for lists
-- Use GORM for database operations
-- Handle soft deletes automatically
-
-## Service Layer ([backend/services/](mdc:backend/services/))
-
-**Purpose**: Business logic and orchestration  
-**Pattern**: Interface + Implementation with dependency injection
+### 2. Service Layer ([backend/services/](mdc:backend/services/))
+- **Responsibility**: Business logic, orchestration, validation
+- **Pattern**: Interface-based design with concrete implementations
+- **Dependencies**: Repository layer, other services, external APIs
+- **Example**: [backend/services/auth.go](mdc:backend/services/auth.go)
 
 ```go
-// Interface definition
-type ProjectService interface {
-    Create(projectData CreateProjectRequest, createdBy string) (*database.Project, error)
-    GetByID(id uint, createdBy string) (*database.Project, error)
+type TaskService interface {
+    CreateTask(userID uint, req CreateTaskRequest) (*TaskResponse, error)
 }
 
-// Implementation
-type projectService struct {
-    projectRepo  repository.ProjectRepository
-    gitCredRepo  repository.GitCredentialRepository
-    gitCredService GitCredentialService
-    config       *config.Config
+type taskService struct {
+    taskRepo    repository.TaskRepository
+    projectRepo repository.ProjectRepository
+    // other dependencies
 }
 ```
 
-**Key Conventions**:
-- Inject all dependencies through constructor
-- Validate business rules before calling repository
-- Transform between request/response DTOs and domain models
-- Handle cross-cutting concerns (logging, validation)
-
-## Handler Layer ([backend/handlers/](mdc:backend/handlers/))
-
-**Purpose**: HTTP request/response handling  
-**Pattern**: Struct with service dependencies
+### 3. Repository Layer ([backend/repository/](mdc:backend/repository/))
+- **Responsibility**: Data access, database operations, query logic
+- **Pattern**: Interface-based with GORM implementations
+- **Dependencies**: Only database connection
 
 ```go
-type ProjectHandlers struct {
-    projectService services.ProjectService
-}
-
-func NewProjectHandlers(projectService services.ProjectService) *ProjectHandlers {
-    return &ProjectHandlers{
-        projectService: projectService,
-    }
+type TaskRepository interface {
+    Create(task *models.Task) error
+    GetByID(id uint) (*models.Task, error)
+    List(userID uint, filters TaskFilters) ([]*models.Task, error)
 }
 ```
 
-**Key Conventions**:
-- Extract language from context: `lang := middleware.GetLangFromContext(c)`
-- Use `ShouldBindJSON` for request binding with validation
-- Return internationalized error messages
-- Include Swagger documentation comments
-- Handle authentication via middleware
-
-## Middleware Pattern ([backend/middleware/](mdc:backend/middleware/))
-
-All middleware follows the Gin middleware pattern:
+## Dependency Injection Pattern
+All dependencies are injected through constructors in [backend/main.go](mdc:backend/main.go):
 
 ```go
-func SomeMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        // Pre-processing
-        
-        c.Next() // Call next handler
-        
-        // Post-processing (optional)
-    }
-}
+// 1. Initialize repositories
+taskRepo := repository.NewTaskRepository(db)
+
+// 2. Initialize services (inject repositories)
+taskService := services.NewTaskService(taskRepo, projectRepo)
+
+// 3. Initialize handlers (inject services)
+taskHandlers := handlers.NewTaskHandlers(taskService)
 ```
 
-**Key Middleware**:
-- `AuthMiddleware()`: JWT validation and user context
-- `I18nMiddleware()`: Language detection and context
-- `OperationLogMiddleware()`: Audit logging
-- `ErrorHandlerMiddleware()`: Centralized error handling
+## Error Handling Patterns
 
-## Configuration Pattern ([backend/config/](mdc:backend/config/))
+### Service Layer Errors
+- Return errors with context
+- Use domain-specific error types when appropriate
+- Log errors at service level for debugging
 
-Use environment variables with sensible defaults:
+### Handler Layer Error Response
+- Convert service errors to HTTP responses
+- Use i18n for user-facing error messages
+- Follow standard HTTP status codes
 
 ```go
-type Config struct {
-    Port        string `mapstructure:"XSHA_PORT" default:"8080"`
-    Environment string `mapstructure:"XSHA_ENVIRONMENT" default:"development"`
-    // ...
-}
-
-func Load() *Config {
-    // Load with viper or manual parsing
+if err != nil {
+    utils.Error("Task creation failed", "error", err)
+    c.JSON(http.StatusBadRequest, gin.H{
+        "error": i18n.T(lang, "task.create.failed"),
+    })
+    return
 }
 ```
----
-globs: backend/**
----
+
+## Configuration Management
+- Centralized config in [backend/config/config.go](mdc:backend/config/config.go)
+- Environment-based configuration
+- Injected into services that need it
+
+## Logging Patterns
+- Use structured logging with [backend/utils/logger.go](mdc:backend/utils/logger.go)
+- Include context like user ID, request ID when available
+- Different log levels: Info, Error, Debug
+
+## Database Transaction Patterns
+- Use transactions for multi-table operations
+- Repository layer handles transaction logic
+- Service layer coordinates transaction boundaries
+
+## Testing Patterns
+- Mock interfaces at layer boundaries
+- Test business logic in service layer
+- Integration tests for repository layer
+- HTTP tests for handler layer

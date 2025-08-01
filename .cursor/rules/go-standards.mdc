@@ -1,92 +1,68 @@
 ---
 globs: *.go
 ---
-
-# Go Standards and Conventions
-
-Follow these Go conventions used throughout the XSHA backend.
+# Go Coding Standards for XSHA
 
 ## Package Organization
+- Follow the established package structure in [backend/](mdc:backend/)
+- Each layer has its own package: handlers, services, repository, middleware
+- Import paths use the module name: `xsha-backend/handlers`, `xsha-backend/services`
 
-- **Package names**: Use lowercase, single words (e.g., `handlers`, `services`, `repository`)
-- **File names**: Use snake_case for multi-word files (e.g., `admin_operation_log.go`)
-- **Struct names**: Use PascalCase (e.g., `AuthHandlers`, `GitCredential`)
-
-## Dependency Injection Pattern
-
-Always use constructor functions for dependency injection:
-
-```go
-// Service constructor example
-func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, cfg *config.Config) AuthService {
-    return &authService{
-        tokenRepo:    tokenRepo,
-        loginLogRepo: loginLogRepo,
-        config:       cfg,
-    }
-}
-```
-
-## Interface Definitions
-
-- Define interfaces in the consumer package, not the provider package
-- Keep interfaces small and focused on specific behavior
-- Interface names end with the type (e.g., `AuthService`, `ProjectRepository`)
+## Naming Conventions
+- Use CamelCase for exported functions and types
+- Use camelCase for private functions and variables
+- Struct names should be descriptive: `AuthHandlers`, `TaskService`, `ProjectRepository`
+- Interface names should end with appropriate suffix: `AuthService`, `TaskRepository`
 
 ## Error Handling
+- Always handle errors explicitly
+- Use the established i18n error pattern from [backend/i18n/](mdc:backend/i18n/)
+- Return errors in the standardized format: `gin.H{"error": i18n.T(lang, "error.key")}`
+- Log errors using the utils logger: `utils.Error("message", "key", value)`
 
-Use structured logging with the utils package:
+## Layer Architecture Patterns
+Follow the established pattern in [backend/main.go](mdc:backend/main.go):
 
+### Repository Pattern
 ```go
-utils.Error("Operation failed", "user", username, "error", err)
-utils.Info("Operation successful", "resource", resourceID)
-utils.Warn("Unusual condition", "details", details)
-```
-
-## Constants and Enums
-
-Use typed constants for enums:
-
-```go
-type GitCredentialType string
-
-const (
-    GitCredentialTypePassword GitCredentialType = "password"
-    GitCredentialTypeToken    GitCredentialType = "token"
-    GitCredentialTypeSSHKey   GitCredentialType = "ssh_key"
-)
-```
-
-## Gin Handler Pattern
-
-Follow this structure for all HTTP handlers:
-
-```go
-func (h *SomeHandlers) SomeHandler(c *gin.Context) {
-    lang := middleware.GetLangFromContext(c)
-    
-    // 1. Bind request data
-    var requestData struct {
-        Field string `json:"field" binding:"required"`
-    }
-    
-    if err := c.ShouldBindJSON(&requestData); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{
-            "error": i18n.T(lang, "validation.invalid_request"),
-        })
-        return
-    }
-    
-    // 2. Call service layer
-    result, err := h.service.DoSomething(requestData.Field)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{
-            "error": i18n.T(lang, "common.internal_error"),
-        })
-        return
-    }
-    
-    // 3. Return response
-    c.JSON(http.StatusOK, result)
+type TaskRepository interface {
+    Create(task *models.Task) error
+    GetByID(id uint) (*models.Task, error)
+    // ... other methods
 }
 ```
+
+### Service Pattern
+```go
+type TaskService struct {
+    taskRepo    repository.TaskRepository
+    projectRepo repository.ProjectRepository
+    // dependencies injection
+}
+```
+
+### Handler Pattern
+```go
+func (h *TaskHandlers) CreateTask(c *gin.Context) {
+    lang := middleware.GetLangFromContext(c)
+    // validate input
+    // call service
+    // return response
+}
+```
+
+## Database Patterns
+- Use GORM for all database operations
+- Follow the model structure in [backend/database/models.go](mdc:backend/database/models.go)
+- Always use transactions for complex operations
+- Include timestamps: `CreatedAt`, `UpdatedAt`, `DeletedAt` for soft deletes
+
+## Dependency Injection
+- Inject dependencies through constructors like `NewTaskService()`
+- Initialize all dependencies in [backend/main.go](mdc:backend/main.go)
+- Pass database connection to repositories, repositories to services, services to handlers
+
+## Documentation
+- Use Swagger annotations for all API endpoints
+- Follow the pattern established in [backend/handlers/auth.go](mdc:backend/handlers/auth.go)
+- Include proper HTTP status codes and response types

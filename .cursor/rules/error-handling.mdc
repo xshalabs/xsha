@@ -1,263 +1,241 @@
-# Error Handling Patterns
-
-Comprehensive error handling with internationalization support throughout the XSHA application.
+---
+globs: backend/middleware/error.go,backend/i18n/*.go,frontend/src/lib/errors.ts
+---
+# Standardized Error Handling Patterns
 
 ## Backend Error Handling
 
-### Gin Error Middleware ([backend/middleware/error.go](mdc:backend/middleware/error.go))
-
-**Centralized Error Processing**:
-```go
-func ErrorHandlerMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        c.Next()
-        
-        if len(c.Errors) > 0 {
-            lang := GetLangFromContext(c)
-            err := c.Errors.Last()
-            
-            switch err.Type {
-            case gin.ErrorTypeBind:
-                c.JSON(http.StatusBadRequest, gin.H{
-                    "error":   i18n.T(lang, "validation.invalid_format"),
-                    "details": err.Error(),
-                })
-            case gin.ErrorTypePublic:
-                c.JSON(http.StatusBadRequest, gin.H{
-                    "error": err.Error(),
-                })
-            default:
-                c.JSON(http.StatusInternalServerError, gin.H{
-                    "error": i18n.T(lang, "common.internal_error"),
-                })
-            }
-        }
-    }
+### Error Response Format
+All API errors follow a consistent JSON structure:
+```json
+{
+  "error": "Localized error message"
 }
 ```
 
-### Handler Error Patterns
+### HTTP Status Code Standards
+- **400 Bad Request**: Input validation errors, malformed requests
+- **401 Unauthorized**: Authentication required or token invalid
+- **403 Forbidden**: Insufficient permissions
+- **404 Not Found**: Resource not found
+- **422 Unprocessable Entity**: Business logic validation failures
+- **429 Too Many Requests**: Rate limiting triggered
+- **500 Internal Server Error**: Unexpected server errors
 
-**Standard Error Response Structure**:
+### Error Middleware Pattern
+The error middleware in [backend/middleware/error.go](mdc:backend/middleware/error.go) handles:
+- Panic recovery
+- Structured error logging
+- Consistent error response formatting
+- Language-aware error messages
+
+### Handler Error Pattern
 ```go
-// Simple error
-c.JSON(http.StatusBadRequest, gin.H{
-    "error": i18n.T(lang, "validation.invalid_request"),
-})
-
-// Error with additional context
-c.JSON(http.StatusBadRequest, gin.H{
-    "error":   i18n.T(lang, "validation.invalid_format"), 
-    "details": validationErr.Error(),
-})
-
-// Service layer error handling
-result, err := h.service.DoSomething(data)
-if err != nil {
-    utils.Error("Service operation failed", "operation", "DoSomething", "error", err)
-    c.JSON(http.StatusInternalServerError, gin.H{
-        "error": i18n.T(lang, "common.internal_error"),
-    })
-    return
-}
-```
-
-### Service Layer Error Handling
-
-**Business Logic Errors**:
-```go
-func (s *projectService) Create(data CreateProjectRequest, createdBy string) (*database.Project, error) {
-    // Validate business rules
-    if existing, _ := s.projectRepo.GetByName(data.Name, createdBy); existing != nil {
-        return nil, fmt.Errorf("project with name '%s' already exists", data.Name)
+func (h *TaskHandlers) CreateTask(c *gin.Context) {
+    lang := middleware.GetLangFromContext(c)
+    
+    var request CreateTaskRequest
+    if err := c.ShouldBindJSON(&request); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "error": i18n.T(lang, "validation.invalid_input"),
+        })
+        return
     }
     
-    // Attempt operation
-    project := &database.Project{
-        Name:      data.Name,
-        CreatedBy: createdBy,
-    }
-    
-    if err := s.projectRepo.Create(project); err != nil {
-        utils.Error("Failed to create project", "name", data.Name, "error", err)
-        return nil, err
-    }
-    
-    return project, nil
-}
-```
-
-### Repository Layer Error Handling
-
-**Database Errors**:
-```go
-func (r *projectRepository) GetByID(id uint, createdBy string) (*database.Project, error) {
-    var project database.Project
-    err := r.db.Where("id = ? AND created_by = ?", id, createdBy).First(&project).Error
-    
-    if errors.Is(err, gorm.ErrRecordNotFound) {
-        return nil, fmt.Errorf("project not found")
-    }
-    
+    task, err := h.taskService.CreateTask(userID, request)
     if err != nil {
-        utils.Error("Database query failed", "id", id, "error", err)
-        return nil, err
+        utils.Error("Failed to create task", "error", err, "user_id", userID)
+        
+        // Handle specific error types
+        if errors.Is(err, services.ErrProjectNotFound) {
+            c.JSON(http.StatusNotFound, gin.H{
+                "error": i18n.T(lang, "project.not_found"),
+            })
+            return
+        }
+        
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "error": i18n.T(lang, "task.create.failed"),
+        })
+        return
     }
     
-    return &project, nil
+    c.JSON(http.StatusCreated, task)
+}
+```
+
+### Service Layer Error Patterns
+- Return domain-specific errors for business logic failures
+- Use standard Go error wrapping: `fmt.Errorf("context: %w", err)`
+- Log errors at the service level with context
+- Don't expose internal errors to API responses
+
+```go
+var (
+    ErrTaskNotFound = errors.New("task not found")
+    ErrInvalidTaskStatus = errors.New("invalid task status")
+    ErrProjectNotFound = errors.New("project not found")
+)
+
+func (s *taskService) UpdateTaskStatus(taskID uint, status string) error {
+    task, err := s.taskRepo.GetByID(taskID)
+    if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            return ErrTaskNotFound
+        }
+        return fmt.Errorf("failed to get task: %w", err)
+    }
+    
+    if !isValidStatusTransition(task.Status, status) {
+        return ErrInvalidTaskStatus
+    }
+    
+    // Update logic...
+    return nil
+}
+```
+
+## Internationalization Error Messages
+
+### Error Message Structure
+Error messages are organized by domain in [backend/i18n/locales/](mdc:backend/i18n/locales/):
+- `errors.json` - General error messages
+- `auth.json` - Authentication-related errors
+- `tasks.json` - Task-specific errors
+- `projects.json` - Project-specific errors
+
+### Error Key Conventions
+```json
+{
+  "validation": {
+    "required": "This field is required",
+    "invalid_email": "Please enter a valid email address",
+    "password_too_short": "Password must be at least 8 characters"
+  },
+  "auth": {
+    "invalid_credentials": "Invalid username or password",
+    "token_expired": "Your session has expired, please login again"
+  },
+  "task": {
+    "not_found": "Task not found",
+    "create": {
+      "failed": "Failed to create task",
+      "title_required": "Task title is required"
+    }
+  }
 }
 ```
 
 ## Frontend Error Handling
 
-### API Error Classes ([frontend/src/lib/errors.ts](mdc:frontend/src/lib/errors.ts))
-
-**Structured Error Types**:
+### API Error Handling Pattern
 ```typescript
-export class ApiError extends Error {
-    constructor(
-        message: string,
-        public statusCode: number,
-        public code?: string
-    ) {
-        super(message);
-        this.name = 'ApiError';
+// In frontend/src/lib/api/request.ts
+export async function apiRequest<T>(
+  endpoint: string,
+  options?: RequestInit
+): Promise<T> {
+  try {
+    const response = await fetch(`/api/v1${endpoint}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+        ...options?.headers,
+      },
+      ...options,
+    });
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        // Handle authentication errors
+        redirectToLogin();
+        throw new Error('Authentication required');
+      }
+      
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'An error occurred');
     }
+    
+    return await response.json();
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Network error occurred');
+  }
 }
-
-export class NetworkError extends Error {
-    constructor(message: string = 'Network connection failed') {
-        super(message);
-        this.name = 'NetworkError';
-    }
-}
-```
-
-### Request Layer Error Handling ([frontend/src/lib/api/request.ts](mdc:frontend/src/lib/api/request.ts))
-
-**HTTP Request Error Processing**:
-```typescript
-export const request = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
-    try {
-        const response = await fetch(`${API_BASE_URL}${url}`, config);
-        
-        if (!response.ok) {
-            const errorData: ApiErrorResponse = await response.json();
-            throw new ApiError(
-                errorData.error || `HTTP error! status: ${response.status}`,
-                response.status
-            );
-        }
-        
-        return response.json();
-    } catch (error) {
-        if (error instanceof ApiError) {
-            logError(error, `API request to ${url}`);
-            throw error;
-        }
-        
-        const networkError = new NetworkError('Failed to connect to server');
-        logError(networkError, `API request to ${url}`);
-        throw networkError;
-    }
-};
 ```
 
 ### Component Error Handling
+```tsx
+import { useState } from 'react';
+import { toast } from 'sonner';
 
-**Try-Catch with User Feedback**:
-```typescript
-const handleSubmit = async (data: FormData) => {
+export default function TaskForm() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const handleSubmit = async (formData: TaskCreateRequest) => {
     try {
-        setLoading(true);
-        await api.createProject(data);
-        navigate('/projects');
-        toast.success(t('projects.createSuccess'));
-    } catch (error) {
-        if (error instanceof ApiError) {
-            toast.error(error.message);
-        } else {
-            toast.error(t('errors.unexpected'));
-        }
+      setLoading(true);
+      setError(null);
+      
+      await createTask(formData);
+      toast.success('Task created successfully');
+      
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setError(message);
+      toast.error(message);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      {error && (
+        <div className="bg-destructive/15 text-destructive px-3 py-2 rounded-md text-sm">
+          {error}
+        </div>
+      )}
+      {/* Form fields */}
+    </form>
+  );
+}
 ```
 
-## Logging Patterns
+### Error Boundaries
+- Implement React Error Boundaries for unexpected errors
+- Provide fallback UI for component crashes
+- Log errors to monitoring service
 
-### Backend Logging ([backend/utils/logger.go](mdc:backend/utils/logger.go))
+## Logging and Monitoring
 
-**Structured Logging**:
+### Structured Logging
 ```go
-// Info level
-utils.Info("Operation completed", "resource", resourceID, "user", username)
-
-// Warning level  
-utils.Warn("Unusual condition detected", "condition", "rate_limit_approached", "user", username)
-
-// Error level
-utils.Error("Operation failed", "operation", "create_project", "user", username, "error", err)
+utils.Error("Operation failed",
+    "operation", "create_task",
+    "user_id", userID,
+    "error", err,
+    "request_data", request,
+)
 ```
 
-### Frontend Error Logging
+### Error Tracking
+- Log all errors with sufficient context
+- Include request IDs for tracing
+- Monitor error rates and patterns
+- Set up alerts for critical errors
 
-**Console Logging with Context**:
-```typescript
-export const logError = (error: Error, context: string): void => {
-    console.error(`[${context}]`, {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-    });
-};
-```
+## Validation Error Patterns
 
-## Internationalization Error Messages
+### Input Validation
+- Use Gin's binding validation tags
+- Return field-specific error messages
+- Support multiple validation errors
 
-### Backend Message Keys ([backend/i18n/locales/](mdc:backend/i18n/locales/))
-
-```json
-{
-    "auth.login_failed": "Login failed, please check your credentials",
-    "validation.invalid_request": "Invalid request format",
-    "validation.invalid_format": "Request data validation failed", 
-    "common.internal_error": "Internal server error",
-    "api.not_found": "Resource not found",
-    "api.method_not_allowed": "Method not allowed"
-}
-```
-
-### Frontend Message Keys ([frontend/src/i18n/locales/](mdc:frontend/src/i18n/locales/))
-
-```json
-{
-    "errors.pageNotFound": "Page not found",
-    "errors.unexpected": "An unexpected error occurred",
-    "errors.networkError": "Network connection failed",
-    "errors.unauthorized": "Please login to continue"
-}
-```
-
-## Error Response Standards
-
-**HTTP Status Code Mapping**:
-- `400` - Client errors (validation, bad format)
-- `401` - Authentication required  
-- `403` - Authorization failed
-- `404` - Resource not found
-- `429` - Rate limit exceeded
-- `500` - Server errors (unexpected failures)
-
-**Consistent Response Format**:
-```json
-{
-    "error": "Human-readable error message",
-    "details": "Additional technical details (optional)"
-}
-```
----
-description: Error handling patterns and internationalized error responses
----
+### Business Logic Validation
+- Validate business rules in service layer
+- Return appropriate error types
+- Include context in error messages

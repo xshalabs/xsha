@@ -1,122 +1,46 @@
-# API Conventions and REST Patterns
+---
+globs: backend/handlers/*.go,backend/routes/*.go
+---
+# API Conventions for XSHA
 
-RESTful API design patterns used in the XSHA backend.
+## Base Structure
+- All API routes are prefixed with `/api/v1`
+- Authentication endpoint: `/api/v1/auth/login` (no auth required)
+- All other endpoints require JWT authentication
+- Health check: `/health` (no auth required)
+- API documentation: `/swagger/*` (accessible without auth)
 
-## URL Structure and Routing
-
-**Base Path**: All APIs use `/api/v1` prefix
-
-**Resource Patterns** ([backend/routes/routes.go](mdc:backend/routes/routes.go)):
-```go
-// Resource groups
-authGroup := v1.Group("/auth")
-projectsGroup := v1.Group("/projects") 
-credentialsGroup := v1.Group("/git-credentials")
-devEnvGroup := v1.Group("/dev-environments")
-tasksGroup := v1.Group("/tasks")
-```
-
-**Standard REST Endpoints**:
-- `GET /api/v1/projects` - List resources (with pagination)
-- `POST /api/v1/projects` - Create resource
-- `GET /api/v1/projects/:id` - Get single resource
-- `PUT /api/v1/projects/:id` - Update resource
-- `DELETE /api/v1/projects/:id` - Delete resource
-
-**Nested Resources** for hierarchical data:
-```go
-// Tasks belong to projects
-projectGroup.GET("/:projectId/tasks", handler.ListTasks)
-projectGroup.POST("/:projectId/tasks", handler.CreateTask)
-```
+## Route Organization
+Routes are organized by domain in [backend/routes/routes.go](mdc:backend/routes/routes.go):
+- `/api/v1/auth/*` - Authentication routes
+- `/api/v1/admin/*` - Admin-only operations
+- `/api/v1/git-credentials/*` - Git credential management
+- `/api/v1/projects/*` - Project management
+- `/api/v1/dev-environments/*` - Development environment management
+- `/api/v1/tasks/*` - Task management
 
 ## Request/Response Patterns
 
-**Request Binding**: Use struct tags for validation:
+### Standard Response Format
 ```go
-type CreateProjectRequest struct {
-    Name        string              `json:"name" binding:"required,min=1,max=100"`
-    Description string              `json:"description"`
-    RepoURL     string              `json:"repo_url" binding:"required,url"`
-    Protocol    GitProtocolType     `json:"protocol" binding:"required,oneof=https ssh"`
-}
-```
-
-**Response Format**: Consistent JSON structure:
-```go
-// Success - Single resource
-{
-    "id": 1,
-    "name": "project-name",
-    "created_at": "2024-01-01T00:00:00Z"
-}
-
-// Success - List with pagination
-{
-    "items": [...],
-    "total": 42,
-    "page": 1,
-    "page_size": 20
-}
+// Success response
+c.JSON(http.StatusOK, responseData)
 
 // Error response
-{
-    "error": "Validation failed"
-}
+c.JSON(http.StatusBadRequest, gin.H{
+    "error": i18n.T(lang, "error.message.key")
+})
 ```
 
-## Swagger Documentation
+### Pagination
+For list endpoints, use query parameters:
+- `page` - Page number (default: 1)
+- `pageSize` - Items per page (default: 10)
+- `keyword` - Search term (optional)
 
-**Handler Documentation**: Include comprehensive Swagger comments:
-```go
-// CreateProject creates a new project
-// @Summary Create project
-// @Description Create a new Git repository project with credentials
-// @Tags Projects
-// @Accept json
-// @Produce json
-// @Param projectData body CreateProjectRequest true "Project data"
-// @Success 201 {object} database.Project "Created project"
-// @Failure 400 {object} object{error=string} "Validation error"
-// @Failure 401 {object} object{error=string} "Unauthorized"
-// @Security BearerAuth
-// @Router /projects [post]
-func (h *ProjectHandlers) CreateProject(c *gin.Context) {
-    // Implementation
-}
-```
-
-**Security**: Use `@Security BearerAuth` for protected endpoints
-
-## Authentication and Authorization
-
-**JWT Header**: `Authorization: Bearer <token>`
-
-**Middleware Application**:
-```go
-// Protected routes
-protected := v1.Group("/")
-protected.Use(middleware.AuthMiddleware(authService))
-{
-    protected.GET("/projects", handlers.ListProjects)
-    // ... other protected routes
-}
-```
-
-**User Context**: Extract authenticated user:
-```go
-username, exists := c.Get("username")
-if !exists {
-    c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-    return
-}
-```
-
-## Error Handling
-
-**HTTP Status Codes**:
+### Standard HTTP Status Codes
 - `200` - Success
-- `201` - Created 
+- `201` - Created
 - `400` - Bad Request (validation errors)
 - `401` - Unauthorized
 - `403` - Forbidden
@@ -124,47 +48,34 @@ if !exists {
 - `429` - Too Many Requests (rate limiting)
 - `500` - Internal Server Error
 
-**Error Response Structure**:
-```go
-// Simple error
-c.JSON(http.StatusBadRequest, gin.H{
-    "error": i18n.T(lang, "validation.invalid_request"),
-})
+## Authentication
+- Use JWT tokens in Authorization header: `Bearer <token>`
+- Tokens are managed by the AuthService
+- Rate limiting applied to login endpoint
+- Logout adds token to blacklist
 
-// Error with details
-c.JSON(http.StatusBadRequest, gin.H{
-    "error": i18n.T(lang, "validation.invalid_format"),
-    "details": err.Error(),
-})
+## Swagger Documentation
+All handlers must include Swagger annotations:
+```go
+// @Summary Brief description
+// @Description Detailed description
+// @Tags Category
+// @Accept json
+// @Produce json
+// @Param paramName body/query/path Type true "Description"
+// @Success 200 {object} ResponseType "Success description"
+// @Failure 400 {object} object{error=string} "Error description"
+// @Router /endpoint [method]
 ```
 
-## Internationalization Support
+## Middleware Chain
+Standard middleware applied to all authenticated routes:
+1. I18n middleware (language detection)
+2. Error handler middleware
+3. Authentication middleware
+4. Operation logging middleware (for admin actions)
 
-**Language Header**: `Accept-Language: zh-CN` or `Accept-Language: en-US`
-
-**Message Keys**: Use dot notation:
-- `auth.login_failed`
-- `validation.invalid_request`
-- `common.internal_error`
-
-## Pagination and Filtering
-
-**Query Parameters**:
-```go
-page := c.DefaultQuery("page", "1")
-pageSize := c.DefaultQuery("page_size", "20")
-status := c.Query("status") // Optional filter
-```
-
-**Response**: Include pagination metadata:
-```go
-c.JSON(http.StatusOK, gin.H{
-    "items":     items,
-    "total":     total,
-    "page":      page,
-    "page_size": pageSize,
-})
-```
----
-globs: backend/handlers/**,backend/routes/**
----
+## Input Validation
+- Use Gin's `ShouldBindJSON()` for request body validation
+- Define validation structs with `binding` tags
+- Return localized error messages for validation failures

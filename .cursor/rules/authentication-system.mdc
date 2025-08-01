@@ -1,169 +1,77 @@
-# Authentication System Patterns
-
-JWT-based authentication with blacklist support and comprehensive security logging.
-
-## JWT Token Management
-
-**Token Generation** ([backend/utils/jwt.go](mdc:backend/utils/jwt.go)):
-```go
-token, err := utils.GenerateJWT(username, config.JWTSecret)
-```
-
-**Token Validation**: Via [AuthMiddleware](mdc:backend/middleware/auth.go):
-```go
-func AuthMiddleware(authService services.AuthService) gin.HandlerFunc {
-    return func(c *gin.Context) {
-        authHeader := c.GetHeader("Authorization")
-        if authHeader == "" {
-            c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing authorization header"})
-            c.Abort()
-            return
-        }
-        
-        // Validate Bearer token format
-        parts := strings.Split(authHeader, " ")
-        if len(parts) != 2 || parts[0] != "Bearer" {
-            c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
-            c.Abort()
-            return
-        }
-        
-        token := parts[1]
-        // Validate and extract claims...
-    }
-}
-```
-
-## Token Blacklist System
-
-**Purpose**: Immediate token invalidation for logout/security
-
-**Model** ([database/models.go](mdc:backend/database/models.go)):
-```go
-type TokenBlacklist struct {
-    ID        uint           `gorm:"primarykey" json:"id"`
-    CreatedAt time.Time      `json:"created_at"`
-    Token     string         `gorm:"uniqueIndex;not null" json:"token"`
-    ExpiresAt time.Time      `gorm:"not null" json:"expires_at"`
-    Username  string         `gorm:"not null" json:"username"`
-    Reason    string         `gorm:"default:'logout'" json:"reason"`
-}
-```
-
-**Repository Operations**:
-```go
-// Add token to blacklist
-func (r *tokenBlacklistRepository) Add(token string, username string, expiresAt time.Time, reason string) error
-
-// Check if token is blacklisted
-func (r *tokenBlacklistRepository) IsBlacklisted(token string) (bool, error)
-
-// Clean expired tokens
-func (r *tokenBlacklistRepository) CleanExpired() error
-```
-
-## Login Flow and Security Logging
-
-**Login Handler Pattern** ([handlers/auth.go](mdc:backend/handlers/auth.go)):
-```go
-func (h *AuthHandlers) LoginHandler(c *gin.Context) {
-    lang := middleware.GetLangFromContext(c)
-    
-    // 1. Bind credentials
-    var loginData struct {
-        Username string `json:"username" binding:"required"`
-        Password string `json:"password" binding:"required"`
-    }
-    
-    // 2. Validate and authenticate
-    success, token, err := h.authService.Login(
-        loginData.Username, 
-        loginData.Password,
-        c.ClientIP(),
-        c.GetHeader("User-Agent"),
-    )
-    
-    // 3. Return response
-    if success {
-        c.JSON(http.StatusOK, gin.H{"token": token})
-    } else {
-        c.JSON(http.StatusUnauthorized, gin.H{
-            "error": i18n.T(lang, "auth.login_failed"),
-        })
-    }
-}
-```
-
-**Login Logging** ([database/models.go](mdc:backend/database/models.go)):
-```go
-type LoginLog struct {
-    Username  string    `gorm:"not null;index" json:"username"`
-    Success   bool      `gorm:"not null;index" json:"success"`
-    IP        string    `gorm:"not null" json:"ip"`
-    UserAgent string    `gorm:"type:text" json:"user_agent"`
-    Reason    string    `gorm:"default:''" json:"reason"`
-    LoginTime time.Time `gorm:"not null;index" json:"login_time"`
-}
-```
-
-## User Isolation Pattern
-
-**Database Level**: All user-scoped resources include `created_by`:
-```go
-type Project struct {
-    // ... other fields
-    CreatedBy string `gorm:"not null;index;uniqueIndex:idx_name_user" json:"created_by"`
-}
-```
-
-**Repository Level**: Filter by user context:
-```go
-func (r *projectRepository) GetByID(id uint, createdBy string) (*database.Project, error) {
-    var project database.Project
-    err := r.db.Where("id = ? AND created_by = ?", id, createdBy).First(&project).Error
-    return &project, err
-}
-```
-
-**Handler Level**: Extract user from JWT:
-```go
-username, exists := c.Get("username")
-if !exists {
-    c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-    return
-}
-```
-
-## Admin Operation Logging
-
-**Purpose**: Audit trail for all administrative actions
-
-**Model**:
-```go
-type AdminOperationLog struct {
-    Username      string             `gorm:"not null;index" json:"username"`
-    Operation     AdminOperationType `gorm:"not null;index" json:"operation"`
-    Resource      string             `gorm:"not null;index" json:"resource"`
-    ResourceID    string             `gorm:"default:''" json:"resource_id"`
-    Success       bool               `gorm:"not null;index" json:"success"`
-    IP            string             `gorm:"not null" json:"ip"`
-    Method        string             `gorm:"not null" json:"method"`
-    Path          string             `gorm:"not null" json:"path"`
-    OperationTime time.Time          `gorm:"not null;index" json:"operation_time"`
-}
-```
-
-**Middleware**: Automatic logging via [OperationLogMiddleware](mdc:backend/middleware/operation_log.go)
-
-## Security Best Practices
-
-1. **Token Expiration**: Set reasonable JWT expiration times
-2. **Blacklist Cleanup**: Regularly clean expired blacklisted tokens
-3. **Rate Limiting**: Apply rate limiting to sensitive endpoints
-4. **Input Validation**: Use binding validation on all inputs
-5. **User Isolation**: Always filter data by authenticated user
-6. **Audit Logging**: Log all administrative operations
-7. **Secure Headers**: Use appropriate HTTP security headers
 ---
-description: Authentication, authorization, and security patterns
+globs: backend/middleware/auth.go,backend/services/auth.go,backend/handlers/auth.go,frontend/src/contexts/AuthContext.tsx
 ---
+# Authentication System Architecture
+
+## Backend Authentication (JWT)
+
+### JWT Token Management
+- Tokens are generated in [backend/services/auth.go](mdc:backend/services/auth.go)
+- Token validation handled by [backend/middleware/auth.go](mdc:backend/middleware/auth.go)
+- Token blacklist for logout functionality in [backend/repository/token_blacklist.go](mdc:backend/repository/token_blacklist.go)
+
+### Authentication Flow
+1. User submits credentials to `/api/v1/auth/login`
+2. AuthService validates credentials
+3. JWT token generated with expiration
+4. Token returned to client
+5. Client includes token in Authorization header for subsequent requests
+6. Middleware validates token on each protected route
+
+### Rate Limiting
+- Login endpoint has rate limiting middleware
+- Prevents brute force attacks
+- Configured per IP address
+
+### User Session Management
+- Login logs tracked in [backend/repository/login_log.go](mdc:backend/repository/login_log.go)
+- Admin operation logs for audit trail
+- Token blacklist for secure logout
+
+## Frontend Authentication
+
+### AuthContext Pattern
+- React context in [frontend/src/contexts/AuthContext.tsx](mdc:frontend/src/contexts/AuthContext.tsx)
+- Provides authentication state throughout the app
+- Handles token storage and automatic refresh
+
+### Protected Routes
+- Use `ProtectedRoute` component for authenticated pages
+- Redirects to login if not authenticated
+- Preserves intended destination for post-login redirect
+
+### Token Storage
+- Store JWT tokens securely (localStorage/sessionStorage)
+- Include token in all API requests
+- Handle token expiration gracefully
+
+## Security Patterns
+
+### Middleware Stack
+Authentication middleware validates:
+1. Token presence in Authorization header
+2. Token format (`Bearer <token>`)
+3. Token signature and expiration
+4. Token not in blacklist
+
+### Error Handling
+- Return standardized 401 responses for authentication failures
+- Use i18n for error messages
+- Log authentication attempts for monitoring
+
+### Admin Operations
+- Special logging for admin operations
+- Operation logs include user, action, and timestamp
+- Helps with audit trails and compliance
+
+## Implementation Guidelines
+
+### Adding New Protected Endpoints
+1. Add route to protected group in [backend/routes/routes.go](mdc:backend/routes/routes.go)
+2. Authentication middleware automatically applied
+3. Access user info via `c.Get("user_id")` in handlers
+
+### Frontend API Integration
+- Use established API client patterns from [frontend/src/lib/api/](mdc:frontend/src/lib/api/)
+- Include authentication headers automatically
+- Handle 401 responses by redirecting to login

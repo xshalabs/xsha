@@ -1,263 +1,234 @@
+---
+globs: Dockerfile*,docker-compose*.yml,docker/**/*
+---
 # Docker Deployment Patterns
 
-Multi-service containerized deployment for the XSHA application.
+## Multi-Stage Build Architecture
 
-## Project Docker Architecture
+### Dockerfile Structure
+The project uses a 3-stage Docker build process in [Dockerfile](mdc:Dockerfile):
 
-**Service Composition** ([docker-compose.yml](mdc:docker-compose.yml)):
-```yaml
-services:
-  app:           # Go backend application
-  mysql:         # MySQL database
-  phpmyadmin:    # Database administration (optional)
-```
+1. **Frontend Builder Stage**: Node.js environment for React build
+2. **Backend Builder Stage**: Go environment for binary compilation  
+3. **Runtime Stage**: Minimal Alpine Linux for production
 
-**Network Configuration**: All services communicate via `xsha-network` bridge network
-
-## Application Container ([Dockerfile](mdc:Dockerfile))
-
-### Multi-Stage Build Pattern
-
-**Stage 1 - Build Backend**:
+### Frontend Build Stage
 ```dockerfile
-FROM golang:1.21-alpine AS backend-builder
-WORKDIR /app
-COPY backend/ .
-RUN go mod download
-RUN go build -o main .
-```
-
-**Stage 2 - Build Frontend**:
-```dockerfile  
-FROM node:18-alpine AS frontend-builder
-WORKDIR /app
+FROM node:20-alpine AS frontend-builder
+RUN npm install -g pnpm
+WORKDIR /app/frontend
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+RUN pnpm i
 COPY frontend/ .
-RUN npm install && npm run build
+RUN pnpm run build
 ```
 
-**Stage 3 - Production Image**:
+**Key Patterns**:
+- Use Alpine images for smaller size
+- Install pnpm for faster package management
+- Copy package files first for better Docker layer caching
+- Build outputs to `../backend/static` for embedded serving
+
+### Backend Build Stage
+```dockerfile
+FROM golang:1.23.1-alpine AS backend-builder
+RUN apk add --no-cache git ca-certificates tzdata gcc musl-dev sqlite-dev
+WORKDIR /app
+COPY backend/go.mod backend/go.sum ./
+RUN go mod download && go mod verify
+COPY backend/ .
+COPY --from=frontend-builder /app/backend/static ./static
+RUN CGO_ENABLED=1 go build -ldflags="-w -s" -o main .
+```
+
+**Key Patterns**:
+- Enable CGO for SQLite support
+- Use build-time optimizations: `-ldflags="-w -s"`
+- Copy frontend build artifacts before Go build
+- Verify dependencies with `go mod verify`
+
+### Runtime Stage
 ```dockerfile
 FROM alpine:latest
-RUN apk --no-cache add ca-certificates curl
-WORKDIR /root/
-COPY --from=backend-builder /app/main .
-COPY --from=frontend-builder /app/dist ./static
+RUN apk --no-cache add ca-certificates tzdata curl docker-cli sqlite
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup
+USER appuser
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
 ```
 
-### Container Optimization
+**Key Patterns**:
+- Minimal Alpine base for security and size
+- Non-root user for security
+- Health checks for container monitoring
+- Docker CLI included for task execution
 
-**Alpine Linux**: Minimal base image for reduced attack surface
-**Multi-stage**: Separate build and runtime environments
-**Static Assets**: Frontend served by Go backend
-**Health Checks**: Built-in health monitoring
+## Docker Compose Configuration
 
-## Service Configuration
-
-### Backend Application Service
-
-**Environment Variables**:
+### Standard Deployment ([docker-compose.yml](mdc:docker-compose.yml))
 ```yaml
-environment:
-  - XSHA_PORT=8080
-  - XSHA_ENVIRONMENT=development
-  - XSHA_DATABASE_TYPE=mysql
-  - XSHA_MYSQL_DSN=root:password@tcp(mysql:3306)/xsha?charset=utf8mb4&parseTime=True&loc=Local
-  - XSHA_WORKSPACE_BASE_DIR=/app/workspaces
+services:
+  xsha-app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - ENVIRONMENT=production
+    volumes:
+      - ./runtime/db:/app/runtime/db
+      - ./runtime/workspaces:/app/runtime/workspaces
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 ```
 
-**Volume Mounts**:
+### China-Optimized Deployment ([docker-compose.cn.yml](mdc:docker-compose.cn.yml))
+- Uses Chinese registry mirrors: `m.daocloud.io/docker.io/library/`
+- Same configuration as standard deployment
+- Optimized for Chinese network conditions
+
+## Volume Management
+
+### Persistent Data
+- **Database**: `./runtime/db` - SQLite database files
+- **Workspaces**: `./runtime/workspaces` - Task execution workspaces
+- **Docker Socket**: `/var/run/docker.sock` - For container orchestration
+
+### Volume Patterns
 ```yaml
 volumes:
-  - ./backend:/app:ro                     # Code mount (development)
-  - /var/run/docker.sock:/var/run/docker.sock  # Docker-in-Docker
-  - ./workspaces:/app/workspaces          # AI task workspaces
+  - ./runtime/db:/app/runtime/db          # Database persistence
+  - ./runtime/workspaces:/app/runtime/workspaces  # Workspace persistence
+  - /var/run/docker.sock:/var/run/docker.sock     # Docker API access
 ```
 
-**Docker-in-Docker**: Access to host Docker daemon for AI task execution
+## Environment Configuration
 
-### Database Service
-
-**MySQL Configuration**:
+### Production Environment Variables
 ```yaml
-mysql:
-  image: mysql:8.0
-  environment:
-    - MYSQL_ROOT_PASSWORD=password
-    - MYSQL_DATABASE=xsha
-    - MYSQL_USER=xsha  
-    - MYSQL_PASSWORD=xshapass
-  volumes:
-    - mysql_data:/var/lib/mysql           # Persistent data
-    - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql  # Initialization
+environment:
+  - ENVIRONMENT=production
+  - DB_TYPE=sqlite
+  - DB_PATH=/app/runtime/db/xsha.db
+  - WORKSPACE_BASE_DIR=/app/runtime/workspaces
+  - JWT_SECRET=${JWT_SECRET}
+  - PORT=8080
 ```
 
-**Health Check**:
+### Development Overrides
+- Use `docker-compose.override.yml` for development-specific settings
+- Mount source code volumes for hot reloading during development
+- Use different port mappings if needed
+
+## Container Orchestration Patterns
+
+### Service Dependencies
 ```yaml
-healthcheck:
-  test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
-  interval: 10s
-  timeout: 5s
-  retries: 5
-  start_period: 30s
+depends_on:
+  - database  # If using external database
+  - redis     # If using Redis for caching
 ```
 
-## Development vs Production
-
-### Development Configuration ([docker-compose.dev.yml](mdc:docker-compose.dev.yml))
-
-**Code Mounting**: Live reload during development
-**Debug Environment**: Verbose logging and debugging tools
-**Port Exposure**: Direct access to all services
-
+### Network Configuration
 ```yaml
-# Override for development
-services:
-  app:
-    build:
-      dockerfile: Dockerfile.dev
-    volumes:
-      - ./backend:/app:rw                 # Read-write for development
-    environment:
-      - XSHA_ENVIRONMENT=development
-      - XSHA_LOG_LEVEL=debug
+networks:
+  default:
+    driver: bridge
 ```
 
-### Production Optimizations
-
-**Image Size**: Multi-stage builds minimize final image
-**Security**: Non-root user, minimal packages
-**Performance**: Optimized Go binary, compressed assets
-**Monitoring**: Health checks and restart policies
-
+### Resource Limits
 ```yaml
-restart: unless-stopped
-healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
-  interval: 30s
-  timeout: 10s
-  retries: 3
-```
-
-## AI Development Environment Containers
-
-### Specialized AI Containers ([docker/](mdc:docker/))
-
-**Claude Code Environment** ([docker/Dockerfile.claude-code](mdc:docker/Dockerfile.claude-code)):
-- Pre-configured development environment for AI tasks
-- Includes necessary tools and dependencies
-- Sandboxed execution environment
-
-**Gemini CLI Environment** ([docker/Dockerfile.gemini-cli](mdc:docker/Dockerfile.gemini-cli)):
-- Command-line interface optimized for AI interactions
-- Streamlined toolchain for rapid prototyping
-
-**OpenCode Environment** ([docker/Dockerfile.opencode](mdc:docker/Dockerfile.opencode)):
-- Open-source development environment
-- Flexible configuration for various AI models
-
-### Task Execution Pattern
-
-**Container Lifecycle**:
-1. Create task-specific container from base image
-2. Mount project workspace into container
-3. Execute AI-generated commands
-4. Collect output and logs
-5. Commit changes back to workspace
-6. Clean up container resources
-
-**Resource Limits**:
-```yaml
-# Applied dynamically during task execution
 deploy:
   resources:
     limits:
-      cpus: '1.0'
       memory: 1G
+      cpus: '0.5'
     reservations:
+      memory: 512M
       cpus: '0.25'
-      memory: 256M
 ```
 
-## Networking and Security
+## Health Check Patterns
 
-### Network Isolation
+### Application Health Check
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+```
 
-**Internal Communication**: Services communicate via service names
-**External Access**: Only necessary ports exposed to host
-**Service Discovery**: Automatic via Docker Compose DNS
-
+### Docker Compose Health Check
 ```yaml
-networks:
-  xsha-network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
 ```
 
-### Security Considerations
+## Security Patterns
 
-**Secret Management**: Environment variables for sensitive data
-**User Permissions**: Non-root containers where possible  
-**Network Policies**: Restricted inter-service communication
-**Volume Security**: Read-only mounts for application code
-
-## Deployment Commands
-
-### Development Deployment
-
-```bash
-# Start all services
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-
-# View logs
-docker-compose logs -f app
-
-# Rebuild after changes
-docker-compose build app && docker-compose up -d app
+### Non-Root User
+```dockerfile
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup
+USER appuser
 ```
+
+### File Permissions
+```dockerfile
+COPY --from=backend-builder /app/main .
+RUN chown -R appuser:appgroup /app
+```
+
+### Docker Socket Security
+- Mount Docker socket read-only when possible
+- Use Docker API for container management
+- Implement proper access controls
+
+## Development Patterns
+
+### Development Override
+Create `docker-compose.override.yml` for development:
+```yaml
+services:
+  xsha-app:
+    build:
+      dockerfile: Dockerfile
+      target: backend-builder  # Stop at build stage for development
+    volumes:
+      - ./backend:/app
+      - ./frontend/dist:/app/static
+    environment:
+      - ENVIRONMENT=development
+      - GIN_MODE=debug
+```
+
+### Hot Reloading
+- Use volume mounts for source code
+- Install air for Go hot reloading
+- Use Vite dev server for frontend development
+
+## Deployment Best Practices
+
+### Image Optimization
+- Use multi-stage builds to minimize final image size
+- Leverage Docker layer caching with proper COPY order
+- Use `.dockerignore` to exclude unnecessary files
 
 ### Production Deployment
+- Use specific image tags, not `latest`
+- Implement proper logging and monitoring
+- Use container orchestration platforms (Kubernetes, Docker Swarm)
+- Implement rolling updates for zero-downtime deployments
 
-```bash
-# Production build and start
-docker-compose -f docker-compose.yml up -d
-
-# Update application
-docker-compose pull && docker-compose up -d
-
-# Scale services (if needed)
-docker-compose up -d --scale app=2
-```
-
-### Maintenance Commands
-
-```bash
-# Database backup
-docker-compose exec mysql mysqldump -u root -p xsha > backup.sql
-
-# View service health
-docker-compose ps
-
-# Clean up resources
-docker-compose down -v --remove-orphans
-docker system prune -f
-```
-
-## Monitoring and Logging
-
-### Health Monitoring
-
-**Application Health Endpoint**: `/api/health` for container health checks
-**Database Health**: MySQL ping for service readiness
-**Dependency Checks**: Verify all required services are available
-
-### Log Aggregation
-
-**Centralized Logging**: All containers log to stdout/stderr
-**Log Rotation**: Docker handles log file rotation
-**Structured Logs**: JSON format for easy parsing
-
+### Monitoring and Logging
 ```yaml
 logging:
   driver: "json-file"
@@ -266,20 +237,7 @@ logging:
     max-file: "3"
 ```
 
-## Performance and Scaling
-
-### Horizontal Scaling
-
-**Stateless Design**: Application containers can be scaled horizontally
-**Load Balancing**: External load balancer for multiple app instances
-**Database Scaling**: Single MySQL instance with potential for read replicas
-
-### Resource Optimization
-
-**Memory Limits**: Prevent containers from consuming excessive memory
-**CPU Limits**: Ensure fair resource distribution
-**Disk Usage**: Implement log rotation and temporary file cleanup
-
----
-description: Docker deployment patterns and container orchestration
----
+### Backup Strategies
+- Regular backup of `./runtime/db` directory
+- Version control for configuration files
+- Database backup automation for production

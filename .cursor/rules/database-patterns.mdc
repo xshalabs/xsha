@@ -1,143 +1,147 @@
-# Database Patterns and GORM Conventions
+---
+globs: backend/database/*.go,backend/repository/*.go
+---
+# Database Patterns and GORM Usage
 
-Database layer patterns for the XSHA project using GORM ORM.
+## Database Architecture
+- **ORM**: GORM v2 for type-safe database operations
+- **Support**: MySQL (production) and SQLite (development)
+- **Models**: Centralized in [backend/database/models.go](mdc:backend/database/models.go)
+- **Manager**: Database connection management in [backend/database/database.go](mdc:backend/database/database.go)
 
-## Model Definition ([backend/database/models.go](mdc:backend/database/models.go))
+## Model Definitions
+Follow the established patterns in [backend/database/models.go](mdc:backend/database/models.go):
 
-**Base Structure**: All models inherit standard GORM fields:
-
-```go
-type SomeModel struct {
-    ID        uint           `gorm:"primarykey" json:"id"`
-    CreatedAt time.Time      `json:"created_at"`
-    UpdatedAt time.Time      `json:"updated_at"`
-    DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-    
-    // Model-specific fields
-}
-```
-
-**Key Conventions**:
-- Use `gorm.DeletedAt` for soft deletes
-- Include `json:"-"` for `DeletedAt` to hide from API responses
-- Use appropriate GORM tags for constraints and indexes
-- Use typed constants for enums
-
-## Relationship Patterns
-
-**Foreign Key Relationships**:
+### Standard Model Structure
 ```go
 type Task struct {
-    // Foreign key
-    ProjectID uint     `gorm:"not null;index" json:"project_id"`
-    // Association
-    Project   *Project `gorm:"foreignKey:ProjectID" json:"project"`
+    ID          uint           `gorm:"primaryKey" json:"id"`
+    CreatedAt   time.Time      `json:"created_at"`
+    UpdatedAt   time.Time      `json:"updated_at"`
+    DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+    
+    // Domain fields
+    Title       string `gorm:"not null" json:"title"`
+    Description string `json:"description"`
+    UserID      uint   `gorm:"not null" json:"user_id"`
+    
+    // Relationships
+    User        User           `gorm:"foreignKey:UserID" json:"user,omitempty"`
 }
 ```
 
-**User Isolation Pattern**:
-All user-scoped models include `CreatedBy` field:
-```go
-CreatedBy string `gorm:"not null;index;uniqueIndex:idx_name_user" json:"created_by"`
-```
+### Required Fields
+- Always include `ID`, `CreatedAt`, `UpdatedAt`, `DeletedAt`
+- Use `gorm.DeletedAt` for soft deletes
+- Add appropriate GORM tags for constraints
+- Use `json:"-"` for fields that shouldn't be serialized
 
-**Composite Indexes** for user isolation:
-```go
-Name      string `gorm:"not null;uniqueIndex:idx_name_user" json:"name"`
-CreatedBy string `gorm:"not null;index;uniqueIndex:idx_name_user" json:"created_by"`
-```
+## Repository Pattern
+Each model should have a corresponding repository following this interface pattern:
 
-## Repository Implementation Patterns
-
-**Standard CRUD Methods**:
 ```go
-func (r *someRepository) Create(entity *database.SomeModel) error {
-    return r.db.Create(entity).Error
+type TaskRepository interface {
+    Create(task *models.Task) error
+    GetByID(id uint) (*models.Task, error)
+    GetByUserID(userID uint, id uint) (*models.Task, error)
+    List(userID uint, filters TaskFilters) ([]*models.Task, int64, error)
+    Update(task *models.Task) error
+    Delete(id uint) error
 }
+```
 
-func (r *someRepository) GetByID(id uint, createdBy string) (*database.SomeModel, error) {
-    var entity database.SomeModel
-    err := r.db.Where("id = ? AND created_by = ?", id, createdBy).First(&entity).Error
+### Repository Implementation Patterns
+- Inject database connection via constructor
+- Use method chaining for complex queries
+- Always handle errors appropriately
+- Use preloading for relationships
+
+```go
+func (r *taskRepository) GetByID(id uint) (*models.Task, error) {
+    var task models.Task
+    err := r.db.Preload("User").Preload("Project").First(&task, id).Error
     if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            return nil, err
+        }
         return nil, err
     }
-    return &entity, nil
-}
-
-func (r *someRepository) List(createdBy string, page, pageSize int) ([]database.SomeModel, int64, error) {
-    var entities []database.SomeModel
-    var total int64
-    
-    query := r.db.Where("created_by = ?", createdBy)
-    
-    // Count total
-    query.Model(&database.SomeModel{}).Count(&total)
-    
-    // Get page
-    offset := (page - 1) * pageSize
-    err := query.Offset(offset).Limit(pageSize).Find(&entities).Error
-    
-    return entities, total, err
+    return &task, nil
 }
 ```
 
 ## Query Patterns
 
-**User Isolation**: Always filter by `created_by`:
+### Filtering and Pagination
 ```go
-r.db.Where("created_by = ?", createdBy).Find(&entities)
-```
-
-**Associations**: Use `Preload` for related data:
-```go
-r.db.Preload("Project").Preload("DevEnvironment").Find(&tasks)
-```
-
-**Pagination**: Consistent offset/limit pattern:
-```go
-offset := (page - 1) * pageSize
-query.Offset(offset).Limit(pageSize).Find(&entities)
-```
-
-**Filtering with Pointers**: Handle optional filters:
-```go
-if status != nil {
-    query = query.Where("status = ?", *status)
+func (r *taskRepository) List(userID uint, filters TaskFilters) ([]*models.Task, int64, error) {
+    var tasks []*models.Task
+    var total int64
+    
+    query := r.db.Model(&models.Task{}).Where("user_id = ?", userID)
+    
+    // Apply filters
+    if filters.Keyword != "" {
+        query = query.Where("title ILIKE ? OR description ILIKE ?", 
+            "%"+filters.Keyword+"%", "%"+filters.Keyword+"%")
+    }
+    
+    // Count total
+    query.Count(&total)
+    
+    // Apply pagination
+    err := query.Offset((filters.Page - 1) * filters.PageSize).
+        Limit(filters.PageSize).
+        Preload("User").
+        Find(&tasks).Error
+        
+    return tasks, total, err
 }
 ```
 
-## Migration and Schema
+### Soft Delete Handling
+- GORM automatically handles soft deletes with `DeletedAt` field
+- Use `Unscoped()` to include soft-deleted records
+- Permanent delete: `db.Unscoped().Delete(&model)`
 
-**Auto-Migration** in [database.go](mdc:backend/database/database.go):
+### Transaction Management
 ```go
-db.AutoMigrate(
-    &database.TokenBlacklist{},
-    &database.LoginLog{},
-    &database.GitCredential{},
-    // ... all models
-)
+func (r *taskRepository) CreateWithDependencies(task *models.Task, deps []models.Dependency) error {
+    return r.db.Transaction(func(tx *gorm.DB) error {
+        if err := tx.Create(task).Error; err != nil {
+            return err
+        }
+        
+        for _, dep := range deps {
+            dep.TaskID = task.ID
+            if err := tx.Create(&dep).Error; err != nil {
+                return err
+            }
+        }
+        
+        return nil
+    })
+}
 ```
 
-**Constraints**: Use GORM tags for database constraints:
-- `not null`: Required fields
-- `uniqueIndex`: Unique constraints
-- `index`: Performance indexes
-- `foreignKey`: Relationship definitions
+## Migration Patterns
+- Migrations handled automatically by GORM's AutoMigrate
+- Called during application startup in [backend/database/database.go](mdc:backend/database/database.go)
+- For complex migrations, consider manual SQL scripts
 
-## Encryption for Sensitive Data
+## Database Connection Management
+- Connection pooling configured in DatabaseManager
+- Graceful shutdown handling
+- Health checks for database connectivity
 
-For sensitive fields like passwords and SSH keys:
+## Performance Optimization
+- Use `Select()` to fetch only required fields
+- Implement proper indexing in model definitions
+- Use `Preload()` instead of N+1 queries
+- Consider pagination for large datasets
 
-```go
-// Before create/update
-encryptedData, err := utils.Encrypt(sensitiveData, config.AESKey)
-
-// In model
-PasswordHash string `gorm:"type:text" json:"-"`          // Encrypted
-PublicKey    string `gorm:"type:text" json:"public_key"` // Not sensitive
-```
-
-**Key Pattern**: Sensitive fields use `json:"-"` tag to exclude from JSON serialization.
----
-globs: backend/database/**,backend/repository/**
----
+## Testing Database Operations
+- Use in-memory SQLite for tests
+- Create test fixtures and factories
+- Clean up data between tests
+- Mock repository interfaces for unit tests
