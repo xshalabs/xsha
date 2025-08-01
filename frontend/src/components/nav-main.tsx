@@ -20,6 +20,13 @@ export function NavMain({
 }) {
   const location = useLocation();
 
+  const isActive = (itemUrl: string) => {
+    if (itemUrl === "/projects") {
+      return location.pathname.startsWith("/projects");
+    }
+    return location.pathname === itemUrl;
+  };
+
   return (
     <SidebarGroup>
       <SidebarGroupContent>
@@ -29,7 +36,7 @@ export function NavMain({
               <SidebarMenuButton 
                 tooltip={item.title}
                 asChild
-                isActive={location.pathname === item.url}
+                isActive={isActive(item.url)}
               >
                 <Link to={item.url}>
                   {item.icon && <item.icon />}
