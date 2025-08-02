@@ -3,7 +3,7 @@
 FROM m.daocloud.io/docker.io/library/node:20-alpine AS frontend-builder
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm && pnpm config set registry https://registry.npmmirror.com
 
 # Set working directory for frontend
 WORKDIR /app/frontend
@@ -27,7 +27,8 @@ FROM m.daocloud.io/docker.io/library/golang:1.23.1-alpine AS backend-builder
 WORKDIR /app
 
 # Install necessary tools including build dependencies for CGO
-RUN apk add --no-cache git ca-certificates tzdata gcc musl-dev sqlite-dev
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+  apk add --no-cache git ca-certificates tzdata gcc musl-dev sqlite-dev
 
 # Set timezone
 ENV TZ=UTC
@@ -36,7 +37,7 @@ ENV TZ=UTC
 COPY backend/go.mod backend/go.sum ./
 
 # Download dependencies
-RUN go mod download && go mod verify
+RUN go env -w GOPROXY=https://goproxy.cn,direct && go mod download && go mod verify
 
 # Copy backend source code
 COPY backend/ .
@@ -52,7 +53,8 @@ RUN CGO_ENABLED=1 go build -ldflags="-w -s" -o main .
 FROM m.daocloud.io/docker.io/library/alpine:latest
 
 # Install necessary packages including Docker CLI and SQLite runtime
-RUN apk --no-cache add ca-certificates tzdata curl docker-cli sqlite
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+  apk --no-cache add ca-certificates tzdata curl docker-cli sqlite
 
 # Set timezone
 ENV TZ=UTC
