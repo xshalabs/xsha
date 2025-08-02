@@ -56,6 +56,7 @@ cd xsha
 2. 🚀 **Start the application**
 
 ```bash
+sudo chmod 666 /var/run/docker.sock
 docker-compose up -d
 ```
 

@@ -54,6 +54,7 @@ cd xsha
 2. 🚀 **启动应用程序**
 
 ```bash
+sudo chmod 666 /var/run/docker.sock
 docker-compose -f docker-compose.cn.yml up -d
 ```
 
