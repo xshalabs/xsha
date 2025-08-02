@@ -100,9 +100,14 @@ func (r *systemConfigRepository) SetValueWithCategoryAndSort(key, value, descrip
 func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 	defaultDevEnvTypes := []map[string]interface{}{
 		{
-			"image": "claude-code:latest",
-			"name":  "Claude Code",
-			"key":   "claude-code",
+			"image": "ghcr.io/xshalabs/dev-image-registry/claude-code:node18-1.0.67",
+			"name":  "Claude Code node18_1.0.67",
+			"key":   "claude-code-node18-1.0.67",
+		},
+		{
+			"image": "ghcr.io/xshalabs/dev-image-registry/claude-code:node20-1.0.67",
+			"name":  "Claude Code node20_1.0.67",
+			"key":   "claude-code-node20-1.0.67",
 		},
 	}
 
