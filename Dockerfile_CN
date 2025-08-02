@@ -70,8 +70,9 @@ WORKDIR /app
 # Copy executable from backend builder stage
 COPY --from=backend-builder /app/main .
 
-# Set file permissions
-RUN chown -R appuser:appgroup /app
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/db /app/workspaces && \
+    chown -R appuser:appgroup /app
 
 # Switch to non-root user
 USER appuser
