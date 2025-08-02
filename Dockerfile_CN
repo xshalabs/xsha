@@ -52,9 +52,9 @@ RUN CGO_ENABLED=1 go build -ldflags="-w -s" -o main .
 # Stage 3: Runtime environment
 FROM m.daocloud.io/docker.io/library/alpine:latest
 
-# Install necessary packages including Docker CLI and SQLite runtime
+# Install necessary packages including Docker CLI, Git and SQLite runtime
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
-  apk --no-cache add ca-certificates tzdata curl docker-cli sqlite
+  apk --no-cache add ca-certificates tzdata curl docker-cli sqlite git
 
 # Set timezone
 ENV TZ=UTC

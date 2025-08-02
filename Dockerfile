@@ -51,8 +51,8 @@ RUN CGO_ENABLED=1 go build -ldflags="-w -s" -o main .
 # Stage 3: Runtime environment
 FROM alpine:latest
 
-# Install necessary packages including Docker CLI and SQLite runtime
-RUN apk --no-cache add ca-certificates tzdata curl docker-cli sqlite
+# Install necessary packages including Docker CLI, Git and SQLite runtime
+RUN apk --no-cache add ca-certificates tzdata curl docker-cli sqlite git
 
 # Set timezone
 ENV TZ=UTC
