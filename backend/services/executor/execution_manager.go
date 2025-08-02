@@ -5,8 +5,13 @@ import (
 	"sync"
 )
 
+type ExecutionInfo struct {
+	CancelFunc  context.CancelFunc
+	ContainerID string
+}
+
 type ExecutionManager struct {
-	runningConversations map[uint]context.CancelFunc
+	runningConversations map[uint]*ExecutionInfo
 	maxConcurrency       int
 	currentCount         int
 	mu                   sync.RWMutex
@@ -17,7 +22,7 @@ func NewExecutionManager(maxConcurrency int) *ExecutionManager {
 		maxConcurrency = 5
 	}
 	return &ExecutionManager{
-		runningConversations: make(map[uint]context.CancelFunc),
+		runningConversations: make(map[uint]*ExecutionInfo),
 		maxConcurrency:       maxConcurrency,
 	}
 }
@@ -36,7 +41,10 @@ func (em *ExecutionManager) AddExecution(conversationID uint, cancelFunc context
 		return false
 	}
 
-	em.runningConversations[conversationID] = cancelFunc
+	em.runningConversations[conversationID] = &ExecutionInfo{
+		CancelFunc:  cancelFunc,
+		ContainerID: "", // Will be set later
+	}
 	em.currentCount++
 	return true
 }
@@ -51,17 +59,37 @@ func (em *ExecutionManager) RemoveExecution(conversationID uint) {
 	}
 }
 
-func (em *ExecutionManager) CancelExecution(conversationID uint) bool {
+func (em *ExecutionManager) SetContainerID(conversationID uint, containerID string) {
 	em.mu.Lock()
 	defer em.mu.Unlock()
 
-	if cancelFunc, exists := em.runningConversations[conversationID]; exists {
-		cancelFunc()
+	if execInfo, exists := em.runningConversations[conversationID]; exists {
+		execInfo.ContainerID = containerID
+	}
+}
+
+func (em *ExecutionManager) GetContainerID(conversationID uint) string {
+	em.mu.RLock()
+	defer em.mu.RUnlock()
+
+	if execInfo, exists := em.runningConversations[conversationID]; exists {
+		return execInfo.ContainerID
+	}
+	return ""
+}
+
+func (em *ExecutionManager) CancelExecution(conversationID uint) (context.CancelFunc, string) {
+	em.mu.Lock()
+	defer em.mu.Unlock()
+
+	if execInfo, exists := em.runningConversations[conversationID]; exists {
+		cancelFunc := execInfo.CancelFunc
+		containerID := execInfo.ContainerID
 		delete(em.runningConversations, conversationID)
 		em.currentCount--
-		return true
+		return cancelFunc, containerID
 	}
-	return false
+	return nil, ""
 }
 
 func (em *ExecutionManager) GetRunningCount() int {

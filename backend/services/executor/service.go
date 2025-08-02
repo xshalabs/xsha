@@ -144,10 +144,29 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint, createdBy s
 		return fmt.Errorf("can only cancel pending or running conversations")
 	}
 
-	if s.executionManager.CancelExecution(conversationID) {
+	// Get cancel function and container ID
+	cancelFunc, containerID := s.executionManager.CancelExecution(conversationID)
+	if cancelFunc != nil {
 		utils.Info("Force cancelling running conversation",
 			"conversation_id", conversationID,
+			"container_id", containerID,
 		)
+
+		// Cancel the context
+		cancelFunc()
+
+		// If we have a container ID, try to stop and remove it
+		if containerID != "" {
+			utils.Info("Attempting to stop and remove container", "container_id", containerID)
+			if cleanupErr := s.dockerExecutor.StopAndRemoveContainer(containerID); cleanupErr != nil {
+				utils.Error("Failed to stop and remove container during cancellation",
+					"container_id", containerID,
+					"conversation_id", conversationID,
+					"error", cleanupErr)
+			} else {
+				utils.Info("Successfully stopped and removed container", "container_id", containerID)
+			}
+		}
 	}
 
 	conv.Status = database.ConversationStatusCancelled
@@ -430,14 +449,20 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		return
 	}
 
-	dockerCmd := s.dockerExecutor.BuildCommand(conv, workspacePath)
 	dockerCmdForLog := s.dockerExecutor.BuildCommandForLog(conv, workspacePath)
 	dockerUpdates := map[string]interface{}{
 		"docker_command": dockerCmdForLog,
 	}
 	s.execLogRepo.UpdateMetadata(execLog.ID, dockerUpdates)
 
-	if err := s.dockerExecutor.ExecuteWithContext(ctx, dockerCmd, execLog.ID); err != nil {
+	// Execute with container tracking
+	containerID, err := s.dockerExecutor.ExecuteWithContainerTracking(ctx, conv, workspacePath, execLog.ID)
+	if containerID != "" {
+		// Set the container ID in execution manager for proper cleanup on cancellation
+		s.executionManager.SetContainerID(conv.ID, containerID)
+	}
+
+	if err != nil {
 		select {
 		case <-ctx.Done():
 			finalStatus = database.ConversationStatusCancelled
