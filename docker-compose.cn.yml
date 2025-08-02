@@ -20,11 +20,15 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./runtime/db:/app/db
-      - ./runtime/workspaces:/app/workspaces
+      - xsha_db:/app/db
+      - xsha_workspaces:/app/workspaces
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+
+volumes:
+  xsha_db:
+  xsha_workspaces:
