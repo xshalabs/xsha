@@ -59,10 +59,10 @@ ENV TZ=UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Create non-root user and add to docker group
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup && \
+RUN addgroup -g 1001 -S xsha && \
+    adduser -u 1001 -S xsha -G xsha && \
     addgroup -S docker && \
-    addgroup appuser docker
+    addgroup xsha docker
 
 # Set working directory
 WORKDIR /app
@@ -72,10 +72,10 @@ COPY --from=backend-builder /app/main .
 
 # Create necessary directories with proper permissions
 RUN mkdir -p /app/db /app/workspaces && \
-    chown -R appuser:appgroup /app
+    chown -R xsha:xsha /app
 
 # Switch to non-root user
-USER appuser
+USER xsha
 
 # Expose port
 EXPOSE 8080
