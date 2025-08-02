@@ -32,14 +32,14 @@ func (w *WorkspaceManager) GetOrCreateTaskWorkspace(taskID uint, existingPath st
 		return existingPath, nil
 	}
 
-	if err := os.MkdirAll(w.baseDir, 0755); err != nil {
+	if err := os.MkdirAll(w.baseDir, 0777); err != nil {
 		return "", fmt.Errorf("failed to create base directory: %v", err)
 	}
 
 	dirName := fmt.Sprintf("task-%d-%d", taskID, time.Now().Unix())
 	workspacePath := filepath.Join(w.baseDir, dirName)
 
-	if err := os.MkdirAll(workspacePath, 0755); err != nil {
+	if err := os.MkdirAll(workspacePath, 0777); err != nil {
 		return "", fmt.Errorf("failed to create workspace directory: %v", err)
 	}
 
@@ -236,7 +236,7 @@ func (w *WorkspaceManager) ResetWorkspaceToCleanState(workspacePath string) erro
 		if err := os.RemoveAll(workspacePath); err != nil {
 			return fmt.Errorf("failed to cleanup non-git workspace: %v", err)
 		}
-		if err := os.MkdirAll(workspacePath, 0755); err != nil {
+		if err := os.MkdirAll(workspacePath, 0777); err != nil {
 			return fmt.Errorf("failed to recreate workspace: %v", err)
 		}
 		return nil
