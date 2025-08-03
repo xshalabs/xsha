@@ -13,18 +13,21 @@ import (
 type resultParser struct {
 	taskConvResultRepo    repository.TaskConversationResultRepository
 	taskConvResultService services.TaskConversationResultService
+	taskService           services.TaskService
 	logLineJSONRegex      *regexp.Regexp
 }
 
 func NewResultParser(
 	taskConvResultRepo repository.TaskConversationResultRepository,
 	taskConvResultService services.TaskConversationResultService,
+	taskService services.TaskService,
 ) ResultParser {
 	logLineJSONRegex := regexp.MustCompile(`^(?:\[\d{2}:\d{2}:\d{2}\]\s*)?(?:\w+:\s*)?(\{.*\})\s*$`)
 
 	return &resultParser{
 		taskConvResultRepo:    taskConvResultRepo,
 		taskConvResultService: taskConvResultService,
+		taskService:           taskService,
 		logLineJSONRegex:      logLineJSONRegex,
 	}
 }
@@ -60,7 +63,7 @@ func (r *resultParser) ParseAndCreate(conv *database.TaskConversation, execLog *
 		return
 	}
 
-	_, err = r.taskConvResultService.CreateResult(conv.ID, resultData)
+	result, err := r.taskConvResultService.CreateResult(conv.ID, resultData)
 	if err != nil {
 		utils.Error("Failed to create task conversation result",
 			"conversation_id", conv.ID,
@@ -71,6 +74,21 @@ func (r *resultParser) ParseAndCreate(conv *database.TaskConversation, execLog *
 	utils.Info("Successfully created task conversation result",
 		"conversation_id", conv.ID,
 		"result_data", resultData)
+
+	// Update task session_id if result has a session_id
+	if result.SessionID != "" && conv.Task != nil {
+		err = r.taskService.UpdateTaskSessionID(conv.Task.ID, result.SessionID)
+		if err != nil {
+			utils.Error("Failed to update task session ID",
+				"task_id", conv.Task.ID,
+				"session_id", result.SessionID,
+				"error", err)
+		} else {
+			utils.Info("Successfully updated task session ID",
+				"task_id", conv.Task.ID,
+				"session_id", result.SessionID)
+		}
+	}
 }
 
 func (r *resultParser) ParseFromLogs(executionLogs string) (map[string]interface{}, error) {

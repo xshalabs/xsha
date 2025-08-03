@@ -171,6 +171,7 @@ type Task struct {
 	HasPullRequest bool       `gorm:"default:false" json:"has_pull_request"`
 
 	WorkspacePath string `gorm:"type:text" json:"workspace_path"`
+	SessionID     string `gorm:"default:''" json:"session_id"`
 
 	ProjectID        uint            `gorm:"not null;index" json:"project_id"`
 	Project          *Project        `gorm:"foreignKey:ProjectID" json:"project"`

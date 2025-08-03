@@ -160,6 +160,27 @@ func (s *taskService) UpdateTaskStatus(id uint, status database.TaskStatus) erro
 	return nil
 }
 
+func (s *taskService) UpdateTaskSessionID(id uint, sessionID string) error {
+	task, err := s.repo.GetByID(id)
+	if err != nil {
+		return err
+	}
+
+	oldSessionID := task.SessionID
+	task.SessionID = sessionID
+
+	if err := s.repo.Update(task); err != nil {
+		return err
+	}
+
+	utils.Info("Task session ID updated",
+		"task_id", id,
+		"old_session_id", oldSessionID,
+		"new_session_id", sessionID,
+	)
+	return nil
+}
+
 func (s *taskService) DeleteTask(id uint) error {
 	task, err := s.repo.GetByID(id)
 	if err != nil {

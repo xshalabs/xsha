@@ -110,7 +110,7 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 
 	// Get image name and build AI command
 	imageName := d.getImageNameFromConfig(devEnv.Type)
-	aiCommand := d.buildAICommand(devEnv.Type, conv.Content, workspacePath, isInContainer)
+	aiCommand := d.buildAICommand(devEnv.Type, conv.Content, workspacePath, isInContainer, conv.Task)
 
 	cmd = append(cmd, imageName)
 	cmd = append(cmd, aiCommand...)
@@ -119,7 +119,7 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 }
 
 // buildAICommand builds the AI-specific command based on environment type
-func (d *dockerExecutor) buildAICommand(envType, content, workspacePath string, isInContainer bool) []string {
+func (d *dockerExecutor) buildAICommand(envType, content, workspacePath string, isInContainer bool, task *database.Task) []string {
 	var baseCommand []string
 
 	switch envType {
@@ -130,8 +130,12 @@ func (d *dockerExecutor) buildAICommand(envType, content, workspacePath string, 
 			"--output-format=stream-json",
 			"--dangerously-skip-permissions",
 			"--verbose",
-			d.escapeShellArg(content),
 		}
+		// Add session_id parameter if it exists
+		if task.SessionID != "" {
+			baseCommand = append(baseCommand, "-r", task.SessionID)
+		}
+		baseCommand = append(baseCommand, d.escapeShellArg(content))
 	case "opencode", "gemini_cli":
 		baseCommand = []string{d.escapeShellArg(content)}
 	default:
@@ -141,8 +145,12 @@ func (d *dockerExecutor) buildAICommand(envType, content, workspacePath string, 
 			"--output-format=stream-json",
 			"--dangerously-skip-permissions",
 			"--verbose",
-			d.escapeShellArg(content),
 		}
+		// Add session_id parameter if it exists
+		if task.SessionID != "" {
+			baseCommand = append(baseCommand, "-r", task.SessionID)
+		}
+		baseCommand = append(baseCommand, d.escapeShellArg(content))
 	}
 
 	return baseCommand

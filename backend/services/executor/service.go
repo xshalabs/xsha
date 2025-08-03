@@ -62,7 +62,7 @@ func NewAITaskExecutorService(
 
 	executionManager := NewExecutionManager(maxConcurrency)
 	dockerExecutor := NewDockerExecutor(cfg, logAppender, systemConfigService)
-	resultParser := NewResultParser(taskConvResultRepo, taskConvResultService)
+	resultParser := NewResultParser(taskConvResultRepo, taskConvResultService, taskService)
 	workspaceCleaner := NewWorkspaceCleaner(workspaceManager)
 	stateManager := NewConversationStateManager(taskConvRepo, execLogRepo)
 

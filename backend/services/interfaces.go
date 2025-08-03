@@ -78,6 +78,7 @@ type TaskService interface {
 	ListTasks(projectID *uint, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error)
 	UpdateTask(id uint, updates map[string]interface{}) error
 	UpdateTaskStatus(id uint, status database.TaskStatus) error
+	UpdateTaskSessionID(id uint, sessionID string) error
 	UpdateTaskStatusBatch(taskIDs []uint, status database.TaskStatus) ([]uint, []uint, error)
 	DeleteTask(id uint) error
 	ValidateTaskData(title, startBranch string, projectID uint) error
