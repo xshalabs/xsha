@@ -46,7 +46,15 @@ func (d *dockerExecutor) escapeShellArg(arg string) string {
 	return strconv.Quote(arg)
 }
 
-func (d *dockerExecutor) BuildCommand(conv *database.TaskConversation, workspacePath string) string {
+// buildDockerCommandOptions represents options for building docker commands
+type buildDockerCommandOptions struct {
+	containerName    string // empty means no container name
+	maskEnvVars      bool   // whether to mask environment variables for logging
+	includeStdinFlag bool   // whether to include -i flag
+}
+
+// buildDockerCommandCore is the core method that builds docker commands with shared logic
+func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation, workspacePath string, opts buildDockerCommandOptions) string {
 	devEnv := conv.Task.DevEnvironment
 
 	envVars := make(map[string]string)
@@ -54,11 +62,32 @@ func (d *dockerExecutor) BuildCommand(conv *database.TaskConversation, workspace
 		json.Unmarshal([]byte(devEnv.EnvVars), &envVars)
 	}
 
-	cmd := []string{
-		"docker", "run", "--rm", "-i",
-		fmt.Sprintf("-v %s:/app", workspacePath),
+	// Check if running in container
+	isInContainer := utils.IsRunningInContainer()
+
+	// Build base command
+	cmd := []string{"docker", "run", "--rm"}
+
+	// Add stdin flag if needed
+	if opts.includeStdinFlag {
+		cmd = append(cmd, "-i")
 	}
 
+	// Add container name if specified
+	if opts.containerName != "" {
+		cmd = append(cmd, fmt.Sprintf("--name=%s", opts.containerName))
+	}
+
+	// Add volume mapping based on environment
+	if isInContainer {
+		// When running in container, use named volume
+		cmd = append(cmd, "-v xsha_workspaces:/app")
+	} else {
+		// When running on host, use direct path mapping
+		cmd = append(cmd, fmt.Sprintf("-v %s:/app", workspacePath))
+	}
+
+	// Add resource limits
 	if devEnv.CPULimit > 0 {
 		cmd = append(cmd, fmt.Sprintf("--cpus=%.2f", devEnv.CPULimit))
 	}
@@ -66,43 +95,60 @@ func (d *dockerExecutor) BuildCommand(conv *database.TaskConversation, workspace
 		cmd = append(cmd, fmt.Sprintf("--memory=%dm", devEnv.MemoryLimit))
 	}
 
+	// Add environment variables
 	for key, value := range envVars {
+		if opts.maskEnvVars {
+			value = utils.MaskSensitiveValue(value)
+		}
 		cmd = append(cmd, fmt.Sprintf("-e %s=%s", key, value))
 	}
 
+	// Get image name and build AI command
 	imageName := d.getImageNameFromConfig(devEnv.Type)
-	var aiCommand []string
-
-	switch devEnv.Type {
-	case "claude_code":
-		aiCommand = []string{
-			"claude",
-			"-p",
-			"--output-format=stream-json",
-			"--dangerously-skip-permissions",
-			"--verbose",
-			d.escapeShellArg(conv.Content),
-		}
-	case "opencode":
-		aiCommand = []string{d.escapeShellArg(conv.Content)}
-	case "gemini_cli":
-		aiCommand = []string{d.escapeShellArg(conv.Content)}
-	default:
-		aiCommand = []string{
-			"claude",
-			"-p",
-			"--output-format=stream-json",
-			"--dangerously-skip-permissions",
-			"--verbose",
-			d.escapeShellArg(conv.Content),
-		}
-	}
+	aiCommand := d.buildAICommand(devEnv.Type, conv.Content, workspacePath, isInContainer)
 
 	cmd = append(cmd, imageName)
-
 	cmd = append(cmd, aiCommand...)
 
 	return strings.Join(cmd, " ")
+}
+
+// buildAICommand builds the AI-specific command based on environment type
+func (d *dockerExecutor) buildAICommand(envType, content, workspacePath string, isInContainer bool) []string {
+	var baseCommand []string
+
+	switch envType {
+	case "claude_code":
+		baseCommand = []string{
+			"claude",
+			"-p",
+			"--output-format=stream-json",
+			"--dangerously-skip-permissions",
+			"--verbose",
+			d.escapeShellArg(content),
+		}
+	case "opencode", "gemini_cli":
+		baseCommand = []string{d.escapeShellArg(content)}
+	default:
+		baseCommand = []string{
+			"claude",
+			"-p",
+			"--output-format=stream-json",
+			"--dangerously-skip-permissions",
+			"--verbose",
+			d.escapeShellArg(content),
+		}
+	}
+
+	if isInContainer {
+		// Add cd command before AI command when running in container
+		workspaceRelPath := utils.ExtractWorkspaceRelativePath(workspacePath)
+		return []string{
+			fmt.Sprintf("cd %s && %s", workspaceRelPath, strings.Join(baseCommand, " ")),
+		}
+	}
+
+	return baseCommand
 }
 
 func (d *dockerExecutor) getImageNameFromConfig(envType string) string {
@@ -128,63 +174,11 @@ func (d *dockerExecutor) getImageNameFromConfig(envType string) string {
 }
 
 func (d *dockerExecutor) BuildCommandForLog(conv *database.TaskConversation, workspacePath string) string {
-	devEnv := conv.Task.DevEnvironment
-
-	envVars := make(map[string]string)
-	if devEnv.EnvVars != "" {
-		json.Unmarshal([]byte(devEnv.EnvVars), &envVars)
-	}
-
-	cmd := []string{
-		"docker", "run", "--rm",
-		fmt.Sprintf("-v %s:/app", workspacePath),
-	}
-
-	if devEnv.CPULimit > 0 {
-		cmd = append(cmd, fmt.Sprintf("--cpus=%.2f", devEnv.CPULimit))
-	}
-	if devEnv.MemoryLimit > 0 {
-		cmd = append(cmd, fmt.Sprintf("--memory=%dm", devEnv.MemoryLimit))
-	}
-
-	for key, value := range envVars {
-		maskedValue := utils.MaskSensitiveValue(value)
-		cmd = append(cmd, fmt.Sprintf("-e %s=%s", key, maskedValue))
-	}
-
-	imageName := d.getImageNameFromConfig(devEnv.Type)
-	var aiCommand []string
-
-	switch devEnv.Type {
-	case "claude_code":
-		aiCommand = []string{
-			"claude",
-			"-p",
-			"--output-format=stream-json",
-			"--dangerously-skip-permissions",
-			"--verbose",
-			d.escapeShellArg(conv.Content),
-		}
-	case "opencode":
-		aiCommand = []string{d.escapeShellArg(conv.Content)}
-	case "gemini_cli":
-		aiCommand = []string{d.escapeShellArg(conv.Content)}
-	default:
-		aiCommand = []string{
-			"claude",
-			"-p",
-			"--output-format=stream-json",
-			"--dangerously-skip-permissions",
-			"--verbose",
-			d.escapeShellArg(conv.Content),
-		}
-	}
-
-	cmd = append(cmd, imageName)
-
-	cmd = append(cmd, aiCommand...)
-
-	return strings.Join(cmd, " ")
+	return d.buildDockerCommandCore(conv, workspacePath, buildDockerCommandOptions{
+		containerName:    "",
+		maskEnvVars:      true,
+		includeStdinFlag: false,
+	})
 }
 
 func (d *dockerExecutor) ExecuteWithContext(ctx context.Context, dockerCmd string, execLogID uint) error {
@@ -274,63 +268,12 @@ func (d *dockerExecutor) generateContainerName(conv *database.TaskConversation) 
 
 // BuildCommandWithContainerName builds the docker command with a specific container name
 func (d *dockerExecutor) BuildCommandWithContainerName(conv *database.TaskConversation, workspacePath string) string {
-	devEnv := conv.Task.DevEnvironment
-
-	envVars := make(map[string]string)
-	if devEnv.EnvVars != "" {
-		json.Unmarshal([]byte(devEnv.EnvVars), &envVars)
-	}
-
 	containerName := d.generateContainerName(conv)
-	cmd := []string{
-		"docker", "run", "--rm", "-i",
-		fmt.Sprintf("--name=%s", containerName),
-		fmt.Sprintf("-v %s:/app", workspacePath),
-	}
-
-	if devEnv.CPULimit > 0 {
-		cmd = append(cmd, fmt.Sprintf("--cpus=%.2f", devEnv.CPULimit))
-	}
-	if devEnv.MemoryLimit > 0 {
-		cmd = append(cmd, fmt.Sprintf("--memory=%dm", devEnv.MemoryLimit))
-	}
-
-	for key, value := range envVars {
-		cmd = append(cmd, fmt.Sprintf("-e %s=%s", key, value))
-	}
-
-	imageName := d.getImageNameFromConfig(devEnv.Type)
-	var aiCommand []string
-
-	switch devEnv.Type {
-	case "claude_code":
-		aiCommand = []string{
-			"claude",
-			"-p",
-			"--output-format=stream-json",
-			"--dangerously-skip-permissions",
-			"--verbose",
-			d.escapeShellArg(conv.Content),
-		}
-	case "opencode":
-		aiCommand = []string{d.escapeShellArg(conv.Content)}
-	case "gemini_cli":
-		aiCommand = []string{d.escapeShellArg(conv.Content)}
-	default:
-		aiCommand = []string{
-			"claude",
-			"-p",
-			"--output-format=stream-json",
-			"--dangerously-skip-permissions",
-			"--verbose",
-			d.escapeShellArg(conv.Content),
-		}
-	}
-
-	cmd = append(cmd, imageName)
-	cmd = append(cmd, aiCommand...)
-
-	return strings.Join(cmd, " ")
+	return d.buildDockerCommandCore(conv, workspacePath, buildDockerCommandOptions{
+		containerName:    containerName,
+		maskEnvVars:      false,
+		includeStdinFlag: true,
+	})
 }
 
 // ExecuteWithContainerTracking executes docker command with container tracking for proper cleanup

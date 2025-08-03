@@ -591,3 +591,48 @@ func (w *WorkspaceManager) createNonInteractiveGitEnv() []string {
 		"GIT_COMMITTER_EMAIL=bot@xsha.local", // set default committer email
 	)
 }
+
+// IsRunningInContainer detects if the application is running inside a Docker container
+func IsRunningInContainer() bool {
+	// Method 1: Check for /.dockerenv file
+	if _, err := os.Stat("/.dockerenv"); err == nil {
+		return true
+	}
+
+	// Method 2: Check /proc/1/cgroup for docker/containerd
+	if data, err := os.ReadFile("/proc/1/cgroup"); err == nil {
+		content := string(data)
+		if strings.Contains(content, "docker") ||
+			strings.Contains(content, "containerd") ||
+			strings.Contains(content, "/docker/") ||
+			strings.Contains(content, "/lxc/") {
+			return true
+		}
+	}
+
+	// Method 3: Check if we're in the expected container environment
+	// When running in xsha container, workspace base should be /app/workspaces
+	if workspaceEnv := os.Getenv("XSHA_WORKSPACE_BASE_DIR"); workspaceEnv == "/app/workspaces" {
+		return true
+	}
+
+	return false
+}
+
+// ExtractWorkspaceRelativePath extracts the relative workspace path from absolute path
+// For example: "/app/workspaces/task-2-1754186264" -> "task-2-1754186264"
+func ExtractWorkspaceRelativePath(absolutePath string) string {
+	if absolutePath == "" {
+		return ""
+	}
+
+	// Remove trailing slash if exists
+	absolutePath = strings.TrimSuffix(absolutePath, "/")
+
+	// Find the last slash and return everything after it
+	if lastSlash := strings.LastIndex(absolutePath, "/"); lastSlash != -1 {
+		return absolutePath[lastSlash+1:]
+	}
+
+	return absolutePath
+}
