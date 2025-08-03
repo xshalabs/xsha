@@ -39,9 +39,7 @@
     },
     "actions": {
       "cancel": "Cancel Execution",
-      "retry": "Retry Execution",
-      "showLogs": "Show Logs",
-      "hideLogs": "Hide Logs"
+      "retry": "Retry Execution"
     },
     "cancel_confirm_title": "Cancel Execution",
     "cancel_confirm": "Are you sure you want to cancel this execution? This action cannot be undone.",
@@ -74,7 +72,12 @@
   "actions": {
     "delete": "Delete",
     "view": "View Details",
-    "edit": "Edit"
+    "edit": "Edit",
+    "viewGitDiff": "View Git Diff",
+    "viewChanges": "View Changes",
+    "copy": "Copy",
+    "copySuccess": "Content copied to clipboard",
+    "copyFailed": "Failed to copy content"
   },
   "result": {
     "title": "Execution Result",
@@ -110,13 +113,5 @@
       "title": "No work branch created yet",
       "description": "Git changes will be displayed after task execution"
     }
-  },
-  "actions": {
-    "delete": "Delete",
-    "viewGitDiff": "View Git Diff",
-    "viewChanges": "View Changes",
-    "copy": "Copy",
-    "copySuccess": "Content copied to clipboard",
-    "copyFailed": "Failed to copy content"
   }
 } 

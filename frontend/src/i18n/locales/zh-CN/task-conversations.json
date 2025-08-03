@@ -39,9 +39,7 @@
     },
     "actions": {
       "cancel": "取消执行",
-      "retry": "重试执行",
-      "showLogs": "显示日志",
-      "hideLogs": "隐藏日志"
+      "retry": "重试执行"
     },
     "cancel_confirm_title": "取消执行",
     "cancel_confirm": "确定要取消此次执行吗？此操作无法撤销。",
@@ -74,7 +72,12 @@
   "actions": {
     "delete": "删除",
     "view": "查看详情",
-    "edit": "编辑"
+    "edit": "编辑",
+    "viewGitDiff": "查看Git差异",
+    "viewChanges": "查看变动",
+    "copy": "复制",
+    "copySuccess": "内容已复制到剪切板",
+    "copyFailed": "复制内容失败"
   },
   "result": {
     "title": "执行结果",
@@ -110,13 +113,5 @@
       "title": "尚未创建工作分支",
       "description": "任务执行后将显示Git变动"
     }
-  },
-  "actions": {
-    "delete": "删除",
-    "viewGitDiff": "查看Git差异",
-    "viewChanges": "查看变动",
-    "copy": "复制",
-    "copySuccess": "内容已复制到剪切板",
-    "copyFailed": "复制内容失败"
   }
 } 
