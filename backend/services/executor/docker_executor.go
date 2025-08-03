@@ -92,7 +92,7 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 		cmd = append(cmd, fmt.Sprintf("-v %s:/app", workspacePath))
 		// Add session directory mapping
 		if devEnv.SessionDir != "" {
-			cmd = append(cmd, fmt.Sprintf("-v %s:/home/xsha/.claude", devEnv.SessionDir))
+			cmd = append(cmd, fmt.Sprintf("-v %s:/home/xsha", devEnv.SessionDir))
 		}
 		// Set working directory to /app (the mounted workspace)
 		cmd = append(cmd, "-w /app")
@@ -116,7 +116,7 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 
 	// Get image name and build AI command
 	imageName := d.getImageNameFromConfig(devEnv.Type)
-	aiCommand := d.buildAICommand(devEnv.Type, conv.Content, workspacePath, isInContainer, conv.Task)
+	aiCommand := d.buildAICommand(devEnv.Type, conv.Content, isInContainer, conv.Task, devEnv)
 
 	cmd = append(cmd, imageName)
 	cmd = append(cmd, aiCommand...)
@@ -125,38 +125,25 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 }
 
 // buildAICommand builds the AI-specific command based on environment type
-func (d *dockerExecutor) buildAICommand(envType, content, workspacePath string, isInContainer bool, task *database.Task) []string {
+func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer bool, task *database.Task, devEnv *database.DevEnvironment) []string {
 	var baseCommand []string
 
 	switch envType {
 	case "claude_code":
 		baseCommand = []string{
-			"claude",
-			"-p",
-			"--output-format=stream-json",
-			"--dangerously-skip-permissions",
-			"--verbose",
+			"-t",
+			d.escapeShellArg(content),
 		}
 		// Add session_id parameter if it exists
 		if task.SessionID != "" {
-			baseCommand = append(baseCommand, "-r", task.SessionID)
+			baseCommand = append(baseCommand, "-s", task.SessionID)
 		}
-		baseCommand = append(baseCommand, d.escapeShellArg(content))
+		// Add session_dir parameter if running in container and session_dir exists
+		if isInContainer {
+			baseCommand = append(baseCommand, "-d", "/xsha_dev_sessions/"+utils.ExtractDevSessionRelativePath(devEnv.SessionDir))
+		}
 	case "opencode", "gemini_cli":
 		baseCommand = []string{d.escapeShellArg(content)}
-	default:
-		baseCommand = []string{
-			"claude",
-			"-p",
-			"--output-format=stream-json",
-			"--dangerously-skip-permissions",
-			"--verbose",
-		}
-		// Add session_id parameter if it exists
-		if task.SessionID != "" {
-			baseCommand = append(baseCommand, "-r", task.SessionID)
-		}
-		baseCommand = append(baseCommand, d.escapeShellArg(content))
 	}
 
 	return baseCommand

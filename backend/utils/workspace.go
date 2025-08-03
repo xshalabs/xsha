@@ -636,3 +636,21 @@ func ExtractWorkspaceRelativePath(absolutePath string) string {
 
 	return absolutePath
 }
+
+// ExtractDevSessionRelativePath extracts the relative dev session path from absolute path
+// For example: "/app/xsha-dev-sessions/env-1754186264-0000" -> "env-1754186264-0000"
+func ExtractDevSessionRelativePath(absolutePath string) string {
+	if absolutePath == "" {
+		return ""
+	}
+
+	// Remove trailing slash if exists
+	absolutePath = strings.TrimSuffix(absolutePath, "/")
+
+	// Find the last slash and return everything after it
+	if lastSlash := strings.LastIndex(absolutePath, "/"); lastSlash != -1 {
+		return absolutePath[lastSlash+1:]
+	}
+
+	return absolutePath
+}
