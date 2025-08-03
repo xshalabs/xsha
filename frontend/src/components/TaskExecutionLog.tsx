@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -57,6 +57,7 @@ export function TaskExecutionLog({
   const [error, setError] = useState<string | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [retryDialogOpen, setRetryDialogOpen] = useState(false);
+  const logContainerRef = useRef<HTMLDivElement>(null);
 
   const canCancel = (conversationStatus: ConversationStatus) => {
     return conversationStatus === "pending" || conversationStatus === "running";
@@ -66,6 +67,12 @@ export function TaskExecutionLog({
     return (
       conversationStatus === "failed" || conversationStatus === "cancelled"
     );
+  };
+
+  const scrollToBottom = () => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
   };
 
   const loadExecutionLog = async () => {
@@ -94,6 +101,12 @@ export function TaskExecutionLog({
     try {
       const log = await taskExecutionLogsApi.getExecutionLog(conversationId);
       setExecutionLog(log);
+      // 刷新后自动滚动到底部
+      setTimeout(() => {
+        if (log?.execution_logs) {
+          scrollToBottom();
+        }
+      }, 100);
     } catch (error) {
       console.error("Failed to refresh execution log:", error);
       setError(t("errors.execution_log_load_failed"));
@@ -182,6 +195,15 @@ export function TaskExecutionLog({
       loadExecutionLog();
     }
   }, [conversationId, conversationStatus]);
+
+  // 当日志存在时自动滚动到底部
+  useEffect(() => {
+    if (executionLog?.execution_logs) {
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
+    }
+  }, [executionLog?.execution_logs]);
 
   if (conversationStatus === "pending") {
     return null;
@@ -352,18 +374,23 @@ export function TaskExecutionLog({
               <span className="font-medium text-foreground">
                 {t("taskConversation.execution.info.executionLogs")}
               </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={refreshExecutionLog}
-                disabled={refreshLoading}
-              >
-                <RefreshCw className={`w-4 h-4 mr-1 ${refreshLoading ? 'animate-spin' : ''}`} />
-                {t("common.refresh")}
-              </Button>
+              {conversationStatus === "running" && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={refreshExecutionLog}
+                  disabled={refreshLoading}
+                >
+                  <RefreshCw className={`w-4 h-4 mr-1 ${refreshLoading ? 'animate-spin' : ''}`} />
+                  {t("common.refresh")}
+                </Button>
+              )}
             </div>
 
-            <div className="p-4 bg-black text-green-400 rounded-lg font-mono text-xs overflow-x-auto max-h-80 overflow-y-auto">
+            <div 
+              ref={logContainerRef}
+              className="p-4 bg-black text-green-400 rounded-lg font-mono text-xs overflow-x-auto max-h-80 overflow-y-auto"
+            >
               <pre className="whitespace-pre-wrap">
                 {executionLog.execution_logs}
               </pre>
