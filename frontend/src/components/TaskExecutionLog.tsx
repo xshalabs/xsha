@@ -50,6 +50,7 @@ export function TaskExecutionLog({
     null
   );
   const [loading, setLoading] = useState(false);
+  const [refreshLoading, setRefreshLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<"cancel" | "retry" | null>(
     null
   );
@@ -84,6 +85,23 @@ export function TaskExecutionLog({
     }
   };
 
+  const refreshExecutionLog = async () => {
+    if (!conversationId) return;
+
+    setRefreshLoading(true);
+    setError(null);
+
+    try {
+      const log = await taskExecutionLogsApi.getExecutionLog(conversationId);
+      setExecutionLog(log);
+    } catch (error) {
+      console.error("Failed to refresh execution log:", error);
+      setError(t("errors.execution_log_load_failed"));
+    } finally {
+      setRefreshLoading(false);
+    }
+  };
+
   const handleCancelClick = () => {
     setCancelDialogOpen(true);
   };
@@ -94,7 +112,7 @@ export function TaskExecutionLog({
     setActionLoading("cancel");
     try {
       await taskExecutionLogsApi.cancelExecution(conversationId);
-      await loadExecutionLog();
+      await refreshExecutionLog();
       onStatusChange?.("cancelled");
       setCancelDialogOpen(false);
     } catch (error) {
@@ -120,7 +138,7 @@ export function TaskExecutionLog({
     setActionLoading("retry");
     try {
       await taskExecutionLogsApi.retryExecution(conversationId);
-      await loadExecutionLog();
+      await refreshExecutionLog();
       onStatusChange?.("running");
       setRetryDialogOpen(false);
     } catch (error) {
@@ -191,7 +209,7 @@ export function TaskExecutionLog({
               <AlertCircle className="w-5 h-5 mr-2" />
               <span>{error}</span>
             </div>
-            <Button variant="outline" size="sm" onClick={loadExecutionLog}>
+            <Button variant="outline" size="sm" onClick={refreshExecutionLog}>
               {t("taskConversation.execution.actions.retry")}
             </Button>
           </div>
@@ -337,10 +355,10 @@ export function TaskExecutionLog({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={loadExecutionLog}
-                disabled={loading}
+                onClick={refreshExecutionLog}
+                disabled={refreshLoading}
               >
-                <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 mr-1 ${refreshLoading ? 'animate-spin' : ''}`} />
                 {t("common.refresh")}
               </Button>
             </div>
