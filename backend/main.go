@@ -80,7 +80,7 @@ func main() {
 
 	// Initialize workspace manager
 	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir, gitCloneTimeout)
-	devEnvService := services.NewDevEnvironmentService(devEnvRepo, taskRepo, systemConfigService)
+	devEnvService := services.NewDevEnvironmentService(devEnvRepo, taskRepo, systemConfigService, cfg)
 	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, taskRepo, systemConfigService, cfg)
 	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, workspaceManager, cfg, gitCredService, systemConfigService)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo)

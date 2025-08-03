@@ -82,12 +82,18 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	if isInContainer {
 		// When running in container, use named volume
 		cmd = append(cmd, "-v xsha_workspaces:/app")
+		// Add dev sessions volume for container environment
+		cmd = append(cmd, "-v xsha_dev_sessions:/xsha_dev_sessions")
 		// Set working directory to the specific workspace path
 		workspaceRelPath := utils.ExtractWorkspaceRelativePath(workspacePath)
 		cmd = append(cmd, fmt.Sprintf("-w /app/%s", workspaceRelPath))
 	} else {
 		// When running on host, use direct path mapping
 		cmd = append(cmd, fmt.Sprintf("-v %s:/app", workspacePath))
+		// Add session directory mapping
+		if devEnv.SessionDir != "" {
+			cmd = append(cmd, fmt.Sprintf("-v %s:/home/xsha/.claude", devEnv.SessionDir))
+		}
 		// Set working directory to /app (the mounted workspace)
 		cmd = append(cmd, "-w /app")
 	}

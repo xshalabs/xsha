@@ -133,7 +133,8 @@ type DevEnvironment struct {
 	CPULimit    float64 `gorm:"default:1.0" json:"cpu_limit"`
 	MemoryLimit int64   `gorm:"default:1024" json:"memory_limit"`
 
-	EnvVars string `gorm:"type:text" json:"env_vars"`
+	EnvVars    string `gorm:"type:text" json:"env_vars"`
+	SessionDir string `gorm:"type:text" json:"session_dir"`
 
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }

@@ -13,13 +13,14 @@ services:
       - XSHA_SQLITE_PATH=/app/db/app.db
       - XSHA_JWT_SECRET=your-jwt-secret-key-change-this-in-production
       - XSHA_AES_KEY=default-aes-key-change-in-production
-      - XSHA_WORKSPACE_BASE_DIR=/app/workspaces
+      - XSHA_WORKSPACE_BASE_DIR=/app/xsha-workspaces
       - XSHA_MAX_CONCURRENT_TASKS=8
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - xsha_db:/app/db
-      - xsha_workspaces:/app/workspaces
+      - xsha_workspaces:/app/xsha-workspaces
+      - xsha_dev_sessions:/app/xsha-dev-sessions
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -32,3 +33,5 @@ volumes:
     name: xsha_db
   xsha_workspaces:
     name: xsha_workspaces
+  xsha_dev_sessions:
+    name: xsha_dev_sessions

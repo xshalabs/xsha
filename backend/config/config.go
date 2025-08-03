@@ -37,6 +37,7 @@ type Config struct {
 	SchedulerInterval         string
 	SchedulerIntervalDuration time.Duration
 	WorkspaceBaseDir          string
+	DevSessionsDir            string
 	MaxConcurrentTasks        int
 
 	LogLevel  LogLevel
@@ -61,6 +62,7 @@ func Load() *Config {
 		AESKey:             normalizeAESKey(getEnv("XSHA_AES_KEY", "default-aes-key-change-in-production")),
 		SchedulerInterval:  getEnv("XSHA_SCHEDULER_INTERVAL", "5s"),
 		WorkspaceBaseDir:   getEnv("XSHA_WORKSPACE_BASE_DIR", "/tmp/xsha-workspaces"),
+		DevSessionsDir:     getEnv("XSHA_DEV_SESSIONS_DIR", "/tmp/xsha-dev-sessions"),
 		MaxConcurrentTasks: getEnvInt("XSHA_MAX_CONCURRENT_TASKS", 8),
 		LogLevel:           LogLevel(getEnv("XSHA_LOG_LEVEL", "INFO")),
 		LogFormat:          LogFormat(getEnv("XSHA_LOG_FORMAT", "JSON")),

@@ -4,7 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
+	"time"
+	"xsha-backend/config"
 	"xsha-backend/database"
 	"xsha-backend/repository"
 )
@@ -13,13 +17,15 @@ type devEnvironmentService struct {
 	repo          repository.DevEnvironmentRepository
 	taskRepo      repository.TaskRepository
 	configService SystemConfigService
+	config        *config.Config
 }
 
-func NewDevEnvironmentService(repo repository.DevEnvironmentRepository, taskRepo repository.TaskRepository, configService SystemConfigService) DevEnvironmentService {
+func NewDevEnvironmentService(repo repository.DevEnvironmentRepository, taskRepo repository.TaskRepository, configService SystemConfigService, cfg *config.Config) DevEnvironmentService {
 	return &devEnvironmentService{
 		repo:          repo,
 		taskRepo:      taskRepo,
 		configService: configService,
+		config:        cfg,
 	}
 }
 
@@ -41,6 +47,12 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, envType str
 		return nil, fmt.Errorf("failed to serialize environment variables: %v", err)
 	}
 
+	// Generate session directory
+	sessionDir, err := s.generateSessionDir()
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate session directory: %v", err)
+	}
+
 	env := &database.DevEnvironment{
 		Name:        name,
 		Description: description,
@@ -48,6 +60,7 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, envType str
 		CPULimit:    cpuLimit,
 		MemoryLimit: memoryLimit,
 		EnvVars:     string(envVarsJSON),
+		SessionDir:  sessionDir,
 		CreatedBy:   createdBy,
 	}
 
@@ -212,4 +225,27 @@ func (s *devEnvironmentService) GetAvailableEnvironmentTypes() ([]map[string]int
 	}
 
 	return envTypes, nil
+}
+
+// generateSessionDir creates a unique session directory for the dev environment
+func (s *devEnvironmentService) generateSessionDir() (string, error) {
+	// Create base sessions directory if it doesn't exist
+	if err := os.MkdirAll(s.config.DevSessionsDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create dev sessions base directory: %v", err)
+	}
+
+	// Generate unique directory name using safe characters only
+	// Use timestamp and random suffix to ensure uniqueness
+	timestamp := time.Now().Unix()
+	// Generate a short random suffix for better uniqueness
+	randomSuffix := time.Now().Nanosecond() % 10000
+	dirName := fmt.Sprintf("env-%d-%04d", timestamp, randomSuffix)
+	sessionDir := filepath.Join(s.config.DevSessionsDir, dirName)
+
+	// Create the session directory
+	if err := os.MkdirAll(sessionDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create session directory: %v", err)
+	}
+
+	return sessionDir, nil
 }
