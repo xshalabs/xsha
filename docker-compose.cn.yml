@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   xsha:
+    name: xsha
     build:
       context: .
       dockerfile: Dockerfile_CN
@@ -31,4 +32,6 @@ services:
 
 volumes:
   xsha_db:
+    name: xsha_db
   xsha_workspaces:
+    name: xsha_workspaces
