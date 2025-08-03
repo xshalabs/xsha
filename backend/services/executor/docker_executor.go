@@ -78,13 +78,18 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 		cmd = append(cmd, fmt.Sprintf("--name=%s", opts.containerName))
 	}
 
-	// Add volume mapping based on environment
+	// Add volume mapping and working directory based on environment
 	if isInContainer {
 		// When running in container, use named volume
 		cmd = append(cmd, "-v xsha_workspaces:/app")
+		// Set working directory to the specific workspace path
+		workspaceRelPath := utils.ExtractWorkspaceRelativePath(workspacePath)
+		cmd = append(cmd, fmt.Sprintf("-w /app/%s", workspaceRelPath))
 	} else {
 		// When running on host, use direct path mapping
 		cmd = append(cmd, fmt.Sprintf("-v %s:/app", workspacePath))
+		// Set working directory to /app (the mounted workspace)
+		cmd = append(cmd, "-w /app")
 	}
 
 	// Add resource limits
@@ -137,14 +142,6 @@ func (d *dockerExecutor) buildAICommand(envType, content, workspacePath string, 
 			"--dangerously-skip-permissions",
 			"--verbose",
 			d.escapeShellArg(content),
-		}
-	}
-
-	if isInContainer {
-		// Add cd command before AI command when running in container
-		workspaceRelPath := utils.ExtractWorkspaceRelativePath(workspacePath)
-		return []string{
-			fmt.Sprintf("cd %s && %s", workspaceRelPath, strings.Join(baseCommand, " ")),
 		}
 	}
 
