@@ -1,8 +1,5 @@
-version: '3.8'
-
 services:
   xsha:
-    name: xsha
     build:
       context: .
       dockerfile: Dockerfile
