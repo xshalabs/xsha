@@ -1,12 +1,5 @@
 {
   "pageNotFound": "Page not found",
-  "serverError": "Server error",
-  "networkError": "Network error",
-  "unknownError": "Unknown error",
-  "validation_required": "This field is required",
-  "validation_invalid_format": "Invalid format",
-  "validation_too_short": "Content is too short",
-  "validation_too_long": "Content is too long",
   "execution_log_load_failed": "Failed to load execution log",
   "execution_cancel_failed": "Failed to cancel execution",
   "execution_retry_failed": "Failed to retry execution",

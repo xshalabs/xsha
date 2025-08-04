@@ -5,7 +5,6 @@
   "page_description": "管理您的开发环境",
   "create_description": "创建新的开发环境",
   "edit_description": "修改开发环境配置信息",
-  
   "invalid_id": "无效的环境ID",
   "load_failed": "加载环境失败",
   "fetch_failed": "获取环境列表失败",
@@ -17,31 +16,16 @@
   "delete_failed": "环境删除失败",
   "delete_confirm": "确定要删除这个环境吗？",
   "delete_confirm_title": "删除环境",
-  
-  "actions": {
-    "edit": "编辑",
-    "delete": "删除"
-  },
-
   "empty": {
     "title": "暂无环境",
     "description": "创建您的第一个开发环境开始使用"
   },
-
   "table": {
     "name": "名称",
     "type": "类型",
     "docker_image": "Docker镜像",
-    "resources": "资源",
-    "status": "状态",
-    "actions": "操作"
+    "resources": "资源"
   },
-
-  "filter": {
-    "type": "环境类型",
-    "all": "所有类型"
-  },
-
   "filters": {
     "title": "筛选条件",
     "name": "环境名称",
@@ -50,7 +34,6 @@
     "docker_image_placeholder": "请输入Docker镜像名称进行搜索",
     "type": "环境类型"
   },
-
   "stats": {
     "total": "环境总数",
     "cpu_total": "总CPU",
@@ -58,14 +41,13 @@
     "memory_total": "总内存",
     "memory": "内存"
   },
-
   "types": {
     "claude_code": {
       "label": "Claude Code",
       "description": "Anthropic Claude 代码生成环境"
     },
     "gemini_cli": {
-      "label": "Gemini CLI", 
+      "label": "Gemini CLI",
       "description": "Google Gemini 命令行界面"
     },
     "opencode": {
@@ -73,7 +55,6 @@
       "description": "开源代码编辑环境"
     }
   },
-  
   "form": {
     "name": "环境名称",
     "name_placeholder": "请输入环境名称",
@@ -88,14 +69,12 @@
     "memory_limit": "内存限制",
     "env_vars": "环境变量"
   },
-  
   "validation": {
     "name_required": "环境名称不能为空",
     "docker_image_required": "Docker镜像不能为空",
     "cpu_limit_invalid": "CPU限制必须在0.1-16核之间",
     "memory_limit_invalid": "内存限制必须在128-32768MB之间"
   },
-  
   "env_vars": {
     "add_new": "添加环境变量",
     "current": "当前环境变量",
@@ -105,4 +84,4 @@
     "key_required": "变量名不能为空",
     "key_exists": "变量名已存在"
   }
-} 
+}

@@ -14,7 +14,6 @@
   "config_value_placeholder": "Enter configuration value",
   "description_placeholder": "Enter description for this configuration",
   "config_key_readonly": "Configuration key cannot be changed after creation",
-  "no_configs": "No configurations found",
   "delete_confirm": "Are you sure you want to delete this configuration? This action cannot be undone.",
   "create_success": "Configuration created successfully",
   "update_success": "Configuration updated successfully",

@@ -1,7 +1,6 @@
 {
   "dashboard": "Dashboard",
   "projects": "Projects",
-  "tasks": "Tasks",
   "gitCredentials": "Git Credentials",
   "dev_environments": "Dev Environments",
   "adminLogs": "Audit Logs",

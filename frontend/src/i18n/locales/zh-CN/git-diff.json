@@ -3,24 +3,11 @@
   "summary": "变动摘要",
   "fileChanges": "文件变动",
   "filesChanged": "文件已修改",
-  "files_changed": "已修改文件",
   "additions": "新增行",
   "deletions": "删除行",
   "commitsAhead": "领先提交",
   "noData": "暂无变动数据",
   "noChanges": "暂无变动",
-  "no_changes": "暂无变动",
-  "no_changes_desc": "此对话没有文件变动",
   "binary": "二进制",
-  "binaryFileNote": "二进制文件无法显示差异内容",
-  "loading": "正在加载变动...",
-  "loading_file": "正在加载文件内容...",
-  "click_to_load": "点击加载差异内容",
-  "changed_files": "已修改文件",
-  "status": {
-    "added": "新增",
-    "modified": "修改",
-    "deleted": "删除",
-    "renamed": "重命名"
-  }
+  "binaryFileNote": "二进制文件无法显示差异内容"
 }

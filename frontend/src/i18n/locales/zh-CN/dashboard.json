@@ -17,10 +17,5 @@
     "description": "查看系统操作和登录日志",
     "content": "监控系统活动、操作记录和登录情况。",
     "manage": "查看日志"
-  },
-  "systemStatus": {
-    "title": "系统状态",
-    "description": "查看系统运行状态",
-    "content": "监控系统健康状态和性能指标。"
   }
 } 

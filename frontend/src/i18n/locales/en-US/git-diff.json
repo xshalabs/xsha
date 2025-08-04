@@ -3,24 +3,11 @@
   "summary": "Summary",
   "fileChanges": "File Changes",
   "filesChanged": "files changed",
-  "files_changed": "Files Changed",
   "additions": "additions",
   "deletions": "deletions",
   "commitsAhead": "commits ahead",
   "noData": "No changes data available",
   "noChanges": "No Changes",
-  "no_changes": "No Changes",
-  "no_changes_desc": "This conversation has no file changes",
   "binary": "Binary",
-  "binaryFileNote": "Binary file differences cannot be displayed",
-  "loading": "Loading changes...",
-  "loading_file": "Loading file content...",
-  "click_to_load": "Click to load diff content",
-  "changed_files": "Changed Files",
-  "status": {
-    "added": "Added",
-    "modified": "Modified",
-    "deleted": "Deleted",
-    "renamed": "Renamed"
-  }
+  "binaryFileNote": "Binary file differences cannot be displayed"
 }

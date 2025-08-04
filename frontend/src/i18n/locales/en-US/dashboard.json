@@ -17,10 +17,5 @@
     "description": "View system operation and login logs",
     "content": "Monitor system activities, operation records and login status.",
     "manage": "View Logs"
-  },
-  "systemStatus": {
-    "title": "System Status",
-    "description": "View system running status",
-    "content": "Monitor system health and performance metrics."
   }
 } 

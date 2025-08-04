@@ -5,7 +5,6 @@
   "page_description": "Manage your development environments",
   "create_description": "Create a new development environment",
   "edit_description": "Modify development environment configuration information",
-
   "invalid_id": "Invalid environment ID",
   "load_failed": "Failed to load environment",
   "fetch_failed": "Failed to fetch environment list",
@@ -17,85 +16,45 @@
   "delete_failed": "Failed to delete environment",
   "delete_confirm": "Are you sure you want to delete this environment?",
   "delete_confirm_title": "Delete Environment",
-
-  "actions": {
-    "edit": "Edit",
-    "delete": "Delete"
-  },
-
   "empty": {
     "title": "No environments yet",
     "description": "Create your first development environment to get started"
   },
-
   "table": {
     "name": "Name",
     "type": "Type",
     "docker_image": "Docker Image",
-    "resources": "Resources",
-    "status": "Status",
-    "actions": "Actions"
+    "resources": "Resources"
   },
-
-  "filter": {
-    "type": "Environment Type",
-    "all": "All Types"
-  },
-
   "filters": {
     "title": "Filter Options",
     "name": "Environment Name",
     "name_placeholder": "Search by environment name",
     "docker_image": "Docker Image",
-    "docker_image_placeholder": "Search by Docker image name",
-    "type": "Environment Type"
+    "docker_image_placeholder": "Search by Docker image name"
   },
-
   "stats": {
-    "total": "Total Environments",
-    "cpu_total": "Total CPU",
     "cores": "cores",
-    "memory_total": "Total Memory",
     "memory": "Memory"
   },
-
-  "types": {
-    "claude_code": {
-      "label": "Claude Code",
-      "description": "Anthropic Claude with code generation capabilities"
-    },
-    "gemini_cli": {
-      "label": "Gemini CLI",
-      "description": "Google Gemini command line interface"
-    },
-    "opencode": {
-      "label": "OpenCode",
-      "description": "Open source code editing environment"
-    }
-  },
-
   "form": {
     "name": "Environment Name",
     "name_placeholder": "Enter environment name",
     "description": "Environment Description",
     "description_placeholder": "Enter environment description (optional)",
-    "type": "Environment Type",
     "docker_image": "Docker Image",
     "docker_image_placeholder": "Select a Docker image",
-    "docker_image_edit_disabled": "Docker image cannot be modified after creation",
     "resources": "Resource Configuration",
     "cpu_limit": "CPU Limit",
     "memory_limit": "Memory Limit",
     "env_vars": "Environment Variables"
   },
-
   "validation": {
     "name_required": "Environment name is required",
     "docker_image_required": "Docker image is required",
     "cpu_limit_invalid": "CPU limit must be between 0.1-16 cores",
     "memory_limit_invalid": "Memory limit must be between 128-32768MB"
   },
-
   "env_vars": {
     "add_new": "Add Environment Variable",
     "current": "Current Environment Variables",

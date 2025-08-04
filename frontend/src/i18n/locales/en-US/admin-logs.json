@@ -3,17 +3,13 @@
   "description": "View system operation logs, login records and statistics",
   "operationLogs": {
     "title": "Operation Logs",
-    "description": "View system operation records",
     "columns": {
       "id": "ID",
       "username": "User",
       "operation": "Operation",
       "resource": "Resource",
       "description": "Description",
-      "success": "Status",
-      "time": "Time",
-      "ip": "IP Address",
-      "userAgent": "User Agent"
+      "time": "Time"
     },
     "operations": {
       "create": "Create",
@@ -32,13 +28,10 @@
       "username": "Username",
       "resource": "Resource Type",
       "operation": "Operation Type",
-      "success": "Status",
-      "dateRange": "Date Range",
       "startDate": "Start Date",
       "endDate": "End Date"
     },
     "messages": {
-      "loadFailed": "Failed to load operation logs",
       "noLogs": "No operation records"
     },
     "detail": {
@@ -48,53 +41,36 @@
   },
   "loginLogs": {
     "title": "Login Logs",
-    "description": "View user login records",
     "columns": {
-      "id": "ID",
-      "username": "Username",
-      "success": "Status",
-      "ip": "IP Address",
-      "time": "Login Time",
-      "reason": "Failure Reason",
-      "userAgent": "User Agent"
+      "reason": "Failure Reason"
     },
     "status": {
       "success": "Success",
       "failed": "Failed"
     },
-    "reasons": {
-      "invalid_username": "Invalid Username",
-      "invalid_password": "Invalid Password",
-      "token_generation_failed": "Token Generation Failed"
-    },
+    "reasons": {},
     "filters": {
       "all": "Filter Options",
-      "username": "Username",
-      "success": "Status"
+      "username": "Username"
     },
     "messages": {
-      "loadFailed": "Failed to load login logs",
       "noLogs": "No login records"
     }
   },
   "stats": {
     "title": "Operation Statistics",
-    "description": "View operation statistics",
     "operationStats": "Operation Type Statistics",
     "resourceStats": "Resource Type Statistics",
     "timeRange": "Time Range",
-    "total": "Total",
     "noStatsAvailable": "No statistics available"
   },
   "common": {
     "refresh": "Refresh",
-    "export": "Export",
     "detail": "Detail",
     "search": "Filter",
     "reset": "Reset",
     "apply": "Apply",
     "page": "Page",
-    "pageSize": "Page Size",
     "total": "Total",
     "items": "items"
   }
