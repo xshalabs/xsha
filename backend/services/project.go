@@ -247,25 +247,11 @@ func (s *projectService) FetchRepositoryBranches(repoURL string, credentialID *u
 		switch credential.Type {
 		case database.GitCredentialTypePassword, database.GitCredentialTypeToken:
 			if credential.PasswordHash != "" {
-				password, err := utils.DecryptAES(credential.PasswordHash, s.config.AESKey)
-				if err != nil {
-					return &utils.GitAccessResult{
-						CanAccess:    false,
-						ErrorMessage: fmt.Sprintf("failed to decrypt credential: %v", err),
-					}, nil
-				}
-				credentialInfo.Password = password
+				credentialInfo.Password = credential.PasswordHash
 			}
 		case database.GitCredentialTypeSSHKey:
 			if credential.PrivateKey != "" {
-				privateKey, err := utils.DecryptAES(credential.PrivateKey, s.config.AESKey)
-				if err != nil {
-					return &utils.GitAccessResult{
-						CanAccess:    false,
-						ErrorMessage: fmt.Sprintf("failed to decrypt SSH private key: %v", err),
-					}, nil
-				}
-				credentialInfo.PrivateKey = privateKey
+				credentialInfo.PrivateKey = credential.PrivateKey
 				credentialInfo.PublicKey = credential.PublicKey
 			}
 		}

@@ -32,7 +32,6 @@ type Config struct {
 	SQLitePath   string
 	MySQLDSN     string
 	JWTSecret    string
-	AESKey       string
 
 	SchedulerInterval         string
 	SchedulerIntervalDuration time.Duration
@@ -53,13 +52,13 @@ func Load() *Config {
 	}
 
 	config := &Config{
-		Port:               getEnv("XSHA_PORT", "8080"),
-		Environment:        getEnv("XSHA_ENVIRONMENT", "production"),
-		DatabaseType:       getEnv("XSHA_DATABASE_TYPE", "sqlite"),
-		SQLitePath:         getEnv("XSHA_SQLITE_PATH", "app.db"),
-		MySQLDSN:           getEnv("XSHA_MYSQL_DSN", ""),
-		JWTSecret:          getEnv("XSHA_JWT_SECRET", "your-jwt-secret-key-change-this-in-production"),
-		AESKey:             normalizeAESKey(getEnv("XSHA_AES_KEY", "default-aes-key-change-in-production")),
+		Port:         getEnv("XSHA_PORT", "8080"),
+		Environment:  getEnv("XSHA_ENVIRONMENT", "production"),
+		DatabaseType: getEnv("XSHA_DATABASE_TYPE", "sqlite"),
+		SQLitePath:   getEnv("XSHA_SQLITE_PATH", "app.db"),
+		MySQLDSN:     getEnv("XSHA_MYSQL_DSN", ""),
+		JWTSecret:    getEnv("XSHA_JWT_SECRET", "your-jwt-secret-key-change-this-in-production"),
+
 		SchedulerInterval:  getEnv("XSHA_SCHEDULER_INTERVAL", "5s"),
 		WorkspaceBaseDir:   getEnv("XSHA_WORKSPACE_BASE_DIR", "/tmp/xsha-workspaces"),
 		DevSessionsDir:     getEnv("XSHA_DEV_SESSIONS_DIR", "/tmp/xsha-dev-sessions"),
@@ -94,13 +93,4 @@ func getEnvInt(key string, defaultValue int) int {
 		fmt.Printf("Warning: Failed to parse environment variable as integer, using default value. key=%s value=%s default=%d\n", key, value, defaultValue)
 	}
 	return defaultValue
-}
-
-func normalizeAESKey(key string) string {
-	if len(key) >= 32 {
-		return key[:32]
-	}
-	normalized := make([]byte, 32)
-	copy(normalized, []byte(key))
-	return string(normalized)
 }

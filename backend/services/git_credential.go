@@ -7,7 +7,6 @@ import (
 	"xsha-backend/config"
 	"xsha-backend/database"
 	"xsha-backend/repository"
-	"xsha-backend/utils"
 )
 
 type gitCredentialService struct {
@@ -44,19 +43,11 @@ func (s *gitCredentialService) CreateCredential(name, description, credType, use
 	switch database.GitCredentialType(credType) {
 	case database.GitCredentialTypePassword, database.GitCredentialTypeToken:
 		if password, ok := secretData["password"]; ok {
-			encrypted, err := utils.EncryptAES(password, s.config.AESKey)
-			if err != nil {
-				return nil, fmt.Errorf("failed to encrypt password: %v", err)
-			}
-			credential.PasswordHash = encrypted
+			credential.PasswordHash = password
 		}
 	case database.GitCredentialTypeSSHKey:
 		if privateKey, ok := secretData["private_key"]; ok {
-			encrypted, err := utils.EncryptAES(privateKey, s.config.AESKey)
-			if err != nil {
-				return nil, fmt.Errorf("failed to encrypt private key: %v", err)
-			}
-			credential.PrivateKey = encrypted
+			credential.PrivateKey = privateKey
 		}
 		if publicKey, ok := secretData["public_key"]; ok {
 			credential.PublicKey = publicKey
@@ -98,19 +89,11 @@ func (s *gitCredentialService) UpdateCredential(id uint, updates map[string]inte
 		switch credential.Type {
 		case database.GitCredentialTypePassword, database.GitCredentialTypeToken:
 			if password, ok := secretData["password"]; ok {
-				encrypted, err := utils.EncryptAES(password, s.config.AESKey)
-				if err != nil {
-					return fmt.Errorf("failed to encrypt password: %v", err)
-				}
-				credential.PasswordHash = encrypted
+				credential.PasswordHash = password
 			}
 		case database.GitCredentialTypeSSHKey:
 			if privateKey, ok := secretData["private_key"]; ok {
-				encrypted, err := utils.EncryptAES(privateKey, s.config.AESKey)
-				if err != nil {
-					return fmt.Errorf("failed to encrypt private key: %v", err)
-				}
-				credential.PrivateKey = encrypted
+				credential.PrivateKey = privateKey
 			}
 			if publicKey, ok := secretData["public_key"]; ok {
 				credential.PublicKey = publicKey
@@ -152,12 +135,12 @@ func (s *gitCredentialService) DecryptCredentialSecret(credential *database.GitC
 		if credential.PasswordHash == "" {
 			return "", errors.New("password not set")
 		}
-		return utils.DecryptAES(credential.PasswordHash, s.config.AESKey)
+		return credential.PasswordHash, nil
 	case "private_key":
 		if credential.PrivateKey == "" {
 			return "", errors.New("private key not set")
 		}
-		return utils.DecryptAES(credential.PrivateKey, s.config.AESKey)
+		return credential.PrivateKey, nil
 	default:
 		return "", errors.New("unsupported secret type")
 	}
