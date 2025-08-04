@@ -220,9 +220,9 @@ func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 	if req.Name != "" {
 		updates["name"] = req.Name
 	}
-	if req.Description != "" {
-		updates["description"] = req.Description
-	}
+
+	updates["description"] = req.Description
+
 	if req.RepoURL != "" {
 		updates["repo_url"] = req.RepoURL
 	}

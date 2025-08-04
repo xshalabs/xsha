@@ -217,12 +217,9 @@ func (h *GitCredentialHandlers) UpdateCredential(c *gin.Context) {
 	if req.Name != "" {
 		updates["name"] = req.Name
 	}
-	if req.Description != "" {
-		updates["description"] = req.Description
-	}
-	if req.Username != "" {
-		updates["username"] = req.Username
-	}
+
+	updates["description"] = req.Description
+	updates["username"] = req.Username
 
 	err = h.gitCredService.UpdateCredential(uint(id), updates, req.SecretData)
 	if err != nil {
