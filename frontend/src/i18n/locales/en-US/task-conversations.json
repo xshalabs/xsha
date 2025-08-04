@@ -1,20 +1,17 @@
 {
   "list": {
-    "title": "Task Conversations",
-    "description": "Conversations for task: {{taskTitle}}"
+    "title": "Task Conversations"
   },
   "newMessage": "New Message",
   "content": "Content",
   "contentPlaceholder": "Enter your message...",
   "shortcut": "Press Ctrl/Cmd + Enter to send quickly",
-  "cannotSendWhileProcessing": "Cannot send new messages while there are pending or running conversations",
   "taskCompletedMessage": "Cannot send new conversations for completed or cancelled tasks",
   "hasPendingMessage": "Cannot send new messages while there are pending or running conversations",
   "deleteConfirm": "Are you sure you want to delete this conversation? This action cannot be undone.",
   "delete_confirm_title": "Delete Conversation",
   "message": "Message",
   "latest": "Latest",
-  "selectTask": "Please select a task to view conversations",
   "empty": {
     "title": "No conversations yet",
     "description": "Start your first conversation"
@@ -23,13 +20,7 @@
     "title": "Select a conversation",
     "description": "Choose a conversation from the left to view execution logs"
   },
-  "status": {
-    "pending": "Pending",
-    "running": "Running",
-    "success": "Success",
-    "failed": "Failed",
-    "cancelled": "Cancelled"
-  },
+
   "execution": {
     "title": "Execution Details",
     "subtitle": "Task execution information and logs",
@@ -56,32 +47,16 @@
     }
   },
   "messages": {
-    "createSuccess": "Message sent successfully",
-    "createFailed": "Failed to send message",
-    "loadFailed": "Failed to load conversations",
-    "deleteFailed": "Failed to delete conversation",
-    "deleteLatestOnly": "Only the latest conversation can be deleted",
-    "noConversations": "No conversations found",
-    "conversationNotFound": "Conversation not found"
+    "loadFailed": "Failed to load conversations"
   },
-  "refresh": "Refresh",
-  "filter": {
-    "all": "All Status",
-    "byStatus": "Filter by Status"
-  },
+  "result_load_failed": "Failed to load execution result",
+  "no_result": "No execution result available",
   "actions": {
     "delete": "Delete",
-    "view": "View Details",
-    "edit": "Edit",
     "viewGitDiff": "View Git Diff",
-    "viewChanges": "View Changes",
-    "copy": "Copy",
-    "copySuccess": "Content copied to clipboard",
-    "copyFailed": "Failed to copy content"
+    "viewChanges": "View Changes"
   },
   "result": {
-    "title": "Execution Result",
-    "description": "Execution result for session {{sessionId}}",
     "content": "Result Content",
     "duration": "Duration",
     "api_duration": "API Duration",
@@ -93,21 +68,10 @@
     "cache_read": "Cache Read",
     "service_tier": "Service Tier",
     "session_id": "Session ID",
-    "created_at": "Created At",
-    "no_result": "No execution result",
-    "load_failed": "Failed to load result",
-    "process_success": "Result processed successfully",
-    "create_success": "Result created successfully",
-    "update_success": "Result updated successfully",
-    "delete_success": "Result deleted successfully",
-    "not_found": "Result not found",
-    "list_success": "Result list retrieved successfully",
-    "get_success": "Result retrieved successfully",
-    "stats_get_success": "Statistics retrieved successfully"
+    "created_at": "Created At"
   },
   "execution_log": "Execution Log",
   "execution_result": "Execution Result",
-  "git_diff": "Git Changes",
   "gitDiff": {
     "noWorkBranch": {
       "title": "No work branch created yet",

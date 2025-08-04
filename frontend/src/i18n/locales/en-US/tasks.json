@@ -1,7 +1,6 @@
 {
   "title": "Task Management",
   "page_description": "Manage development tasks in projects, track task progress and status",
-  "totalCount": "{{count}} tasks total",
   "empty": {
     "title": "No tasks yet",
     "description": "Create your first task to get started"
@@ -9,11 +8,8 @@
   "actions": {
     "create": "Create",
     "edit": "Edit",
-    "delete": "Delete",
-    "view": "View",
     "viewConversation": "View Conversation",
     "viewGitDiff": "View Git Diff",
-    "batchUpdateStatus": "Batch Update Status",
     "pushBranch": "Push Branch"
   },
   "status": {
@@ -22,37 +18,20 @@
     "done": "Done",
     "cancelled": "Cancelled"
   },
-  "stats": {
-    "total": "Total",
-    "todo": "To Do",
-    "in_progress": "In Progress",
-    "done": "Done",
-    "cancelled": "Cancelled"
-  },
+
   "fields": {
     "title": "Task Title",
     "requirementDesc": "Requirement Description",
-    "description": "Task Description",
     "project": "Project",
     "startBranch": "Start Branch",
-    "status": "Status",
-    "hasPullRequest": "Has PR",
     "devEnvironment": "Development Environment",
-    "work_branch": "Work Branch",
-    "repository": "Repository URL"
+    "work_branch": "Work Branch"
   },
   "form": {
-    "createDescription": "Create a new development task",
-    "editDescription": "Edit task information",
     "titlePlaceholder": "Enter task title",
     "requirementDescPlaceholder": "Describe the specific requirements and goals of the task",
     "requirementDescHint": "This will be recorded as the initial conversation for the task",
-    "descriptionPlaceholder": "Describe the specific content and requirements of the task",
-    "selectProject": "Select a project",
     "selectDevEnvironment": "Select development environment",
-    "noDevEnvironment": "No environment binding",
-    "branchPlaceholder": "e.g.: main, develop",
-    "branchHint": "Specify the Git branch name to start development",
     "selectBranch": "Select a branch",
     "branchFromRepository": "Available branches from the repository",
     "devEnvironmentHint": "Optionally select a development environment to execute this task",
@@ -61,7 +40,6 @@
   "validation": {
     "titleRequired": "Task title is required",
     "branchRequired": "Start branch is required",
-    "projectRequired": "Please select a project",
     "requirementDescRequired": "Requirement description is required",
     "devEnvironmentRequired": "Please select a development environment"
   },
@@ -88,19 +66,12 @@
   "messages": {
     "loadFailed": "Failed to load task",
     "createSuccess": "Task created successfully",
-    "createFailed": "Failed to create task",
     "updateSuccess": "Task updated successfully",
-    "updateFailed": "Failed to update task",
     "deleteSuccess": "Task deleted successfully",
     "deleteFailed": "Failed to delete task",
-    "deleteConfirm": "Are you sure you want to delete the task \"{{title}}\"? This action cannot be undone.",
     "delete_confirm_title": "Delete Task",
-    "batchUpdateSuccess": "Batch update successful",
     "batchUpdateFailed": "Batch update failed",
-    "push_success": "Branch pushed successfully",
-    "push_failed": "Failed to push branch",
-    "push_confirm": "Are you sure you want to push this task's branch to the remote repository?",
-    "pushing": "Pushing..."
+    "push_failed": "Failed to push branch"
   },
   "push": {
     "confirm_title": "Confirm Branch Push",
@@ -110,15 +81,12 @@
     "final_confirm_title": "Final Confirmation",
     "final_confirm_description": "This is your last chance to confirm. Please review carefully.",
     "final_warning": "Warning: This operation cannot be undone!",
-    "final_warning_details": "You are about to push branch \"{{branch}}\" to repository \"{{repository}}\". After pushing, changes will be visible to all team members.",
     "confirm_push": "Confirm Push",
     "pushing_title": "Pushing",
     "pushing_description": "Pushing your changes to the remote repository...",
-    "pushing_to": "Pushing branch: {{branch}}",
     "please_wait": "Please wait, do not close this window",
     "success_title": "Push Successful",
     "success_message": "Branch has been successfully pushed to remote repository",
-    "success_details": "Branch \"{{branch}}\" has been successfully pushed to repository \"{{repository}}\".",
     "error_title": "Push Failed",
     "error_message": "An error occurred during the push process",
     "output": "Push Output",
@@ -127,30 +95,15 @@
     "force_push_warning_description": "Force pushing may overwrite commit history in the remote repository. This is a dangerous operation. Only enable this option if you are certain it is safe to do so."
   },
   "batch": {
-    "selectedCount": "{{count}} tasks selected",
-    "selectAll": "Select All",
-    "cancelAll": "Clear Selection",
     "updateStatus": "Update Status",
-    "selectStatus": "Select Status",
-    "confirmUpdate": "Are you sure you want to update the status of {{count}} selected tasks to \"{{status}}\"?",
-    "noItemsSelected": "Please select tasks to operate on"
+    "selectStatus": "Select Status"
   },
   "errors": {
     "fetchBranchesFailed": "Failed to fetch repository branches",
     "fetchBranchesFailedTitle": "Failed to fetch branches",
-    "noBranchesFound": "No branches found in the repository",
-    "noGitCredential": "Project has no associated Git credential, please associate a Git Credential before pushing"
-  },
-  "tabs": {
-    "management": "Task Management",
-    "conversations": "Task Conversations"
+    "noBranchesFound": "No branches found in the repository"
   },
   "create": "Create",
   "edit": "Edit",
-  "conversation": "Task Conversations",
-  "conversation_git_diff": "Conversation Git Changes",
-  "no_commit_hash": "No Commit Hash",
-  "no_commit_hash_desc": "This conversation has no associated commit hash",
-  "create_description": "Create a new development task",
-  "edit_description": "Edit task information"
+  "conversation": "Task Conversations"
 }

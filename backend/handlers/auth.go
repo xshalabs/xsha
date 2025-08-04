@@ -93,7 +93,7 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 	token, err := utils.ExtractTokenFromAuthHeader(authHeader)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "logout.invalid_token") + ": " + err.Error(),
+			"error": i18n.T(lang, "logout.invalid_token_with_details", err.Error()),
 		})
 		return
 	}
@@ -101,7 +101,7 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 	claims, err := utils.ValidateJWT(token, "")
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": i18n.T(lang, "logout.invalid_token") + ": " + err.Error(),
+			"error": i18n.T(lang, "logout.invalid_token_with_details", err.Error()),
 		})
 		return
 	}

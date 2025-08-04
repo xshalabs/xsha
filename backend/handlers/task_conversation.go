@@ -55,7 +55,7 @@ func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 
 	var req CreateConversationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error())})
 		return
 	}
 
@@ -181,7 +181,7 @@ func (h *TaskConversationHandlers) UpdateConversation(c *gin.Context) {
 
 	var req UpdateConversationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error())})
 		return
 	}
 

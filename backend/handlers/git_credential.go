@@ -64,7 +64,7 @@ func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 	var req CreateCredentialRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
 		})
 		return
 	}
@@ -207,7 +207,7 @@ func (h *GitCredentialHandlers) UpdateCredential(c *gin.Context) {
 	var req UpdateCredentialRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
 		})
 		return
 	}

@@ -226,7 +226,7 @@ func (h *TaskConversationResultHandlers) UpdateResult(c *gin.Context) {
 
 	var req UpdateResultRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error())})
 		return
 	}
 

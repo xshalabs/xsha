@@ -66,7 +66,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 	var req CreateProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
 		})
 		return
 	}
@@ -77,7 +77,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "project.create_failed") + ": " + err.Error(),
+			"error": i18n.T(lang, "project.create_failed_with_details", err.Error()),
 		})
 		return
 	}
@@ -211,7 +211,7 @@ func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 	var req UpdateProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
 		})
 		return
 	}
@@ -232,7 +232,7 @@ func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 	err = h.projectService.UpdateProject(uint(id), updates)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "project.update_failed") + ": " + err.Error(),
+			"error": i18n.T(lang, "project.update_failed_with_details", err.Error()),
 		})
 		return
 	}
@@ -269,7 +269,7 @@ func (h *ProjectHandlers) DeleteProject(c *gin.Context) {
 	err = h.projectService.DeleteProject(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": i18n.T(lang, "project.delete_failed") + ": " + err.Error(),
+			"error": i18n.T(lang, "project.delete_failed_with_details", err.Error()),
 		})
 		return
 	}
@@ -296,7 +296,7 @@ func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	protocol := c.Query("protocol")
 	if protocol == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.required") + ": protocol",
+			"error": i18n.T(lang, "validation.required_protocol"),
 		})
 		return
 	}
@@ -305,7 +305,7 @@ func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	credentials, err := h.projectService.GetCompatibleCredentials(protocolType)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "project.get_credentials_failed") + ": " + err.Error(),
+			"error": i18n.T(lang, "project.get_credentials_failed_with_details", err.Error()),
 		})
 		return
 	}
@@ -346,7 +346,7 @@ func (h *ProjectHandlers) ParseRepositoryURL(c *gin.Context) {
 	var req ParseRepositoryURLRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
 		})
 		return
 	}
@@ -398,7 +398,7 @@ func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 	var req FetchRepositoryBranchesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
 		})
 		return
 	}
@@ -406,7 +406,7 @@ func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 	result, err := h.projectService.FetchRepositoryBranches(req.RepoURL, req.CredentialID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "project.fetch_branches_failed") + ": " + err.Error(),
+			"error": i18n.T(lang, "project.fetch_branches_failed_with_details", err.Error()),
 		})
 		return
 	}
@@ -445,7 +445,7 @@ func (h *ProjectHandlers) ValidateRepositoryAccess(c *gin.Context) {
 	var req ValidateRepositoryAccessRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
 		})
 		return
 	}
@@ -453,7 +453,7 @@ func (h *ProjectHandlers) ValidateRepositoryAccess(c *gin.Context) {
 	err := h.projectService.ValidateRepositoryAccess(req.RepoURL, req.CredentialID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":      i18n.T(lang, "project.access_validation_failed") + ": " + err.Error(),
+			"error":      i18n.T(lang, "project.access_validation_failed_with_details", err.Error()),
 			"can_access": false,
 		})
 		return

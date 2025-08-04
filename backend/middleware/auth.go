@@ -18,7 +18,7 @@ func AuthMiddlewareWithService(authService services.AuthService, cfg *config.Con
 		token, err := utils.ExtractTokenFromAuthHeader(authHeader)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": i18n.T(lang, "auth.unauthorized") + ": " + err.Error(),
+				"error": i18n.T(lang, "auth.unauthorized_with_details", err.Error()),
 			})
 			c.Abort()
 			return
@@ -44,7 +44,7 @@ func AuthMiddlewareWithService(authService services.AuthService, cfg *config.Con
 		claims, err := utils.ValidateJWT(token, cfg.JWTSecret)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": i18n.T(lang, "auth.invalid_token") + ": " + err.Error(),
+				"error": i18n.T(lang, "auth.invalid_token_with_details", err.Error()),
 			})
 			c.Abort()
 			return

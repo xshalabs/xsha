@@ -70,7 +70,7 @@ func (h *SystemConfigHandlers) BatchUpdateConfigs(c *gin.Context) {
 	var req BatchUpdateConfigsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
 		})
 		return
 	}
@@ -85,7 +85,7 @@ func (h *SystemConfigHandlers) BatchUpdateConfigs(c *gin.Context) {
 
 	if err := h.configService.BatchUpdateConfigs(configItems); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "system_config.update_failed") + ": " + err.Error(),
+			"error": i18n.T(lang, "system_config.update_failed_with_details", err.Error()),
 		})
 		return
 	}

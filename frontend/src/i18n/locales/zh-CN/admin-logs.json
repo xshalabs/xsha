@@ -32,7 +32,8 @@
       "endDate": "结束日期"
     },
     "messages": {
-      "noLogs": "暂无日志记录"
+      "noLogs": "暂无日志记录",
+      "loadDetailFailed": "加载操作详情失败"
     },
     "detail": {
       "title": "操作日志详情",
@@ -42,7 +43,8 @@
   "loginLogs": {
     "title": "登录日志",
     "columns": {
-      "reason": "失败原因"
+      "reason": "失败原因",
+      "userAgent": "用户代理"
     },
     "status": {
       "success": "成功",

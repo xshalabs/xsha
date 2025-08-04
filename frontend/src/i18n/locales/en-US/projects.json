@@ -6,31 +6,29 @@
   "edit": "Edit",
   "delete": "Delete",
   "tasksManagement": "Manage Tasks",
-  "refresh": "Refresh",
-  "backToList": "Back to List",
   "createDescription": "Create a new project configuration",
   "editDescription": "Edit project configuration information",
   "name": "Project Name",
   "repoUrl": "Repository URL",
-  "protocol": "Protocol Type",
   "credential": "Access Credential",
   "taskCount": "Tasks",
-  "createdAt": "Created At",
-  "lastUsed": "Last Used",
-  "createdBy": "Created By",
   "credentialHelp": "Select a credential to access this repository (optional)",
   "protocolAutoDetected": "Auto-detected protocol",
   "messages": {
     "loadFailed": "Failed to load projects",
     "noProjects": "No projects found",
-    "noProjectsDesc": "Create your first project to get started",
     "noMatchingProjects": "No projects match the current filter",
     "createSuccess": "Project created successfully",
+    "createFailed": "Failed to create project",
     "updateSuccess": "Project updated successfully",
+    "updateFailed": "Failed to update project",
     "deleteConfirm": "Are you sure you want to delete this project?",
     "deleteSuccess": "Project deleted successfully",
     "deleteFailed": "Failed to delete project",
-    "clearFilter": "Clear Filter"
+    "clearFilter": "Clear Filter",
+    "accessFailed": "Repository access validation failed",
+    "fetchBranchesFailed": "Failed to fetch repository branches",
+    "validateAccessFailed": "Failed to validate repository access"
   },
   "placeholders": {
     "name": "Enter project name",
@@ -46,26 +44,11 @@
   },
   "repository": {
     "validatingAccess": "Validating repository access...",
-    "accessValidated": "Repository access validation successful",
-    "accessFailed": "Repository access validation failed",
-    "cannotAccess": "Cannot access repository",
-    "fetchingBranches": "Fetching branch list...",
-    "branchesDetected": "{{count}} branches detected",
-    "noBranches": "No branches detected"
-  },
-  "statistics": {
-    "total": "Total Projects"
+    "accessValidated": "Repository access validation successful"
   },
   "filter": {
-    "all": "All",
     "title": "Filter Projects",
     "name_placeholder": "Search by project name"
   },
-  "list": "Project List",
-  "pagination": {
-    "showing": "Showing",
-    "to": "to",
-    "of": "of",
-    "items": "items"
-  }
+  "list": "Project List"
 } 

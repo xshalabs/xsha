@@ -32,7 +32,8 @@
       "endDate": "End Date"
     },
     "messages": {
-      "noLogs": "No operation records"
+      "noLogs": "No operation records",
+      "loadDetailFailed": "Failed to load operation detail"
     },
     "detail": {
       "title": "Operation Log Detail",
@@ -42,7 +43,8 @@
   "loginLogs": {
     "title": "Login Logs",
     "columns": {
-      "reason": "Failure Reason"
+      "reason": "Failure Reason",
+      "userAgent": "User Agent"
     },
     "status": {
       "success": "Success",

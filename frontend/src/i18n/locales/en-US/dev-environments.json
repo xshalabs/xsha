@@ -8,6 +8,7 @@
   "invalid_id": "Invalid environment ID",
   "load_failed": "Failed to load environment",
   "fetch_failed": "Failed to fetch environment list",
+  "load_images_failed": "Failed to load Docker images",
   "create_success": "Environment created successfully",
   "create_failed": "Failed to create environment",
   "update_success": "Environment updated successfully",

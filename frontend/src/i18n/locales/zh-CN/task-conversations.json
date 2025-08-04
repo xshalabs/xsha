@@ -1,20 +1,17 @@
 {
   "list": {
-    "title": "任务对话",
-    "description": "任务对话：{{taskTitle}}"
+    "title": "任务对话"
   },
   "newMessage": "新消息",
   "content": "内容",
   "contentPlaceholder": "请输入您的消息...",
   "shortcut": "按 Ctrl/Cmd + Enter 快速发送",
-  "cannotSendWhileProcessing": "有待处理或运行中的对话时无法发送新消息",
   "taskCompletedMessage": "已完成或已取消的任务无法发送新对话",
   "hasPendingMessage": "有待处理或运行中的对话时无法发送新消息",
   "deleteConfirm": "确定要删除这个对话吗？此操作不可撤销。",
   "delete_confirm_title": "删除对话",
   "message": "消息",
   "latest": "最新",
-  "selectTask": "请选择一个任务来查看对话",
   "empty": {
     "title": "暂无对话",
     "description": "开始您的第一个对话"
@@ -23,13 +20,7 @@
     "title": "选择一个对话",
     "description": "从左侧选择一个对话来查看执行日志"
   },
-  "status": {
-    "pending": "待处理",
-    "running": "运行中",
-    "success": "成功",
-    "failed": "失败",
-    "cancelled": "已取消"
-  },
+
   "execution": {
     "title": "执行详情",
     "subtitle": "任务执行信息和日志",
@@ -56,32 +47,16 @@
     }
   },
   "messages": {
-    "createSuccess": "消息发送成功",
-    "createFailed": "发送消息失败",
-    "loadFailed": "加载对话失败",
-    "deleteFailed": "删除对话失败",
-    "deleteLatestOnly": "只有最新的对话可以删除",
-    "noConversations": "未找到对话",
-    "conversationNotFound": "对话不存在"
+    "loadFailed": "加载对话失败"
   },
-  "refresh": "刷新",
-  "filter": {
-    "all": "全部状态",
-    "byStatus": "按状态筛选"
-  },
+  "result_load_failed": "加载执行结果失败",
+  "no_result": "暂无执行结果",
   "actions": {
     "delete": "删除",
-    "view": "查看详情",
-    "edit": "编辑",
     "viewGitDiff": "查看Git差异",
-    "viewChanges": "查看变动",
-    "copy": "复制",
-    "copySuccess": "内容已复制到剪切板",
-    "copyFailed": "复制内容失败"
+    "viewChanges": "查看变动"
   },
   "result": {
-    "title": "执行结果",
-    "description": "会话 {{sessionId}} 的执行结果",
     "content": "结果内容",
     "duration": "执行时长",
     "api_duration": "API时长",
@@ -93,21 +68,10 @@
     "cache_read": "缓存读取",
     "service_tier": "服务等级",
     "session_id": "会话ID",
-    "created_at": "创建时间",
-    "no_result": "暂无执行结果",
-    "load_failed": "加载结果失败",
-    "process_success": "结果处理成功",
-    "create_success": "结果创建成功",
-    "update_success": "结果更新成功",
-    "delete_success": "结果删除成功",
-    "not_found": "结果不存在",
-    "list_success": "结果列表获取成功",
-    "get_success": "结果获取成功",
-    "stats_get_success": "统计信息获取成功"
+    "created_at": "创建时间"
   },
   "execution_log": "执行日志",
   "execution_result": "执行结果",
-  "git_diff": "Git 变动",
   "gitDiff": {
     "noWorkBranch": {
       "title": "尚未创建工作分支",

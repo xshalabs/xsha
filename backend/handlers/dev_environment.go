@@ -65,7 +65,7 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 	var req CreateEnvironmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format") + ": " + err.Error(),
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
 		})
 		return
 	}
@@ -212,7 +212,7 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	var req UpdateEnvironmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "dev_environment.invalid_request") + ": " + err.Error(),
+			"error": i18n.T(lang, "dev_environment.invalid_request_with_details", err.Error()),
 		})
 		return
 	}
@@ -352,7 +352,7 @@ func (h *DevEnvironmentHandlers) UpdateEnvironmentVars(c *gin.Context) {
 	var envVars map[string]string
 	if err := c.ShouldBindJSON(&envVars); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "dev_environment.invalid_request") + ": " + err.Error(),
+			"error": i18n.T(lang, "dev_environment.invalid_request_with_details", err.Error()),
 		})
 		return
 	}
