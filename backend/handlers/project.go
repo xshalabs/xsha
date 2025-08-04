@@ -77,7 +77,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "project.create_failed_with_details", err.Error()),
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
@@ -232,7 +232,7 @@ func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 	err = h.projectService.UpdateProject(uint(id), updates)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "project.update_failed_with_details", err.Error()),
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
@@ -268,8 +268,8 @@ func (h *ProjectHandlers) DeleteProject(c *gin.Context) {
 
 	err = h.projectService.DeleteProject(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": i18n.T(lang, "project.delete_failed_with_details", err.Error()),
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
@@ -305,7 +305,7 @@ func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	credentials, err := h.projectService.GetCompatibleCredentials(protocolType)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "project.get_credentials_failed_with_details", err.Error()),
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
@@ -406,7 +406,7 @@ func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 	result, err := h.projectService.FetchRepositoryBranches(req.RepoURL, req.CredentialID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "project.fetch_branches_failed_with_details", err.Error()),
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
@@ -453,7 +453,7 @@ func (h *ProjectHandlers) ValidateRepositoryAccess(c *gin.Context) {
 	err := h.projectService.ValidateRepositoryAccess(req.RepoURL, req.CredentialID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":      i18n.T(lang, "project.access_validation_failed_with_details", err.Error()),
+			"error":      i18n.MapErrorToI18nKey(err, lang),
 			"can_access": false,
 		})
 		return

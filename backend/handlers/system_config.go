@@ -84,8 +84,8 @@ func (h *SystemConfigHandlers) BatchUpdateConfigs(c *gin.Context) {
 	}
 
 	if err := h.configService.BatchUpdateConfigs(configItems); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "system_config.update_failed_with_details", err.Error()),
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
