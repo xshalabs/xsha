@@ -129,7 +129,7 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 	var baseCommand []string
 
 	switch envType {
-	case "claude_code":
+	case "claude-code":
 		// Build claude base command
 		claudeCommand := []string{
 			"claude",
@@ -141,7 +141,7 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 
 		// Add session_id parameter if it exists
 		if task.SessionID != "" {
-			claudeCommand = append(claudeCommand, "-s", task.SessionID)
+			claudeCommand = append(claudeCommand, "-r", task.SessionID)
 		}
 
 		// Add content to the command
@@ -155,7 +155,7 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 		// Add --command parameter with claude command as its value
 		claudeCommandStr := strings.Join(claudeCommand, " ")
 		baseCommand = append(baseCommand, "--command", d.escapeShellArg(claudeCommandStr))
-	case "opencode", "gemini_cli":
+	case "opencode", "gemini-cli":
 		baseCommand = []string{d.escapeShellArg(content)}
 	}
 
