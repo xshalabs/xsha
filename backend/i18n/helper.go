@@ -1,22 +1,16 @@
 package i18n
 
-import "github.com/gin-gonic/gin"
+import (
+	appErrors "xsha-backend/errors"
+
+	"github.com/gin-gonic/gin"
+)
 
 type Helper struct {
 	lang string
 }
 
 func NewHelper(lang string) *Helper {
-	return &Helper{lang: lang}
-}
-
-func NewHelperFromContext(c *gin.Context) *Helper {
-	lang := "zh-CN"
-	if l, exists := c.Get("lang"); exists {
-		if langStr, ok := l.(string); ok {
-			lang = langStr
-		}
-	}
 	return &Helper{lang: lang}
 }
 
@@ -28,38 +22,38 @@ func (h *Helper) GetLang() string {
 	return h.lang
 }
 
-func (h *Helper) SetLang(lang string) {
-	h.lang = lang
-}
-
-func (h *Helper) Response(c *gin.Context, statusCode int, messageKey string, data ...interface{}) {
-	response := gin.H{
-		"message": h.T(messageKey),
+func MapErrorToLocalizedMessage(err error, lang string) string {
+	if err == nil {
+		return ""
 	}
 
-	if len(data) > 0 {
-		if dataMap, ok := data[0].(gin.H); ok {
-			for key, value := range dataMap {
-				response[key] = value
-			}
-		} else if dataMap, ok := data[0].(map[string]interface{}); ok {
-			for key, value := range dataMap {
-				response[key] = value
-			}
+	if i18nErr, ok := err.(*appErrors.I18nError); ok {
+		if i18nErr.Params != nil {
+			return T(lang, i18nErr.Key, i18nErr.Params)
 		}
+		return T(lang, i18nErr.Key)
 	}
 
-	c.JSON(statusCode, response)
+	return err.Error()
 }
 
-func (h *Helper) ErrorResponse(c *gin.Context, statusCode int, errorKey string, details ...string) {
-	response := gin.H{
-		"error": h.T(errorKey),
+func (h *Helper) ErrorResponseFromError(c *gin.Context, statusCode int, err error) {
+	if i18nErr, ok := err.(*appErrors.I18nError); ok {
+		response := gin.H{
+			"error": h.T(i18nErr.Key, i18nErr.Params),
+		}
+		if i18nErr.Details != "" {
+			response["details"] = i18nErr.Details
+		}
+		c.JSON(statusCode, response)
+		return
 	}
 
-	if len(details) > 0 {
-		response["details"] = details[0]
-	}
+	c.JSON(statusCode, gin.H{
+		"error": MapErrorToLocalizedMessage(err, h.GetLang()),
+	})
+}
 
-	c.JSON(statusCode, response)
+func MapErrorToI18nKey(err error, lang string) string {
+	return MapErrorToLocalizedMessage(err, lang)
 }

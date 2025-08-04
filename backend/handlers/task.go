@@ -80,7 +80,8 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 
 	task, err := h.taskService.CreateTask(req.Title, req.StartBranch, req.ProjectID, req.DevEnvironmentID, username.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
+		helper := i18n.NewHelper(lang)
+		helper.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -264,7 +265,8 @@ func (h *TaskHandlers) UpdateTask(c *gin.Context) {
 	updates["title"] = req.Title
 
 	if err := h.taskService.UpdateTask(uint(id), updates); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
+		helper := i18n.NewHelper(lang)
+		helper.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -321,7 +323,8 @@ func (h *TaskHandlers) UpdateTaskStatus(c *gin.Context) {
 	}
 
 	if err := h.taskService.UpdateTaskStatus(uint(id), status); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
+		helper := i18n.NewHelper(lang)
+		helper.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -352,7 +355,8 @@ func (h *TaskHandlers) DeleteTask(c *gin.Context) {
 	}
 
 	if err := h.taskService.DeleteTask(uint(id)); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
+		helper := i18n.NewHelper(lang)
+		helper.ErrorResponseFromError(c, http.StatusNotFound, err)
 		return
 	}
 
@@ -411,7 +415,8 @@ func (h *TaskHandlers) BatchUpdateTaskStatus(c *gin.Context) {
 
 	successIDs, failedIDs, err := h.taskService.UpdateTaskStatusBatch(req.TaskIDs, status)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
+		helper := i18n.NewHelper(lang)
+		helper.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 

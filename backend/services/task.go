@@ -2,13 +2,13 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os/exec"
 	"strings"
 	"time"
 	"xsha-backend/config"
 	"xsha-backend/database"
+	appErrors "xsha-backend/errors"
 	"xsha-backend/repository"
 	"xsha-backend/utils"
 )
@@ -42,14 +42,14 @@ func (s *taskService) CreateTask(title, startBranch string, projectID uint, devE
 
 	project, err := s.projectRepo.GetByID(projectID)
 	if err != nil {
-		return nil, errors.New("project not found or access denied")
+		return nil, appErrors.ErrProjectNotFound
 	}
 
 	var devEnv *database.DevEnvironment
 	if devEnvironmentID != nil {
 		devEnv, err = s.devEnvRepo.GetByID(*devEnvironmentID)
 		if err != nil {
-			return nil, errors.New("development environment not found or access denied")
+			return nil, appErrors.ErrDevEnvironmentNotFound
 		}
 	}
 
@@ -121,16 +121,16 @@ func (s *taskService) UpdateTask(id uint, updates map[string]interface{}) error 
 
 	title, ok := updates["title"]
 	if !ok {
-		return errors.New("no updates provided")
+		return appErrors.ErrRequired
 	}
 
 	titleStr, ok := title.(string)
 	if !ok {
-		return errors.New("invalid title format")
+		return appErrors.ErrInvalidFormat
 	}
 
 	if strings.TrimSpace(titleStr) == "" {
-		return errors.New("task title cannot be empty")
+		return appErrors.ErrTaskTitleRequired
 	}
 
 	task.Title = strings.TrimSpace(titleStr)
@@ -215,19 +215,19 @@ func (s *taskService) DeleteTask(id uint) error {
 
 func (s *taskService) ValidateTaskData(title, startBranch string, projectID uint) error {
 	if strings.TrimSpace(title) == "" {
-		return errors.New("task title is required")
+		return appErrors.ErrTaskTitleRequired
 	}
 
 	if len(title) > 200 {
-		return errors.New("task title too long")
+		return appErrors.ErrTaskTitleTooLong
 	}
 
 	if strings.TrimSpace(startBranch) == "" {
-		return errors.New("start branch is required")
+		return appErrors.ErrStartBranchRequired
 	}
 
 	if projectID == 0 {
-		return errors.New("project ID is required")
+		return appErrors.ErrProjectIDRequired
 	}
 
 	return nil
@@ -235,11 +235,11 @@ func (s *taskService) ValidateTaskData(title, startBranch string, projectID uint
 
 func (s *taskService) UpdateTaskStatusBatch(taskIDs []uint, status database.TaskStatus) ([]uint, []uint, error) {
 	if len(taskIDs) == 0 {
-		return nil, nil, errors.New("task IDs cannot be empty")
+		return nil, nil, appErrors.ErrTaskIDsEmpty
 	}
 
 	if len(taskIDs) > 100 {
-		return nil, nil, errors.New("cannot update more than 100 tasks at once")
+		return nil, nil, appErrors.ErrTooManyTasksForBatch
 	}
 
 	var successIDs []uint

@@ -76,9 +76,8 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		req.CredentialID, username.(string),
 	)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.MapErrorToI18nKey(err, lang),
-		})
+		helper := i18n.NewHelper(lang)
+		helper.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -231,9 +230,8 @@ func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 
 	err = h.projectService.UpdateProject(uint(id), updates)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.MapErrorToI18nKey(err, lang),
-		})
+		helper := i18n.NewHelper(lang)
+		helper.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -268,9 +266,8 @@ func (h *ProjectHandlers) DeleteProject(c *gin.Context) {
 
 	err = h.projectService.DeleteProject(uint(id))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.MapErrorToI18nKey(err, lang),
-		})
+		helper := i18n.NewHelper(lang)
+		helper.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -304,9 +301,8 @@ func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	protocolType := database.GitProtocolType(protocol)
 	credentials, err := h.projectService.GetCompatibleCredentials(protocolType)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.MapErrorToI18nKey(err, lang),
-		})
+		helper := i18n.NewHelper(lang)
+		helper.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -405,9 +401,8 @@ func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 
 	result, err := h.projectService.FetchRepositoryBranches(req.RepoURL, req.CredentialID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.MapErrorToI18nKey(err, lang),
-		})
+		helper := i18n.NewHelper(lang)
+		helper.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -452,10 +447,14 @@ func (h *ProjectHandlers) ValidateRepositoryAccess(c *gin.Context) {
 
 	err := h.projectService.ValidateRepositoryAccess(req.RepoURL, req.CredentialID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":      i18n.MapErrorToI18nKey(err, lang),
+		helper := i18n.NewHelper(lang)
+		response := gin.H{
 			"can_access": false,
-		})
+		}
+		if helper != nil {
+			response["error"] = helper.T("git.test_connection_failed")
+		}
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 

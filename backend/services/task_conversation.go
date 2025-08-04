@@ -1,9 +1,9 @@
 package services
 
 import (
-	"errors"
 	"strings"
 	"xsha-backend/database"
+	appErrors "xsha-backend/errors"
 	"xsha-backend/repository"
 	"xsha-backend/utils"
 )
@@ -29,19 +29,19 @@ func (s *taskConversationService) CreateConversation(taskID uint, content, creat
 
 	task, err := s.taskRepo.GetByID(taskID)
 	if err != nil {
-		return nil, errors.New("task not found or access denied")
+		return nil, appErrors.ErrTaskNotFound
 	}
 
 	if task.Status == database.TaskStatusDone || task.Status == database.TaskStatusCancelled {
-		return nil, errors.New("cannot create conversation for completed or cancelled task")
+		return nil, appErrors.ErrConversationTaskCompleted
 	}
 
 	hasPendingOrRunning, err := s.repo.HasPendingOrRunningConversations(taskID)
 	if err != nil {
-		return nil, errors.New("failed to check conversation status")
+		return nil, appErrors.ErrConversationGetFailed
 	}
 	if hasPendingOrRunning {
-		return nil, errors.New("cannot create new conversation while there are pending or running conversations")
+		return nil, appErrors.ErrConversationCreateFailed
 	}
 
 	conversation := &database.TaskConversation{
@@ -82,7 +82,7 @@ func (s *taskConversationService) UpdateConversation(id uint, updates map[string
 
 	if content, ok := updates["content"]; ok {
 		if contentStr, ok := content.(string); ok && strings.TrimSpace(contentStr) == "" {
-			return errors.New("conversation content cannot be empty")
+			return appErrors.ErrRequired
 		}
 	}
 
@@ -105,16 +105,16 @@ func (s *taskConversationService) DeleteConversation(id uint) error {
 	}
 
 	if conversation.Status == database.ConversationStatusRunning {
-		return errors.New("cannot delete conversation while it is running")
+		return appErrors.ErrConversationDeleteFailed
 	}
 
 	latestConversation, err := s.repo.GetLatestByTask(conversation.TaskID)
 	if err != nil {
-		return errors.New("failed to get latest conversation")
+		return appErrors.ErrConversationGetFailed
 	}
 
 	if conversation.ID != latestConversation.ID {
-		return errors.New("only the latest conversation can be deleted")
+		return appErrors.ErrConversationDeleteLatestOnly
 	}
 
 	if conversation.CommitHash != "" && conversation.Task != nil && conversation.Task.WorkspacePath != "" {
@@ -124,7 +124,7 @@ func (s *taskConversationService) DeleteConversation(id uint) error {
 				"commit_hash", conversation.CommitHash,
 				"workspace_path", conversation.Task.WorkspacePath,
 				"error", err)
-			return errors.New("failed to reset git repository to previous commit: " + err.Error())
+			return appErrors.NewI18nError("git.reset_failed", err.Error())
 		}
 		utils.Info("Successfully reset git repository to previous commit",
 			"conversation_id", id,
@@ -133,7 +133,7 @@ func (s *taskConversationService) DeleteConversation(id uint) error {
 	}
 
 	if err := s.execLogRepo.DeleteByConversationID(id); err != nil {
-		return errors.New("failed to delete related execution logs")
+		return appErrors.ErrConversationDeleteFailed
 	}
 
 	return s.repo.Delete(id)
@@ -145,15 +145,15 @@ func (s *taskConversationService) GetLatestConversation(taskID uint) (*database.
 
 func (s *taskConversationService) ValidateConversationData(taskID uint, content string) error {
 	if strings.TrimSpace(content) == "" {
-		return errors.New("conversation content is required")
+		return appErrors.ErrRequired
 	}
 
 	if len(content) > 10000 {
-		return errors.New("conversation content too long")
+		return appErrors.ErrTooLong
 	}
 
 	if taskID == 0 {
-		return errors.New("task ID is required")
+		return appErrors.ErrRequired
 	}
 
 	return nil
@@ -162,20 +162,20 @@ func (s *taskConversationService) ValidateConversationData(taskID uint, content 
 func (s *taskConversationService) GetConversationGitDiff(conversationID uint, includeContent bool) (*utils.GitDiffSummary, error) {
 	conversation, err := s.repo.GetByID(conversationID)
 	if err != nil {
-		return nil, errors.New("conversation not found or access denied")
+		return nil, appErrors.ErrTaskNotFound
 	}
 
 	if conversation.CommitHash == "" {
-		return nil, errors.New("conversation has no commit hash")
+		return nil, appErrors.ErrNoCommitHash
 	}
 
 	task, err := s.taskRepo.GetByID(conversation.TaskID)
 	if err != nil {
-		return nil, errors.New("task not found or access denied")
+		return nil, appErrors.ErrTaskNotFound
 	}
 
 	if task.WorkspacePath == "" {
-		return nil, errors.New("task workspace path is empty")
+		return nil, appErrors.ErrWorkspacePathEmpty
 	}
 
 	diff, err := utils.GetCommitDiff(task.WorkspacePath, conversation.CommitHash, includeContent)
@@ -188,25 +188,25 @@ func (s *taskConversationService) GetConversationGitDiff(conversationID uint, in
 
 func (s *taskConversationService) GetConversationGitDiffFile(conversationID uint, filePath string) (string, error) {
 	if filePath == "" {
-		return "", errors.New("file path cannot be empty")
+		return "", appErrors.ErrFilePathEmpty
 	}
 
 	conversation, err := s.repo.GetByID(conversationID)
 	if err != nil {
-		return "", errors.New("conversation not found or access denied")
+		return "", appErrors.ErrTaskNotFound
 	}
 
 	if conversation.CommitHash == "" {
-		return "", errors.New("conversation has no commit hash")
+		return "", appErrors.ErrNoCommitHash
 	}
 
 	task, err := s.taskRepo.GetByID(conversation.TaskID)
 	if err != nil {
-		return "", errors.New("task not found or access denied")
+		return "", appErrors.ErrTaskNotFound
 	}
 
 	if task.WorkspacePath == "" {
-		return "", errors.New("task workspace path is empty")
+		return "", appErrors.ErrWorkspacePathEmpty
 	}
 
 	diffContent, err := utils.GetCommitFileDiff(task.WorkspacePath, conversation.CommitHash, filePath)

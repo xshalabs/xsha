@@ -1,12 +1,12 @@
 package services
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"strings"
 	"xsha-backend/config"
 	"xsha-backend/database"
+	appErrors "xsha-backend/errors"
 	"xsha-backend/repository"
 	"xsha-backend/utils"
 )
@@ -42,7 +42,7 @@ func (s *projectService) CreateProject(name, description, repoURL, protocol stri
 	}
 
 	if existing, _ := s.repo.GetByName(name); existing != nil {
-		return nil, errors.New("project name already exists")
+		return nil, appErrors.ErrProjectNameExists
 	}
 
 	protocolType := database.GitProtocolType(protocol)
@@ -162,7 +162,7 @@ func (s *projectService) DeleteProject(id uint) error {
 		return fmt.Errorf("failed to check project tasks: %v", err)
 	}
 	if len(tasks) > 0 {
-		return errors.New("project.delete_has_in_progress_tasks")
+		return appErrors.ErrProjectHasInProgressTasks
 	}
 
 	return s.repo.Delete(id)
@@ -181,14 +181,14 @@ func (s *projectService) ValidateProtocolCredential(protocol database.GitProtoco
 	switch protocol {
 	case database.GitProtocolHTTPS:
 		if credential.Type != database.GitCredentialTypePassword && credential.Type != database.GitCredentialTypeToken {
-			return errors.New("HTTPS protocol only supports password or token credentials")
+			return appErrors.ErrIncompatibleCredential
 		}
 	case database.GitProtocolSSH:
 		if credential.Type != database.GitCredentialTypeSSHKey {
-			return errors.New("SSH protocol only supports SSH key credentials")
+			return appErrors.ErrIncompatibleCredential
 		}
 	default:
-		return errors.New("unsupported protocol type")
+		return appErrors.ErrInvalidProtocol
 	}
 
 	return nil
@@ -217,7 +217,7 @@ func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolT
 		return s.gitCredService.ListActiveCredentials(&sshType)
 
 	default:
-		return nil, errors.New("unsupported protocol type")
+		return nil, appErrors.ErrInvalidProtocol
 	}
 }
 
@@ -291,13 +291,13 @@ func (s *projectService) ValidateRepositoryAccess(repoURL string, credentialID *
 
 func (s *projectService) validateProjectData(name, repoURL, protocol string) error {
 	if strings.TrimSpace(name) == "" {
-		return errors.New("project name is required")
+		return appErrors.ErrRequired
 	}
 	if strings.TrimSpace(repoURL) == "" {
-		return errors.New("repository URL is required")
+		return appErrors.ErrRequired
 	}
 	if protocol != string(database.GitProtocolHTTPS) && protocol != string(database.GitProtocolSSH) {
-		return errors.New("unsupported protocol type")
+		return appErrors.ErrInvalidProtocol
 	}
 	return nil
 }
@@ -306,17 +306,17 @@ func (s *projectService) validateRepositoryURL(repoURL string, protocol database
 	switch protocol {
 	case database.GitProtocolHTTPS:
 		if !strings.HasPrefix(repoURL, "https://") {
-			return errors.New("HTTPS protocol requires URL to start with 'https://'")
+			return appErrors.ErrInvalidFormat
 		}
 		if _, err := url.Parse(repoURL); err != nil {
 			return fmt.Errorf("invalid HTTPS URL format: %v", err)
 		}
 	case database.GitProtocolSSH:
 		if !strings.Contains(repoURL, "@") || !strings.Contains(repoURL, ":") {
-			return errors.New("SSH protocol requires URL in format 'user@host:path' or 'ssh://user@host/path'")
+			return appErrors.ErrInvalidFormat
 		}
 	default:
-		return errors.New("unsupported protocol type")
+		return appErrors.ErrInvalidProtocol
 	}
 	return nil
 }
