@@ -130,18 +130,31 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 
 	switch envType {
 	case "claude_code":
-		baseCommand = []string{
-			"-t",
-			d.escapeShellArg(content),
+		// Build claude base command
+		claudeCommand := []string{
+			"claude",
+			"-p",
+			"--output-format=stream-json",
+			"--dangerously-skip-permissions",
+			"--verbose",
 		}
+
 		// Add session_id parameter if it exists
 		if task.SessionID != "" {
-			baseCommand = append(baseCommand, "-s", task.SessionID)
+			claudeCommand = append(claudeCommand, "-s", task.SessionID)
 		}
+
+		// Add content to the command
+		claudeCommand = append(claudeCommand, d.escapeShellArg(content))
+
 		// Add session_dir parameter if running in container and session_dir exists
-		if isInContainer {
+		if isInContainer && devEnv.SessionDir != "" {
 			baseCommand = append(baseCommand, "-d", "/xsha_dev_sessions/"+utils.ExtractDevSessionRelativePath(devEnv.SessionDir))
 		}
+
+		// Add --command parameter with claude command as its value
+		claudeCommandStr := strings.Join(claudeCommand, " ")
+		baseCommand = append(baseCommand, "--command", d.escapeShellArg(claudeCommandStr))
 	case "opencode", "gemini_cli":
 		baseCommand = []string{d.escapeShellArg(content)}
 	}
