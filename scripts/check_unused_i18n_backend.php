@@ -1,8 +1,8 @@
 <?php
 
 /**
- * 检查后端国际化翻译中未使用的键
- * 扫描backend目录下的所有.go文件，查找未使用的翻译键
+ * 检查后端国际化翻译中未使用的键和已使用但未翻译的键
+ * 扫描backend目录下的所有.go文件，查找翻译键使用情况
  */
 
 class BackendI18nChecker {
@@ -11,6 +11,7 @@ class BackendI18nChecker {
     private $srcPath;
     private $usedKeys = [];
     private $allKeys = [];
+    private $missingKeys = [];
     
     public function __construct($basePath = '.') {
         $this->backendPath = rtrim($basePath, '/') . '/backend';
@@ -22,7 +23,7 @@ class BackendI18nChecker {
      * 主执行方法
      */
     public function run() {
-        echo "🔍 检查后端国际化翻译中未使用的键...\n\n";
+        echo "🔍 检查后端国际化翻译中未使用的键和已使用但未翻译的键...\n\n";
         
         // 检查路径是否存在
         if (!is_dir($this->i18nPath)) {
@@ -41,6 +42,9 @@ class BackendI18nChecker {
         
         // 3. 找出未使用的键
         $this->findUnusedKeys();
+        
+        // 4. 找出已使用但未翻译的键
+        $this->findMissingTranslations();
     }
     
     /**
@@ -122,7 +126,13 @@ class BackendI18nChecker {
             // h.Response(c, statusCode, "messageKey", ...)
             '/\.Response\s*\(\s*[^,]+,\s*[^,]+,\s*["\']([^"\']+)["\']/m',
             // h.ErrorResponse(c, statusCode, "errorKey", ...)
-            '/\.ErrorResponse\s*\(\s*[^,]+,\s*[^,]+,\s*["\']([^"\']+)["\']/m'
+            '/\.ErrorResponse\s*\(\s*[^,]+,\s*[^,]+,\s*["\']([^"\']+)["\']/m',
+            // T(lang, "key", args...) - global T function
+            '/\bT\s*\(\s*[^,]+,\s*["\']([^"\']+)["\']/m',
+            // errors.New("translationKey") - error with translation key
+            '/errors\.New\s*\(\s*["\']([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_.]+)["\']\s*\)/m',
+            // return errors.New("translationKey")
+            '/return\s+errors\.New\s*\(\s*["\']([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_.]+)["\']\s*\)/m'
         ];
         
         foreach ($patterns as $pattern) {
@@ -133,6 +143,29 @@ class BackendI18nChecker {
                     // 使用键来避免重复
                     $this->usedKeys[$key] = true;
                 }
+            }
+        }
+        
+        // 特殊处理 error_mapping.go 文件
+        if (basename($filePath) === 'error_mapping.go') {
+            $this->scanErrorMappingFile($content);
+        }
+    }
+    
+    /**
+     * 扫描 error_mapping.go 文件中的翻译键映射
+     */
+    private function scanErrorMappingFile($content) {
+        // 匹配 ErrorMapping 中的键值对映射
+        // 例如: "some error": "translation.key",
+        $pattern = '/["\']([^"\']+)["\']\s*:\s*["\']([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_.]+)["\']/m';
+        
+        preg_match_all($pattern, $content, $matches);
+        
+        if (!empty($matches[2])) {
+            foreach ($matches[2] as $key) {
+                // 使用键来避免重复
+                $this->usedKeys[$key] = true;
             }
         }
     }
@@ -231,6 +264,75 @@ class BackendI18nChecker {
             $usage = $total > 0 ? round(($count / $total) * 100, 1) : 0;
             echo "   - {$module}: {$count}/{$total} 个键被使用 ({$usage}%)\n";
         }
+    }
+    
+    /**
+     * 找出已使用但未翻译的键
+     */
+    private function findMissingTranslations() {
+        echo "🔍 检查已使用但未翻译的键...\n\n";
+        
+        // 获取所有键和已使用键的数组
+        $allKeysArray = array_keys($this->allKeys);
+        $usedKeysArray = array_keys($this->usedKeys);
+        
+        // 找出已使用但不在翻译文件中的键
+        $missingKeys = array_diff($usedKeysArray, $allKeysArray);
+        
+        if (empty($missingKeys)) {
+            echo "✅ 太棒了！所有使用的翻译键都已定义！\n\n";
+            return;
+        }
+        
+        // 按模块分组显示缺失的键
+        $groupedMissing = [];
+        foreach ($missingKeys as $key) {
+            $parts = explode('.', $key);
+            $module = $parts[0];
+            $remainingKey = implode('.', array_slice($parts, 1));
+            
+            if (!isset($groupedMissing[$module])) {
+                $groupedMissing[$module] = [];
+            }
+            $groupedMissing[$module][] = $remainingKey;
+        }
+        
+        echo "⚠️  发现 " . count($missingKeys) . " 个已使用但未翻译的键：\n\n";
+        
+        ksort($groupedMissing); // 按模块名排序
+        foreach ($groupedMissing as $module => $keys) {
+            echo "📁 {$module} 模块 (" . count($keys) . " 个缺失):\n";
+            sort($keys); // 按键名排序
+            foreach ($keys as $key) {
+                if ($key) {
+                    echo "   - {$module}.{$key}\n";
+                } else {
+                    echo "   - {$module}\n";
+                }
+            }
+            echo "\n";
+        }
+        
+        // 统计信息
+        echo "📊 缺失键统计信息:\n";
+        echo "   - 已使用键数: " . count($usedKeysArray) . "\n";
+        echo "   - 缺失翻译键数: " . count($missingKeys) . "\n";
+        echo "   - 翻译完整率: " . round(((count($usedKeysArray) - count($missingKeys)) / count($usedKeysArray)) * 100, 2) . "%\n\n";
+        
+        // 生成修复建议
+        echo "💡 修复建议:\n";
+        echo "   需要在翻译文件中添加这些缺失的键\n";
+        echo "   建议统一添加到 backend/i18n/locales/en-US.json 和 zh-CN.json 中\n";
+        echo "   可以先添加占位符文本，后续再完善翻译内容\n\n";
+        
+        // 生成JSON格式的缺失键，方便复制添加
+        echo "📋 建议添加到翻译文件的JSON格式:\n";
+        echo "```json\n";
+        sort($missingKeys);
+        foreach ($missingKeys as $key) {
+            echo "  \"{$key}\": \"[需要翻译] {$key}\",\n";
+        }
+        echo "```\n\n";
     }
 }
 
