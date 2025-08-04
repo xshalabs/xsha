@@ -80,8 +80,8 @@ func (s *devEnvironmentService) GetEnvironment(id uint) (*database.DevEnvironmen
 	return s.repo.GetByID(id)
 }
 
-func (s *devEnvironmentService) ListEnvironments(envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
-	return s.repo.List(envType, name, page, pageSize)
+func (s *devEnvironmentService) ListEnvironments(name *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
+	return s.repo.List(name, page, pageSize)
 }
 
 func (s *devEnvironmentService) UpdateEnvironment(id uint, updates map[string]interface{}) error {

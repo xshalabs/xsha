@@ -62,7 +62,6 @@ export interface DevEnvironmentVarsResponse {
 export interface DevEnvironmentListParams {
   page?: number;
   page_size?: number;
-  type?: DevEnvironmentType;
   name?: string;
 }
 

@@ -151,7 +151,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
       errors.name = t("dev_environments.validation.name_required");
     }
 
-    if (!formData.docker_image.trim()) {
+    if (mode === "create" && !formData.docker_image.trim()) {
       errors.docker_image = t(
         "dev_environments.validation.docker_image_required"
       );
@@ -324,46 +324,43 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
               />
             </div>
 
-            <div className="flex flex-col gap-3">
-              <Label>{t("dev_environments.form.docker_image")} *</Label>
-              <Select
-                value={formData.docker_image}
-                onValueChange={handleDockerImageChange}
-                disabled={mode === "edit" || loadingImages}
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={t(
-                      "dev_environments.form.docker_image_placeholder"
-                    )}
-                  >
-                    {loadingImages ? t("common.loading") : undefined}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {environmentImages.map((imgOption) => (
-                    <SelectItem key={imgOption.image} value={imgOption.image}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{imgOption.image}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {imgOption.description}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {validationErrors.docker_image && (
-                <p className="text-sm text-destructive">
-                  {validationErrors.docker_image}
-                </p>
-              )}
-              {mode === "edit" && (
-                <p className="text-sm text-muted-foreground">
-                  {t("dev_environments.form.docker_image_edit_disabled")}
-                </p>
-              )}
-            </div>
+            {mode === "create" && (
+              <div className="flex flex-col gap-3">
+                <Label>{t("dev_environments.form.docker_image")} *</Label>
+                <Select
+                  value={formData.docker_image}
+                  onValueChange={handleDockerImageChange}
+                  disabled={loadingImages}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={t(
+                        "dev_environments.form.docker_image_placeholder"
+                      )}
+                    >
+                      {loadingImages ? t("common.loading") : undefined}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {environmentImages.map((imgOption) => (
+                      <SelectItem key={imgOption.image} value={imgOption.image}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{imgOption.image}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {imgOption.description}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {validationErrors.docker_image && (
+                  <p className="text-sm text-destructive">
+                    {validationErrors.docker_image}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           <Separator />

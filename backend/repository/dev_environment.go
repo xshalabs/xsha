@@ -36,15 +36,11 @@ func (r *devEnvironmentRepository) GetByName(name string) (*database.DevEnvironm
 	return &env, nil
 }
 
-func (r *devEnvironmentRepository) List(envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
+func (r *devEnvironmentRepository) List(name *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
 	var environments []database.DevEnvironment
 	var total int64
 
 	query := r.db.Model(&database.DevEnvironment{})
-
-	if envType != nil {
-		query = query.Where("type = ?", *envType)
-	}
 
 	if name != nil && *name != "" {
 		query = query.Where("name LIKE ?", "%"+*name+"%")

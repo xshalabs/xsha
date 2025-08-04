@@ -136,7 +136,6 @@ func (h *DevEnvironmentHandlers) GetEnvironment(c *gin.Context) {
 // @Security BearerAuth
 // @Param page query int false "Page number, default is 1"
 // @Param page_size query int false "Page size, default is 10"
-// @Param type query string false "Environment type filter"
 // @Param name query string false "Environment name filter"
 // @Success 200 {object} object{environments=[]object,total=number} "Environment list"
 // @Router /dev-environments [get]
@@ -145,7 +144,6 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 
 	page := 1
 	pageSize := 10
-	var envType *string
 	var name *string
 
 	if p := c.Query("page"); p != "" {
@@ -158,14 +156,11 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 			pageSize = parsed
 		}
 	}
-	if t := c.Query("type"); t != "" {
-		envType = &t
-	}
 	if n := c.Query("name"); n != "" {
 		name = &n
 	}
 
-	environments, total, err := h.devEnvService.ListEnvironments(envType, name, page, pageSize)
+	environments, total, err := h.devEnvService.ListEnvironments(name, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "dev_environment.list_failed"),
@@ -221,9 +216,8 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	if req.Name != "" {
 		updates["name"] = req.Name
 	}
-	if req.Description != "" {
-		updates["description"] = req.Description
-	}
+	// Always update description field, even if empty (user might want to clear it)
+	updates["description"] = req.Description
 	if req.CPULimit > 0 {
 		updates["cpu_limit"] = req.CPULimit
 	}

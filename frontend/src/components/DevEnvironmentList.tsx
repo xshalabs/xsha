@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Table,
@@ -15,13 +15,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,10 +33,7 @@ import {
 import type {
   DevEnvironmentDisplay,
   DevEnvironmentListParams,
-  DevEnvironmentType,
-  DevEnvironmentImageConfig,
 } from "@/types/dev-environment";
-import { devEnvironmentsApi } from "@/lib/api/dev-environments";
 
 interface DevEnvironmentListProps {
   environments: DevEnvironmentDisplay[];
@@ -72,9 +62,6 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
 }) => {
   const { t } = useTranslation();
   const [showFilters, setShowFilters] = useState(false);
-  const [environmentImages, setEnvironmentImages] = useState<
-    DevEnvironmentImageConfig[]
-  >([]);
   const [localFilters, setLocalFilters] =
     useState<DevEnvironmentListParams>(params);
 
@@ -95,18 +82,7 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
     });
   };
 
-  useEffect(() => {
-    const loadEnvironmentImages = async () => {
-      try {
-        const response = await devEnvironmentsApi.getAvailableImages();
-        setEnvironmentImages(response.images);
-      } catch (error) {
-        console.error("Failed to load environment images:", error);
-      }
-    };
 
-    loadEnvironmentImages();
-  }, []);
 
   const resetFilters = () => {
     const emptyFilters: DevEnvironmentListParams = { page: 1, page_size: 10 };
@@ -158,47 +134,16 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="name">
-                  {t("dev_environments.filters.name")}
-                </Label>
-                <Input
-                  id="name"
-                  value={localFilters.name || ""}
-                  onChange={(e) => handleFilterChange("name", e.target.value)}
-                  placeholder={t("dev_environments.filters.name_placeholder")}
-                />
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="type">
-                  {t("dev_environments.filters.type")}
-                </Label>
-                <Select
-                  value={localFilters.type || "all"}
-                  onValueChange={(value) =>
-                    handleFilterChange(
-                      "type",
-                      value === "all"
-                        ? undefined
-                        : (value as DevEnvironmentType)
-                    )
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t("common.all")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("common.all")}</SelectItem>
-                    {environmentImages.map((image) => (
-                      <SelectItem key={image.image} value={image.image}>
-                        {image.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="flex flex-col gap-3">
+              <Label htmlFor="name">
+                {t("dev_environments.filters.name")}
+              </Label>
+              <Input
+                id="name"
+                value={localFilters.name || ""}
+                onChange={(e) => handleFilterChange("name", e.target.value)}
+                placeholder={t("dev_environments.filters.name_placeholder")}
+              />
             </div>
 
             <div className="flex gap-2 mt-4">
