@@ -13,6 +13,7 @@ services:
       - XSHA_SQLITE_PATH=/app/db/app.db
       - XSHA_JWT_SECRET=your-jwt-secret-key-change-this-in-production
       - XSHA_WORKSPACE_BASE_DIR=/app/xsha-workspaces
+      - XSHA_DEV_SESSIONS_DIR=/app/xsha-dev-sessions
       - XSHA_MAX_CONCURRENT_TASKS=8
     restart: unless-stopped
     volumes:
