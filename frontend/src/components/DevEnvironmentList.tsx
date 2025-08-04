@@ -58,18 +58,6 @@ interface DevEnvironmentListProps {
   onDelete: (id: number) => void;
 }
 
-const defaultColors = [
-  "text-blue-600",
-  "text-purple-600",
-  "text-green-600",
-  "text-orange-600",
-  "text-red-600",
-];
-
-const getTypeColor = (index: number) => {
-  return defaultColors[index % defaultColors.length];
-};
-
 const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
   environments,
   loading,
@@ -87,9 +75,6 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
   const [environmentImages, setEnvironmentImages] = useState<
     DevEnvironmentImageConfig[]
   >([]);
-  const [imageConfigMap, setImageConfigMap] = useState<
-    Record<string, { label: string; color: string }>
-  >({});
   const [localFilters, setLocalFilters] =
     useState<DevEnvironmentListParams>(params);
 
@@ -115,20 +100,8 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
       try {
         const response = await devEnvironmentsApi.getAvailableImages();
         setEnvironmentImages(response.images);
-
-        const configMap: Record<string, { label: string; color: string }> = {};
-        response.images.forEach((image, index) => {
-          configMap[image.image] = {
-            label: image.name,
-            color: getTypeColor(index),
-          };
-        });
-        setImageConfigMap(configMap);
       } catch (error) {
         console.error("Failed to load environment images:", error);
-        setImageConfigMap({
-          "claude-code": { label: "Claude Code", color: "text-blue-600" },
-        });
       }
     };
 
@@ -261,6 +234,9 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
                     <TableHead>{t("dev_environments.table.name")}</TableHead>
                     <TableHead>{t("dev_environments.table.type")}</TableHead>
                     <TableHead>
+                      {t("dev_environments.table.docker_image")}
+                    </TableHead>
+                    <TableHead>
                       {t("dev_environments.table.resources")}
                     </TableHead>
                     <TableHead className="text-right">
@@ -282,16 +258,12 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            imageConfigMap[environment.type]?.color ||
-                            "text-gray-600"
-                          }
-                        >
-                          {imageConfigMap[environment.type]?.label ||
-                            environment.type}
-                        </Badge>
+                        <Badge variant="outline">{environment.type}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-muted-foreground font-mono">
+                          {environment.docker_image}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">

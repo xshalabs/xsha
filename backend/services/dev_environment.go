@@ -124,6 +124,15 @@ func (s *devEnvironmentService) DeleteEnvironment(id uint) error {
 		return errors.New("dev_environment.delete_used_by_tasks")
 	}
 
+	// Delete session directory if it exists
+	if env.SessionDir != "" {
+		if err := os.RemoveAll(env.SessionDir); err != nil {
+			// Log the error but don't fail the deletion
+			// as the database record should still be removed
+			fmt.Printf("Warning: Failed to delete session directory %s: %v\n", env.SessionDir, err)
+		}
+	}
+
 	return s.repo.Delete(id)
 }
 

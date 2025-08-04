@@ -239,7 +239,6 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
     setLoading(true);
     try {
       if (mode === "create") {
-        // 根据选择的镜像找到对应的 type
         const selectedImage = environmentImages.find(
           (img) => img.image === formData.docker_image
         );

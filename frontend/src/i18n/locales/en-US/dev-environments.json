@@ -31,6 +31,7 @@
   "table": {
     "name": "Name",
     "type": "Type",
+    "docker_image": "Docker Image",
     "resources": "Resources",
     "status": "Status",
     "actions": "Actions"
