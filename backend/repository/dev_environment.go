@@ -36,7 +36,7 @@ func (r *devEnvironmentRepository) GetByName(name string) (*database.DevEnvironm
 	return &env, nil
 }
 
-func (r *devEnvironmentRepository) List(name *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
+func (r *devEnvironmentRepository) List(name *string, dockerImage *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
 	var environments []database.DevEnvironment
 	var total int64
 
@@ -44,6 +44,10 @@ func (r *devEnvironmentRepository) List(name *string, page, pageSize int) ([]dat
 
 	if name != nil && *name != "" {
 		query = query.Where("name LIKE ?", "%"+*name+"%")
+	}
+
+	if dockerImage != nil && *dockerImage != "" {
+		query = query.Where("docker_image LIKE ?", "%"+*dockerImage+"%")
 	}
 
 	if err := query.Count(&total).Error; err != nil {

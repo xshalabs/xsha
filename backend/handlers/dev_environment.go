@@ -137,6 +137,7 @@ func (h *DevEnvironmentHandlers) GetEnvironment(c *gin.Context) {
 // @Param page query int false "Page number, default is 1"
 // @Param page_size query int false "Page size, default is 10"
 // @Param name query string false "Environment name filter"
+// @Param docker_image query string false "Docker image filter"
 // @Success 200 {object} object{environments=[]object,total=number} "Environment list"
 // @Router /dev-environments [get]
 func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
@@ -145,6 +146,7 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 	page := 1
 	pageSize := 10
 	var name *string
+	var dockerImage *string
 
 	if p := c.Query("page"); p != "" {
 		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
@@ -159,8 +161,11 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 	if n := c.Query("name"); n != "" {
 		name = &n
 	}
+	if di := c.Query("docker_image"); di != "" {
+		dockerImage = &di
+	}
 
-	environments, total, err := h.devEnvService.ListEnvironments(name, page, pageSize)
+	environments, total, err := h.devEnvService.ListEnvironments(name, dockerImage, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "dev_environment.list_failed"),

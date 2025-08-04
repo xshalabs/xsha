@@ -28,6 +28,7 @@ export const devEnvironmentsApi = {
     if (params?.page_size)
       searchParams.set("page_size", params.page_size.toString());
     if (params?.name) searchParams.set("name", params.name);
+    if (params?.docker_image) searchParams.set("docker_image", params.docker_image);
 
     const queryString = searchParams.toString();
     const url = queryString

@@ -56,7 +56,7 @@ type DevEnvironmentRepository interface {
 	Create(env *database.DevEnvironment) error
 	GetByID(id uint) (*database.DevEnvironment, error)
 	GetByName(name string) (*database.DevEnvironment, error)
-	List(name *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
+	List(name *string, dockerImage *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
 	Update(env *database.DevEnvironment) error
 	Delete(id uint) error
 }

@@ -46,6 +46,8 @@
     "title": "筛选条件",
     "name": "环境名称",
     "name_placeholder": "请输入环境名称进行搜索",
+    "docker_image": "Docker镜像",
+    "docker_image_placeholder": "请输入Docker镜像名称进行搜索",
     "type": "环境类型"
   },
 

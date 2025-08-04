@@ -46,6 +46,8 @@
     "title": "Filter Options",
     "name": "Environment Name",
     "name_placeholder": "Search by environment name",
+    "docker_image": "Docker Image",
+    "docker_image_placeholder": "Search by Docker image name",
     "type": "Environment Type"
   },
 

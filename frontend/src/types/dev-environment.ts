@@ -63,6 +63,7 @@ export interface DevEnvironmentListParams {
   page?: number;
   page_size?: number;
   name?: string;
+  docker_image?: string;
 }
 
 export interface DevEnvironmentImageConfig {

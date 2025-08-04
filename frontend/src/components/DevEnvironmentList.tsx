@@ -134,16 +134,30 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="name">
-                {t("dev_environments.filters.name")}
-              </Label>
-              <Input
-                id="name"
-                value={localFilters.name || ""}
-                onChange={(e) => handleFilterChange("name", e.target.value)}
-                placeholder={t("dev_environments.filters.name_placeholder")}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="name">
+                  {t("dev_environments.filters.name")}
+                </Label>
+                <Input
+                  id="name"
+                  value={localFilters.name || ""}
+                  onChange={(e) => handleFilterChange("name", e.target.value)}
+                  placeholder={t("dev_environments.filters.name_placeholder")}
+                />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="docker_image">
+                  {t("dev_environments.filters.docker_image")}
+                </Label>
+                <Input
+                  id="docker_image"
+                  value={localFilters.docker_image || ""}
+                  onChange={(e) => handleFilterChange("docker_image", e.target.value)}
+                  placeholder={t("dev_environments.filters.docker_image_placeholder")}
+                />
+              </div>
             </div>
 
             <div className="flex gap-2 mt-4">
