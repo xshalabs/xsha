@@ -34,7 +34,9 @@
     "selectBranch": "选择分支",
     "branchFromRepository": "仓库中可用的分支",
     "devEnvironmentHint": "可选择一个开发环境来执行此任务",
-    "fetchingBranches": "正在从仓库获取分支..."
+    "fetchingBranches": "正在从仓库获取分支...",
+    "editDescription": "编辑任务信息和配置",
+    "createDescription": "创建新任务并配置需求"
   },
   "validation": {
     "titleRequired": "请输入任务标题",

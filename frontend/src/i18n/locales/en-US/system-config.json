@@ -19,5 +19,6 @@
   "git_proxy_no_proxy": "Proxy Exclusion List",
   "git_proxy_no_proxy_desc": "Comma-separated list of domains to bypass proxy",
   "proxy_url_placeholder": "e.g., http://proxy.company.com:8080",
-  "no_proxy_placeholder": "e.g., localhost,127.0.0.1,.local"
+  "no_proxy_placeholder": "e.g., localhost,127.0.0.1,.local",
+  "update_success": "Configuration updated successfully"
 } 

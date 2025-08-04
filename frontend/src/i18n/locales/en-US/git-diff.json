@@ -9,5 +9,11 @@
   "noData": "No changes data available",
   "noChanges": "No Changes",
   "binary": "Binary",
-  "binaryFileNote": "Binary file differences cannot be displayed"
+  "binaryFileNote": "Binary file differences cannot be displayed",
+  "status": {
+    "added": "Added",
+    "modified": "Modified",
+    "deleted": "Deleted",
+    "renamed": "Renamed"
+  }
 }

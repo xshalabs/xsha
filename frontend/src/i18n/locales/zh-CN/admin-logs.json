@@ -29,7 +29,8 @@
       "resource": "资源类型",
       "operation": "操作类型",
       "startDate": "开始日期",
-      "endDate": "结束日期"
+      "endDate": "结束日期",
+      "success": "成功"
     },
     "messages": {
       "noLogs": "暂无日志记录",

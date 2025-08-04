@@ -76,6 +76,10 @@
     "noWorkBranch": {
       "title": "尚未创建工作分支",
       "description": "任务执行后将显示Git变动"
+    },
+    "noCommitHash": {
+      "title": "没有可用的提交哈希",
+      "description": "由于提交哈希不可用，无法显示Git变动"
     }
   }
 } 

@@ -9,5 +9,11 @@
   "noData": "暂无变动数据",
   "noChanges": "暂无变动",
   "binary": "二进制",
-  "binaryFileNote": "二进制文件无法显示差异内容"
+  "binaryFileNote": "二进制文件无法显示差异内容",
+  "status": {
+    "added": "新增",
+    "modified": "修改",
+    "deleted": "删除",
+    "renamed": "重命名"
+  }
 }

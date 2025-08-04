@@ -76,6 +76,10 @@
     "noWorkBranch": {
       "title": "No work branch created yet",
       "description": "Git changes will be displayed after task execution"
+    },
+    "noCommitHash": {
+      "title": "No commit hash available",
+      "description": "Unable to display git changes because commit hash is not available"
     }
   }
 } 

@@ -18,6 +18,18 @@ export const OperationStatsCard: React.FC<OperationStatsCardProps> = ({
 }) => {
   const { t } = useTranslation();
 
+  const getOperationText = (operation: string) => {
+    const operationMap = {
+      create: t("adminLogs.operationLogs.operations.create"),
+      read: t("adminLogs.operationLogs.operations.read"),
+      update: t("adminLogs.operationLogs.operations.update"),
+      delete: t("adminLogs.operationLogs.operations.delete"),
+      login: t("adminLogs.operationLogs.operations.login"),
+      logout: t("adminLogs.operationLogs.operations.logout"),
+    } as const;
+    return operationMap[operation as keyof typeof operationMap] || operation;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -36,7 +48,7 @@ export const OperationStatsCard: React.FC<OperationStatsCardProps> = ({
             >
               <div className="text-2xl font-bold text-primary">{count}</div>
               <div className="text-sm text-muted-foreground">
-                {t(`adminLogs.operationLogs.operations.${operation}`)}
+                {getOperationText(operation)}
               </div>
             </div>
           ))}

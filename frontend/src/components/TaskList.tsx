@@ -268,7 +268,13 @@ export function TaskList({
   };
 
   const getStatusDisplayName = (status: TaskStatus) => {
-    return t(`tasks.status.${status}`);
+    const statusMap = {
+      todo: t("tasks.status.todo"),
+      in_progress: t("tasks.status.in_progress"),
+      done: t("tasks.status.done"),
+      cancelled: t("tasks.status.cancelled"),
+    } as const;
+    return statusMap[status] || status;
   };
 
   const formatDate = (dateString: string) => {
@@ -584,7 +590,7 @@ export function TaskList({
                         >
                           {getStatusIcon(task.status)}
                           <span className="ml-1">
-                            {t(`tasks.status.${task.status}`)}
+                            {getStatusDisplayName(task.status)}
                           </span>
                         </Badge>
                       </TableCell>

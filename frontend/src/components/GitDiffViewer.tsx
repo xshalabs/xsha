@@ -41,6 +41,16 @@ export const GitDiffViewer: React.FC<GitDiffViewerProps> = ({
   workBranch,
 }) => {
   const { t } = useTranslation();
+
+  const getStatusText = (status: string) => {
+    const statusMap = {
+      added: t("gitDiff.status.added"),
+      modified: t("gitDiff.status.modified"),
+      deleted: t("gitDiff.status.deleted"),
+      renamed: t("gitDiff.status.renamed"),
+    } as const;
+    return statusMap[status as keyof typeof statusMap] || status;
+  };
   const [diffSummary, setDiffSummary] = useState<GitDiffSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -318,7 +328,7 @@ export const GitDiffViewer: React.FC<GitDiffViewerProps> = ({
                           >
                             {getStatusIcon(file.status)}
                             <span className="ml-1">
-                              {t(`gitDiff.status.${file.status}`)}
+                              {getStatusText(file.status)}
                             </span>
                           </Badge>
                           {file.is_binary && (

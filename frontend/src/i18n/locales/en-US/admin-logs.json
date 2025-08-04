@@ -29,7 +29,8 @@
       "resource": "Resource Type",
       "operation": "Operation Type",
       "startDate": "Start Date",
-      "endDate": "End Date"
+      "endDate": "End Date",
+      "success": "Success"
     },
     "messages": {
       "noLogs": "No operation records",

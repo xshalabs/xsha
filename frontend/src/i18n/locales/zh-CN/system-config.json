@@ -19,5 +19,6 @@
   "git_proxy_no_proxy": "代理排除列表",
   "git_proxy_no_proxy_desc": "不使用代理的域名列表，用逗号分隔",
   "proxy_url_placeholder": "例如：http://proxy.company.com:8080",
-  "no_proxy_placeholder": "例如：localhost,127.0.0.1,.local"
+  "no_proxy_placeholder": "例如：localhost,127.0.0.1,.local",
+  "update_success": "配置更新成功"
 }

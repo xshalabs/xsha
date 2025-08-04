@@ -35,7 +35,9 @@
     "selectBranch": "Select a branch",
     "branchFromRepository": "Available branches from the repository",
     "devEnvironmentHint": "Optionally select a development environment to execute this task",
-    "fetchingBranches": "Fetching branches from repository..."
+    "fetchingBranches": "Fetching branches from repository...",
+    "editDescription": "Edit task information and configuration",
+    "createDescription": "Create a new task with requirements and configuration"
   },
   "validation": {
     "titleRequired": "Task title is required",

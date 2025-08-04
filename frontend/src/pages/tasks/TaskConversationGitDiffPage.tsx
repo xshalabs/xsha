@@ -40,6 +40,16 @@ const TaskConversationGitDiffPage: React.FC = () => {
     conversationId: string;
   }>();
 
+  const getStatusText = (status: string) => {
+    const statusMap = {
+      added: t("gitDiff.status.added"),
+      modified: t("gitDiff.status.modified"),
+      deleted: t("gitDiff.status.deleted"),
+      renamed: t("gitDiff.status.renamed"),
+    } as const;
+    return statusMap[status as keyof typeof statusMap] || status;
+  };
+
   const [conversation, setConversation] = useState<TaskConversation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -475,7 +485,7 @@ const TaskConversationGitDiffPage: React.FC = () => {
                           >
                             {getStatusIcon(file.status)}
                             <span className="ml-1 hidden md:inline">
-                              {t(`gitDiff.status.${file.status}`)}
+                              {getStatusText(file.status)}
                             </span>
                           </Badge>
                           {file.is_binary && (
@@ -508,7 +518,7 @@ const TaskConversationGitDiffPage: React.FC = () => {
                         >
                           {getStatusIcon(file.status)}
                           <span className="ml-1">
-                            {t(`gitDiff.status.${file.status}`)}
+                            {getStatusText(file.status)}
                           </span>
                         </Badge>
                         {file.is_binary && (
