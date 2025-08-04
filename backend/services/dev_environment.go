@@ -29,7 +29,7 @@ func NewDevEnvironmentService(repo repository.DevEnvironmentRepository, taskRepo
 	}
 }
 
-func (s *devEnvironmentService) CreateEnvironment(name, description, envType string, cpuLimit float64, memoryLimit int64, envVars map[string]string, createdBy string) (*database.DevEnvironment, error) {
+func (s *devEnvironmentService) CreateEnvironment(name, description, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, createdBy string) (*database.DevEnvironment, error) {
 	if err := s.validateEnvironmentData(name, envType, cpuLimit, memoryLimit); err != nil {
 		return nil, err
 	}
@@ -40,6 +40,10 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, envType str
 
 	if existing, _ := s.repo.GetByName(name); existing != nil {
 		return nil, errors.New("environment name already exists")
+	}
+
+	if strings.TrimSpace(dockerImage) == "" {
+		return nil, errors.New("docker image is required")
 	}
 
 	envVarsJSON, err := json.Marshal(envVars)
@@ -57,6 +61,7 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, envType str
 		Name:        name,
 		Description: description,
 		Type:        envType,
+		DockerImage: dockerImage,
 		CPULimit:    cpuLimit,
 		MemoryLimit: memoryLimit,
 		EnvVars:     string(envVarsJSON),
@@ -189,19 +194,19 @@ func (s *devEnvironmentService) validateEnvironmentData(name, envType string, cp
 		return errors.New("environment name is required")
 	}
 
-	envTypesJSON, err := s.configService.GetValue("dev_environment_types")
+	envImagesJSON, err := s.configService.GetValue("dev_environment_images")
 	if err != nil {
-		return errors.New("failed to get environment types configuration")
+		return errors.New("failed to get environment images configuration")
 	}
 
-	var envTypes []map[string]interface{}
-	if err := json.Unmarshal([]byte(envTypesJSON), &envTypes); err != nil {
-		return errors.New("failed to parse environment types configuration")
+	var envImages []map[string]interface{}
+	if err := json.Unmarshal([]byte(envImagesJSON), &envImages); err != nil {
+		return errors.New("failed to parse environment images configuration")
 	}
 
 	found := false
-	for _, supportedType := range envTypes {
-		if key, ok := supportedType["key"].(string); ok && key == envType {
+	for _, envImage := range envImages {
+		if imageType, ok := envImage["type"].(string); ok && imageType == envType {
 			found = true
 			break
 		}
@@ -213,18 +218,18 @@ func (s *devEnvironmentService) validateEnvironmentData(name, envType string, cp
 	return s.ValidateResourceLimits(cpuLimit, memoryLimit)
 }
 
-func (s *devEnvironmentService) GetAvailableEnvironmentTypes() ([]map[string]interface{}, error) {
-	envTypesJSON, err := s.configService.GetValue("dev_environment_types")
+func (s *devEnvironmentService) GetAvailableEnvironmentImages() ([]map[string]interface{}, error) {
+	envImagesJSON, err := s.configService.GetValue("dev_environment_images")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get dev environment types config: %v", err)
+		return nil, fmt.Errorf("failed to get dev environment images config: %v", err)
 	}
 
-	var envTypes []map[string]interface{}
-	if err := json.Unmarshal([]byte(envTypesJSON), &envTypes); err != nil {
-		return nil, fmt.Errorf("failed to parse dev environment types: %v", err)
+	var envImages []map[string]interface{}
+	if err := json.Unmarshal([]byte(envImagesJSON), &envImages); err != nil {
+		return nil, fmt.Errorf("failed to parse dev environment images: %v", err)
 	}
 
-	return envTypes, nil
+	return envImages, nil
 }
 
 // generateSessionDir creates a unique session directory for the dev environment

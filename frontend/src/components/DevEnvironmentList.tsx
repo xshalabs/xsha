@@ -41,7 +41,7 @@ import type {
   DevEnvironmentDisplay,
   DevEnvironmentListParams,
   DevEnvironmentType,
-  DevEnvironmentTypeConfig,
+  DevEnvironmentImageConfig,
 } from "@/types/dev-environment";
 import { devEnvironmentsApi } from "@/lib/api/dev-environments";
 
@@ -84,10 +84,10 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
 }) => {
   const { t } = useTranslation();
   const [showFilters, setShowFilters] = useState(false);
-  const [environmentTypes, setEnvironmentTypes] = useState<
-    DevEnvironmentTypeConfig[]
+  const [environmentImages, setEnvironmentImages] = useState<
+    DevEnvironmentImageConfig[]
   >([]);
-  const [typeConfigMap, setTypeConfigMap] = useState<
+  const [imageConfigMap, setImageConfigMap] = useState<
     Record<string, { label: string; color: string }>
   >({});
   const [localFilters, setLocalFilters] =
@@ -111,28 +111,28 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
   };
 
   useEffect(() => {
-    const loadEnvironmentTypes = async () => {
+    const loadEnvironmentImages = async () => {
       try {
-        const response = await devEnvironmentsApi.getAvailableTypes();
-        setEnvironmentTypes(response.types);
+        const response = await devEnvironmentsApi.getAvailableImages();
+        setEnvironmentImages(response.images);
 
         const configMap: Record<string, { label: string; color: string }> = {};
-        response.types.forEach((type, index) => {
-          configMap[type.key] = {
-            label: type.name,
+        response.images.forEach((image, index) => {
+          configMap[image.image] = {
+            label: image.name,
             color: getTypeColor(index),
           };
         });
-        setTypeConfigMap(configMap);
+        setImageConfigMap(configMap);
       } catch (error) {
-        console.error("Failed to load environment types:", error);
-        setTypeConfigMap({
+        console.error("Failed to load environment images:", error);
+        setImageConfigMap({
           "claude-code": { label: "Claude Code", color: "text-blue-600" },
         });
       }
     };
 
-    loadEnvironmentTypes();
+    loadEnvironmentImages();
   }, []);
 
   const resetFilters = () => {
@@ -218,9 +218,9 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t("common.all")}</SelectItem>
-                    {environmentTypes.map((type) => (
-                      <SelectItem key={type.key} value={type.key}>
-                        {type.name}
+                    {environmentImages.map((image) => (
+                      <SelectItem key={image.image} value={image.image}>
+                        {image.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -285,11 +285,11 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
                         <Badge
                           variant="outline"
                           className={
-                            typeConfigMap[environment.type]?.color ||
+                            imageConfigMap[environment.type]?.color ||
                             "text-gray-600"
                           }
                         >
-                          {typeConfigMap[environment.type]?.label ||
+                          {imageConfigMap[environment.type]?.label ||
                             environment.type}
                         </Badge>
                       </TableCell>

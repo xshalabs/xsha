@@ -114,8 +114,8 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 		cmd = append(cmd, fmt.Sprintf("-e %s=%s", key, value))
 	}
 
-	// Get image name and build AI command
-	imageName := d.getImageNameFromConfig(devEnv.Type)
+	// Get image name from dev environment, fallback to config if empty
+	imageName := devEnv.DockerImage
 	aiCommand := d.buildAICommand(devEnv.Type, conv.Content, isInContainer, conv.Task, devEnv)
 
 	cmd = append(cmd, imageName)
@@ -160,28 +160,6 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 	}
 
 	return baseCommand
-}
-
-func (d *dockerExecutor) getImageNameFromConfig(envType string) string {
-	envTypesJSON, err := d.configService.GetValue("dev_environment_types")
-	if err != nil {
-		return "claude-code:latest"
-	}
-
-	var envTypes []map[string]interface{}
-	if err := json.Unmarshal([]byte(envTypesJSON), &envTypes); err != nil {
-		return "claude-code:latest"
-	}
-
-	for _, envTypeConfig := range envTypes {
-		if key, ok := envTypeConfig["key"].(string); ok && key == envType {
-			if image, ok := envTypeConfig["image"].(string); ok {
-				return image
-			}
-		}
-	}
-
-	return "claude-code:latest"
 }
 
 func (d *dockerExecutor) BuildCommandForLog(conv *database.TaskConversation, workspacePath string) string {

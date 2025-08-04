@@ -25,6 +25,7 @@ type CreateEnvironmentRequest struct {
 	Name        string            `json:"name" binding:"required"`
 	Description string            `json:"description"`
 	Type        string            `json:"type" binding:"required"`
+	DockerImage string            `json:"docker_image" binding:"required"`
 	CPULimit    float64           `json:"cpu_limit" binding:"min=0.1,max=16"`
 	MemoryLimit int64             `json:"memory_limit" binding:"min=128,max=32768"`
 	EnvVars     map[string]string `json:"env_vars"`
@@ -74,7 +75,7 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 	}
 
 	env, err := h.devEnvService.CreateEnvironment(
-		req.Name, req.Description, req.Type,
+		req.Name, req.Description, req.Type, req.DockerImage,
 		req.CPULimit, req.MemoryLimit, req.EnvVars, username.(string),
 	)
 	if err != nil {
@@ -370,19 +371,19 @@ func (h *DevEnvironmentHandlers) UpdateEnvironmentVars(c *gin.Context) {
 	})
 }
 
-// GetAvailableTypes gets available environment types
-// @Summary Get available environment types
-// @Description Get available environment types from system configuration
+// GetAvailableImages gets available environment images
+// @Summary Get available environment images
+// @Description Get available environment images from system configuration
 // @Tags Development Environment
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} object{types=[]object} "Available environment types"
-// @Router /dev-environments/available-types [get]
-func (h *DevEnvironmentHandlers) GetAvailableTypes(c *gin.Context) {
+// @Success 200 {object} object{images=[]object} "Available environment images"
+// @Router /dev-environments/available-images [get]
+func (h *DevEnvironmentHandlers) GetAvailableImages(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	types, err := h.devEnvService.GetAvailableEnvironmentTypes()
+	images, err := h.devEnvService.GetAvailableEnvironmentImages()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.MapErrorToI18nKey(err, lang),
@@ -391,6 +392,6 @@ func (h *DevEnvironmentHandlers) GetAvailableTypes(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"types": types,
+		"images": images,
 	})
 }

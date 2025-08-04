@@ -77,6 +77,9 @@
     "description": "环境描述",
     "description_placeholder": "请输入环境描述（可选）",
     "type": "环境类型",
+    "docker_image": "Docker镜像",
+    "docker_image_placeholder": "请选择Docker镜像",
+    "docker_image_edit_disabled": "创建后不可修改Docker镜像",
     "resources": "资源配置",
     "cpu_limit": "CPU限制",
     "memory_limit": "内存限制",
@@ -85,6 +88,7 @@
   
   "validation": {
     "name_required": "环境名称不能为空",
+    "docker_image_required": "Docker镜像不能为空",
     "cpu_limit_invalid": "CPU限制必须在0.1-16核之间",
     "memory_limit_invalid": "内存限制必须在128-32768MB之间"
   },

@@ -77,6 +77,9 @@
     "description": "Environment Description",
     "description_placeholder": "Enter environment description (optional)",
     "type": "Environment Type",
+    "docker_image": "Docker Image",
+    "docker_image_placeholder": "Select a Docker image",
+    "docker_image_edit_disabled": "Docker image cannot be modified after creation",
     "resources": "Resource Configuration",
     "cpu_limit": "CPU Limit",
     "memory_limit": "Memory Limit",
@@ -85,6 +88,7 @@
 
   "validation": {
     "name_required": "Environment name is required",
+    "docker_image_required": "Docker image is required",
     "cpu_limit_invalid": "CPU limit must be between 0.1-16 cores",
     "memory_limit_invalid": "Memory limit must be between 128-32768MB"
   },

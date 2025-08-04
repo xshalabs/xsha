@@ -7,6 +7,7 @@ export interface DevEnvironment {
   name: string;
   description: string;
   type: DevEnvironmentType;
+  docker_image: string;
   cpu_limit: number;
   memory_limit: number;
   env_vars: string;
@@ -22,6 +23,7 @@ export interface CreateDevEnvironmentRequest {
   name: string;
   description?: string;
   type: DevEnvironmentType;
+  docker_image: string;
   cpu_limit: number;
   memory_limit: number;
   env_vars?: Record<string, string>;
@@ -64,16 +66,10 @@ export interface DevEnvironmentListParams {
   name?: string;
 }
 
-export interface DevEnvironmentTypeConfig {
-  key: string;
-  name: string;
+export interface DevEnvironmentImageConfig {
   image: string;
-}
-
-export interface DevEnvironmentTypeOption {
-  value: DevEnvironmentType;
-  label: string;
-  description: string;
+  name: string;
+  type: string;
 }
 
 export interface ResourceUsageStats {

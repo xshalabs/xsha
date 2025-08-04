@@ -22,7 +22,6 @@ import type {
   DevEnvironmentDisplay,
   CreateDevEnvironmentRequest,
   UpdateDevEnvironmentRequest,
-  DevEnvironmentType,
 } from "@/types/dev-environment";
 
 interface DevEnvironmentFormProps {
@@ -37,11 +36,11 @@ const defaultResources = {
   memory: 1024,
 };
 
-interface EnvironmentTypeOption {
-  value: string;
-  label: string;
-  description: string;
+interface EnvironmentImageOption {
   image: string;
+  name: string;
+  type: string;
+  description: string;
 }
 
 const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
@@ -52,15 +51,15 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const [environmentTypes, setEnvironmentTypes] = useState<
-    EnvironmentTypeOption[]
+  const [environmentImages, setEnvironmentImages] = useState<
+    EnvironmentImageOption[]
   >([]);
-  const [loadingTypes, setLoadingTypes] = useState(true);
+  const [loadingImages, setLoadingImages] = useState(true);
 
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    type: "claude-code" as DevEnvironmentType,
+    docker_image: "",
     cpu_limit: 1.0,
     memory_limit: 1024,
   });
@@ -75,40 +74,49 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
   >({});
 
   useEffect(() => {
-    const loadEnvironmentTypes = async () => {
+    const loadEnvironmentImages = async () => {
       try {
-        setLoadingTypes(true);
-        const response = await devEnvironmentsApi.getAvailableTypes();
-        const types: EnvironmentTypeOption[] = response.types.map((type) => ({
-          value: type.key,
-          label: type.name,
-          description: `Docker Image: ${type.image}`,
-          image: type.image,
-        }));
-        setEnvironmentTypes(types);
+        setLoadingImages(true);
+        const response = await devEnvironmentsApi.getAvailableImages();
+        const images: EnvironmentImageOption[] = response.images.map(
+          (item) => ({
+            image: item.image,
+            name: item.name,
+            type: item.type,
+            description: `${item.name} - Docker Image: ${item.image}`,
+          })
+        );
+        setEnvironmentImages(images);
 
-        if (mode === "create" && types.length > 0) {
+        if (mode === "create" && images.length > 0) {
+          const defaultImage =
+            images.find((img) => img.type === "claude-code") || images[0];
           setFormData((prev) => ({
             ...prev,
-            type: types[0].value as DevEnvironmentType,
+            docker_image: defaultImage.image,
           }));
         }
       } catch (error: any) {
-        toast.error(error.message || t("dev_environments.load_types_failed"));
-        setEnvironmentTypes([
-          {
-            value: "claude-code",
-            label: "Claude Code",
-            description: "Docker Image: claude-code:latest",
-            image: "claude-code:latest",
-          },
-        ]);
+        toast.error(error.message || t("dev_environments.load_images_failed"));
+        const fallbackImage = {
+          image: "claude-code:latest",
+          name: "Claude Code",
+          type: "claude-code",
+          description: "Claude Code - Docker Image: claude-code:latest",
+        };
+        setEnvironmentImages([fallbackImage]);
+        if (mode === "create") {
+          setFormData((prev) => ({
+            ...prev,
+            docker_image: fallbackImage.image,
+          }));
+        }
       } finally {
-        setLoadingTypes(false);
+        setLoadingImages(false);
       }
     };
 
-    loadEnvironmentTypes();
+    loadEnvironmentImages();
   }, [mode, t]);
 
   useEffect(() => {
@@ -116,7 +124,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
       setFormData({
         name: initialData.name,
         description: initialData.description,
-        type: initialData.type,
+        docker_image: initialData.docker_image,
         cpu_limit: initialData.cpu_limit,
         memory_limit: initialData.memory_limit,
       });
@@ -125,7 +133,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
       setFormData({
         name: "",
         description: "",
-        type: "claude-code",
+        docker_image: "",
         cpu_limit: 1.0,
         memory_limit: 1024,
       });
@@ -141,6 +149,12 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 
     if (!formData.name.trim()) {
       errors.name = t("dev_environments.validation.name_required");
+    }
+
+    if (!formData.docker_image.trim()) {
+      errors.docker_image = t(
+        "dev_environments.validation.docker_image_required"
+      );
     }
 
     if (formData.cpu_limit <= 0 || formData.cpu_limit > 16) {
@@ -169,12 +183,17 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
     }
   };
 
-  const handleTypeChange = (type: DevEnvironmentType) => {
+  const handleDockerImageChange = (dockerImage: string) => {
+    const selectedImage = environmentImages.find(
+      (img) => img.image === dockerImage
+    );
+
     setFormData((prev) => ({
       ...prev,
-      type,
+      docker_image: dockerImage,
       cpu_limit: defaultResources.cpu,
       memory_limit: defaultResources.memory,
+      type: selectedImage?.type || "claude-code",
     }));
   };
 
@@ -220,8 +239,15 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
     setLoading(true);
     try {
       if (mode === "create") {
+        // 根据选择的镜像找到对应的 type
+        const selectedImage = environmentImages.find(
+          (img) => img.image === formData.docker_image
+        );
+        const envType = selectedImage?.type || "claude-code";
+
         const requestData: CreateDevEnvironmentRequest = {
           ...formData,
+          type: envType,
           env_vars: envVars,
         };
         await apiService.devEnvironments.create(requestData);
@@ -300,32 +326,44 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
             </div>
 
             <div className="flex flex-col gap-3">
-              <Label>{t("dev_environments.form.type")} *</Label>
+              <Label>{t("dev_environments.form.docker_image")} *</Label>
               <Select
-                value={formData.type}
-                onValueChange={(value) =>
-                  handleTypeChange(value as DevEnvironmentType)
-                }
-                disabled={mode === "edit" || loadingTypes}
+                value={formData.docker_image}
+                onValueChange={handleDockerImageChange}
+                disabled={mode === "edit" || loadingImages}
               >
                 <SelectTrigger>
-                  <SelectValue>
-                    {loadingTypes ? t("common.loading") : undefined}
+                  <SelectValue
+                    placeholder={t(
+                      "dev_environments.form.docker_image_placeholder"
+                    )}
+                  >
+                    {loadingImages ? t("common.loading") : undefined}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {environmentTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
+                  {environmentImages.map((imgOption) => (
+                    <SelectItem key={imgOption.image} value={imgOption.image}>
                       <div className="flex flex-col">
-                        <span>{type.label}</span>
+                        <span className="font-medium">{imgOption.image}</span>
                         <span className="text-xs text-muted-foreground">
-                          {type.description}
+                          {imgOption.description}
                         </span>
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {validationErrors.docker_image && (
+                <p className="text-sm text-destructive">
+                  {validationErrors.docker_image}
+                </p>
+              )}
+              {mode === "edit" && (
+                <p className="text-sm text-muted-foreground">
+                  {t("dev_environments.form.docker_image_edit_disabled")}
+                </p>
+              )}
             </div>
           </div>
 

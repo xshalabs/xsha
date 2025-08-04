@@ -98,20 +98,20 @@ func (r *systemConfigRepository) SetValueWithCategoryAndSort(key, value, descrip
 }
 
 func (r *systemConfigRepository) InitializeDefaultConfigs() error {
-	defaultDevEnvTypes := []map[string]interface{}{
+	defaultDevEnvImages := []map[string]interface{}{
 		{
 			"image": "ghcr.io/xshalabs/dev-image-registry/claude-code:node18-1.0.67",
 			"name":  "Claude Code node18_1.0.67",
-			"key":   "claude-code-node18-1.0.67",
+			"type":  "claude-code",
 		},
 		{
 			"image": "ghcr.io/xshalabs/dev-image-registry/claude-code:node20-1.0.67",
 			"name":  "Claude Code node20_1.0.67",
-			"key":   "claude-code-node20-1.0.67",
+			"type":  "claude-code",
 		},
 	}
 
-	devEnvTypesJSON, err := json.Marshal(defaultDevEnvTypes)
+	devEnvImagesJSON, err := json.Marshal(defaultDevEnvImages)
 	if err != nil {
 		return err
 	}
@@ -141,9 +141,9 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			sortOrder:   20,
 		},
 		{
-			key:         "dev_environment_types",
-			value:       string(devEnvTypesJSON),
-			description: "Development environment type configuration, defines available development environments and their corresponding Docker images",
+			key:         "dev_environment_images",
+			value:       string(devEnvImagesJSON),
+			description: "Development environment image configuration, defines available Docker images and their corresponding environment images",
 			category:    "dev_environment",
 			formType:    string(database.ConfigFormTypeTextarea),
 			sortOrder:   30,

@@ -60,7 +60,7 @@ type AdminOperationLogService interface {
 }
 
 type DevEnvironmentService interface {
-	CreateEnvironment(name, description, envType string, cpuLimit float64, memoryLimit int64, envVars map[string]string, createdBy string) (*database.DevEnvironment, error)
+	CreateEnvironment(name, description, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, createdBy string) (*database.DevEnvironment, error)
 	GetEnvironment(id uint) (*database.DevEnvironment, error)
 	ListEnvironments(envType *string, name *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
 	UpdateEnvironment(id uint, updates map[string]interface{}) error
@@ -69,7 +69,7 @@ type DevEnvironmentService interface {
 	GetEnvironmentVars(id uint) (map[string]string, error)
 	UpdateEnvironmentVars(id uint, envVars map[string]string) error
 	ValidateResourceLimits(cpuLimit float64, memoryLimit int64) error
-	GetAvailableEnvironmentTypes() ([]map[string]interface{}, error)
+	GetAvailableEnvironmentImages() ([]map[string]interface{}, error)
 }
 
 type TaskService interface {
