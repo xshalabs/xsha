@@ -57,6 +57,19 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
 }) => {
   const { t } = useTranslation();
   const [showFilters, setShowFilters] = useState(false);
+
+  const getOperationText = (operation: string) => {
+    const operationMap = {
+      'create': t("adminLogs.operationLogs.operations.create"),
+      'read': t("adminLogs.operationLogs.operations.read"),
+      'update': t("adminLogs.operationLogs.operations.update"),
+      'delete': t("adminLogs.operationLogs.operations.delete"),
+      'login': t("adminLogs.operationLogs.operations.login"),
+      'logout': t("adminLogs.operationLogs.operations.logout"),
+    } as const;
+    
+    return operationMap[operation as keyof typeof operationMap] || operation;
+  };
   const [localFilters, setLocalFilters] =
     useState<AdminOperationLogListParams>(filters);
 
@@ -353,9 +366,7 @@ export const AdminOperationLogList: React.FC<AdminOperationLogListProps> = ({
                     <div className="flex items-center space-x-2">
                       {getOperationIcon(log.operation)}
                       <span className="font-medium">
-                        {t(
-                          `adminLogs.operationLogs.operations.${log.operation}`
-                        )}
+                        {getOperationText(log.operation)}
                       </span>
                     </div>
 

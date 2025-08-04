@@ -81,9 +81,14 @@ export const LoginLogList: React.FC<LoginLogListProps> = ({
 
   const getReasonText = (reason: string) => {
     if (!reason) return "";
-    const reasonKey = `adminLogs.loginLogs.reasons.${reason}`;
-    const translatedReason = t(reasonKey);
-    return translatedReason === reasonKey ? reason : translatedReason;
+    
+    const reasonMap = {
+      'token_generation_failed': t("adminLogs.loginLogs.reasons.tokenGenerationFailed"),
+      'invalid_username': t("adminLogs.loginLogs.reasons.invalidUsername"),
+      'invalid_password': t("adminLogs.loginLogs.reasons.invalidPassword"),
+    } as const;
+    
+    return reasonMap[reason as keyof typeof reasonMap] || reason;
   };
 
   if (loading && logs.length === 0) {

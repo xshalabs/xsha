@@ -157,15 +157,51 @@ export default function SystemConfigEditPage() {
   };
 
   const getConfigLabel = (config: SystemConfig) => {
-    const translationKey = `system-config.${config.config_key}`;
-    const translatedLabel = t(translationKey);
-    return translatedLabel !== translationKey ? translatedLabel : config.config_key;
+    const configKeyMap = {
+      'admin_user': t("system-config.admin_user"),
+      'admin_password': t("system-config.admin_password"),
+      'dev_environment_images': t("system-config.dev_environment_images"),
+      'git_proxy_enabled': t("system-config.git_proxy_enabled"),
+      'git_proxy_http': t("system-config.git_proxy_http"),
+      'git_proxy_https': t("system-config.git_proxy_https"),
+      'git_proxy_no_proxy': t("system-config.git_proxy_no_proxy"),
+    } as const;
+    
+    return configKeyMap[config.config_key as keyof typeof configKeyMap] || config.config_key;
   };
 
   const getConfigDescription = (config: SystemConfig) => {
-    const translationKey = `system-config.${config.config_key}_desc`;
-    const translatedDesc = t(translationKey);
-    return translatedDesc !== translationKey ? translatedDesc : config.description;
+    const configDescMap = {
+      'admin_user': t("system-config.admin_user_desc"),
+      'admin_password': t("system-config.admin_password_desc"), 
+      'dev_environment_images': t("system-config.dev_environment_images_description"),
+      'git_proxy_enabled': t("system-config.git_proxy_enabled_desc"),
+      'git_proxy_http': t("system-config.git_proxy_http_desc"),
+      'git_proxy_https': t("system-config.git_proxy_https_desc"),
+      'git_proxy_no_proxy': t("system-config.git_proxy_no_proxy_desc"),
+    } as const;
+    
+    return configDescMap[config.config_key as keyof typeof configDescMap] || config.description;
+  };
+
+  const getCategoryName = (category: string) => {
+    const categoryMap = {
+      'auth': t("system-config.categories.auth"),
+      'dev_environment': t("system-config.categories.devEnvironment"),
+      'git': t("system-config.categories.git"),
+    } as const;
+    
+    return categoryMap[category as keyof typeof categoryMap] || category;
+  };
+
+  const getCategoryDescription = (category: string) => {
+    const descMap = {
+      'auth': t("system-config.categoryDescriptions.auth"),
+      'dev_environment': t("system-config.categoryDescriptions.devEnvironment"),
+      'git': t("system-config.categoryDescriptions.git"),
+    } as const;
+    
+    return descMap[category as keyof typeof descMap] || "";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -253,10 +289,10 @@ export default function SystemConfigEditPage() {
             <Card key={category}>
               <CardHeader>
                 <CardTitle className="capitalize">
-                  {t(`system-config.category_${category}`, category)}
+                  {getCategoryName(category)}
                 </CardTitle>
                 <CardDescription>
-                  {t(`system-config.category_${category}_desc`, "")}
+                  {getCategoryDescription(category)}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

@@ -51,7 +51,11 @@
       "success": "成功",
       "failed": "失败"
     },
-    "reasons": {},
+    "reasons": {
+      "tokenGenerationFailed": "Token生成失败",
+      "invalidUsername": "用户名无效",
+      "invalidPassword": "密码无效"
+    },
     "filters": {
       "all": "全部",
       "username": "用户名"

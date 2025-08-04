@@ -65,6 +65,18 @@ export function TaskConversation({
 }: TaskConversationProps) {
   const { t } = useTranslation();
   const [newMessage, setNewMessage] = useState("");
+
+  const getStatusText = (status: ConversationStatus) => {
+    const statusMap = {
+      'pending': t("taskConversation.status.pending"),
+      'running': t("taskConversation.status.running"),
+      'success': t("taskConversation.status.success"),
+      'failed': t("taskConversation.status.failed"),
+      'cancelled': t("taskConversation.status.cancelled"),
+    } as const;
+    
+    return statusMap[status] || status;
+  };
   const [sending, setSending] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -287,9 +299,7 @@ export function TaskConversation({
                         <div className="flex items-center space-x-1">
                           {getStatusIcon(conversation.status)}
                           <span>
-                            {t(
-                              `taskConversation.status.${conversation.status}`
-                            )}
+                            {getStatusText(conversation.status)}
                           </span>
                         </div>
                       </Badge>

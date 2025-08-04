@@ -4,12 +4,6 @@
   "readonly": "Read-only",
   "dev_environment_images": "Development Environment Images",
   "dev_environment_images_description": "Configure available Docker images and their corresponding environment types",
-  "env_type_name": "Environment Name",
-  "env_type_name_placeholder": "e.g., Claude Code",
-  "env_type_image": "Docker Image",
-  "env_type_image_placeholder": "e.g., claude-code:latest",
-  "add_env_type": "Add Environment Type",
-  "env_types_validation_error": "All environment types must have both name and image specified, and at least one type is required",
   "git_proxy_enabled": "Enable Git Proxy",
   "git_proxy_enabled_desc": "Whether to enable HTTP proxy for Git operations",
   "git_proxy_http": "HTTP Proxy URL",
@@ -20,5 +14,19 @@
   "git_proxy_no_proxy_desc": "Comma-separated list of domains to bypass proxy",
   "proxy_url_placeholder": "e.g., http://proxy.company.com:8080",
   "no_proxy_placeholder": "e.g., localhost,127.0.0.1,.local",
-  "update_success": "Configuration updated successfully"
+  "update_success": "Configuration updated successfully",
+  "categories": {
+    "auth": "Authentication",
+    "devEnvironment": "Development Environment",
+    "git": "Git Configuration"
+  },
+  "categoryDescriptions": {
+    "auth": "Manage authentication and user access settings",
+    "devEnvironment": "Configure development environment images and settings",
+    "git": "Configure Git proxy and network settings"
+  },
+  "admin_user": "Administrator Username",
+  "admin_user_desc": "Administrator username for system login",
+  "admin_password": "Administrator Password",
+  "admin_password_desc": "Administrator password for system login"
 } 

@@ -12,6 +12,13 @@
   "delete_confirm_title": "删除对话",
   "message": "消息",
   "latest": "最新",
+  "status": {
+    "pending": "等待中",
+    "running": "执行中",
+    "success": "成功",
+    "failed": "失败",
+    "cancelled": "已取消"
+  },
   "empty": {
     "title": "暂无对话",
     "description": "开始您的第一个对话"

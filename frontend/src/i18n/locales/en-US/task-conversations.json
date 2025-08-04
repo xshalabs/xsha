@@ -12,6 +12,13 @@
   "delete_confirm_title": "Delete Conversation",
   "message": "Message",
   "latest": "Latest",
+  "status": {
+    "pending": "Pending",
+    "running": "Running", 
+    "success": "Success",
+    "failed": "Failed",
+    "cancelled": "Cancelled"
+  },
   "empty": {
     "title": "No conversations yet",
     "description": "Start your first conversation"

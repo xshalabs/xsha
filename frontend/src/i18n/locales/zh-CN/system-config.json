@@ -4,12 +4,6 @@
   "readonly": "只读",
   "dev_environment_images": "开发环境镜像",
   "dev_environment_images_description": "配置可用的Docker镜像及其对应的环境类型",
-  "env_type_name": "环境名称",
-  "env_type_name_placeholder": "例如：Claude Code",
-  "env_type_image": "Docker镜像",
-  "env_type_image_placeholder": "例如：claude-code:latest",
-  "add_env_type": "添加环境类型",
-  "env_types_validation_error": "所有环境类型都必须指定名称和镜像，且至少需要一个类型",
   "git_proxy_enabled": "启用Git代理",
   "git_proxy_enabled_desc": "是否为Git操作启用HTTP代理",
   "git_proxy_http": "HTTP代理地址",
@@ -20,5 +14,19 @@
   "git_proxy_no_proxy_desc": "不使用代理的域名列表，用逗号分隔",
   "proxy_url_placeholder": "例如：http://proxy.company.com:8080",
   "no_proxy_placeholder": "例如：localhost,127.0.0.1,.local",
-  "update_success": "配置更新成功"
+  "update_success": "配置更新成功",
+  "categories": {
+    "auth": "认证配置",
+    "devEnvironment": "开发环境",
+    "git": "Git配置"
+  },
+  "categoryDescriptions": {
+    "auth": "管理认证和用户访问设置",
+    "devEnvironment": "配置开发环境镜像和设置",
+    "git": "配置Git代理和网络设置"
+  },
+  "admin_user": "管理员用户名",
+  "admin_user_desc": "系统登录的管理员用户名",
+  "admin_password": "管理员密码",
+  "admin_password_desc": "系统登录的管理员密码"
 }

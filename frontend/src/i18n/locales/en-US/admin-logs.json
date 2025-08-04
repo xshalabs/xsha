@@ -51,7 +51,11 @@
       "success": "Success",
       "failed": "Failed"
     },
-    "reasons": {},
+    "reasons": {
+      "tokenGenerationFailed": "Token generation failed",
+      "invalidUsername": "Invalid username",
+      "invalidPassword": "Invalid password"
+    },
     "filters": {
       "all": "Filter Options",
       "username": "Username"
