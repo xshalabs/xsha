@@ -77,6 +77,7 @@
   "task.project_info_incomplete": "项目信息不完整",
   "task.id_required": "任务ID是必填项",
   "task.no_git_credential": "没有可用的Git凭据",
+  "task.project_not_associated_with_credential": "项目未关联Git凭据，请先关联Git凭据",
   "task.project_not_found": "项目不存在",
   "task.start_branch_required": "起始分支是必填项",
   "task.title_required": "任务标题是必填项",

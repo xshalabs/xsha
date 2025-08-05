@@ -36,13 +36,14 @@ var (
 	ErrInvalidFormat = &I18nError{Key: "validation.invalid_format"}
 	ErrTooLong       = &I18nError{Key: "validation.too_long"}
 
-	ErrTaskTitleRequired   = &I18nError{Key: "task.title_required"}
-	ErrTaskTitleTooLong    = &I18nError{Key: "task.title_too_long"}
-	ErrStartBranchRequired = &I18nError{Key: "task.start_branch_required"}
-	ErrProjectIDRequired   = &I18nError{Key: "task.project_id_required"}
-	ErrProjectNotFound     = &I18nError{Key: "task.project_not_found"}
-	ErrTaskNotFound        = &I18nError{Key: "task.not_found"}
-	ErrNoGitCredential     = &I18nError{Key: "task.no_git_credential"}
+	ErrTaskTitleRequired                  = &I18nError{Key: "task.title_required"}
+	ErrTaskTitleTooLong                   = &I18nError{Key: "task.title_too_long"}
+	ErrStartBranchRequired                = &I18nError{Key: "task.start_branch_required"}
+	ErrProjectIDRequired                  = &I18nError{Key: "task.project_id_required"}
+	ErrProjectNotFound                    = &I18nError{Key: "task.project_not_found"}
+	ErrTaskNotFound                       = &I18nError{Key: "task.not_found"}
+	ErrNoGitCredential                    = &I18nError{Key: "task.no_git_credential"}
+	ErrProjectNotAssociatedWithCredential = &I18nError{Key: "task.project_not_associated_with_credential"}
 
 	ErrProjectNameExists      = &I18nError{Key: "project.name_exists"}
 	ErrIncompatibleCredential = &I18nError{Key: "project.incompatible_credential"}
@@ -80,8 +81,8 @@ var (
 	ErrConversationDeleteLatestOnly = &I18nError{Key: "taskConversation.delete_latest_only"}
 
 	ErrConversationResultCheckFailed = &I18nError{Key: "taskConversationResult.check_failed"}
-	ErrConversationResultExists     = &I18nError{Key: "taskConversationResult.already_exists"}
-	ErrConversationResultNotFound   = &I18nError{Key: "taskConversationResult.not_found"}
+	ErrConversationResultExists      = &I18nError{Key: "taskConversationResult.already_exists"}
+	ErrConversationResultNotFound    = &I18nError{Key: "taskConversationResult.not_found"}
 
 	ErrNoDevEnvironment   = &I18nError{Key: "task_execution.no_dev_environment"}
 	ErrUpdateStatusFailed = &I18nError{Key: "task_execution.update_status_failed"}

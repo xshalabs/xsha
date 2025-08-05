@@ -369,15 +369,15 @@ func (s *taskService) PushTaskBranch(id uint, forcePush bool) (string, error) {
 	}
 
 	if task.WorkspacePath == "" {
-		return "", fmt.Errorf("task workspace path is empty")
+		return "", appErrors.ErrWorkspacePathEmpty
 	}
 
 	if task.Project == nil {
-		return "", fmt.Errorf("task project information is incomplete")
+		return "", appErrors.NewI18nError("task.project_info_incomplete")
 	}
 
 	if task.Project.CredentialID == nil {
-		return "", fmt.Errorf("project is not associated with Git credential, please associate Git Credential first")
+		return "", appErrors.ErrProjectNotAssociatedWithCredential
 	}
 
 	var credential *utils.GitCredentialInfo

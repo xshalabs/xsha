@@ -77,6 +77,7 @@
   "task.project_info_incomplete": "Project information incomplete",
   "task.id_required": "Task ID is required",
   "task.no_git_credential": "No git credential available",
+  "task.project_not_associated_with_credential": "Project is not associated with Git credential, please associate Git credential first",
   "task.project_not_found": "Project not found",
   "task.start_branch_required": "Start branch is required",
   "task.title_required": "Task title is required",
