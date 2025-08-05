@@ -46,14 +46,12 @@ func (d *dockerExecutor) escapeShellArg(arg string) string {
 	return strconv.Quote(arg)
 }
 
-// buildDockerCommandOptions represents options for building docker commands
 type buildDockerCommandOptions struct {
-	containerName    string // empty means no container name
-	maskEnvVars      bool   // whether to mask environment variables for logging
-	includeStdinFlag bool   // whether to include -i flag
+	containerName    string
+	maskEnvVars      bool
+	includeStdinFlag bool
 }
 
-// buildDockerCommandCore is the core method that builds docker commands with shared logic
 func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation, workspacePath string, opts buildDockerCommandOptions) string {
 	devEnv := conv.Task.DevEnvironment
 
@@ -62,43 +60,31 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 		json.Unmarshal([]byte(devEnv.EnvVars), &envVars)
 	}
 
-	// Check if running in container
 	isInContainer := utils.IsRunningInContainer()
 
-	// Build base command
 	cmd := []string{"docker", "run", "--rm"}
 
-	// Add stdin flag if needed
 	if opts.includeStdinFlag {
 		cmd = append(cmd, "-i")
 	}
 
-	// Add container name if specified
 	if opts.containerName != "" {
 		cmd = append(cmd, fmt.Sprintf("--name=%s", opts.containerName))
 	}
 
-	// Add volume mapping and working directory based on environment
 	if isInContainer {
-		// When running in container, use named volume
 		cmd = append(cmd, "-v xsha_workspaces:/app")
-		// Add dev sessions volume for container environment
 		cmd = append(cmd, "-v xsha_dev_sessions:/xsha_dev_sessions")
-		// Set working directory to the specific workspace path
 		workspaceRelPath := utils.ExtractWorkspaceRelativePath(workspacePath)
 		cmd = append(cmd, fmt.Sprintf("-w /app/%s", workspaceRelPath))
 	} else {
-		// When running on host, use direct path mapping
 		cmd = append(cmd, fmt.Sprintf("-v %s:/app", workspacePath))
-		// Add session directory mapping
 		if devEnv.SessionDir != "" {
 			cmd = append(cmd, fmt.Sprintf("-v %s:/home/xsha", devEnv.SessionDir))
 		}
-		// Set working directory to /app (the mounted workspace)
 		cmd = append(cmd, "-w /app")
 	}
 
-	// Add resource limits
 	if devEnv.CPULimit > 0 {
 		cmd = append(cmd, fmt.Sprintf("--cpus=%.2f", devEnv.CPULimit))
 	}
@@ -106,7 +92,6 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 		cmd = append(cmd, fmt.Sprintf("--memory=%dm", devEnv.MemoryLimit))
 	}
 
-	// Add environment variables
 	for key, value := range envVars {
 		if opts.maskEnvVars {
 			value = utils.MaskSensitiveValue(value)
@@ -114,7 +99,6 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 		cmd = append(cmd, fmt.Sprintf("-e %s=%s", key, value))
 	}
 
-	// Get image name from dev environment, fallback to config if empty
 	imageName := devEnv.DockerImage
 	aiCommand := d.buildAICommand(devEnv.Type, conv.Content, isInContainer, conv.Task, devEnv)
 
@@ -124,13 +108,11 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	return strings.Join(cmd, " ")
 }
 
-// buildAICommand builds the AI-specific command based on environment type
 func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer bool, task *database.Task, devEnv *database.DevEnvironment) []string {
 	var baseCommand []string
 
 	switch envType {
 	case "claude-code":
-		// Build claude base command
 		claudeCommand := []string{
 			"claude",
 			"-p",
@@ -139,20 +121,16 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 			"--verbose",
 		}
 
-		// Add session_id parameter if it exists
 		if task.SessionID != "" {
 			claudeCommand = append(claudeCommand, "-r", task.SessionID)
 		}
 
-		// Add content to the command
 		claudeCommand = append(claudeCommand, d.escapeShellArg(content))
 
-		// Add session_dir parameter if running in container and session_dir exists
 		if isInContainer && devEnv.SessionDir != "" {
 			baseCommand = append(baseCommand, "-d", "/xsha_dev_sessions/"+utils.ExtractDevSessionRelativePath(devEnv.SessionDir))
 		}
 
-		// Add --command parameter with claude command as its value
 		claudeCommandStr := strings.Join(claudeCommand, " ")
 		baseCommand = append(baseCommand, "--command", d.escapeShellArg(claudeCommandStr))
 	case "opencode", "gemini-cli":
