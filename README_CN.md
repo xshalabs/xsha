@@ -14,15 +14,13 @@ XSha 是一款将项目管理、Git、基于 AI 驱动的需求开发结合的�
 1. 📥 **克隆仓库**
 
 ```bash
-git clone https://github.com/XShaLabs/xsha.git
-cd xsha
+git clone https://gitee.com/xshalabs/xsha.git && cd xsha
 ```
 
 2. 🚀 **启动应用程序**
 
 ```bash
-sudo chmod 666 /var/run/docker.sock
-docker compose -f docker-compose.cn.yml up -d
+sudo chmod 666 /var/run/docker.sock && docker compose -f docker-compose.cn.yml up -d
 ```
 
 3. 🌍 **访问应用程序**

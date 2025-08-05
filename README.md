@@ -16,15 +16,13 @@ XSha is a software system that combines project management, Git, and AI-driven d
 1. 📥 **Clone the repository**
 
 ```bash
-git clone https://github.com/XshaLabs/xsha.git
-cd xsha
+git clone https://github.com/XshaLabs/xsha.git && cd xsha
 ```
 
 2. 🚀 **Start the application**
 
 ```bash
-sudo chmod 666 /var/run/docker.sock
-docker compose up -d
+sudo chmod 666 /var/run/docker.sock && docker compose up -d
 ```
 
 3. 🌍 **Access the application**
