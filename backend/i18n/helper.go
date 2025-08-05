@@ -39,8 +39,15 @@ func MapErrorToLocalizedMessage(err error, lang string) string {
 
 func (h *Helper) ErrorResponseFromError(c *gin.Context, statusCode int, err error) {
 	if i18nErr, ok := err.(*appErrors.I18nError); ok {
+		var errorMessage string
+		if i18nErr.Params != nil {
+			errorMessage = h.T(i18nErr.Key, i18nErr.Params)
+		} else {
+			errorMessage = h.T(i18nErr.Key)
+		}
+
 		response := gin.H{
-			"error": h.T(i18nErr.Key, i18nErr.Params),
+			"error": errorMessage,
 		}
 		if i18nErr.Details != "" {
 			response["details"] = i18nErr.Details
