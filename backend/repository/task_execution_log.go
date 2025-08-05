@@ -43,7 +43,7 @@ func (r *taskExecutionLogRepository) Update(log *database.TaskExecutionLog) erro
 func (r *taskExecutionLogRepository) AppendLog(id uint, logContent string) error {
 	return r.db.Model(&database.TaskExecutionLog{}).
 		Where("id = ?", id).
-		Update("execution_logs", gorm.Expr("CONCAT(COALESCE(execution_logs, ''), ?)", logContent)).Error
+		Update("execution_logs", gorm.Expr("COALESCE(execution_logs, '') || ?", logContent)).Error
 }
 
 func (r *taskExecutionLogRepository) UpdateMetadata(id uint, updates map[string]interface{}) error {
