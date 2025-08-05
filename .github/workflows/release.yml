@@ -89,6 +89,14 @@ jobs:
         echo "Building for Windows ARM64..."
         CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -ldflags="${BUILD_FLAGS}" -o build/xsha-embedded-windows-arm64.exe .
         
+        # Build for macOS AMD64
+        echo "Building for macOS AMD64..."
+        CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="${BUILD_FLAGS}" -o build/xsha-embedded-darwin-amd64 .
+        
+        # Build for macOS ARM64 (Apple Silicon)
+        echo "Building for macOS ARM64..."
+        CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="${BUILD_FLAGS}" -o build/xsha-embedded-darwin-arm64 .
+        
         # Verify builds
         ls -la build/
         
@@ -98,12 +106,16 @@ jobs:
         sha256sum xsha-embedded-linux-arm64 > xsha-embedded-linux-arm64.sha256
         sha256sum xsha-embedded-windows-amd64.exe > xsha-embedded-windows-amd64.exe.sha256
         sha256sum xsha-embedded-windows-arm64.exe > xsha-embedded-windows-arm64.exe.sha256
+        sha256sum xsha-embedded-darwin-amd64 > xsha-embedded-darwin-amd64.sha256
+        sha256sum xsha-embedded-darwin-arm64 > xsha-embedded-darwin-arm64.sha256
         
         echo "Build completed successfully!"
         echo "Linux AMD64 size: $(stat -c%s xsha-embedded-linux-amd64 | numfmt --to=iec)"
         echo "Linux ARM64 size: $(stat -c%s xsha-embedded-linux-arm64 | numfmt --to=iec)"
         echo "Windows AMD64 size: $(stat -c%s xsha-embedded-windows-amd64.exe | numfmt --to=iec)"
         echo "Windows ARM64 size: $(stat -c%s xsha-embedded-windows-arm64.exe | numfmt --to=iec)"
+        echo "macOS AMD64 size: $(stat -c%s xsha-embedded-darwin-amd64 | numfmt --to=iec)"
+        echo "macOS ARM64 size: $(stat -c%s xsha-embedded-darwin-arm64 | numfmt --to=iec)"
         
     - name: Get build info
       id: date
@@ -125,11 +137,13 @@ jobs:
           - **Linux ARM64**: `xsha-embedded-linux-arm64`
           - **Windows AMD64**: `xsha-embedded-windows-amd64.exe`
           - **Windows ARM64**: `xsha-embedded-windows-arm64.exe`
+          - **macOS AMD64**: `xsha-embedded-darwin-amd64`
+          - **macOS ARM64 (Apple Silicon)**: `xsha-embedded-darwin-arm64`
           
           ### Features
           - Embedded frontend assets (React + TypeScript)
           - Standalone executables (no dependencies required)
-          - Cross-platform support (Linux & Windows, AMD64 & ARM64)
+          - Cross-platform support (Linux, Windows & macOS, AMD64 & ARM64)
           - Built with Go ${{ steps.go-version.outputs.go-version }}
           
           ### Installation
@@ -141,6 +155,15 @@ jobs:
           #### Windows
           1. Download the appropriate binary for your architecture
           2. Run: `xsha-embedded-windows-*.exe`
+          
+          #### macOS
+          1. Download the appropriate binary for your architecture (Intel: amd64, Apple Silicon: arm64)
+          2. Make it executable: `chmod +x xsha-embedded-darwin-*`
+          3. Run: `./xsha-embedded-darwin-*`
+          
+          **Note**: On macOS, you may need to allow the app to run if it's blocked by Gatekeeper:
+          - Right-click the binary and select "Open"
+          - Or run: `sudo xattr -rd com.apple.quarantine xsha-embedded-darwin-*`
           
           ### Verification
           Verify download integrity using the provided SHA256 checksums:
@@ -165,6 +188,15 @@ jobs:
           # Compare with content of xsha-embedded-windows-arm64.exe.sha256
           ```
           
+          #### macOS
+          ```bash
+          # For AMD64 (Intel)
+          shasum -a 256 -c xsha-embedded-darwin-amd64.sha256
+          
+          # For ARM64 (Apple Silicon)
+          shasum -a 256 -c xsha-embedded-darwin-arm64.sha256
+          ```
+          
           ### Build Information
           - **Git Commit**: ${{ github.sha }}
           - **Build Date**: ${{ steps.date.outputs.date }}
@@ -178,6 +210,10 @@ jobs:
           backend/build/xsha-embedded-windows-amd64.exe.sha256
           backend/build/xsha-embedded-windows-arm64.exe
           backend/build/xsha-embedded-windows-arm64.exe.sha256
+          backend/build/xsha-embedded-darwin-amd64
+          backend/build/xsha-embedded-darwin-amd64.sha256
+          backend/build/xsha-embedded-darwin-arm64
+          backend/build/xsha-embedded-darwin-arm64.sha256
         draft: false
         prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
       env:
