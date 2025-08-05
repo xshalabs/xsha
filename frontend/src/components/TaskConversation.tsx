@@ -68,11 +68,11 @@ export function TaskConversation({
 
   const getStatusText = (status: ConversationStatus) => {
     const statusMap = {
-      'pending': t("taskConversation.status.pending"),
-      'running': t("taskConversation.status.running"),
-      'success': t("taskConversation.status.success"),
-      'failed': t("taskConversation.status.failed"),
-      'cancelled': t("taskConversation.status.cancelled"),
+      'pending': t("taskConversations.status.pending"),
+      'running': t("taskConversations.status.running"),
+      'success': t("taskConversations.status.success"),
+      'failed': t("taskConversations.status.failed"),
+      'cancelled': t("taskConversations.status.cancelled"),
     } as const;
     
     return statusMap[status] || status;
@@ -125,10 +125,10 @@ export function TaskConversation({
 
   const getDisabledReason = () => {
     if (isTaskCompleted()) {
-      return t("taskConversation.taskCompletedMessage");
+      return t("taskConversations.taskCompletedMessage");
     }
     if (hasPendingOrRunningConversations()) {
-      return t("taskConversation.hasPendingMessage");
+      return t("taskConversations.hasPendingMessage");
     }
     return "";
   };
@@ -240,7 +240,7 @@ export function TaskConversation({
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
             <CardTitle className="text-xl">
-              {t("taskConversation.list.title")}
+              {t("taskConversations.list.title")}
             </CardTitle>
           </div>
           <Button
@@ -260,9 +260,9 @@ export function TaskConversation({
             {conversations.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>{t("taskConversation.empty.title")}</p>
+                <p>{t("taskConversations.empty.title")}</p>
                 <p className="text-sm">
-                  {t("taskConversation.empty.description")}
+                  {t("taskConversations.empty.description")}
                 </p>
               </div>
             ) : (
@@ -282,14 +282,14 @@ export function TaskConversation({
                         <User className="w-4 h-4" />
                       </div>
                       <span className="font-medium">
-                        {t("taskConversation.message")}
+                        {t("taskConversations.message")}
                       </span>
                       <span className="text-xs text-gray-500">
                         {conversation.created_by}
                       </span>
                       {isLatestConversation(conversation.id) && (
                         <Badge variant="outline" className="text-xs px-1 py-0">
-                          {t("taskConversation.latest")}
+                          {t("taskConversations.latest")}
                         </Badge>
                       )}
                     </div>
@@ -315,7 +315,7 @@ export function TaskConversation({
                             }}
                             disabled={deletingId === conversation.id}
                             className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                            title={t("taskConversation.actions.delete")}
+                            title={t("taskConversations.actions.delete")}
                           >
                             <Trash2 className="w-3 h-3" />
                           </Button>
@@ -395,9 +395,9 @@ export function TaskConversation({
                               onViewConversationGitDiff(conversation.id);
                             }}
                             className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                            title={t("taskConversation.actions.viewGitDiff")}
+                            title={t("taskConversations.actions.viewGitDiff")}
                           >
-                            {t("taskConversation.actions.viewChanges")}
+                            {t("taskConversations.actions.viewChanges")}
                           </Button>
                         )}
                       </div>
@@ -414,18 +414,18 @@ export function TaskConversation({
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">
-            {t("taskConversation.newMessage")}
+            {t("taskConversations.newMessage")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex flex-col gap-3">
               <label className="text-sm font-medium">
-                {t("taskConversation.content")}:
+                {t("taskConversations.content")}:
               </label>
               <Textarea
                 className="min-h-[120px] resize-none"
-                placeholder={t("taskConversation.contentPlaceholder")}
+                placeholder={t("taskConversations.contentPlaceholder")}
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => {
@@ -439,7 +439,7 @@ export function TaskConversation({
 
             <div className="flex items-center justify-between">
               <div className="text-xs text-muted-foreground">
-                {t("taskConversation.shortcut")}
+                {t("taskConversations.shortcut")}
               </div>
               <div className="flex flex-1 justify-end">
                 <Button
@@ -468,10 +468,10 @@ export function TaskConversation({
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-foreground">
-              {t("taskConversation.delete_confirm_title")}
+              {t("taskConversations.delete_confirm_title")}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              {t("taskConversation.deleteConfirm")}
+              {t("taskConversations.deleteConfirm")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

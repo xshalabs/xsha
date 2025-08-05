@@ -119,7 +119,7 @@ export function TaskConversationResult({
         },
       });
     } catch (err: any) {
-      setError(err.message || t("taskConversation.result_load_failed"));
+      setError(err.message || t("taskConversations.result_load_failed"));
     } finally {
       setLoading(false);
     }
@@ -166,7 +166,7 @@ export function TaskConversationResult({
       <Card>
         <CardContent className="flex items-center justify-center p-6 text-gray-500">
           <Info className="h-6 w-6 mr-2" />
-          <span>{t("taskConversation.no_result")}</span>
+          <span>{t("taskConversations.no_result")}</span>
         </CardContent>
       </Card>
     );
@@ -195,13 +195,13 @@ export function TaskConversationResult({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             {getStatusIcon(result.is_error)}
-            {t("taskConversation.execution_result")}
+            {t("taskConversations.execution_result")}
             <Badge variant={getStatusColor(result.is_error)}>
               {result.subtype}
             </Badge>
           </CardTitle>
           <CardDescription>
-            {t("taskConversation.result.description", {
+            {t("taskConversations.result.description", {
               sessionId: result.session_id.slice(0, 8),
             })}
           </CardDescription>
@@ -213,7 +213,7 @@ export function TaskConversationResult({
           <div className="flex items-center justify-between mb-2">
             <h4 className="text-sm font-medium flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
-              {t("taskConversation.result.content")}
+              {t("taskConversations.result.content")}
             </h4>
             <Button
               variant="outline"
@@ -236,7 +236,7 @@ export function TaskConversationResult({
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 text-sm text-gray-600 mb-1">
               <Clock className="h-4 w-4" />
-              {t("taskConversation.result.duration")}
+              {t("taskConversations.result.duration")}
             </div>
             <div className="text-lg font-semibold">
               {formatDuration(result.duration_ms)}
@@ -246,7 +246,7 @@ export function TaskConversationResult({
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 text-sm text-gray-600 mb-1">
               <Activity className="h-4 w-4" />
-              {t("taskConversation.result.api_duration")}
+              {t("taskConversations.result.api_duration")}
             </div>
             <div className="text-lg font-semibold">
               {formatDuration(result.duration_api_ms)}
@@ -256,7 +256,7 @@ export function TaskConversationResult({
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 text-sm text-gray-600 mb-1">
               <TrendingUp className="h-4 w-4" />
-              {t("taskConversation.result.turns")}
+              {t("taskConversations.result.turns")}
             </div>
             <div className="text-lg font-semibold">{result.num_turns}</div>
           </div>
@@ -264,7 +264,7 @@ export function TaskConversationResult({
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 text-sm text-gray-600 mb-1">
               <DollarSign className="h-4 w-4" />
-              {t("taskConversation.result.cost")}
+              {t("taskConversations.result.cost")}
             </div>
             <div className="text-lg font-semibold">
               {formatCost(result.total_cost_usd)}
@@ -277,12 +277,12 @@ export function TaskConversationResult({
         <div>
           <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
             <Code className="h-4 w-4" />
-            {t("taskConversation.result.usage_stats")}
+            {t("taskConversations.result.usage_stats")}
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-2 gap-3 text-sm">
             <div>
               <span className="text-gray-600">
-                {t("taskConversation.result.input_tokens")}:
+                {t("taskConversations.result.input_tokens")}:
               </span>
               <span className="ml-2 font-medium">
                 {formatTokens(result.usage.input_tokens)}
@@ -293,7 +293,7 @@ export function TaskConversationResult({
             </div>
             <div>
               <span className="text-gray-600">
-                {t("taskConversation.result.output_tokens")}:
+                {t("taskConversations.result.output_tokens")}:
               </span>
               <span className="ml-2 font-medium">
                 {result.usage.output_tokens}
@@ -301,7 +301,7 @@ export function TaskConversationResult({
             </div>
             <div>
               <span className="text-gray-600">
-                {t("taskConversation.result.cache_read")}:
+                {t("taskConversations.result.cache_read")}:
               </span>
               <span className="ml-2 font-medium">
                 {result.usage.cache_read_input_tokens}
@@ -310,7 +310,7 @@ export function TaskConversationResult({
             {result.usage.service_tier && (
               <div>
                 <span className="text-gray-600">
-                  {t("taskConversation.result.service_tier")}:
+                  {t("taskConversations.result.service_tier")}:
                 </span>
                 <span className="ml-2 font-medium">
                   {result.usage.service_tier}
@@ -322,10 +322,10 @@ export function TaskConversationResult({
 
         <div className="pt-2 text-xs text-gray-500">
           <div>
-            {t("taskConversation.result.session_id")}: {result.session_id}
+            {t("taskConversations.result.session_id")}: {result.session_id}
           </div>
           <div>
-            {t("taskConversation.result.created_at")}:{" "}
+            {t("taskConversations.result.created_at")}:{" "}
             {new Date(result.created_at).toLocaleString()}
           </div>
         </div>

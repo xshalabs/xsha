@@ -328,10 +328,10 @@ const TaskConversationPage: React.FC = () => {
               >
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="log">
-                    {t("taskConversation.execution_log")}
+                    {t("taskConversations.execution_log")}
                   </TabsTrigger>
                   <TabsTrigger value="result">
-                    {t("taskConversation.execution_result")}
+                    {t("taskConversations.execution_result")}
                   </TabsTrigger>
                 </TabsList>
 
@@ -367,10 +367,10 @@ const TaskConversationPage: React.FC = () => {
               <div className="flex items-center justify-center h-full bg-muted rounded-lg border-2 border-dashed border-border">
                 <div className="text-center text-muted-foreground">
                   <p className="text-lg font-medium mb-2">
-                    {t("taskConversation.noSelection.title")}
+                    {t("taskConversations.noSelection.title")}
                   </p>
                   <p className="text-sm">
-                    {t("taskConversation.noSelection.description")}
+                    {t("taskConversations.noSelection.description")}
                   </p>
                 </div>
               </div>

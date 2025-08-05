@@ -22,14 +22,14 @@ const DevEnvironmentEditPage: React.FC = () => {
 
   usePageTitle(
     environment
-      ? `${t("dev_environments.edit")} - ${environment.name}`
-      : t("dev_environments.edit")
+      ? `${t("devEnvironments.edit")} - ${environment.name}`
+      : t("devEnvironments.edit")
   );
 
   useEffect(() => {
     const loadEnvironment = async () => {
       if (!id) {
-        toast.error(t("dev_environments.invalid_id"));
+        toast.error(t("devEnvironments.invalid_id"));
         navigate("/dev-environments");
         return;
       }

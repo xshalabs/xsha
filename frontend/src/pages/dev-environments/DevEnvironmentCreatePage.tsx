@@ -10,7 +10,7 @@ const DevEnvironmentCreatePage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  usePageTitle(t("dev_environments.create"));
+  usePageTitle(t("devEnvironments.create"));
 
   const handleSuccess = () => {
     navigate("/dev-environments");

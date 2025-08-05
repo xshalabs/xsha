@@ -24,14 +24,14 @@ const loadModularTranslations = async (locale: string) => {
       import(`./locales/${locale}/navigation.json`),
       import(`./locales/${locale}/errors.json`),
       import(`./locales/${locale}/dashboard.json`),
-      import(`./locales/${locale}/git-credentials.json`),
+      import(`./locales/${locale}/gitCredentials.json`),
       import(`./locales/${locale}/projects.json`),
-      import(`./locales/${locale}/admin-logs.json`),
-      import(`./locales/${locale}/dev-environments.json`),
+      import(`./locales/${locale}/adminLogs.json`),
+      import(`./locales/${locale}/devEnvironments.json`),
       import(`./locales/${locale}/tasks.json`),
-      import(`./locales/${locale}/task-conversations.json`),
-      import(`./locales/${locale}/git-diff.json`),
-      import(`./locales/${locale}/system-config.json`),
+      import(`./locales/${locale}/taskConversations.json`),
+      import(`./locales/${locale}/gitDiff.json`),
+      import(`./locales/${locale}/systemConfig.json`),
     ]);
 
     return {
@@ -43,11 +43,11 @@ const loadModularTranslations = async (locale: string) => {
       gitCredentials: gitCredentials.default,
       projects: projects.default,
       adminLogs: adminLogs.default,
-      dev_environments: devEnvironments.default,
+      devEnvironments: devEnvironments.default,
       tasks: tasks.default,
-      taskConversation: taskConversations.default,
+      taskConversations: taskConversations.default,
       gitDiff: gitDiff.default,
-      "system-config": systemConfig.default,
+      systemConfig: systemConfig.default,
     };
   } catch (error) {
     console.error(`Failed to load translations for locale: ${locale}`, error);

@@ -150,7 +150,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
     const errors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      errors.name = t("dev_environments.validation.name_required");
+      errors.name = t("devEnvironments.validation.name_required");
     }
 
     if (mode === "create" && !formData.docker_image.trim()) {
@@ -160,7 +160,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
     }
 
     if (formData.cpu_limit <= 0 || formData.cpu_limit > 16) {
-      errors.cpu_limit = t("dev_environments.validation.cpu_limit_invalid");
+      errors.cpu_limit = t("devEnvironments.validation.cpu_limit_invalid");
     }
 
     if (formData.memory_limit <= 0 || formData.memory_limit > 32768) {
@@ -201,12 +201,12 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 
   const addEnvVar = () => {
     if (!newEnvKey.trim()) {
-      toast.error(t("dev_environments.env_vars.key_required"));
+      toast.error(t("devEnvironments.env_vars.key_required"));
       return;
     }
 
     if (envVars[newEnvKey]) {
-      toast.error(t("dev_environments.env_vars.key_exists"));
+      toast.error(t("devEnvironments.env_vars.key_exists"));
       return;
     }
 
@@ -252,7 +252,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
           env_vars: envVars,
         };
         await apiService.devEnvironments.create(requestData);
-        toast.success(t("dev_environments.create_success"));
+        toast.success(t("devEnvironments.create_success"));
       } else {
         const requestData: UpdateDevEnvironmentRequest = {
           name: formData.name,
@@ -262,7 +262,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
           env_vars: envVars,
         };
         await apiService.devEnvironments.update(initialData!.id, requestData);
-        toast.success(t("dev_environments.update_success"));
+        toast.success(t("devEnvironments.update_success"));
       }
 
       onSuccess();
@@ -280,25 +280,25 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
       <CardHeader>
         <CardTitle>
           {mode === "create"
-            ? t("dev_environments.create")
-            : t("dev_environments.edit")}
+            ? t("devEnvironments.create")
+            : t("devEnvironments.edit")}
         </CardTitle>
         <p className="text-muted-foreground">
           {mode === "create"
-            ? t("dev_environments.create_description")
-            : t("dev_environments.edit_description")}
+            ? t("devEnvironments.create_description")
+            : t("devEnvironments.edit_description")}
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-6">
           <div className="space-y-4">
             <div className="flex flex-col gap-3">
-              <Label htmlFor="name">{t("dev_environments.form.name")} *</Label>
+              <Label htmlFor="name">{t("devEnvironments.form.name")} *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleFieldChange("name", e.target.value)}
-                placeholder={t("dev_environments.form.name_placeholder")}
+                placeholder={t("devEnvironments.form.name_placeholder")}
                 className={validationErrors.name ? "border-destructive" : ""}
               />
               {validationErrors.name && (
@@ -310,7 +310,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 
             <div className="flex flex-col gap-3">
               <Label htmlFor="description">
-                {t("dev_environments.form.description")}
+                {t("devEnvironments.form.description")}
               </Label>
               <Textarea
                 id="description"
@@ -318,14 +318,14 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   handleFieldChange("description", e.target.value)
                 }
-                placeholder={t("dev_environments.form.description_placeholder")}
+                placeholder={t("devEnvironments.form.description_placeholder")}
                 rows={3}
               />
             </div>
 
             {mode === "create" && (
               <div className="flex flex-col gap-3">
-                <Label>{t("dev_environments.form.docker_image")} *</Label>
+                <Label>{t("devEnvironments.form.docker_image")} *</Label>
                 <Select
                   value={formData.docker_image}
                   onValueChange={handleDockerImageChange}
@@ -366,14 +366,14 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 
           <div className="space-y-4">
             <h3 className="text-lg font-medium">
-              {t("dev_environments.form.resources")}
+              {t("devEnvironments.form.resources")}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
                 <Label htmlFor="cpu_limit">
-                  {t("dev_environments.form.cpu_limit")} * (0.1-16{" "}
-                  {t("dev_environments.stats.cores")})
+                  {t("devEnvironments.form.cpu_limit")} * (0.1-16{" "}
+                  {t("devEnvironments.stats.cores")})
                 </Label>
                 <Input
                   id="cpu_limit"
@@ -398,7 +398,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 
               <div className="flex flex-col gap-3">
                 <Label htmlFor="memory_limit">
-                  {t("dev_environments.form.memory_limit")} * (128-32768 MB)
+                  {t("devEnvironments.form.memory_limit")} * (128-32768 MB)
                 </Label>
                 <Input
                   id="memory_limit"
@@ -426,19 +426,19 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 
           <div className="space-y-4">
             <h3 className="text-lg font-medium">
-              {t("dev_environments.form.env_vars")}
+              {t("devEnvironments.form.env_vars")}
             </h3>
 
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">
-                  {t("dev_environments.env_vars.add_new")}
+                  {t("devEnvironments.env_vars.add_new")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-3">
-                    <Label>{t("dev_environments.env_vars.key")}</Label>
+                    <Label>{t("devEnvironments.env_vars.key")}</Label>
                     <Input
                       value={newEnvKey}
                       onChange={(e) => setNewEnvKey(e.target.value)}
@@ -446,7 +446,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                     />
                   </div>
                   <div className="flex flex-col gap-3">
-                    <Label>{t("dev_environments.env_vars.value")}</Label>
+                    <Label>{t("devEnvironments.env_vars.value")}</Label>
                     <Input
                       value={newEnvValue}
                       onChange={(e) => setNewEnvValue(e.target.value)}
@@ -461,7 +461,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                   disabled={!newEnvKey.trim()}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  {t("dev_environments.env_vars.add")}
+                  {t("devEnvironments.env_vars.add")}
                 </Button>
               </CardContent>
             </Card>
@@ -470,7 +470,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">
-                    {t("dev_environments.env_vars.current")}
+                    {t("devEnvironments.env_vars.current")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

@@ -81,7 +81,7 @@ const DevEnvironmentListPage: React.FC = () => {
       toast.error(
         error instanceof Error
           ? error.message
-          : t("dev_environments.fetch_failed")
+          : t("devEnvironments.fetch_failed")
       );
     } finally {
       setLoading(false);
@@ -98,14 +98,14 @@ const DevEnvironmentListPage: React.FC = () => {
 
     try {
       await apiService.devEnvironments.delete(environmentToDelete);
-      toast.success(t("dev_environments.delete_success"));
+      toast.success(t("devEnvironments.delete_success"));
       await fetchEnvironments();
     } catch (error) {
       logError(error as Error, "Failed to delete environment");
       toast.error(
         error instanceof Error
           ? error.message
-          : t("dev_environments.delete_failed")
+          : t("devEnvironments.delete_failed")
       );
     } finally {
       setDeleteDialogOpen(false);
@@ -146,13 +146,13 @@ const DevEnvironmentListPage: React.FC = () => {
               {t("navigation.dev_environments")}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              {t("dev_environments.page_description")}
+              {t("devEnvironments.page_description")}
             </p>
           </div>
           <div className="flex gap-2">
             <Button onClick={() => navigate("/dev-environments/create")}>
               <Plus className="h-4 w-4 mr-2" />
-              {t("dev_environments.create")}
+              {t("devEnvironments.create")}
             </Button>
           </div>
         </div>
@@ -177,10 +177,10 @@ const DevEnvironmentListPage: React.FC = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-foreground">
-              {t("dev_environments.delete_confirm_title")}
+              {t("devEnvironments.delete_confirm_title")}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              {t("dev_environments.delete_confirm")}
+              {t("devEnvironments.delete_confirm")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

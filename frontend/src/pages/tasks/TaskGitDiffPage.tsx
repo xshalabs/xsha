@@ -346,10 +346,10 @@ const TaskGitDiffPage: React.FC = () => {
           <div className="flex items-center justify-center py-12">
             <div className="text-center text-muted-foreground">
               <p className="text-lg font-medium mb-2">
-                {t("taskConversation.gitDiff.noWorkBranch.title")}
+                {t("taskConversations.gitDiff.noWorkBranch.title")}
               </p>
               <p className="text-sm mb-4">
-                {t("taskConversation.gitDiff.noWorkBranch.description")}
+                {t("taskConversations.gitDiff.noWorkBranch.description")}
               </p>
               <Button variant="outline" onClick={handleGoToConversation}>
                 {t("tasks.actions.viewConversation")}

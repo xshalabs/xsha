@@ -21,7 +21,7 @@ import type { SystemConfig, ConfigUpdateItem } from "@/types/system-config";
 
 export default function SystemConfigEditPage() {
   const { t } = useTranslation();
-  usePageTitle(t("system-config.title"));
+  usePageTitle(t("systemConfig.title"));
 
   const [configs, setConfigs] = useState<SystemConfig[]>([]);
   const [formData, setFormData] = useState<{ [key: string]: string }>({});
@@ -148,9 +148,9 @@ export default function SystemConfigEditPage() {
     switch (configKey) {
       case "git_proxy_http":
       case "git_proxy_https":
-        return t("system-config.proxy_url_placeholder");
+        return t("systemConfig.proxy_url_placeholder");
       case "git_proxy_no_proxy":
-        return t("system-config.no_proxy_placeholder");
+        return t("systemConfig.no_proxy_placeholder");
       default:
         return "";
     }
@@ -158,13 +158,13 @@ export default function SystemConfigEditPage() {
 
   const getConfigLabel = (config: SystemConfig) => {
     const configKeyMap = {
-      'admin_user': t("system-config.admin_user"),
-      'admin_password': t("system-config.admin_password"),
-      'dev_environment_images': t("system-config.dev_environment_images"),
-      'git_proxy_enabled': t("system-config.git_proxy_enabled"),
-      'git_proxy_http': t("system-config.git_proxy_http"),
-      'git_proxy_https': t("system-config.git_proxy_https"),
-      'git_proxy_no_proxy': t("system-config.git_proxy_no_proxy"),
+      'admin_user': t("systemConfig.admin_user"),
+      'admin_password': t("systemConfig.admin_password"),
+      'dev_environment_images': t("systemConfig.dev_environment_images"),
+      'git_proxy_enabled': t("systemConfig.git_proxy_enabled"),
+      'git_proxy_http': t("systemConfig.git_proxy_http"),
+      'git_proxy_https': t("systemConfig.git_proxy_https"),
+      'git_proxy_no_proxy': t("systemConfig.git_proxy_no_proxy"),
     } as const;
     
     return configKeyMap[config.config_key as keyof typeof configKeyMap] || config.config_key;
@@ -172,13 +172,13 @@ export default function SystemConfigEditPage() {
 
   const getConfigDescription = (config: SystemConfig) => {
     const configDescMap = {
-      'admin_user': t("system-config.admin_user_desc"),
-      'admin_password': t("system-config.admin_password_desc"), 
-      'dev_environment_images': t("system-config.dev_environment_images_description"),
-      'git_proxy_enabled': t("system-config.git_proxy_enabled_desc"),
-      'git_proxy_http': t("system-config.git_proxy_http_desc"),
-      'git_proxy_https': t("system-config.git_proxy_https_desc"),
-      'git_proxy_no_proxy': t("system-config.git_proxy_no_proxy_desc"),
+      'admin_user': t("systemConfig.admin_user_desc"),
+      'admin_password': t("systemConfig.admin_password_desc"), 
+      'dev_environment_images': t("systemConfig.dev_environment_images_description"),
+      'git_proxy_enabled': t("systemConfig.git_proxy_enabled_desc"),
+      'git_proxy_http': t("systemConfig.git_proxy_http_desc"),
+      'git_proxy_https': t("systemConfig.git_proxy_https_desc"),
+      'git_proxy_no_proxy': t("systemConfig.git_proxy_no_proxy_desc"),
     } as const;
     
     return configDescMap[config.config_key as keyof typeof configDescMap] || config.description;
@@ -186,9 +186,9 @@ export default function SystemConfigEditPage() {
 
   const getCategoryName = (category: string) => {
     const categoryMap = {
-      'auth': t("system-config.categories.auth"),
-      'dev_environment': t("system-config.categories.devEnvironment"),
-      'git': t("system-config.categories.git"),
+      'auth': t("systemConfig.categories.auth"),
+      'dev_environment': t("systemConfig.categories.devEnvironment"),
+      'git': t("systemConfig.categories.git"),
     } as const;
     
     return categoryMap[category as keyof typeof categoryMap] || category;
@@ -196,9 +196,9 @@ export default function SystemConfigEditPage() {
 
   const getCategoryDescription = (category: string) => {
     const descMap = {
-      'auth': t("system-config.categoryDescriptions.auth"),
-      'dev_environment': t("system-config.categoryDescriptions.devEnvironment"),
-      'git': t("system-config.categoryDescriptions.git"),
+      'auth': t("systemConfig.categoryDescriptions.auth"),
+      'dev_environment': t("systemConfig.categoryDescriptions.devEnvironment"),
+      'git': t("systemConfig.categoryDescriptions.git"),
     } as const;
     
     return descMap[category as keyof typeof descMap] || "";
@@ -218,7 +218,7 @@ export default function SystemConfigEditPage() {
         }));
 
       await systemConfigsApi.batchUpdate({ configs: updateItems });
-      toast.success(t("system-config.update_success"));
+      toast.success(t("systemConfig.update_success"));
 
       await fetchConfigs();
     } catch (error: any) {
@@ -261,10 +261,10 @@ export default function SystemConfigEditPage() {
         <div className="flex justify-between items-center py-6">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              {t("system-config.title")}
+              {t("systemConfig.title")}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              {t("system-config.edit_page_description")}
+              {t("systemConfig.edit_page_description")}
             </p>
           </div>
           <div className="flex gap-2">
@@ -307,7 +307,7 @@ export default function SystemConfigEditPage() {
                         {getConfigLabel(config)}
                         {!config.is_editable && (
                           <span className="ml-2 text-xs text-muted-foreground">
-                            ({t("system-config.readonly")})
+                            ({t("systemConfig.readonly")})
                           </span>
                         )}
                       </Label>

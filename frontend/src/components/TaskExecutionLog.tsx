@@ -215,7 +215,7 @@ export function TaskExecutionLog({
         <CardContent className="pt-6">
           <div className="flex items-center justify-center py-4">
             <Terminal className="w-5 h-5 mr-2 animate-spin" />
-            <span>{t("taskConversation.execution.messages.loading")}</span>
+            <span>{t("taskConversations.execution.messages.loading")}</span>
           </div>
         </CardContent>
       </Card>
@@ -232,7 +232,7 @@ export function TaskExecutionLog({
               <span>{error}</span>
             </div>
             <Button variant="outline" size="sm" onClick={refreshExecutionLog}>
-              {t("taskConversation.execution.actions.retry")}
+              {t("taskConversations.execution.actions.retry")}
             </Button>
           </div>
         </CardContent>
@@ -246,7 +246,7 @@ export function TaskExecutionLog({
         <CardContent className="pt-6">
           <div className="text-center py-4 text-gray-500">
             <Terminal className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p>{t("taskConversation.execution.messages.notFound")}</p>
+            <p>{t("taskConversations.execution.messages.notFound")}</p>
           </div>
         </CardContent>
       </Card>
@@ -260,10 +260,10 @@ export function TaskExecutionLog({
           <div className="space-y-1">
             <CardTitle className="text-lg flex items-center">
               <Terminal className="w-5 h-5 mr-2" />
-              {t("taskConversation.execution.title")}
+              {t("taskConversations.execution.title")}
             </CardTitle>
             <CardDescription>
-              {t("taskConversation.execution.subtitle")}
+              {t("taskConversations.execution.subtitle")}
             </CardDescription>
           </div>
 
@@ -277,7 +277,7 @@ export function TaskExecutionLog({
                 disabled={actionLoading === "cancel"}
               >
                 <Square className="w-4 h-4 mr-1" />
-                {t("taskConversation.execution.actions.cancel")}
+                {t("taskConversations.execution.actions.cancel")}
               </Button>
             )}
 
@@ -290,7 +290,7 @@ export function TaskExecutionLog({
                 disabled={actionLoading === "retry"}
               >
                 <RotateCcw className="w-4 h-4 mr-1" />
-                {t("taskConversation.execution.actions.retry")}
+                {t("taskConversations.execution.actions.retry")}
               </Button>
             )}
           </div>
@@ -301,13 +301,13 @@ export function TaskExecutionLog({
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-gray-500">
-              {t("taskConversation.execution.info.started")}:
+              {t("taskConversations.execution.info.started")}:
             </span>
             <span className="ml-2">{formatTime(executionLog.started_at)}</span>
           </div>
           <div>
             <span className="text-gray-500">
-              {t("taskConversation.execution.info.completed")}:
+              {t("taskConversations.execution.info.completed")}:
             </span>
             <span className="ml-2">
               {formatTime(executionLog.completed_at)}
@@ -315,7 +315,7 @@ export function TaskExecutionLog({
           </div>
           <div>
             <span className="text-gray-500">
-              {t("taskConversation.execution.info.duration")}:
+              {t("taskConversations.execution.info.duration")}:
             </span>
             <span className="ml-2">
               {formatDuration(
@@ -331,7 +331,7 @@ export function TaskExecutionLog({
             <div className="flex items-center mb-2">
               <XCircle className="w-4 h-4 text-red-500 mr-2" />
               <span className="font-medium text-red-700">
-                {t("taskConversation.execution.info.errorMessage")}
+                {t("taskConversations.execution.info.errorMessage")}
               </span>
             </div>
             <pre className="text-sm text-red-600 whitespace-pre-wrap">
@@ -345,7 +345,7 @@ export function TaskExecutionLog({
             <div className="flex items-center mb-2">
               <Terminal className="w-4 h-4 text-gray-500 mr-2" />
               <span className="font-medium text-gray-700">
-                {t("taskConversation.execution.info.dockerCommand")}
+                {t("taskConversations.execution.info.dockerCommand")}
               </span>
             </div>
             <pre className="text-sm text-gray-600 font-mono whitespace-pre-wrap">
@@ -359,7 +359,7 @@ export function TaskExecutionLog({
             <div className="flex items-center mb-2">
               <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
               <span className="font-medium text-green-700">
-                {t("taskConversation.execution.info.commitHash")}
+                {t("taskConversations.execution.info.commitHash")}
               </span>
             </div>
             <span className="text-sm text-green-600 font-mono">
@@ -372,7 +372,7 @@ export function TaskExecutionLog({
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="font-medium text-foreground">
-                {t("taskConversation.execution.info.executionLogs")}
+                {t("taskConversations.execution.info.executionLogs")}
               </span>
               {conversationStatus === "running" && (
                 <Button
@@ -403,10 +403,10 @@ export function TaskExecutionLog({
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-foreground">
-              {t("taskConversation.execution.cancel_confirm_title")}
+              {t("taskConversations.execution.cancel_confirm_title")}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              {t("taskConversation.execution.cancel_confirm")}
+              {t("taskConversations.execution.cancel_confirm")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -433,10 +433,10 @@ export function TaskExecutionLog({
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-foreground">
-              {t("taskConversation.execution.retry_confirm_title")}
+              {t("taskConversations.execution.retry_confirm_title")}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              {t("taskConversation.execution.retry_confirm")}
+              {t("taskConversations.execution.retry_confirm")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

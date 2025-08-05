@@ -51,19 +51,19 @@ class I18nChecker {
         
         // 文件名到命名空间的映射
         $namespaceMapping = [
-            'admin-logs' => 'adminLogs',
+            'adminLogs' => 'adminLogs',
             'api' => 'api',
             'auth' => 'auth',
             'common' => 'common',
             'dashboard' => 'dashboard',
-            'dev-environments' => 'dev_environments',
+            'devEnvironments' => 'devEnvironments',
             'errors' => 'errors',
-            'git-credentials' => 'gitCredentials',
-            'git-diff' => 'gitDiff',
+            'gitCredentials' => 'gitCredentials',
+            'gitDiff' => 'gitDiff',
             'navigation' => 'navigation',
             'projects' => 'projects',
-            'system-config' => 'system-config',
-            'task-conversations' => 'taskConversation',
+            'systemConfig' => 'systemConfig',
+            'taskConversations' => 'taskConversations',
             'tasks' => 'tasks'
         ];
         
@@ -161,19 +161,19 @@ class I18nChecker {
         
         // 命名空间到文件名的反向映射
         $fileNameMapping = [
-            'adminLogs' => 'admin-logs',
+            'adminLogs' => 'adminLogs',
             'api' => 'api',
             'auth' => 'auth',
             'common' => 'common',
             'dashboard' => 'dashboard',
-            'dev_environments' => 'dev-environments',
+            'devEnvironments' => 'devEnvironments',
             'errors' => 'errors',
-            'gitCredentials' => 'git-credentials',
-            'gitDiff' => 'git-diff',
+            'gitCredentials' => 'gitCredentials',
+            'gitDiff' => 'gitDiff',
             'navigation' => 'navigation',
             'projects' => 'projects',
-            'system-config' => 'system-config',
-            'taskConversation' => 'task-conversations',
+            'systemConfig' => 'systemConfig',
+            'taskConversations' => 'taskConversations',
             'tasks' => 'tasks'
         ];
         

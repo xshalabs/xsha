@@ -130,32 +130,32 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">
-              {t("dev_environments.filters.title")}
+              {t("devEnvironments.filters.title")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
                 <Label htmlFor="name">
-                  {t("dev_environments.filters.name")}
+                  {t("devEnvironments.filters.name")}
                 </Label>
                 <Input
                   id="name"
                   value={localFilters.name || ""}
                   onChange={(e) => handleFilterChange("name", e.target.value)}
-                  placeholder={t("dev_environments.filters.name_placeholder")}
+                  placeholder={t("devEnvironments.filters.name_placeholder")}
                 />
               </div>
 
               <div className="flex flex-col gap-3">
                 <Label htmlFor="docker_image">
-                  {t("dev_environments.filters.docker_image")}
+                  {t("devEnvironments.filters.docker_image")}
                 </Label>
                 <Input
                   id="docker_image"
                   value={localFilters.docker_image || ""}
                   onChange={(e) => handleFilterChange("docker_image", e.target.value)}
-                  placeholder={t("dev_environments.filters.docker_image_placeholder")}
+                  placeholder={t("devEnvironments.filters.docker_image_placeholder")}
                 />
               </div>
             </div>
@@ -172,17 +172,17 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
 
       <Card>
         <CardHeader>
-          <CardTitle>{t("dev_environments.list")}</CardTitle>
+          <CardTitle>{t("devEnvironments.list")}</CardTitle>
         </CardHeader>
         <CardContent>
           {environments.length === 0 ? (
             <div className="text-center py-8">
               <Monitor className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">
-                {t("dev_environments.empty.title")}
+                {t("devEnvironments.empty.title")}
               </h3>
               <p className="text-muted-foreground">
-                {t("dev_environments.empty.description")}
+                {t("devEnvironments.empty.description")}
               </p>
             </div>
           ) : (
@@ -190,13 +190,13 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("dev_environments.table.name")}</TableHead>
-                    <TableHead>{t("dev_environments.table.type")}</TableHead>
+                    <TableHead>{t("devEnvironments.table.name")}</TableHead>
+                    <TableHead>{t("devEnvironments.table.type")}</TableHead>
                     <TableHead>
-                      {t("dev_environments.table.docker_image")}
+                      {t("devEnvironments.table.docker_image")}
                     </TableHead>
                     <TableHead>
-                      {t("dev_environments.table.resources")}
+                      {t("devEnvironments.table.resources")}
                     </TableHead>
                     <TableHead className="text-right">
                       {t("common.actions")}
@@ -228,10 +228,10 @@ const DevEnvironmentList: React.FC<DevEnvironmentListProps> = ({
                         <div className="text-sm">
                           <div>
                             CPU: {environment.cpu_limit}{" "}
-                            {t("dev_environments.stats.cores")}
+                            {t("devEnvironments.stats.cores")}
                           </div>
                           <div>
-                            {t("dev_environments.stats.memory")}:{" "}
+                            {t("devEnvironments.stats.memory")}:{" "}
                             {formatMemory(environment.memory_limit)}
                           </div>
                         </div>

@@ -274,7 +274,7 @@ const TaskConversationGitDiffPage: React.FC = () => {
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <p className="text-muted-foreground">
-                {t("taskConversation.messages.loadFailed")}
+                {t("taskConversations.messages.loadFailed")}
               </p>
               <Button
                 variant="outline"
@@ -298,10 +298,10 @@ const TaskConversationGitDiffPage: React.FC = () => {
           <div className="flex items-center justify-center py-12">
             <div className="text-center text-muted-foreground">
               <p className="text-lg font-medium mb-2">
-                {t("taskConversation.gitDiff.noCommitHash.title")}
+                {t("taskConversations.gitDiff.noCommitHash.title")}
               </p>
               <p className="text-sm mb-4">
-                {t("taskConversation.gitDiff.noCommitHash.description")}
+                {t("taskConversations.gitDiff.noCommitHash.description")}
               </p>
               <Button variant="outline" onClick={handleGoBack}>
                 {t("common.back")}
