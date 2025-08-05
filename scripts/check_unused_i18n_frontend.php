@@ -131,8 +131,13 @@ class I18nChecker {
     private function scanFile($filePath) {
         $content = file_get_contents($filePath);
         
-        // 匹配 t("key") 或 t('key') 的模式
-        preg_match_all('/\bt\(\s*["\']([^"\']+)["\']\s*\)/', $content, $matches);
+        // 移除单行和多行注释，避免误匹配注释中的内容
+        $content = preg_replace('/\/\*[\s\S]*?\*\//', '', $content);
+        $content = preg_replace('/\/\/.*$/', '', $content);
+        
+        // 匹配 t("key") 或 t('key') 的模式，支持多行和空白字符
+        // 使用 DOTALL 修饰符让 . 匹配换行符
+        preg_match_all('/\bt\(\s*["\']([^"\']+)["\']\s*(?:,[\s\S]*?)?\)/s', $content, $matches);
         
         if (!empty($matches[1])) {
             foreach ($matches[1] as $key) {

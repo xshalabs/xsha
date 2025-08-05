@@ -155,7 +155,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 
     if (mode === "create" && !formData.docker_image.trim()) {
       errors.docker_image = t(
-        "dev_environments.validation.docker_image_required"
+        "devEnvironments.validation.docker_image_required"
       );
     }
 
@@ -165,7 +165,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
 
     if (formData.memory_limit <= 0 || formData.memory_limit > 32768) {
       errors.memory_limit = t(
-        "dev_environments.validation.memory_limit_invalid"
+        "devEnvironments.validation.memory_limit_invalid"
       );
     }
 
@@ -334,7 +334,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                   <SelectTrigger className="w-full">
                     <SelectValue
                       placeholder={t(
-                        "dev_environments.form.docker_image_placeholder"
+                        "devEnvironments.form.docker_image_placeholder"
                       )}
                     >
                       {loadingImages ? t("common.loading") : undefined}
