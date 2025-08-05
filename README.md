@@ -1,48 +1,15 @@
-# 🚀 XSHA
+# 🚀 XSha - Open Source Alternative to Cursor Background | Claude Code Remote/Concurrent Solution 🌟
 
 [README-Chinese🇨🇳](README_CN.md)
 
-XSHA is an AI-powered (currently supporting `Claude Code`) project task automation development platform. ✨
+XSha is a software system that combines project management, Git, and AI-driven development. Based on Claude Code, it enables project task development through conversational interactions, with multiple tasks running concurrently, each with its own isolated workspace. Docker containers are used to allocate execution environments for each task, ensuring security. With ENV variable configuration, you can easily integrate more cost-effective large language models like Kimi2, GLM 4.5, and Qwen Coder. ✨
 
-## ✨ Key Features
+## 🔥 Core Features
 
-### 🤖 **AI-Powered Task Automation**
-
-- **Intelligent Task Execution**: AI-driven task processing and automation 🧠
-- **Conversation-based Workflows**: Natural language task descriptions and execution 💬
-- **Task Scheduling**: Automated task execution with flexible scheduling options ⏰
-
-### 🎯 **Project Management**
-
-- **Multi-project Support**: Manage multiple projects with individual configurations and settings 📚
-- **Project Templates**: Quick project setup with predefined templates and configurations 📝
-- **Project Analytics**: Track project metrics and development progress 📈
-
-### 🔐 **Git Credentials Management**
-
-- **Secure Credential Storage**: Encrypted storage of Git credentials with role-based access 🔒
-- **Multiple Provider Support**: Support for GitHub, GitLab, Bitbucket, and custom Git servers 🌐
-- **Credential Sharing**: Team-based credential sharing with granular permissions 👥
-
-### 🚀 **Development Environment Orchestration**
-
-- **Environment Templates**: Predefined development environment configurations 📦
-- **Docker Integration**: Containerized development environments for consistency 🐳
-- **Environment Provisioning**: Automated setup and teardown of development environments ⚡
-
-### 📊 **Admin & Monitoring**
-
-- **Operation Logging**: Comprehensive audit trails for all system operations 📋
-- **User Management**: Role-based access control and user administration 👨‍💼
-- **System Configuration**: Flexible system-wide configuration management ⚙️
-
-### 🌐 **Modern Tech Stack**
-
-- **Backend**: Go with Gin framework, GORM ORM, JWT authentication 🐹
-- **Frontend**: React 18+, TypeScript, Vite, shadcn/ui, Tailwind CSS ⚛️
-- **Database**: MySQL with automated migrations 🗄️
-- **Deployment**: Docker & Docker Compose with health checks 🐳
-- **API Documentation**: OpenAPI/Swagger integration 📚
+- **🧠 AI-Driven Project Task Automation:** Built on Claude Code, with development capabilities limited only by Claude Code's potential. Also supports models like Kimi2/GLM 4.5/Qwen Coder.
+- **🛡️ Isolated Execution Environments:** Docker-based container solution ensures each Claude Code execution runs in its own isolated container for security.
+- **⚡ Concurrent Task Execution:** Controllable concurrency allows for faster project task development.
+- **🔄 Git Integration:** Directly import Git repositories, push completed project tasks to repositories with one click, and view Git diffs online.
 
 ## 🏃‍♂️ Quick Start
 
