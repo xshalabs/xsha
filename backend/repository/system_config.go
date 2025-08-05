@@ -109,6 +109,16 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			"name":  "Claude Code node20_1.0.67",
 			"type":  "claude-code",
 		},
+		{
+			"image": "registry.cn-hangzhou.aliyuncs.com/hzbs/claude-code:node18-1.0.67",
+			"name":  "[CN]Claude Code node18_1.0.67",
+			"type":  "claude-code",
+		},
+		{
+			"image": "registry.cn-hangzhou.aliyuncs.com/hzbs/claude-code:node20-1.0.67",
+			"name":  "[CN]Claude Code node20_1.0.67",
+			"type":  "claude-code",
+		},
 	}
 
 	devEnvImagesJSON, err := json.Marshal(defaultDevEnvImages)
