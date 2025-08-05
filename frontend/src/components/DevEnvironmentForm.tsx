@@ -18,6 +18,7 @@ import { Plus, Trash2, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { apiService } from "@/lib/api/index";
 import { devEnvironmentsApi } from "@/lib/api/dev-environments";
+import { handleApiError } from "@/lib/errors";
 import type {
   DevEnvironmentDisplay,
   CreateDevEnvironmentRequest,
@@ -97,7 +98,8 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
           }));
         }
       } catch (error: any) {
-        toast.error(error.message || t("dev_environments.load_images_failed"));
+        const errorMessage = handleApiError(error);
+        toast.error(errorMessage);
         const fallbackImage = {
           image: "claude-code:latest",
           name: "Claude Code",
@@ -266,11 +268,8 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
       onSuccess();
     } catch (error: any) {
       console.error("Failed to save environment:", error);
-      toast.error(
-        mode === "create"
-          ? t("dev_environments.create_failed")
-          : t("dev_environments.update_failed")
-      );
+      const errorMessage = handleApiError(error);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

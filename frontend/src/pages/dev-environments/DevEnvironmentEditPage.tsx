@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { apiService } from "@/lib/api/index";
 import { toast } from "sonner";
+import { handleApiError } from "@/lib/errors";
 import DevEnvironmentForm from "@/components/DevEnvironmentForm";
 import type { DevEnvironmentDisplay } from "@/types/dev-environment";
 
@@ -52,7 +53,8 @@ const DevEnvironmentEditPage: React.FC = () => {
         });
       } catch (error) {
         console.error("Failed to load environment:", error);
-        toast.error(t("dev_environments.load_failed"));
+        const errorMessage = handleApiError(error);
+        toast.error(errorMessage);
         navigate("/dev-environments");
       } finally {
         setLoading(false);

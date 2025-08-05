@@ -73,7 +73,7 @@ WORKDIR /app
 COPY --from=backend-builder /app/main .
 
 # Create necessary directories with proper permissions
-RUN mkdir -p /app/db /app/workspaces && \
+RUN mkdir -p /app/db /app/xsha-workspaces /app/xsha-dev-sessions && \
     chown -R xsha:xsha /app
 
 # Switch to non-root user

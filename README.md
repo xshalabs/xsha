@@ -57,7 +57,7 @@ cd xsha
 
 ```bash
 sudo chmod 666 /var/run/docker.sock
-docker-compose up -d
+docker compose up -d
 ```
 
 3. 🌍 **Access the application**

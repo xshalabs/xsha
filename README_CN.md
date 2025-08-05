@@ -55,7 +55,7 @@ cd xsha
 
 ```bash
 sudo chmod 666 /var/run/docker.sock
-docker-compose -f docker-compose.cn.yml up -d
+docker compose -f docker-compose.cn.yml up -d
 ```
 
 3. 🌍 **访问应用程序**
