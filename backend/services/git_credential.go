@@ -1,11 +1,11 @@
 package services
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"xsha-backend/config"
 	"xsha-backend/database"
+	appErrors "xsha-backend/errors"
 	"xsha-backend/repository"
 )
 
@@ -29,7 +29,7 @@ func (s *gitCredentialService) CreateCredential(name, description, credType, use
 	}
 
 	if existing, _ := s.repo.GetByName(name); existing != nil {
-		return nil, errors.New("credential name already exists")
+		return nil, appErrors.ErrCredentialNameExists
 	}
 
 	credential := &database.GitCredential{
@@ -117,7 +117,7 @@ func (s *gitCredentialService) DeleteCredential(id uint) error {
 
 	for _, project := range projects {
 		if project.CredentialID != nil && *project.CredentialID == credential.ID {
-			return errors.New("git_credential.delete_used_by_projects")
+			return appErrors.ErrCredentialUsedByProjects
 		}
 	}
 
@@ -133,16 +133,16 @@ func (s *gitCredentialService) DecryptCredentialSecret(credential *database.GitC
 	switch secretType {
 	case "password", "token":
 		if credential.PasswordHash == "" {
-			return "", errors.New("password not set")
+			return "", appErrors.ErrCredentialPasswordNotSet
 		}
 		return credential.PasswordHash, nil
 	case "private_key":
 		if credential.PrivateKey == "" {
-			return "", errors.New("private key not set")
+			return "", appErrors.ErrCredentialPrivateKeyNotSet
 		}
 		return credential.PrivateKey, nil
 	default:
-		return "", errors.New("unsupported secret type")
+		return "", appErrors.ErrCredentialUnsupportedSecretType
 	}
 }
 
@@ -150,21 +150,21 @@ func (s *gitCredentialService) ValidateCredentialData(credType string, data map[
 	switch database.GitCredentialType(credType) {
 	case database.GitCredentialTypePassword:
 		if data["password"] == "" {
-			return errors.New("password is required for password type")
+			return appErrors.ErrCredentialPasswordRequired
 		}
 	case database.GitCredentialTypeToken:
 		if data["password"] == "" {
-			return errors.New("token is required for token type")
+			return appErrors.ErrCredentialTokenRequired
 		}
 	case database.GitCredentialTypeSSHKey:
 		if data["private_key"] == "" {
-			return errors.New("private key is required for SSH key type")
+			return appErrors.ErrCredentialPrivateKeyRequired
 		}
 		if !strings.Contains(data["private_key"], "BEGIN") {
-			return errors.New("invalid private key format")
+			return appErrors.ErrCredentialInvalidPrivateKeyFormat
 		}
 	default:
-		return errors.New("unsupported credential type")
+		return appErrors.ErrCredentialUnsupportedType
 	}
 	return nil
 }

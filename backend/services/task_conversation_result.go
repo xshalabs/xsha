@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"xsha-backend/database"
+	appErrors "xsha-backend/errors"
 	"xsha-backend/repository"
 	"xsha-backend/utils"
 )
@@ -37,10 +38,10 @@ func (s *taskConversationResultService) CreateResult(conversationID uint, result
 
 	exists, err := s.repo.ExistsByConversationID(conversationID)
 	if err != nil {
-		return nil, errors.New("failed to check existing result")
+		return nil, appErrors.ErrConversationResultCheckFailed
 	}
 	if exists {
-		return nil, errors.New("result already exists for this conversation")
+		return nil, appErrors.ErrConversationResultExists
 	}
 
 	result := &database.TaskConversationResult{
@@ -110,7 +111,7 @@ func (s *taskConversationResultService) GetResultByConversationID(conversationID
 func (s *taskConversationResultService) UpdateResult(id uint, updates map[string]interface{}) error {
 	result, err := s.repo.GetByID(id)
 	if err != nil {
-		return errors.New("result not found")
+		return appErrors.ErrConversationResultNotFound
 	}
 
 	if typeVal, ok := updates["type"].(string); ok {

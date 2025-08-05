@@ -48,12 +48,30 @@ var (
 	ErrIncompatibleCredential = &I18nError{Key: "project.incompatible_credential"}
 	ErrInvalidProtocol        = &I18nError{Key: "project.invalid_protocol"}
 
-	ErrCredentialNameExists  = &I18nError{Key: "git_credential.name_exists"}
-	ErrCredentialUseFailed   = &I18nError{Key: "git_credential.use_failed"}
-	ErrInvalidCredentialType = &I18nError{Key: "git_credential.invalid_type"}
+	ErrCredentialNameExists              = &I18nError{Key: "git_credential.name_exists"}
+	ErrCredentialUseFailed               = &I18nError{Key: "git_credential.use_failed"}
+	ErrInvalidCredentialType             = &I18nError{Key: "git_credential.invalid_type"}
+	ErrCredentialPasswordNotSet          = &I18nError{Key: "git_credential.password_not_set"}
+	ErrCredentialPrivateKeyNotSet        = &I18nError{Key: "git_credential.private_key_not_set"}
+	ErrCredentialUnsupportedSecretType   = &I18nError{Key: "git_credential.unsupported_secret_type"}
+	ErrCredentialPasswordRequired        = &I18nError{Key: "git_credential.password_required"}
+	ErrCredentialTokenRequired           = &I18nError{Key: "git_credential.token_required"}
+	ErrCredentialPrivateKeyRequired      = &I18nError{Key: "git_credential.private_key_required"}
+	ErrCredentialInvalidPrivateKeyFormat = &I18nError{Key: "git_credential.invalid_private_key_format"}
+	ErrCredentialUnsupportedType         = &I18nError{Key: "git_credential.unsupported_credential_type"}
 
-	ErrEnvironmentCreateFailed = &I18nError{Key: "dev_environment.create_failed"}
-	ErrDevEnvironmentNotFound  = &I18nError{Key: "dev_environment.not_found"}
+	ErrEnvironmentCreateFailed           = &I18nError{Key: "dev_environment.create_failed"}
+	ErrDevEnvironmentNotFound            = &I18nError{Key: "dev_environment.not_found"}
+	ErrEnvironmentNameExists             = &I18nError{Key: "dev_environment.name_exists"}
+	ErrEnvironmentDockerImageRequired    = &I18nError{Key: "dev_environment.docker_image_required"}
+	ErrEnvironmentCPULimitInvalid        = &I18nError{Key: "dev_environment.cpu_limit_invalid"}
+	ErrEnvironmentMemoryLimitInvalid     = &I18nError{Key: "dev_environment.memory_limit_invalid"}
+	ErrEnvironmentNameRequired           = &I18nError{Key: "dev_environment.name_required"}
+	ErrEnvironmentImagesConfigFailed     = &I18nError{Key: "dev_environment.images_config_failed"}
+	ErrEnvironmentImagesConfigParseError = &I18nError{Key: "dev_environment.images_config_parse_error"}
+	ErrEnvironmentUnsupportedType        = &I18nError{Key: "dev_environment.unsupported_type"}
+	ErrEnvironmentVarKeyEmpty            = &I18nError{Key: "dev_environment.var_key_empty"}
+	ErrEnvironmentVarKeyInvalidChar      = &I18nError{Key: "dev_environment.var_key_invalid_char"}
 
 	ErrConversationGetFailed        = &I18nError{Key: "taskConversation.get_failed"}
 	ErrConversationCreateFailed     = &I18nError{Key: "taskConversation.create_failed"}
@@ -61,12 +79,21 @@ var (
 	ErrConversationDeleteFailed     = &I18nError{Key: "taskConversation.delete_failed"}
 	ErrConversationDeleteLatestOnly = &I18nError{Key: "taskConversation.delete_latest_only"}
 
+	ErrConversationResultCheckFailed = &I18nError{Key: "taskConversationResult.check_failed"}
+	ErrConversationResultExists     = &I18nError{Key: "taskConversationResult.already_exists"}
+	ErrConversationResultNotFound   = &I18nError{Key: "taskConversationResult.not_found"}
+
 	ErrNoDevEnvironment   = &I18nError{Key: "task_execution.no_dev_environment"}
 	ErrUpdateStatusFailed = &I18nError{Key: "task_execution.update_status_failed"}
 
 	ErrProjectHasInProgressTasks = &I18nError{Key: "project.delete_has_in_progress_tasks"}
 	ErrCredentialUsedByProjects  = &I18nError{Key: "git_credential.delete_used_by_projects"}
 	ErrEnvironmentUsedByTasks    = &I18nError{Key: "dev_environment.delete_used_by_tasks"}
+
+	ErrSystemConfigKeyRequired      = &I18nError{Key: "system_config.key_required"}
+	ErrSystemConfigValueRequired    = &I18nError{Key: "system_config.value_required"}
+	ErrSystemConfigCategoryRequired = &I18nError{Key: "system_config.category_required"}
+	ErrSystemConfigInvalidKeyFormat = &I18nError{Key: "system_config.invalid_key_format"}
 
 	ErrTaskIDsEmpty         = &I18nError{Key: "validation.required"}
 	ErrTooManyTasksForBatch = &I18nError{Key: "validation.too_many"}

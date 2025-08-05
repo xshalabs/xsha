@@ -2,7 +2,6 @@ package services
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,6 +9,7 @@ import (
 	"time"
 	"xsha-backend/config"
 	"xsha-backend/database"
+	appErrors "xsha-backend/errors"
 	"xsha-backend/repository"
 )
 
@@ -39,11 +39,11 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, envType, do
 	}
 
 	if existing, _ := s.repo.GetByName(name); existing != nil {
-		return nil, errors.New("environment name already exists")
+		return nil, appErrors.ErrEnvironmentNameExists
 	}
 
 	if strings.TrimSpace(dockerImage) == "" {
-		return nil, errors.New("docker image is required")
+		return nil, appErrors.ErrEnvironmentDockerImageRequired
 	}
 
 	envVarsJSON, err := json.Marshal(envVars)
@@ -121,7 +121,7 @@ func (s *devEnvironmentService) DeleteEnvironment(id uint) error {
 		return fmt.Errorf("failed to check environment usage: %v", err)
 	}
 	if len(tasks) > 0 {
-		return errors.New("dev_environment.delete_used_by_tasks")
+		return appErrors.ErrEnvironmentUsedByTasks
 	}
 
 	// Delete session directory if it exists
@@ -139,10 +139,10 @@ func (s *devEnvironmentService) DeleteEnvironment(id uint) error {
 func (s *devEnvironmentService) ValidateEnvVars(envVars map[string]string) error {
 	for key, value := range envVars {
 		if strings.TrimSpace(key) == "" {
-			return errors.New("environment variable key cannot be empty")
+			return appErrors.ErrEnvironmentVarKeyEmpty
 		}
 		if strings.Contains(key, "=") {
-			return errors.New("environment variable key cannot contain '=' character")
+			return appErrors.ErrEnvironmentVarKeyInvalidChar
 		}
 		_ = value
 	}
@@ -190,27 +190,27 @@ func (s *devEnvironmentService) UpdateEnvironmentVars(id uint, envVars map[strin
 
 func (s *devEnvironmentService) ValidateResourceLimits(cpuLimit float64, memoryLimit int64) error {
 	if cpuLimit <= 0 || cpuLimit > 16 {
-		return errors.New("CPU limit must be between 0 and 16 cores")
+		return appErrors.ErrEnvironmentCPULimitInvalid
 	}
 	if memoryLimit <= 0 || memoryLimit > 32768 {
-		return errors.New("memory limit must be between 0 and 32GB (32768MB)")
+		return appErrors.ErrEnvironmentMemoryLimitInvalid
 	}
 	return nil
 }
 
 func (s *devEnvironmentService) validateEnvironmentData(name, envType string, cpuLimit float64, memoryLimit int64) error {
 	if strings.TrimSpace(name) == "" {
-		return errors.New("environment name is required")
+		return appErrors.ErrEnvironmentNameRequired
 	}
 
 	envImagesJSON, err := s.configService.GetValue("dev_environment_images")
 	if err != nil {
-		return errors.New("failed to get environment images configuration")
+		return appErrors.ErrEnvironmentImagesConfigFailed
 	}
 
 	var envImages []map[string]interface{}
 	if err := json.Unmarshal([]byte(envImagesJSON), &envImages); err != nil {
-		return errors.New("failed to parse environment images configuration")
+		return appErrors.ErrEnvironmentImagesConfigParseError
 	}
 
 	found := false
@@ -221,7 +221,7 @@ func (s *devEnvironmentService) validateEnvironmentData(name, envType string, cp
 		}
 	}
 	if !found {
-		return errors.New("unsupported environment type")
+		return appErrors.ErrEnvironmentUnsupportedType
 	}
 
 	return s.ValidateResourceLimits(cpuLimit, memoryLimit)

@@ -1,12 +1,12 @@
 package services
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 	"xsha-backend/database"
+	appErrors "xsha-backend/errors"
 	"xsha-backend/repository"
 	"xsha-backend/utils"
 
@@ -68,22 +68,22 @@ func (s *systemConfigService) InitializeDefaultConfigs() error {
 
 func (s *systemConfigService) ValidateConfigData(key, value, category string) error {
 	if strings.TrimSpace(key) == "" {
-		return errors.New("configuration key is required")
+		return appErrors.ErrSystemConfigKeyRequired
 	}
 
 	allowEmptyValue := s.isOptionalConfig(key)
 	if !allowEmptyValue && strings.TrimSpace(value) == "" {
-		return errors.New("configuration value is required")
+		return appErrors.ErrSystemConfigValueRequired
 	}
 
 	if strings.TrimSpace(category) == "" {
-		return errors.New("configuration category is required")
+		return appErrors.ErrSystemConfigCategoryRequired
 	}
 
 	for _, char := range key {
 		if !((char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') ||
 			(char >= '0' && char <= '9') || char == '_' || char == '-') {
-			return errors.New("configuration key can only contain letters, numbers, underscores, and hyphens")
+			return appErrors.ErrSystemConfigInvalidKeyFormat
 		}
 	}
 
