@@ -84,7 +84,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
             image: item.image,
             name: item.name,
             type: item.type,
-            description: `${item.name} - Docker Image: ${item.image}`,
+            description: item.name,
           })
         );
         setEnvironmentImages(images);
@@ -104,7 +104,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
           image: "claude-code:latest",
           name: "Claude Code",
           type: "claude-code",
-          description: "Claude Code - Docker Image: claude-code:latest",
+          description: "Claude Code",
         };
         setEnvironmentImages([fallbackImage]);
         if (mode === "create") {
@@ -331,7 +331,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                   onValueChange={handleDockerImageChange}
                   disabled={loadingImages}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue
                       placeholder={t(
                         "dev_environments.form.docker_image_placeholder"
@@ -340,12 +340,12 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                       {loadingImages ? t("common.loading") : undefined}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-w-[400px]">
                     {environmentImages.map((imgOption) => (
                       <SelectItem key={imgOption.image} value={imgOption.image}>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{imgOption.image}</span>
-                          <span className="text-xs text-muted-foreground">
+                        <div className="flex flex-col min-w-0 w-full">
+                          <span className="font-medium truncate">{imgOption.image}</span>
+                          <span className="text-xs text-muted-foreground truncate">
                             {imgOption.description}
                           </span>
                         </div>
