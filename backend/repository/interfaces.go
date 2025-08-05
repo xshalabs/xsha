@@ -114,6 +114,7 @@ type TaskConversationResultRepository interface {
 
 	ExistsByConversationID(conversationID uint) (bool, error)
 	DeleteByConversationID(conversationID uint) error
+	GetLatestByTaskID(taskID uint) (*database.TaskConversationResult, error)
 }
 
 type SystemConfigRepository interface {

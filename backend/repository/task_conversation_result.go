@@ -171,3 +171,22 @@ func (r *taskConversationResultRepository) DeleteByConversationID(conversationID
 	return r.db.Where("conversation_id = ?", conversationID).
 		Delete(&database.TaskConversationResult{}).Error
 }
+
+func (r *taskConversationResultRepository) GetLatestByTaskID(taskID uint) (*database.TaskConversationResult, error) {
+	var result database.TaskConversationResult
+
+	subQuery := r.db.Model(&database.TaskConversation{}).
+		Select("id").
+		Where("task_id = ?", taskID)
+
+	err := r.db.Preload("Conversation").
+		Preload("Conversation.Task").
+		Where("conversation_id IN (?)", subQuery).
+		Order("created_at DESC").
+		First(&result).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}

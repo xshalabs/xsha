@@ -12,13 +12,17 @@ type taskConversationService struct {
 	repo        repository.TaskConversationRepository
 	taskRepo    repository.TaskRepository
 	execLogRepo repository.TaskExecutionLogRepository
+	resultRepo  repository.TaskConversationResultRepository
+	taskService TaskService
 }
 
-func NewTaskConversationService(repo repository.TaskConversationRepository, taskRepo repository.TaskRepository, execLogRepo repository.TaskExecutionLogRepository) TaskConversationService {
+func NewTaskConversationService(repo repository.TaskConversationRepository, taskRepo repository.TaskRepository, execLogRepo repository.TaskExecutionLogRepository, resultRepo repository.TaskConversationResultRepository, taskService TaskService) TaskConversationService {
 	return &taskConversationService{
 		repo:        repo,
 		taskRepo:    taskRepo,
 		execLogRepo: execLogRepo,
+		resultRepo:  resultRepo,
+		taskService: taskService,
 	}
 }
 
@@ -136,7 +140,43 @@ func (s *taskConversationService) DeleteConversation(id uint) error {
 		return appErrors.ErrConversationDeleteFailed
 	}
 
-	return s.repo.Delete(id)
+	if err := s.resultRepo.DeleteByConversationID(id); err != nil {
+		utils.Warn("Failed to delete conversation result",
+			"conversation_id", id,
+			"error", err)
+	}
+
+	if err := s.repo.Delete(id); err != nil {
+		return err
+	}
+
+	latestResult, err := s.resultRepo.GetLatestByTaskID(conversation.TaskID)
+	if err != nil {
+		if err.Error() != "record not found" {
+			utils.Warn("Failed to get latest conversation result for task",
+				"task_id", conversation.TaskID,
+				"error", err)
+		}
+		if err := s.taskService.UpdateTaskSessionID(conversation.TaskID, ""); err != nil {
+			utils.Warn("Failed to clear task session ID",
+				"task_id", conversation.TaskID,
+				"error", err)
+		}
+	} else {
+		if err := s.taskService.UpdateTaskSessionID(conversation.TaskID, latestResult.SessionID); err != nil {
+			utils.Warn("Failed to update task session ID",
+				"task_id", conversation.TaskID,
+				"session_id", latestResult.SessionID,
+				"error", err)
+		} else {
+			utils.Info("Successfully updated task session ID after conversation deletion",
+				"task_id", conversation.TaskID,
+				"old_conversation_id", id,
+				"new_session_id", latestResult.SessionID)
+		}
+	}
+
+	return nil
 }
 
 func (s *taskConversationService) GetLatestConversation(taskID uint) (*database.TaskConversation, error) {
