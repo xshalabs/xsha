@@ -132,7 +132,13 @@ class BackendI18nChecker {
             // errors.New("translationKey") - error with translation key
             '/errors\.New\s*\(\s*["\']([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_.]+)["\']\s*\)/m',
             // return errors.New("translationKey")
-            '/return\s+errors\.New\s*\(\s*["\']([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_.]+)["\']\s*\)/m'
+            '/return\s+errors\.New\s*\(\s*["\']([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_.]+)["\']\s*\)/m',
+            // Key: "translationKey" - struct field assignment
+            '/Key\s*:\s*["\']([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_.]+)["\']/m',
+            // NewI18nError("translationKey") - function call with translation key
+            '/NewI18nError\s*\(\s*["\']([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_.]+)["\']/m',
+            // NewI18nErrorWithParams("translationKey", ...) - function call with translation key
+            '/NewI18nErrorWithParams\s*\(\s*["\']([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_.]+)["\']/m'
         ];
         
         foreach ($patterns as $pattern) {

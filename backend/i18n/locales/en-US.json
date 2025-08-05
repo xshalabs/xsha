@@ -26,6 +26,7 @@
   "validation.file_path_required": "File path is required",
   "validation.required": "This field is required",
   "validation.too_long": "Value is too long",
+  "validation.too_many": "Too many requests",
   "system_config.key_required": "Configuration key is required",
   "system_config.value_required": "Configuration value is required",
   "system_config.category_required": "Configuration category is required",
@@ -48,16 +49,18 @@
   "git_credential.private_key_required": "Private key is required for SSH key type",
   "git_credential.invalid_private_key_format": "Invalid private key format",
   "git_credential.unsupported_credential_type": "Unsupported credential type",
+  "git.test_connection_failed": "Git connection test failed",
+  "git.reset_failed": "Git reset failed",
   "project.create_success": "Project created successfully",
-  "project.create_failed_with_details": "Failed to create project: %s",
+
   "project.update_success": "Project updated successfully",
-  "project.update_failed_with_details": "Failed to update project: %s",
+
   "project.delete_success": "Project deleted successfully",
-  "project.delete_failed_with_details": "Failed to delete project: %s",
+
   "project.not_found": "Project not found",
-  "project.get_credentials_failed_with_details": "Failed to get compatible credentials: %s",
-  "project.fetch_branches_failed_with_details": "Failed to fetch repository branches: %s",
-  "project.access_validation_failed_with_details": "Repository access validation failed: %s",
+
+
+
   "project.access_validation_success": "Repository access validation successful",
   "project.id_required": "Project ID is required",
   "project.delete_has_in_progress_tasks": "Cannot delete project with tasks in progress",
@@ -78,6 +81,7 @@
   "task.start_branch_required": "Start branch is required",
   "task.title_required": "Task title is required",
   "task.title_too_long": "Task title is too long",
+  "task.workspace_path_empty": "Workspace path is empty",
   "dev_environment.not_found": "Development environment not found or access denied",
   "dev_environment.create_success": "Environment created successfully",
   "dev_environment.update_success": "Environment updated successfully",
@@ -116,6 +120,7 @@
   "taskConversation.delete_latest_only": "Only the latest conversation can be deleted",
   "taskConversation.get_failed": "Failed to retrieve conversation",
   "taskConversation.task_completed": "Task has been completed",
+  "taskConversation.no_commit_hash": "No commit hash available",
   "taskConversationResult.check_failed": "Failed to check existing result",
   "taskConversationResult.already_exists": "Result already exists for this conversation",
   "taskConversationResult.not_found": "Result not found",
@@ -133,7 +138,7 @@
   "tasks.push_failed": "Failed to push branch",
   "tasks.push_success": "Branch pushed successfully",
   "system_config.update_success": "System configuration updated successfully",
-  "system_config.update_failed_with_details": "Failed to update system configuration: %s",
+
   "system_config.list_success": "Configuration list retrieved successfully",
   "system_config.list_failed": "Failed to retrieve configuration list"
 }

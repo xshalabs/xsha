@@ -26,6 +26,7 @@
   "validation.file_path_required": "文件路径是必需的",
   "validation.required": "此字段为必填项",
   "validation.too_long": "值过长",
+  "validation.too_many": "请求过多",
   "system_config.key_required": "配置键是必需的",
   "system_config.value_required": "配置值是必需的",
   "system_config.category_required": "配置类别是必需的",
@@ -48,16 +49,18 @@
   "git_credential.private_key_required": "SSH密钥类型需要私钥",
   "git_credential.invalid_private_key_format": "无效的私钥格式",
   "git_credential.unsupported_credential_type": "不支持的凭据类型",
+  "git.test_connection_failed": "Git连接测试失败",
+  "git.reset_failed": "Git重置失败",
   "project.create_success": "项目创建成功",
-  "project.create_failed_with_details": "项目创建失败: %s",
+
   "project.update_success": "项目更新成功",
-  "project.update_failed_with_details": "项目更新失败: %s",
+
   "project.delete_success": "项目删除成功",
-  "project.delete_failed_with_details": "项目删除失败: %s",
+
   "project.not_found": "项目不存在",
-  "project.get_credentials_failed_with_details": "获取兼容凭据失败: %s",
-  "project.fetch_branches_failed_with_details": "获取仓库分支失败: %s",
-  "project.access_validation_failed_with_details": "仓库访问验证失败: %s",
+
+
+
   "project.access_validation_success": "仓库访问验证成功",
   "project.id_required": "项目ID是必填项",
   "project.delete_has_in_progress_tasks": "无法删除有进行中任务的项目",
@@ -78,6 +81,7 @@
   "task.start_branch_required": "起始分支是必填项",
   "task.title_required": "任务标题是必填项",
   "task.title_too_long": "任务标题过长",
+  "task.workspace_path_empty": "工作空间路径为空",
   "dev_environment.not_found": "开发环境不存在或访问被拒绝",
   "dev_environment.create_success": "环境创建成功",
   "dev_environment.update_success": "环境更新成功",
@@ -116,6 +120,7 @@
   "taskConversation.delete_latest_only": "只能删除最新的对话",
   "taskConversation.get_failed": "获取对话失败",
   "taskConversation.task_completed": "任务已完成",
+  "taskConversation.no_commit_hash": "没有可用的提交哈希",
   "taskConversationResult.check_failed": "检查现有结果失败",
   "taskConversationResult.already_exists": "该对话的结果已存在",
   "taskConversationResult.not_found": "结果不存在",
@@ -133,7 +138,7 @@
   "tasks.push_failed": "推送分支失败",
   "tasks.push_success": "分支推送成功",
   "system_config.update_success": "系统配置更新成功",
-  "system_config.update_failed_with_details": "系统配置更新失败: %s",
+
   "system_config.list_success": "获取配置列表成功",
   "system_config.list_failed": "获取配置列表失败"
 }
