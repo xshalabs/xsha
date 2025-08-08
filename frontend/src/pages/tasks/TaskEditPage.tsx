@@ -99,10 +99,6 @@ const TaskEditPage: React.FC = () => {
     }
   };
 
-  const handleCancel = () => {
-    navigate(`/projects/${projectId}/tasks`);
-  };
-
   if (loading) {
     return (
       <SectionGroup>
@@ -131,7 +127,7 @@ const TaskEditPage: React.FC = () => {
               {t("tasks.form.editDescription")}
             </SectionDescription>
           </SectionHeader>
-          <TaskFormEdit task={task} onSubmit={handleSubmit} onCancel={handleCancel} />
+          <TaskFormEdit task={task} onSubmit={handleSubmit} />
         </Section>
         
         <Section>

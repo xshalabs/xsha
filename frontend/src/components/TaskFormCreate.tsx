@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "react-i18next";
-import { Save, X, Loader2 } from "lucide-react";
+import { Save, Loader2, AlertCircle } from "lucide-react";
 import type { TaskFormData } from "@/types/task";
 import type { Project } from "@/types/project";
 import type { DevEnvironment } from "@/types/dev-environment";
@@ -33,7 +33,7 @@ interface TaskFormCreateProps {
   currentProject?: Project;
   loading?: boolean;
   onSubmit: (data: TaskFormData) => Promise<void>;
-  onCancel: () => void;
+  onCancel?: () => void;
 }
 
 export function TaskFormCreate({
@@ -41,7 +41,6 @@ export function TaskFormCreate({
   currentProject,
   loading = false,
   onSubmit,
-  onCancel,
 }: TaskFormCreateProps) {
   const { t } = useTranslation();
 
@@ -208,7 +207,7 @@ export function TaskFormCreate({
         <div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center">
           <div className="flex flex-col items-center space-y-4 max-w-md mx-auto p-6 text-center">
             <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-              <X className="h-6 w-6 text-red-600" />
+              <AlertCircle className="h-6 w-6 text-red-600" />
             </div>
             <div>
               <h3 className="text-lg font-medium text-foreground mb-2">
@@ -237,7 +236,7 @@ export function TaskFormCreate({
       </FormCardHeader>
 
       <form onSubmit={handleSubmit}>
-        <FormCardContent className="grid gap-6">
+        <FormCardContent className="grid gap-4">
           <div className="flex flex-col gap-3">
             <Label htmlFor="title">
               {t("tasks.fields.title")}{" "}
@@ -282,7 +281,7 @@ export function TaskFormCreate({
         
         <FormCardSeparator />
         
-        <FormCardContent className="grid gap-6">
+        <FormCardContent className="grid gap-4">
           <div className="flex flex-col gap-3">
             <Label htmlFor="dev_environment">
               {t("tasks.fields.devEnvironment")}{" "}
@@ -369,23 +368,12 @@ export function TaskFormCreate({
           <FormCardFooterInfo>
             {t("tasks.form.createFooterInfo")}
           </FormCardFooterInfo>
-          <div className="flex items-center space-x-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={submitting}
-            >
-              <X className="w-4 h-4 mr-2" />
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" disabled={submitting || loading}>
-              <Save className="w-4 h-4 mr-2" />
-              {submitting
-                ? t("common.saving")
-                : t("tasks.actions.create")}
-            </Button>
-          </div>
+          <Button type="submit" disabled={submitting || loading}>
+            <Save className="w-4 h-4 mr-2" />
+            {submitting
+              ? t("common.saving")
+              : t("tasks.actions.create")}
+          </Button>
         </FormCardFooter>
       </form>
     </FormCard>

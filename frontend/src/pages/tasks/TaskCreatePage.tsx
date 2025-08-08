@@ -85,10 +85,6 @@ const TaskCreatePage: React.FC = () => {
     }
   };
 
-  const handleCancel = () => {
-    navigate(`/projects/${projectId}/tasks`);
-  };
-
   return (
     <SectionGroup>
         <Section>
@@ -102,7 +98,6 @@ const TaskCreatePage: React.FC = () => {
             defaultProjectId={projectId ? parseInt(projectId, 10) : undefined}
             currentProject={currentProject || undefined}
             onSubmit={handleSubmit}
-            onCancel={handleCancel}
           />
         </Section>
         

@@ -12,21 +12,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTranslation } from "react-i18next";
-import { Save, X } from "lucide-react";
+import { Save } from "lucide-react";
 import type { Task } from "@/types/task";
 
 interface TaskFormEditProps {
   task: Task;
   loading?: boolean;
   onSubmit: (data: { title: string }) => Promise<void>;
-  onCancel: () => void;
+  onCancel?: () => void;
 }
 
 export function TaskFormEdit({
   task,
   loading = false,
   onSubmit,
-  onCancel,
 }: TaskFormEditProps) {
   const { t } = useTranslation();
 
@@ -89,7 +88,7 @@ export function TaskFormEdit({
       </FormCardHeader>
 
       <form onSubmit={handleSubmit}>
-        <FormCardContent className="grid gap-6">
+        <FormCardContent className="grid gap-4">
           <div className="flex flex-col gap-3">
             <Label htmlFor="title">
               {t("tasks.fields.title")}{" "}
@@ -113,23 +112,12 @@ export function TaskFormEdit({
           <FormCardFooterInfo>
             {t("tasks.form.editFooterInfo")}
           </FormCardFooterInfo>
-          <div className="flex items-center space-x-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={submitting}
-            >
-              <X className="w-4 h-4 mr-2" />
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" disabled={submitting || loading}>
-              <Save className="w-4 h-4 mr-2" />
-              {submitting
-                ? t("common.saving")
-                : t("common.save")}
-            </Button>
-          </div>
+          <Button type="submit" disabled={submitting || loading}>
+            <Save className="w-4 h-4 mr-2" />
+            {submitting
+              ? t("common.saving")
+              : t("common.save")}
+          </Button>
         </FormCardFooter>
       </form>
     </FormCard>
