@@ -100,17 +100,13 @@
     "title": "Operation Statistics",
     "description": "View comprehensive statistics about system operations and resource usage",
     "operationStats": "Operation Type Statistics",
+    "operationBreakdown": "Detailed breakdown of operations by type",
     "resourceStats": "Resource Type Statistics",
+    "resourceBreakdown": "Resource access patterns and frequency",
     "timeRange": "Time Range",
-    "noStatsAvailable": "No statistics available"
-  },
-  "common": {
-    "refresh": "Refresh",
-    "detail": "Detail",
-    "search": "Filter",
-    "reset": "Reset",
-    "apply": "Apply",
-    "total": "Total",
-    "items": "items"
+    "noStatsAvailable": "No statistics available",
+    "totalOperations": "Total Operations",
+    "totalResources": "Total Resources",
+    "dateFilterNotImplemented": "Date filtering will be implemented soon"
   }
 }

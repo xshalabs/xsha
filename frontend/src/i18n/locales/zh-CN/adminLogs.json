@@ -100,17 +100,13 @@
     "title": "操作统计",
     "description": "查看系统操作和资源使用的综合统计信息",
     "operationStats": "操作类型统计",
+    "operationBreakdown": "按操作类型的详细分解",
     "resourceStats": "资源类型统计",
+    "resourceBreakdown": "资源访问模式和频率",
     "timeRange": "时间范围",
-    "noStatsAvailable": "暂无统计数据"
-  },
-  "common": {
-    "refresh": "刷新",
-    "detail": "详情",
-    "search": "搜索",
-    "reset": "重置",
-    "apply": "应用",
-    "total": "共",
-    "items": "项"
+    "noStatsAvailable": "暂无统计数据",
+    "totalOperations": "总操作数",
+    "totalResources": "总资源数",
+    "dateFilterNotImplemented": "日期筛选功能即将实现"
   }
 } 
