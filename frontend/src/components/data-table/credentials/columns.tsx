@@ -1,15 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Edit, Trash2, Key, Shield, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuGroup,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Edit, Key, Shield, User } from "lucide-react";
+import { QuickActions } from "@/components/ui/quick-actions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import type { GitCredential } from "@/types/credentials";
@@ -128,35 +119,30 @@ export const createGitCredentialColumns = ({
   },
   {
     id: "actions",
-    header: "Actions",
     cell: ({ row }) => {
       const credential = row.original;
 
+      const actions = [
+        {
+          id: "edit",
+          label: "Edit",
+          icon: Edit,
+          onClick: () => onEdit(credential),
+        },
+      ];
+
+      const deleteAction = {
+        title: credential.name,
+        submitAction: async () => {
+          await onDelete(credential.id);
+        },
+      };
+
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-7 w-7 data-[state=open]:bg-accent">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36">
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => onEdit(credential)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onDelete(credential.id)}
-              className="text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <QuickActions 
+          actions={actions} 
+          deleteAction={deleteAction}
+        />
       );
     },
     enableSorting: false,

@@ -1,15 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuGroup,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Edit } from "lucide-react";
+import { QuickActions } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
 import { DevEnvironmentDisplay } from "@/types/dev-environment";
 
@@ -100,35 +91,30 @@ export const createDevEnvironmentColumns = ({
   },
   {
     id: "actions",
-    header: "Actions",
     cell: ({ row }) => {
       const environment = row.original;
 
+      const actions = [
+        {
+          id: "edit",
+          label: "Edit",
+          icon: Edit,
+          onClick: () => onEdit(environment),
+        },
+      ];
+
+      const deleteAction = {
+        title: environment.name,
+        submitAction: async () => {
+          await onDelete(environment.id);
+        },
+      };
+
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-7 w-7 data-[state=open]:bg-accent">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36">
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => onEdit(environment)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onDelete(environment.id)}
-              className="text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <QuickActions 
+          actions={actions} 
+          deleteAction={deleteAction}
+        />
       );
     },
     enableSorting: false,

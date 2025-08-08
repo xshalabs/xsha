@@ -4,14 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
 import { Plus, HardDrive, Cpu, Server } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { apiService } from "@/lib/api/index";
@@ -79,10 +72,7 @@ const DevEnvironmentListPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [environmentToDelete, setEnvironmentToDelete] = useState<number | null>(
-    null
-  );
+
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   
@@ -194,38 +184,15 @@ const DevEnvironmentListPage: React.FC = () => {
     },
   ];
 
-  const handleDeleteEnvironment = (id: number) => {
-    setEnvironmentToDelete(id);
-    setDeleteDialogOpen(true);
+  const handleDeleteEnvironment = async (id: number) => {
+    await apiService.devEnvironments.delete(id);
+    await fetchEnvironments();
+    await fetchStats();
   };
 
 
 
-  const handleConfirmDelete = async () => {
-    if (!environmentToDelete) return;
 
-    try {
-      await apiService.devEnvironments.delete(environmentToDelete);
-      toast.success(t("devEnvironments.delete_success"));
-      await fetchEnvironments();
-      await fetchStats();
-    } catch (error) {
-      logError(error as Error, "Failed to delete environment");
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t("devEnvironments.delete_failed")
-      );
-    } finally {
-      setDeleteDialogOpen(false);
-      setEnvironmentToDelete(null);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setDeleteDialogOpen(false);
-    setEnvironmentToDelete(null);
-  };
 
   const handleEditEnvironment = (environment: DevEnvironmentDisplay) => {
     navigate(`/environments/${environment.id}/edit`);
@@ -304,35 +271,6 @@ const DevEnvironmentListPage: React.FC = () => {
           </div>
         </Section>
       </SectionGroup>
-
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-foreground">
-              {t("devEnvironments.delete_confirm_title")}
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              {t("devEnvironments.delete_confirm")}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              className="text-foreground hover:text-foreground"
-              onClick={handleCancelDelete}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              className="text-foreground"
-              onClick={handleConfirmDelete}
-            >
-              {t("common.confirm")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

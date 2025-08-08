@@ -1,16 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Edit, Trash2, FolderOpen } from "lucide-react";
+import { Edit, FolderOpen } from "lucide-react";
 import { TFunction } from "react-i18next";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuGroup,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { QuickActions } from "@/components/ui/quick-actions";
 
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -112,39 +103,36 @@ export const createProjectColumns = ({
   },
   {
     id: "actions",
-    header: t("common.actions"),
     cell: ({ row }) => {
       const project = row.original;
 
+      const actions = [
+        {
+          id: "manage-tasks",
+          label: t("projects.tasksManagement"),
+          icon: FolderOpen,
+          onClick: () => onManageTasks(project),
+        },
+        {
+          id: "edit",
+          label: t("common.edit"),
+          icon: Edit,
+          onClick: () => onEdit(project),
+        },
+      ];
+
+      const deleteAction = {
+        title: project.name,
+        submitAction: async () => {
+          await onDelete(project.id);
+        },
+      };
+
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-7 w-7 data-[state=open]:bg-accent">
-              <span className="sr-only">{t("common.open_menu")}</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36">
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => onManageTasks(project)}>
-                <FolderOpen className="mr-2 h-4 w-4" />
-                {t("projects.tasksManagement")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(project)}>
-                <Edit className="mr-2 h-4 w-4" />
-                {t("common.edit")}
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onDelete(project.id)}
-              className="text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {t("common.delete")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <QuickActions 
+          actions={actions} 
+          deleteAction={deleteAction}
+        />
       );
     },
     enableSorting: false,

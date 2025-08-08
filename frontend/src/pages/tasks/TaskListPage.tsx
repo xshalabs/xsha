@@ -4,14 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { PushBranchDialog } from "@/components/PushBranchDialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import type { Task, TaskStatus } from "@/types/task";
@@ -53,7 +46,6 @@ const TaskListPage: React.FC = () => {
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
 
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [total, setTotal] = useState(0);
@@ -137,7 +129,6 @@ const TaskListPage: React.FC = () => {
 
   const loadTasksData = async (page = currentPage, filters = columnFilters) => {
     try {
-      setLoading(true);
       
       // Convert DataTable filters to API parameters
       const apiParams: any = {
@@ -172,8 +163,6 @@ const TaskListPage: React.FC = () => {
       setCurrentPage(page);
     } catch (error) {
       logError(error as Error, "Failed to load tasks");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -235,38 +224,12 @@ const TaskListPage: React.FC = () => {
     navigate(`/projects/${projectId}/tasks/${task.id}/edit`);
   };
 
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
-
-  const handleTaskDelete = (id: number) => {
-    setTaskToDelete(id);
-    setDeleteDialogOpen(true);
+  const handleTaskDelete = async (id: number) => {
+    await apiService.tasks.delete(id);
+    await loadTasksData();
   };
 
-  const handleConfirmDelete = async () => {
-    if (!taskToDelete) return;
 
-    try {
-      await apiService.tasks.delete(taskToDelete);
-      toast.success(t("tasks.messages.deleteSuccess"));
-      await loadTasksData();
-    } catch (error) {
-      logError(error as Error, "Failed to delete task");
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t("tasks.messages.deleteFailed")
-      );
-    } finally {
-      setDeleteDialogOpen(false);
-      setTaskToDelete(null);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setDeleteDialogOpen(false);
-    setTaskToDelete(null);
-  };
 
   const handleViewConversation = (task: Task) => {
     navigate(`/projects/${projectId}/tasks/${task.id}/conversation`);
@@ -471,34 +434,6 @@ const TaskListPage: React.FC = () => {
         onSuccess={handlePushSuccess}
       />
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-foreground">
-              {t("tasks.messages.delete_confirm_title")}
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              {t("tasks.messages.deleteConfirm")}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              className="text-foreground hover:text-foreground"
-              onClick={handleCancelDelete}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              className="text-foreground"
-              onClick={handleConfirmDelete}
-            >
-              {t("common.confirm")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

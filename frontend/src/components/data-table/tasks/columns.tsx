@@ -1,16 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Edit, Trash2, MessageSquare, GitCompare, GitBranch, CheckCircle, Clock, Play, X } from "lucide-react";
+import { Edit, MessageSquare, GitCompare, GitBranch, CheckCircle, Clock, Play, X } from "lucide-react";
 import { TFunction } from "react-i18next";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuGroup,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { QuickActions } from "@/components/ui/quick-actions";
 
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -237,51 +228,58 @@ export const createTaskColumns = ({
         const task = row.original;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-7 w-7 data-[state=open]:bg-accent">
-                <span className="sr-only">{t("common.open_menu")}</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuGroup>
-                {onViewConversation && (
-                  <DropdownMenuItem onClick={() => onViewConversation(task)}>
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    {t("tasks.actions.viewConversation")}
-                  </DropdownMenuItem>
-                )}
+          (() => {
+            const actions = [];
 
-                {onViewGitDiff && task.work_branch && (
-                  <DropdownMenuItem onClick={() => onViewGitDiff(task)}>
-                    <GitCompare className="h-4 w-4 mr-2" />
-                    {t("tasks.actions.viewGitDiff")}
-                  </DropdownMenuItem>
-                )}
+            if (onViewConversation) {
+              actions.push({
+                id: "view-conversation",
+                label: t("tasks.actions.viewConversation"),
+                icon: MessageSquare,
+                onClick: () => onViewConversation(task),
+              });
+            }
 
-                {onPushBranch && (
-                  <DropdownMenuItem onClick={() => onPushBranch(task)}>
-                    <GitBranch className="h-4 w-4 mr-2" />
-                    {t("tasks.actions.pushBranch")}
-                  </DropdownMenuItem>
-                )}
+            if (onViewGitDiff && task.work_branch) {
+              actions.push({
+                id: "view-git-diff",
+                label: t("tasks.actions.viewGitDiff"),
+                icon: GitCompare,
+                onClick: () => onViewGitDiff(task),
+              });
+            }
 
-                <DropdownMenuItem onClick={() => onEdit(task)}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  {t("common.edit")}
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => onDelete(task.id)}
-                className="text-destructive"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                {t("common.delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            if (onPushBranch) {
+              actions.push({
+                id: "push-branch",
+                label: t("tasks.actions.pushBranch"),
+                icon: GitBranch,
+                onClick: () => onPushBranch(task),
+              });
+            }
+
+            actions.push({
+              id: "edit",
+              label: t("common.edit"),
+              icon: Edit,
+              onClick: () => onEdit(task),
+            });
+
+            const deleteAction = {
+              title: task.title,
+              submitAction: async () => {
+                await onDelete(task.id);
+              },
+            };
+
+            return (
+              <QuickActions 
+                actions={actions} 
+                deleteAction={deleteAction}
+                className="w-7 h-7"
+              />
+            );
+          })()
         );
       },
       enableSorting: false,

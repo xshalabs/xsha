@@ -6,14 +6,7 @@ import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { Button } from "@/components/ui/button";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
 import {
   Section,
   SectionGroup,
@@ -57,10 +50,7 @@ const GitCredentialListPage: React.FC = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [credentialToDelete, setCredentialToDelete] = useState<number | null>(
-    null
-  );
+
 
   const pageSize = 10;
 
@@ -142,32 +132,12 @@ const GitCredentialListPage: React.FC = () => {
     navigate(`/credentials/${credential.id}/edit`);
   };
 
-  const handleDelete = (id: number) => {
-    setCredentialToDelete(id);
-    setDeleteDialogOpen(true);
+  const handleDelete = async (id: number) => {
+    await apiService.gitCredentials.delete(id);
+    await loadCredentials();
   };
 
-  const handleConfirmDelete = async () => {
-    if (!credentialToDelete) return;
 
-    try {
-      await apiService.gitCredentials.delete(credentialToDelete);
-      toast.success(t("gitCredentials.messages.deleteSuccess"));
-      await loadCredentials();
-    } catch (err: any) {
-      const errorMessage =
-        err.message || t("gitCredentials.messages.deleteFailed");
-      toast.error(errorMessage);
-    } finally {
-      setDeleteDialogOpen(false);
-      setCredentialToDelete(null);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setDeleteDialogOpen(false);
-    setCredentialToDelete(null);
-  };
 
   const handleBatchDelete = async (ids: number[]) => {
     try {
@@ -343,35 +313,6 @@ const GitCredentialListPage: React.FC = () => {
           )}
         </Section>
       </SectionGroup>
-
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-foreground">
-              {t("gitCredentials.messages.delete_confirm_title")}
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              {t("gitCredentials.messages.deleteConfirm")}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              className="text-foreground hover:text-foreground"
-              onClick={handleCancelDelete}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              className="text-foreground"
-              onClick={handleConfirmDelete}
-            >
-              {t("common.confirm")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };
