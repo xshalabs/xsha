@@ -28,7 +28,7 @@ import {
 } from "@/components/forms/form-card";
 import type { SystemConfig, ConfigUpdateItem } from "@/types/system-config";
 
-export default function SystemConfigEditPage() {
+export default function SettingsPage() {
   const { t } = useTranslation();
   usePageTitle(t("systemConfig.title"));
 

@@ -36,7 +36,7 @@ import { GitCredentialType } from "@/types/credentials";
 import { Plus, Key, Shield, ListFilter, CheckCircle } from "lucide-react";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 
-const GitCredentialListPage: React.FC = () => {
+const CredentialListPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { setItems } = useBreadcrumb();
@@ -322,4 +322,4 @@ const GitCredentialListPage: React.FC = () => {
   );
 };
 
-export default GitCredentialListPage;
+export default CredentialListPage;

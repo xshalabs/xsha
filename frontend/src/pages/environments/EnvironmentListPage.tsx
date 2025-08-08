@@ -35,7 +35,7 @@ import type {
 } from "@/types/dev-environment";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 
-const DevEnvironmentListPage: React.FC = () => {
+const EnvironmentListPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { setItems } = useBreadcrumb();
@@ -280,4 +280,4 @@ const DevEnvironmentListPage: React.FC = () => {
   );
 };
 
-export default DevEnvironmentListPage;
+export default EnvironmentListPage;

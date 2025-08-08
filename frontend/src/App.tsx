@@ -22,13 +22,13 @@ import ProjectListPage from "@/pages/projects/ProjectListPage";
 import ProjectCreatePage from "@/pages/projects/ProjectCreatePage";
 import ProjectEditPage from "@/pages/projects/ProjectEditPage";
 
-import DevEnvironmentListPage from "@/pages/environments/DevEnvironmentListPage";
-import DevEnvironmentCreatePage from "@/pages/environments/DevEnvironmentCreatePage";
-import DevEnvironmentEditPage from "@/pages/environments/DevEnvironmentEditPage";
+import EnvironmentListPage from "@/pages/environments/EnvironmentListPage";
+import EnvironmentCreatePage from "@/pages/environments/EnvironmentCreatePage";
+import EnvironmentEditPage from "@/pages/environments/EnvironmentEditPage";
 
-import GitCredentialListPage from "@/pages/credentials/GitCredentialListPage";
-import GitCredentialCreatePage from "@/pages/credentials/GitCredentialCreatePage";
-import GitCredentialEditPage from "@/pages/credentials/GitCredentialEditPage";
+import CredentialListPage from "@/pages/credentials/CredentialListPage";
+import CredentialCreatePage from "@/pages/credentials/CredentialCreatePage";
+import CredentialEditPage from "@/pages/credentials/CredentialEditPage";
 
 import TaskListPage from "@/pages/tasks/TaskListPage";
 import TaskCreatePage from "@/pages/tasks/TaskCreatePage";
@@ -36,7 +36,7 @@ import TaskEditPage from "@/pages/tasks/TaskEditPage";
 import TaskConversationPage from "@/pages/tasks/TaskConversationPage";
 import TaskConversationGitDiffPage from "@/pages/tasks/TaskConversationGitDiffPage";
 
-import SystemConfigEditPage from "@/pages/settings/SystemConfigEditPage";
+import SettingsPage from "@/pages/settings/Settings";
 import TaskGitDiffPage from "@/pages/tasks/TaskGitDiffPage";
 
 import "./App.css";
@@ -113,7 +113,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <DevEnvironmentListPage />
+                    <EnvironmentListPage />
                   </Layout>
                 </ProtectedRoute>
               }
@@ -123,7 +123,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <DevEnvironmentCreatePage />
+                    <EnvironmentCreatePage />
                   </Layout>
                 </ProtectedRoute>
               }
@@ -133,7 +133,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <DevEnvironmentEditPage />
+                    <EnvironmentEditPage />
                   </Layout>
                 </ProtectedRoute>
               }
@@ -144,7 +144,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <GitCredentialListPage />
+                    <CredentialListPage />
                   </Layout>
                 </ProtectedRoute>
               }
@@ -154,7 +154,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <GitCredentialCreatePage />
+                    <CredentialCreatePage />
                   </Layout>
                 </ProtectedRoute>
               }
@@ -164,7 +164,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <GitCredentialEditPage />
+                    <CredentialEditPage />
                   </Layout>
                 </ProtectedRoute>
               }
@@ -278,7 +278,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <SystemConfigEditPage />
+                    <SettingsPage />
                   </Layout>
                 </ProtectedRoute>
               }

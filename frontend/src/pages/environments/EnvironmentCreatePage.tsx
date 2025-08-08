@@ -15,7 +15,7 @@ import {
 } from "@/components/content";
 import type { DevEnvironmentDisplay } from "@/types/dev-environment";
 
-const DevEnvironmentCreatePage: React.FC = () => {
+const EnvironmentCreatePage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { setItems } = useBreadcrumb();
@@ -66,4 +66,4 @@ const DevEnvironmentCreatePage: React.FC = () => {
   );
 };
 
-export default DevEnvironmentCreatePage;
+export default EnvironmentCreatePage;

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "sonner";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { apiService } from "@/lib/api/index";
-import { logError } from "@/lib/errors";
-import { GitCredentialForm } from "@/components/GitCredentialForm";
+import { toast } from "sonner";
+import { handleApiError } from "@/lib/errors";
+import DevEnvironmentForm from "@/components/DevEnvironmentForm";
 import {
   EmptyStateContainer,
   EmptyStateTitle,
@@ -16,35 +16,37 @@ import {
   SectionHeader,
   SectionTitle,
 } from "@/components/content";
-import type { GitCredential } from "@/types/credentials";
+import type { DevEnvironmentDisplay } from "@/types/dev-environment";
 
-const GitCredentialEditPage: React.FC = () => {
+const EnvironmentEditPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { setItems } = useBreadcrumb();
 
-  const [credential, setCredential] = useState<GitCredential | null>(null);
+  const [environment, setEnvironment] = useState<DevEnvironmentDisplay | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
 
   usePageTitle(
-    credential
-      ? `${t("gitCredentials.edit")} - ${credential.name}`
-      : t("gitCredentials.edit")
+    environment
+      ? `${t("devEnvironments.edit")} - ${environment.name}`
+      : t("devEnvironments.edit")
   );
 
   // Set dynamic breadcrumb navigation (including resource name)
   useEffect(() => {
-    if (credential) {
+    if (environment) {
       setItems([
         {
           type: "link",
-          label: t("gitCredentials.list"),
-          href: "/credentials",
+          label: t("devEnvironments.list"),
+          href: "/environments",
         },
         {
           type: "page",
-          label: `${t("gitCredentials.edit")} - ${credential.name}`,
+          label: `${t("devEnvironments.edit")} - ${environment.name}`,
         },
       ]);
     }
@@ -52,41 +54,48 @@ const GitCredentialEditPage: React.FC = () => {
     return () => {
       setItems([]);
     };
-  }, [credential, setItems, t]);
+  }, [environment, setItems, t]);
 
   useEffect(() => {
-    const loadCredential = async () => {
+    const loadEnvironment = async () => {
       if (!id) {
-        logError(
-          new Error("Credential ID is required"),
-          "Invalid credential ID"
-        );
-        navigate("/credentials");
+        toast.error(t("devEnvironments.invalid_id"));
+        navigate("/environments");
         return;
       }
 
       try {
         setLoading(true);
-        const response = await apiService.gitCredentials.get(parseInt(id, 10));
-        setCredential(response.credential);
+        const response = await apiService.devEnvironments.get(parseInt(id, 10));
+
+        let envVarsMap: Record<string, string> = {};
+        try {
+          if (response.environment.env_vars) {
+            envVarsMap = JSON.parse(response.environment.env_vars);
+          }
+        } catch (error) {
+          console.warn("Failed to parse env_vars:", error);
+        }
+
+        setEnvironment({
+          ...response.environment,
+          env_vars_map: envVarsMap,
+        });
       } catch (error) {
-        logError(error as Error, "Failed to load credential");
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : t("gitCredentials.messages.loadFailed")
-        );
-        navigate("/credentials");
+        console.error("Failed to load environment:", error);
+        const errorMessage = handleApiError(error);
+        toast.error(errorMessage);
+        navigate("/environments");
       } finally {
         setLoading(false);
       }
     };
 
-    loadCredential();
+    loadEnvironment();
   }, [id, navigate, t]);
 
-  const handleSubmit = (_credential: GitCredential) => {
-    navigate("/credentials");
+  const handleSubmit = (_environment: DevEnvironmentDisplay) => {
+    navigate("/environments");
   };
 
   if (loading) {
@@ -104,7 +113,7 @@ const GitCredentialEditPage: React.FC = () => {
     );
   }
 
-  if (!credential) {
+  if (!environment) {
     return null;
   }
 
@@ -113,16 +122,16 @@ const GitCredentialEditPage: React.FC = () => {
       <Section>
         <SectionHeader>
           <SectionTitle>
-            {t("gitCredentials.edit")} - {credential.name}
+            {t("devEnvironments.edit")} - {environment.name}
           </SectionTitle>
         </SectionHeader>
-        <GitCredentialForm credential={credential} onSubmit={handleSubmit} />
+        <DevEnvironmentForm environment={environment} onSubmit={handleSubmit} />
       </Section>
       <Section>
         <EmptyStateContainer>
-          <EmptyStateTitle>{t("gitCredentials.editAndUpdate")}</EmptyStateTitle>
+          <EmptyStateTitle>{t("devEnvironments.editAndUpdate")}</EmptyStateTitle>
           <EmptyStateDescription>
-            {t("gitCredentials.editHelpText")}
+            {t("devEnvironments.editHelpText")}
           </EmptyStateDescription>
         </EmptyStateContainer>
       </Section>
@@ -130,4 +139,4 @@ const GitCredentialEditPage: React.FC = () => {
   );
 };
 
-export default GitCredentialEditPage;
+export default EnvironmentEditPage;

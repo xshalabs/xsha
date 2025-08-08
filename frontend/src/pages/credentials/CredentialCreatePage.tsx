@@ -15,7 +15,7 @@ import {
 } from "@/components/content";
 import type { GitCredential } from "@/types/credentials";
 
-const GitCredentialCreatePage: React.FC = () => {
+const CredentialCreatePage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { setItems } = useBreadcrumb();
@@ -66,4 +66,4 @@ const GitCredentialCreatePage: React.FC = () => {
   );
 };
 
-export default GitCredentialCreatePage;
+export default CredentialCreatePage;
