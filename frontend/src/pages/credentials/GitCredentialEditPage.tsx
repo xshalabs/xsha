@@ -18,7 +18,7 @@ import {
   SectionHeader,
   SectionTitle,
 } from "@/components/content/section";
-import type { GitCredential } from "@/types/git-credentials";
+import type { GitCredential } from "@/types/credentials";
 
 const GitCredentialEditPage: React.FC = () => {
   const { t } = useTranslation();
@@ -42,7 +42,7 @@ const GitCredentialEditPage: React.FC = () => {
         {
           type: "link",
           label: t("gitCredentials.list"),
-          href: "/git-credentials",
+          href: "/credentials",
         },
         {
           type: "page",
@@ -63,7 +63,7 @@ const GitCredentialEditPage: React.FC = () => {
           new Error("Credential ID is required"),
           "Invalid credential ID"
         );
-        navigate("/git-credentials");
+        navigate("/credentials");
         return;
       }
 
@@ -78,7 +78,7 @@ const GitCredentialEditPage: React.FC = () => {
             ? error.message
             : t("gitCredentials.messages.loadFailed")
         );
-        navigate("/git-credentials");
+        navigate("/credentials");
       } finally {
         setLoading(false);
       }
@@ -88,7 +88,7 @@ const GitCredentialEditPage: React.FC = () => {
   }, [id, navigate, t]);
 
   const handleSubmit = (_credential: GitCredential) => {
-    navigate("/git-credentials");
+    navigate("/credentials");
   };
 
   if (loading) {

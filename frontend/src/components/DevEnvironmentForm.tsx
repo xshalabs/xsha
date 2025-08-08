@@ -26,7 +26,7 @@ import {
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { apiService } from "@/lib/api/index";
-import { devEnvironmentsApi } from "@/lib/api/dev-environments";
+import { devEnvironmentsApi } from "@/lib/api/environments";
 import { handleApiError } from "@/lib/errors";
 import type {
   DevEnvironmentDisplay,

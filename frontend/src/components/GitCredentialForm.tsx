@@ -27,8 +27,8 @@ import type {
   GitCredential,
   GitCredentialType,
   GitCredentialFormData,
-} from "@/types/git-credentials";
-import { GitCredentialType as CredentialTypes } from "@/types/git-credentials";
+} from "@/types/credentials";
+import { GitCredentialType as CredentialTypes } from "@/types/credentials";
 
 interface GitCredentialFormProps {
   credential?: GitCredential;

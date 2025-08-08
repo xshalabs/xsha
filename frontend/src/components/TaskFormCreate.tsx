@@ -22,7 +22,7 @@ import { Save, X, Loader2 } from "lucide-react";
 import type { TaskFormData } from "@/types/task";
 import type { Project } from "@/types/project";
 import type { DevEnvironment } from "@/types/dev-environment";
-import { devEnvironmentsApi } from "@/lib/api/dev-environments";
+import { devEnvironmentsApi } from "@/lib/api/environments";
 import { projectsApi } from "@/lib/api/projects";
 
 interface TaskFormCreateProps {

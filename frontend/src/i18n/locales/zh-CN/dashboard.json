@@ -4,13 +4,13 @@
   "description": "您的AI驱动的DevOps平台仪表板。",
   "projectManagement": {
     "title": "项目管理",
-    "description": "管理您的项目和Git凭据",
+    "description": "管理您的项目和凭据",
     "content": "创建、编辑和管理您的项目配置。"
   },
   "gitCredentials": {
-    "title": "Git 凭据",
-    "description": "管理您的Git访问凭据",
-    "content": "添加和配置Git仓库的访问凭据。",
+    "title": "凭据",
+    "description": "管理您的凭据",
+    "content": "添加和配置凭据。",
     "manage": "管理凭据"
   },
   "adminLogs": {
@@ -22,7 +22,7 @@
   "metrics": {
     "totalProjects": "项目总数",
     "activeEnvironments": "活跃环境",
-    "gitCredentials": "Git凭据",
+    "gitCredentials": "凭据",
     "recentTasks": "最近任务"
   },
   "quickActions": {
@@ -33,7 +33,7 @@
     "newEnvironment": "新建环境",
     "newEnvironmentDesc": "为您的团队设置一个新的开发环境。",
     "addCredential": "添加凭据",
-    "addCredentialDesc": "添加Git凭据以访问您的代码仓库。"
+    "addCredentialDesc": "添加凭据以访问您的代码仓库。"
   },
   "recentActivity": {
     "title": "最近活动",
@@ -42,4 +42,4 @@
     "emptyDesc": "当您开始使用平台时，您的最近活动将会在这里显示。"
   },
   "viewAllLogs": "查看所有日志"
-} 
+}

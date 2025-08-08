@@ -1,6 +1,5 @@
 import type { Table } from "@tanstack/react-table";
 import { Trash2 } from "lucide-react";
-import * as React from "react";
 
 import {
   DataTableActionBar,
@@ -8,7 +7,7 @@ import {
   DataTableActionBarSelection,
 } from "@/components/ui/data-table/data-table-action-bar";
 import { Separator } from "@/components/ui/separator";
-import { GitCredential } from "@/types/git-credentials";
+import type { GitCredential } from "@/types/credentials";
 
 interface GitCredentialDataTableActionBarProps {
   table: Table<GitCredential>;

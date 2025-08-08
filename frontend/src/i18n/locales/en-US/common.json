@@ -49,7 +49,10 @@
     "projects": "Projects Management",
     "projectTasks": "Tasks Management",
     "gitCredentials": "Git Credentials",
-    "adminLogs": "Audit Logs"
+    "adminLogs": "Audit Logs",
+    "operationLogs": "Operation Logs",
+    "loginLogs": "Login Logs",
+    "auditStats": "Audit Statistics"
   },
   "theme": {
     "toggle": "Toggle theme",

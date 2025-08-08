@@ -33,8 +33,8 @@ import {
 } from "@/components/metric/metric-card";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTablePaginationSimple } from "@/components/ui/data-table/data-table-pagination";
-import { createDevEnvironmentColumns } from "@/components/data-table/dev-environments/columns";
-import { DevEnvironmentDataTableToolbar } from "@/components/data-table/dev-environments/data-table-toolbar";
+import { createDevEnvironmentColumns } from "@/components/data-table/environments/columns";
+import { DevEnvironmentDataTableToolbar } from "@/components/data-table/environments/data-table-toolbar";
 import type {
   DevEnvironment,
   DevEnvironmentDisplay,
@@ -48,12 +48,12 @@ const DevEnvironmentListPage: React.FC = () => {
   const { setItems } = useBreadcrumb();
   const { setActions } = usePageActions();
   
-  usePageTitle(t("navigation.dev_environments"));
+  usePageTitle(t("navigation.environments"));
 
   // Set page actions (Create button in header) and clear breadcrumb
   useEffect(() => {
     const handleCreateNew = () => {
-      navigate("/dev-environments/create");
+      navigate("/environments/create");
     };
 
     setActions(
@@ -74,7 +74,7 @@ const DevEnvironmentListPage: React.FC = () => {
   }, [navigate, setActions, setItems, t]);
 
   const [environments, setEnvironments] = useState<DevEnvironmentDisplay[]>([]);
-  const [stats, setStats] = useState<Record<string, number>>({});
+  const [stats, setStats] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
   const [listParams, setListParams] = useState<DevEnvironmentListParams>({
     page: 1,
@@ -154,7 +154,10 @@ const DevEnvironmentListPage: React.FC = () => {
   };
 
   const formatCPU = (cores: number) => {
-    return cores === 1 ? `${cores} core` : `${cores} cores`;
+    // Round to 1 decimal place and remove unnecessary decimals
+    const rounded = Math.round(cores * 10) / 10;
+    const formatted = rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(1);
+    return `${formatted} ${rounded === 1 ? 'core' : 'cores'}`;
   };
 
   const metrics = [
@@ -166,7 +169,7 @@ const DevEnvironmentListPage: React.FC = () => {
     },
     {
       title: t("devEnvironments.stats.total_cpu"),
-      value: formatCPU((stats.total_cpu || 0) / 100),
+      value: formatCPU(stats.total_cpu || 0),
       variant: "ghost" as const,
       icon: Cpu,
     },
@@ -212,7 +215,7 @@ const DevEnvironmentListPage: React.FC = () => {
   };
 
   const handleEditEnvironment = (environment: DevEnvironmentDisplay) => {
-    navigate(`/dev-environments/${environment.id}/edit`);
+    navigate(`/environments/${environment.id}/edit`);
   };
 
   const columns = createDevEnvironmentColumns({
@@ -230,7 +233,7 @@ const DevEnvironmentListPage: React.FC = () => {
       <SectionGroup>
           <Section>
             <SectionHeader>
-              <SectionTitle>{t("navigation.dev_environments")}</SectionTitle>
+              <SectionTitle>{t("navigation.environments")}</SectionTitle>
               <SectionDescription>
                 {t("devEnvironments.page_description")}
               </SectionDescription>

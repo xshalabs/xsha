@@ -44,7 +44,7 @@ const DevEnvironmentEditPage: React.FC = () => {
         {
           type: "link",
           label: t("devEnvironments.list"),
-          href: "/dev-environments",
+          href: "/environments",
         },
         {
           type: "page",
@@ -62,7 +62,7 @@ const DevEnvironmentEditPage: React.FC = () => {
     const loadEnvironment = async () => {
       if (!id) {
         toast.error(t("devEnvironments.invalid_id"));
-        navigate("/dev-environments");
+        navigate("/environments");
         return;
       }
 
@@ -87,7 +87,7 @@ const DevEnvironmentEditPage: React.FC = () => {
         console.error("Failed to load environment:", error);
         const errorMessage = handleApiError(error);
         toast.error(errorMessage);
-        navigate("/dev-environments");
+        navigate("/environments");
       } finally {
         setLoading(false);
       }
@@ -97,7 +97,7 @@ const DevEnvironmentEditPage: React.FC = () => {
   }, [id, navigate, t]);
 
   const handleSubmit = (_environment: DevEnvironmentDisplay) => {
-    navigate("/dev-environments");
+    navigate("/environments");
   };
 
   if (loading) {

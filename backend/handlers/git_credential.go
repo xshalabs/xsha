@@ -49,7 +49,7 @@ type UpdateCredentialRequest struct {
 // @Success 201 {object} object{message=string,credential=object} "Credential created successfully"
 // @Failure 400 {object} object{error=string} "Request parameter error"
 // @Failure 500 {object} object{error=string} "Failed to create credential"
-// @Router /git-credentials [post]
+// @Router /credentials [post]
 func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -97,7 +97,7 @@ func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 // @Success 200 {object} object{credential=object} "Credential details"
 // @Failure 400 {object} object{error=string} "Invalid credential ID"
 // @Failure 404 {object} object{error=string} "Credential not found"
-// @Router /git-credentials/{id} [get]
+// @Router /credentials/{id} [get]
 func (h *GitCredentialHandlers) GetCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -135,7 +135,7 @@ func (h *GitCredentialHandlers) GetCredential(c *gin.Context) {
 // @Param page_size query int false "Page size, defaults to 20, maximum 100"
 // @Success 200 {object} object{message=string,credentials=[]object,total=number,page=number,page_size=number,total_pages=number} "Credential list"
 // @Failure 500 {object} object{error=string} "Failed to get credential list"
-// @Router /git-credentials [get]
+// @Router /credentials [get]
 func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -191,7 +191,7 @@ func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 // @Success 200 {object} object{message=string} "Credential updated successfully"
 // @Failure 400 {object} object{error=string} "Request parameter error"
 // @Failure 404 {object} object{error=string} "Credential not found"
-// @Router /git-credentials/{id} [put]
+// @Router /credentials/{id} [put]
 func (h *GitCredentialHandlers) UpdateCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
@@ -245,7 +245,7 @@ func (h *GitCredentialHandlers) UpdateCredential(c *gin.Context) {
 // @Success 200 {object} object{message=string} "Credential deleted successfully"
 // @Failure 400 {object} object{error=string} "Invalid credential ID"
 // @Failure 404 {object} object{error=string} "Credential not found"
-// @Router /git-credentials/{id} [delete]
+// @Router /credentials/{id} [delete]
 func (h *GitCredentialHandlers) DeleteCredential(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 

@@ -52,7 +52,7 @@ export const DashboardPage: React.FC = () => {
     {
       title: t("dashboard.metrics.activeEnvironments"),
       value: "8",
-      href: "/dev-environments",
+      href: "/environments",
       variant: "success" as const,
       icon: Container,
     },
@@ -83,13 +83,13 @@ export const DashboardPage: React.FC = () => {
       title: t("dashboard.quickActions.newEnvironment"),
       description: t("dashboard.quickActions.newEnvironmentDesc"),
       icon: Container,
-      action: () => navigate("/dev-environments/create"),
+      action: () => navigate("/environments/create"),
     },
     {
       title: t("dashboard.quickActions.addCredential"),
       description: t("dashboard.quickActions.addCredentialDesc"),
       icon: Key,
-      action: () => navigate("/git-credentials/create"),
+      action: () => navigate("/credentials/create"),
     },
   ];
 

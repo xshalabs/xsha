@@ -25,10 +25,10 @@ export function SiteHeader() {
         return t("common.pageTitle.dashboard");
       case "/projects":
         return t("common.pageTitle.projects");
-      case "/git-credentials":
+      case "/credentials":
         return t("common.pageTitle.gitCredentials");
-      case "/dev-environments":
-        return t("navigation.dev_environments");
+      case "/environments":
+        return t("navigation.environments");
       case "/admin/logs":
         return t("common.pageTitle.adminLogs");
       case "/login":

@@ -139,3 +139,19 @@ export function FormCardFooterInfo({
     </div>
   );
 }
+
+export function FormCardGroup({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-group"
+      className={cn("flex flex-col gap-4", className)}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}

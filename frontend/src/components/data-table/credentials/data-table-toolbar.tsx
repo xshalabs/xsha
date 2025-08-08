@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableFacetedFilter } from "@/components/ui/data-table/data-table-faceted-filter";
-import { GitCredential, GitCredentialType } from "@/types/git-credentials";
+import { GitCredential, GitCredentialType } from "@/types/credentials";
 
 export interface GitCredentialDataTableToolbarProps {
   table: Table<GitCredential>;
@@ -32,9 +32,18 @@ export function GitCredentialDataTableToolbar({
             column={table.getColumn("type")}
             title={t("gitCredentials.type")}
             options={[
-              { label: t("gitCredentials.filter.password"), value: GitCredentialType.PASSWORD },
-              { label: t("gitCredentials.filter.token"), value: GitCredentialType.TOKEN },
-              { label: t("gitCredentials.filter.sshKey"), value: GitCredentialType.SSH_KEY },
+              {
+                label: t("gitCredentials.filter.password"),
+                value: GitCredentialType.PASSWORD,
+              },
+              {
+                label: t("gitCredentials.filter.token"),
+                value: GitCredentialType.TOKEN,
+              },
+              {
+                label: t("gitCredentials.filter.sshKey"),
+                value: GitCredentialType.SSH_KEY,
+              },
             ]}
           />
         )}

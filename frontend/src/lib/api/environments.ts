@@ -14,7 +14,7 @@ export const devEnvironmentsApi = {
   create: async (
     data: CreateDevEnvironmentRequest
   ): Promise<CreateDevEnvironmentResponse> => {
-    return request<CreateDevEnvironmentResponse>("/dev-environments", {
+    return request<CreateDevEnvironmentResponse>("/environments", {
       method: "POST",
       body: JSON.stringify(data),
     });
@@ -32,35 +32,35 @@ export const devEnvironmentsApi = {
 
     const queryString = searchParams.toString();
     const url = queryString
-      ? `/dev-environments?${queryString}`
-      : "/dev-environments";
+      ? `/environments?${queryString}`
+      : "/environments";
 
     return request<DevEnvironmentListResponse>(url);
   },
 
   get: async (id: number): Promise<DevEnvironmentDetailResponse> => {
-    return request<DevEnvironmentDetailResponse>(`/dev-environments/${id}`);
+    return request<DevEnvironmentDetailResponse>(`/environments/${id}`);
   },
 
   update: async (
     id: number,
     data: UpdateDevEnvironmentRequest
   ): Promise<{ message: string }> => {
-    return request<{ message: string }>(`/dev-environments/${id}`, {
+    return request<{ message: string }>(`/environments/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
     });
   },
 
   delete: async (id: number): Promise<{ message: string }> => {
-    return request<{ message: string }>(`/dev-environments/${id}`, {
+    return request<{ message: string }>(`/environments/${id}`, {
       method: "DELETE",
     });
   },
 
   getEnvVars: async (id: number): Promise<DevEnvironmentVarsResponse> => {
     return request<DevEnvironmentVarsResponse>(
-      `/dev-environments/${id}/env-vars`
+      `/environments/${id}/env-vars`
     );
   },
 
@@ -68,7 +68,7 @@ export const devEnvironmentsApi = {
     id: number,
     envVars: Record<string, string>
   ): Promise<{ message: string }> => {
-    return request<{ message: string }>(`/dev-environments/${id}/env-vars`, {
+    return request<{ message: string }>(`/environments/${id}/env-vars`, {
       method: "PUT",
       body: JSON.stringify(envVars),
     });
@@ -78,13 +78,13 @@ export const devEnvironmentsApi = {
     images: DevEnvironmentImageConfig[];
   }> => {
     return request<{ images: DevEnvironmentImageConfig[] }>(
-      "/dev-environments/available-images"
+      "/environments/available-images"
     );
   },
 
-  getStats: async (): Promise<{ stats: Record<string, number> }> => {
-    return request<{ stats: Record<string, number> }>(
-      "/dev-environments/stats"
+  getStats: async (): Promise<{ stats: Record<string, any> }> => {
+    return request<{ stats: Record<string, any> }>(
+      "/environments/stats"
     );
   },
 };

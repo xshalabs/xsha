@@ -49,7 +49,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			admin.GET("/operation-stats", operationLogHandlers.GetOperationStats)
 		}
 
-		gitCreds := api.Group("/git-credentials")
+		gitCreds := api.Group("/credentials")
 		{
 			gitCreds.POST("", gitCredHandlers.CreateCredential)
 			gitCreds.GET("", gitCredHandlers.ListCredentials)
@@ -117,7 +117,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		api.POST("/task-conversations/:conversationId/execution/cancel", taskExecLogHandlers.CancelExecution)
 		api.POST("/task-conversations/:conversationId/execution/retry", taskExecLogHandlers.RetryExecution)
 
-		devEnvs := api.Group("/dev-environments")
+		devEnvs := api.Group("/environments")
 		{
 			devEnvs.POST("", devEnvHandlers.CreateEnvironment)
 			devEnvs.GET("", devEnvHandlers.ListEnvironments)
@@ -130,7 +130,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			devEnvs.PUT("/:id/env-vars", devEnvHandlers.UpdateEnvironmentVars)
 		}
 
-		systemConfigs := api.Group("/system-configs")
+		systemConfigs := api.Group("/settings")
 		{
 			systemConfigs.GET("", systemConfigHandlers.ListAllConfigs)
 			systemConfigs.PUT("", systemConfigHandlers.BatchUpdateConfigs)

@@ -10,14 +10,21 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
+interface NavItem {
+  title: string;
+  url: string;
+  icon?: LucideIcon;
+}
+
+interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
+
 export function NavMain({
-  items,
+  groups,
 }: {
-  items: {
-    title: string;
-    url: string;
-    icon?: LucideIcon;
-  }[];
+  groups: NavGroup[];
 }) {
   const location = useLocation();
   const { setOpenMobile } = useSidebar();
@@ -26,40 +33,47 @@ export function NavMain({
     if (itemUrl === "/projects") {
       return location.pathname.startsWith("/projects");
     }
-    if (itemUrl === "/git-credentials") {
-      return location.pathname.startsWith("/git-credentials");
+    if (itemUrl === "/credentials") {
+      return location.pathname.startsWith("/credentials");
     }
-    if (itemUrl === "/dev-environments") {
-      return location.pathname.startsWith("/dev-environments");
+    if (itemUrl === "/environments") {
+      return location.pathname.startsWith("/environments");
     }
     if (itemUrl === "/admin/logs") {
       return location.pathname.startsWith("/admin/logs");
     }
-    if (itemUrl === "/system-configs") {
-      return location.pathname.startsWith("/system-configs");
+    if (itemUrl === "/audit") {
+      return location.pathname.startsWith("/audit");
+    }
+    if (itemUrl === "/settings") {
+      return location.pathname.startsWith("/settings");
     }
     return location.pathname === itemUrl;
   };
 
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>Workspace</SidebarGroupLabel>
-      <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton
-              tooltip={item.title}
-              asChild
-              isActive={isActive(item.url)}
-            >
-              <Link to={item.url} onClick={() => setOpenMobile(false)}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
-      </SidebarMenu>
-    </SidebarGroup>
+    <>
+      {groups.map((group) => (
+        <SidebarGroup key={group.title}>
+          <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
+          <SidebarMenu>
+            {group.items.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  tooltip={item.title}
+                  asChild
+                  isActive={isActive(item.url)}
+                >
+                  <Link to={item.url} onClick={() => setOpenMobile(false)}>
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+      ))}
+    </>
   );
 }

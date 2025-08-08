@@ -4,10 +4,12 @@ import {
   LayoutGrid,
   Folder,
   Key,
-  FileText,
   Container,
   Settings,
   Cog,
+  Shield,
+  TrendingUp,
+  Activity,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -28,36 +30,56 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { t } = useTranslation();
 
   const data = {
-    navMain: [
+    navGroups: [
       {
-        title: t("navigation.dashboard"),
-        url: "/dashboard",
-        icon: LayoutGrid,
+        title: t("navigation.groups.workspace"),
+        items: [
+          {
+            title: t("navigation.dashboard"),
+            url: "/dashboard",
+            icon: LayoutGrid,
+          },
+          {
+            title: t("navigation.projects"),
+            url: "/projects",
+            icon: Folder,
+          },
+          {
+            title: t("navigation.gitCredentials"),
+            url: "/credentials",
+            icon: Key,
+          },
+          {
+            title: t("navigation.environments"),
+            url: "/environments",
+            icon: Container,
+          },
+          {
+            title: t("navigation.settings"),
+            url: "/settings",
+            icon: Cog,
+          },
+        ],
       },
       {
-        title: t("navigation.projects"),
-        url: "/projects",
-        icon: Folder,
-      },
-      {
-        title: t("navigation.gitCredentials"),
-        url: "/git-credentials",
-        icon: Key,
-      },
-      {
-        title: t("navigation.dev_environments"),
-        url: "/dev-environments",
-        icon: Container,
-      },
-      {
-        title: t("navigation.adminLogs"),
-        url: "/admin/logs",
-        icon: FileText,
-      },
-      {
-        title: t("navigation.systemConfigs"),
-        url: "/system-configs",
-        icon: Cog,
+        title: t("navigation.groups.audit"),
+        items: [
+          {
+            title: t("navigation.audit.operationLogs"),
+            url: "/audit/operation-logs",
+            icon: Activity,
+          },
+          {
+            title: t("navigation.audit.loginLogs"),
+            url: "/audit/login-logs",
+            icon: Shield,
+          },
+          {
+            title: t("navigation.audit.stats"),
+            url: "/audit/stats",
+            icon: TrendingUp,
+          },
+        ],
       },
     ],
     navSecondary: [],
@@ -83,7 +105,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain groups={data.navGroups} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter className="border-t">

@@ -70,8 +70,8 @@ func (r *devEnvironmentRepository) Delete(id uint) error {
 	return r.db.Where("id = ?", id).Delete(&database.DevEnvironment{}).Error
 }
 
-func (r *devEnvironmentRepository) GetStats() (map[string]int64, error) {
-	stats := make(map[string]int64)
+func (r *devEnvironmentRepository) GetStats() (map[string]interface{}, error) {
+	stats := make(map[string]interface{})
 
 	// Total count
 	var totalCount int64
@@ -103,7 +103,7 @@ func (r *devEnvironmentRepository) GetStats() (map[string]int64, error) {
 		Scan(&totalCPU).Error; err != nil {
 		return nil, err
 	}
-	stats["total_cpu"] = int64(totalCPU * 100) // Store as 100ths for precision
+	stats["total_cpu"] = totalCPU
 
 	// Total memory allocated (in MB)
 	var totalMemory int64

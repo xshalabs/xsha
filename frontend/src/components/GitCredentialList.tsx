@@ -1,71 +1,29 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTablePaginationSimple } from "@/components/ui/data-table/data-table-pagination";
-import { createGitCredentialColumns } from "@/components/data-table/git-credentials/columns";
-import { GitCredentialDataTableToolbar } from "@/components/data-table/git-credentials/data-table-toolbar";
-import { GitCredentialDataTableActionBar } from "@/components/data-table/git-credentials/data-table-action-bar";
-import type { GitCredential, GitCredentialType } from "@/types/git-credentials";
-import { GitCredentialType as CredentialTypes } from "@/types/git-credentials";
-import { 
-  Key, 
-  RefreshCw, 
-  Shield, 
-  User, 
-  Clock, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2,
-  ChevronLeft,
-  ChevronRight 
-} from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { createGitCredentialColumns } from "@/components/data-table/credentials/columns";
+import { GitCredentialDataTableToolbar } from "@/components/data-table/credentials/data-table-toolbar";
+import { GitCredentialDataTableActionBar } from "@/components/data-table/credentials/data-table-action-bar";
+import type { GitCredential } from "@/types/credentials";
+import { Key } from "lucide-react";
 
 interface GitCredentialListProps {
   credentials: GitCredential[];
   loading: boolean;
-  currentPage: number;
-  totalPages: number;
-  total: number;
-  typeFilter?: GitCredentialType;
-  onPageChange: (page: number) => void;
-  onTypeFilterChange: (type: GitCredentialType | undefined) => void;
   onEdit: (credential: GitCredential) => void;
   onDelete: (id: number) => void;
   onBatchDelete?: (ids: number[]) => void;
-  onRefresh: () => void;
 }
 
 export const GitCredentialList: React.FC<GitCredentialListProps> = ({
   credentials,
   loading,
-  currentPage,
-  totalPages,
-  total,
-  typeFilter,
-  onPageChange,
-  onTypeFilterChange,
   onEdit,
   onDelete,
   onBatchDelete,
-  onRefresh,
 }) => {
   const { t } = useTranslation();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -78,7 +36,12 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
 
   const ActionBar = ({ table }: { table: any }) => {
     if (!onBatchDelete) return null;
-    return <GitCredentialDataTableActionBar table={table} onBatchDelete={onBatchDelete} />;
+    return (
+      <GitCredentialDataTableActionBar
+        table={table}
+        onBatchDelete={onBatchDelete}
+      />
+    );
   };
 
   if (loading) {

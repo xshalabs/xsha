@@ -1,4 +1,4 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Edit, Trash2, Key, Shield, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { GitCredential, GitCredentialType } from "@/types/git-credentials";
+import type { GitCredential } from "@/types/credentials";
+import { GitCredentialType } from "@/types/credentials";
 
 interface GitCredentialColumnsProps {
   onEdit: (credential: GitCredential) => void;
@@ -95,9 +96,7 @@ export const createGitCredentialColumns = ({
     cell: ({ row }) => {
       const username = row.getValue("username") as string;
       return (
-        <div className="text-sm text-muted-foreground">
-          {username || "N/A"}
-        </div>
+        <div className="text-sm text-muted-foreground">{username || "N/A"}</div>
       );
     },
   },

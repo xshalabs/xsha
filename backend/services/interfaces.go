@@ -70,7 +70,7 @@ type DevEnvironmentService interface {
 	UpdateEnvironmentVars(id uint, envVars map[string]string) error
 	ValidateResourceLimits(cpuLimit float64, memoryLimit int64) error
 	GetAvailableEnvironmentImages() ([]map[string]interface{}, error)
-	GetStats() (map[string]int64, error)
+	GetStats() (map[string]interface{}, error)
 }
 
 type TaskService interface {

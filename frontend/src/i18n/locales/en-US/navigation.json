@@ -1,13 +1,21 @@
 {
   "dashboard": "Dashboard",
   "projects": "Projects",
-  "gitCredentials": "Git Credentials",
-  "dev_environments": "Dev Environments",
+  "gitCredentials": "Credentials",
+  "environments": "Environments",
   "adminLogs": "Audit Logs",
-  "systemConfigs": "System Config",
   "settings": "Settings", 
   "profile": "Profile",
   "language": "Language",
   "help": "Help",
-  "search": "Search"
+  "search": "Search",
+  "groups": {
+    "workspace": "Workspace",
+    "audit": "Audit"
+  },
+  "audit": {
+    "operationLogs": "Operation Logs",
+    "loginLogs": "Login Logs",
+    "stats": "Statistics"
+  }
 } 

@@ -264,6 +264,6 @@ func (s *devEnvironmentService) generateSessionDir() (string, error) {
 	return sessionDir, nil
 }
 
-func (s *devEnvironmentService) GetStats() (map[string]int64, error) {
+func (s *devEnvironmentService) GetStats() (map[string]interface{}, error) {
 	return s.repo.GetStats()
 }

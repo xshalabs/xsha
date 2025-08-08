@@ -5,7 +5,7 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+
 import {
   Dialog,
   DialogContent,
@@ -34,8 +34,8 @@ import { apiService } from "@/lib/api/index";
 import type {
   GitCredential,
   GitCredentialListParams,
-} from "@/types/git-credentials";
-import { GitCredentialType } from "@/types/git-credentials";
+} from "@/types/credentials";
+import { GitCredentialType } from "@/types/credentials";
 import { Plus, Key, Shield, ListFilter, CheckCircle } from "lucide-react";
 
 const GitCredentialListPage: React.FC = () => {
@@ -47,12 +47,13 @@ const GitCredentialListPage: React.FC = () => {
   const [credentials, setCredentials] = useState<GitCredential[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [typeFilter, setTypeFilter] = useState<GitCredentialType | undefined>();
-  const [error, setError] = useState<string | null>(null);
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [credentialToDelete, setCredentialToDelete] = useState<number | null>(null);
+  const [credentialToDelete, setCredentialToDelete] = useState<number | null>(
+    null
+  );
 
   const pageSize = 10;
 
@@ -61,7 +62,7 @@ const GitCredentialListPage: React.FC = () => {
   // Set page actions (Create button in header) and clear breadcrumb
   useEffect(() => {
     const handleCreateNew = () => {
-      navigate("/git-credentials/create");
+      navigate("/credentials/create");
     };
 
     setActions(
@@ -84,7 +85,6 @@ const GitCredentialListPage: React.FC = () => {
   const loadCredentials = async (params?: GitCredentialListParams) => {
     try {
       setLoading(true);
-      setError(null);
       const response = await apiService.gitCredentials.list({
         page: currentPage,
         page_size: pageSize,
@@ -94,9 +94,10 @@ const GitCredentialListPage: React.FC = () => {
 
       setCredentials(response.credentials);
       setTotal(response.total);
-      setTotalPages(response.total_pages);
     } catch (err: any) {
-      setError(err.message || t("gitCredentials.messages.loadFailed"));
+      const errorMessage =
+        err.message || t("gitCredentials.messages.loadFailed");
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -106,13 +107,8 @@ const GitCredentialListPage: React.FC = () => {
     loadCredentials();
   }, [currentPage, typeFilter]);
 
-  const handleRefresh = () => {
-    setCurrentPage(1);
-    loadCredentials({ page: 1 });
-  };
-
   const handleEdit = (credential: GitCredential) => {
-    navigate(`/git-credentials/${credential.id}/edit`);
+    navigate(`/credentials/${credential.id}/edit`);
   };
 
   const handleDelete = (id: number) => {
@@ -128,7 +124,8 @@ const GitCredentialListPage: React.FC = () => {
       toast.success(t("gitCredentials.messages.deleteSuccess"));
       await loadCredentials();
     } catch (err: any) {
-      const errorMessage = err.message || t("gitCredentials.messages.deleteFailed");
+      const errorMessage =
+        err.message || t("gitCredentials.messages.deleteFailed");
       toast.error(errorMessage);
     } finally {
       setDeleteDialogOpen(false);
@@ -141,27 +138,28 @@ const GitCredentialListPage: React.FC = () => {
     setCredentialToDelete(null);
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handleTypeFilterChange = (type: GitCredentialType | undefined) => {
-    setTypeFilter(type);
-    setCurrentPage(1);
-  };
-
   const handleBatchDelete = async (ids: number[]) => {
     try {
-      await Promise.all(ids.map(id => apiService.gitCredentials.delete(id)));
-      toast.success(t("gitCredentials.messages.batchDeleteSuccess", `Successfully deleted ${ids.length} credentials`));
+      await Promise.all(ids.map((id) => apiService.gitCredentials.delete(id)));
+      toast.success(
+        t(
+          "gitCredentials.messages.batchDeleteSuccess",
+          `Successfully deleted ${ids.length} credentials`
+        )
+      );
       await loadCredentials();
     } catch (err: any) {
-      const errorMessage = err.message || t("gitCredentials.messages.batchDeleteFailed", "Failed to delete credentials");
+      const errorMessage =
+        err.message ||
+        t(
+          "gitCredentials.messages.batchDeleteFailed",
+          "Failed to delete credentials"
+        );
       toast.error(errorMessage);
     }
   };
 
-  // Calculate statistics  
+  // Calculate statistics
   const statistics = useMemo(() => {
     const passwordCount = credentials.filter(
       (cred) => cred.type === GitCredentialType.PASSWORD
@@ -195,7 +193,9 @@ const GitCredentialListPage: React.FC = () => {
     ];
   }, [credentials, total, t]);
 
-  const handleStatisticClick = (statisticType: GitCredentialType | undefined) => {
+  const handleStatisticClick = (
+    statisticType: GitCredentialType | undefined
+  ) => {
     if (statisticType === undefined) {
       // Clear all filters
       setTypeFilter(undefined);
@@ -224,18 +224,12 @@ const GitCredentialListPage: React.FC = () => {
             </SectionDescription>
           </SectionHeader>
 
-          {error && (
-            <Card className="border-destructive/20 bg-destructive/10">
-              <CardContent className="pt-6">
-                <p className="text-destructive">{error}</p>
-              </CardContent>
-            </Card>
-          )}
-
           <MetricCardGroup>
             {statistics.map((stat) => {
-              const isActive = typeFilter === stat.type || (stat.type === undefined && typeFilter === undefined);
-              
+              const isActive =
+                typeFilter === stat.type ||
+                (stat.type === undefined && typeFilter === undefined);
+
               // Determine icon based on state (like openstatus)
               let Icon;
               if (stat.type === undefined) {
@@ -269,16 +263,9 @@ const GitCredentialListPage: React.FC = () => {
           <GitCredentialList
             credentials={credentials}
             loading={loading}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            total={total}
-            typeFilter={typeFilter}
-            onPageChange={handlePageChange}
-            onTypeFilterChange={handleTypeFilterChange}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onBatchDelete={handleBatchDelete}
-            onRefresh={handleRefresh}
           />
         </Section>
       </SectionGroup>

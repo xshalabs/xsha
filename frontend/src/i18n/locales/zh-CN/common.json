@@ -49,7 +49,10 @@
     "projects": "项目管理",
     "projectTasks": "任务管理",
     "gitCredentials": "Git 凭据",
-    "adminLogs": "系统日志"
+    "adminLogs": "系统日志",
+    "operationLogs": "操作日志",
+    "loginLogs": "登录日志",
+    "auditStats": "审计统计"
   },
   "theme": {
     "toggle": "切换主题",

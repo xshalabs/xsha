@@ -10,10 +10,10 @@ export type {
 } from "./types";
 
 import { authApi } from "./auth";
-import { gitCredentialsApi } from "./git-credentials";
+import { gitCredentialsApi } from "./credentials";
 import { adminLogsApi } from "./admin-logs";
 import { projectsApi } from "./projects";
-import { devEnvironmentsApi } from "./dev-environments";
+import { devEnvironmentsApi } from "./environments";
 import { tasksApi } from "./tasks";
 import { taskConversationsApi } from "./task-conversations";
 import { taskConversationResultsApi } from "./task-conversation-results";

@@ -24,6 +24,8 @@ definitions:
         type: string
       description:
         type: string
+      docker_image:
+        type: string
       env_vars:
         type: string
       id:
@@ -31,6 +33,8 @@ definitions:
       memory_limit:
         type: integer
       name:
+        type: string
+      session_dir:
         type: string
       type:
         type: string
@@ -90,10 +94,6 @@ definitions:
         type: string
       id:
         type: integer
-      is_active:
-        type: boolean
-      last_used:
-        type: string
       name:
         type: string
       protocol:
@@ -127,6 +127,8 @@ definitions:
         $ref: '#/definitions/database.Project'
       project_id:
         type: integer
+      session_id:
+        type: string
       start_branch:
         type: string
       status:
@@ -255,16 +257,10 @@ definitions:
     type: object
   handlers.ConfigUpdateItem:
     properties:
-      category:
-        type: string
       config_key:
         type: string
       config_value:
         type: string
-      description:
-        type: string
-      is_editable:
-        type: boolean
     required:
     - config_key
     - config_value
@@ -321,6 +317,8 @@ definitions:
         type: number
       description:
         type: string
+      docker_image:
+        type: string
       env_vars:
         additionalProperties:
           type: string
@@ -334,6 +332,7 @@ definitions:
       type:
         type: string
     required:
+    - docker_image
     - name
     - type
     type: object
@@ -1506,282 +1505,7 @@ paths:
       summary: Get latest task conversation
       tags:
       - Task Conversations
-  /dev-environments:
-    get:
-      consumes:
-      - application/json
-      description: Get current user's development environment list with pagination
-        and filtering
-      parameters:
-      - description: Page number, default is 1
-        in: query
-        name: page
-        type: integer
-      - description: Page size, default is 10
-        in: query
-        name: page_size
-        type: integer
-      - description: Environment type filter
-        in: query
-        name: type
-        type: string
-      - description: Environment name filter
-        in: query
-        name: name
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Environment list
-          schema:
-            properties:
-              environments:
-                items:
-                  type: object
-                type: array
-              total:
-                type: number
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get environment list
-      tags:
-      - Development Environment
-    post:
-      consumes:
-      - application/json
-      description: Create a new development environment
-      parameters:
-      - description: Environment information
-        in: body
-        name: environment
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.CreateEnvironmentRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Environment created successfully
-          schema:
-            properties:
-              environment:
-                type: object
-              message:
-                type: string
-            type: object
-        "400":
-          description: Request parameter error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Create development environment
-      tags:
-      - Development Environment
-  /dev-environments/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete specified development environment
-      parameters:
-      - description: Environment ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Environment deleted successfully
-          schema:
-            properties:
-              message:
-                type: string
-            type: object
-        "400":
-          description: Delete failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Delete environment
-      tags:
-      - Development Environment
-    get:
-      consumes:
-      - application/json
-      description: Get detailed information of a development environment by ID
-      parameters:
-      - description: Environment ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Environment details
-          schema:
-            properties:
-              environment:
-                type: object
-            type: object
-        "404":
-          description: Environment not found
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get environment details
-      tags:
-      - Development Environment
-    put:
-      consumes:
-      - application/json
-      description: Update specified development environment information
-      parameters:
-      - description: Environment ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Environment update information
-        in: body
-        name: environment
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.UpdateEnvironmentRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Environment updated successfully
-          schema:
-            properties:
-              message:
-                type: string
-            type: object
-        "400":
-          description: Request parameter error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Update environment
-      tags:
-      - Development Environment
-  /dev-environments/{id}/env-vars:
-    get:
-      consumes:
-      - application/json
-      description: Get environment variables of specified environment
-      parameters:
-      - description: Environment ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Environment variables
-          schema:
-            properties:
-              env_vars:
-                type: object
-            type: object
-        "400":
-          description: Get failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get environment variables
-      tags:
-      - Development Environment
-    put:
-      consumes:
-      - application/json
-      description: Update environment variables of specified environment
-      parameters:
-      - description: Environment ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Environment variables
-        in: body
-        name: env_vars
-        required: true
-        schema:
-          additionalProperties:
-            type: string
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Update successful
-          schema:
-            properties:
-              message:
-                type: string
-            type: object
-        "400":
-          description: Update failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Update environment variables
-      tags:
-      - Development Environment
-  /dev-environments/available-types:
-    get:
-      consumes:
-      - application/json
-      description: Get available environment types from system configuration
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Available environment types
-          schema:
-            properties:
-              types:
-                items:
-                  type: object
-                type: array
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get available environment types
-      tags:
-      - Development Environment
-  /git-credentials:
+  /credentials:
     get:
       consumes:
       - application/json
@@ -1877,7 +1601,7 @@ paths:
       summary: Create Git credential
       tags:
       - Git Credentials
-  /git-credentials/{id}:
+  /credentials/{id}:
     delete:
       consumes:
       - application/json
@@ -2001,6 +1725,307 @@ paths:
       summary: Update Git credential
       tags:
       - Git Credentials
+  /environments:
+    get:
+      consumes:
+      - application/json
+      description: Get current user's development environment list with pagination
+        and filtering
+      parameters:
+      - description: Page number, default is 1
+        in: query
+        name: page
+        type: integer
+      - description: Page size, default is 10
+        in: query
+        name: page_size
+        type: integer
+      - description: Environment name filter
+        in: query
+        name: name
+        type: string
+      - description: Docker image filter
+        in: query
+        name: docker_image
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Environment list
+          schema:
+            properties:
+              environments:
+                items:
+                  type: object
+                type: array
+              total:
+                type: number
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get environment list
+      tags:
+      - Development Environment
+    post:
+      consumes:
+      - application/json
+      description: Create a new development environment
+      parameters:
+      - description: Environment information
+        in: body
+        name: environment
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateEnvironmentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Environment created successfully
+          schema:
+            properties:
+              environment:
+                type: object
+              message:
+                type: string
+            type: object
+        "400":
+          description: Request parameter error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create development environment
+      tags:
+      - Development Environment
+  /environments/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete specified development environment
+      parameters:
+      - description: Environment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Environment deleted successfully
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Delete failed
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete environment
+      tags:
+      - Development Environment
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information of a development environment by ID
+      parameters:
+      - description: Environment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Environment details
+          schema:
+            properties:
+              environment:
+                type: object
+            type: object
+        "404":
+          description: Environment not found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get environment details
+      tags:
+      - Development Environment
+    put:
+      consumes:
+      - application/json
+      description: Update specified development environment information
+      parameters:
+      - description: Environment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Environment update information
+        in: body
+        name: environment
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateEnvironmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Environment updated successfully
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Request parameter error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update environment
+      tags:
+      - Development Environment
+  /environments/{id}/env-vars:
+    get:
+      consumes:
+      - application/json
+      description: Get environment variables of specified environment
+      parameters:
+      - description: Environment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Environment variables
+          schema:
+            properties:
+              env_vars:
+                type: object
+            type: object
+        "400":
+          description: Get failed
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get environment variables
+      tags:
+      - Development Environment
+    put:
+      consumes:
+      - application/json
+      description: Update environment variables of specified environment
+      parameters:
+      - description: Environment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Environment variables
+        in: body
+        name: env_vars
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Update successful
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Update failed
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update environment variables
+      tags:
+      - Development Environment
+  /environments/available-images:
+    get:
+      consumes:
+      - application/json
+      description: Get available environment images from system configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Available environment images
+          schema:
+            properties:
+              images:
+                items:
+                  type: object
+                type: array
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get available environment images
+      tags:
+      - Development Environment
+  /environments/stats:
+    get:
+      consumes:
+      - application/json
+      description: Get statistics about development environments
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Environment statistics
+          schema:
+            properties:
+              stats:
+                additionalProperties: true
+                type: object
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get development environment statistics
+      tags:
+      - Development Environment
   /health:
     get:
       consumes:
@@ -2487,7 +2512,7 @@ paths:
       summary: Validate Git repository access permissions
       tags:
       - Project
-  /system-configs:
+  /settings:
     get:
       consumes:
       - application/json
@@ -3085,6 +3110,14 @@ paths:
         name: id
         required: true
         type: integer
+      - description: Push options
+        in: body
+        name: request
+        schema:
+          properties:
+            force_push:
+              type: boolean
+          type: object
       produces:
       - application/json
       responses:

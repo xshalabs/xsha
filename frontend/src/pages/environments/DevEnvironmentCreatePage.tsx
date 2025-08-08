@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
-import { GitCredentialForm } from "@/components/GitCredentialForm";
+import DevEnvironmentForm from "@/components/DevEnvironmentForm";
 import {
   EmptyStateContainer,
   EmptyStateTitle,
@@ -15,26 +15,26 @@ import {
   SectionHeader,
   SectionTitle,
 } from "@/components/content/section";
-import type { GitCredential } from "@/types/git-credentials";
+import type { DevEnvironmentDisplay } from "@/types/dev-environment";
 
-const GitCredentialCreatePage: React.FC = () => {
+const DevEnvironmentCreatePage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { setItems } = useBreadcrumb();
 
-  usePageTitle(t("gitCredentials.create"));
+  usePageTitle(t("devEnvironments.create"));
 
   // Set breadcrumb navigation
   useEffect(() => {
     setItems([
       {
         type: "link",
-        label: t("gitCredentials.list"),
-        href: "/git-credentials",
+        label: t("devEnvironments.list"),
+                  href: "/environments",
       },
       {
         type: "page",
-        label: t("gitCredentials.create"),
+        label: t("devEnvironments.create"),
       },
     ]);
 
@@ -44,23 +44,23 @@ const GitCredentialCreatePage: React.FC = () => {
     };
   }, [setItems, t]);
 
-  const handleSubmit = (_credential: GitCredential) => {
-    navigate("/git-credentials");
+  const handleSubmit = (_environment: DevEnvironmentDisplay) => {
+    navigate("/environments");
   };
 
   return (
     <SectionGroup>
       <Section>
         <SectionHeader>
-          <SectionTitle>{t("gitCredentials.create")}</SectionTitle>
+          <SectionTitle>{t("devEnvironments.create")}</SectionTitle>
         </SectionHeader>
-        <GitCredentialForm onSubmit={handleSubmit} />
+        <DevEnvironmentForm onSubmit={handleSubmit} />
       </Section>
       <Section>
         <EmptyStateContainer>
-          <EmptyStateTitle>{t("gitCredentials.createAndSecure")}</EmptyStateTitle>
+          <EmptyStateTitle>{t("devEnvironments.createAndCustomize")}</EmptyStateTitle>
           <EmptyStateDescription>
-            {t("gitCredentials.createHelpText")}
+            {t("devEnvironments.createHelpText")}
           </EmptyStateDescription>
         </EmptyStateContainer>
       </Section>
@@ -68,4 +68,4 @@ const GitCredentialCreatePage: React.FC = () => {
   );
 };
 
-export default GitCredentialCreatePage;
+export default DevEnvironmentCreatePage;

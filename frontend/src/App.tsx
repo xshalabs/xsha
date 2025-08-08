@@ -14,18 +14,21 @@ import { Layout } from "@/components/Layout";
 import { LoginPage } from "@/pages/LoginPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { AdminLogsPage } from "@/pages/AdminLogsPage";
+import { OperationLogsPage } from "@/pages/audit/OperationLogsPage";
+import { LoginLogsPage } from "@/pages/audit/LoginLogsPage";
+import { AuditStatsPage } from "@/pages/audit/AuditStatsPage";
 
 import ProjectListPage from "@/pages/projects/ProjectListPage";
 import ProjectCreatePage from "@/pages/projects/ProjectCreatePage";
 import ProjectEditPage from "@/pages/projects/ProjectEditPage";
 
-import DevEnvironmentListPage from "@/pages/dev-environments/DevEnvironmentListPage";
-import DevEnvironmentCreatePage from "@/pages/dev-environments/DevEnvironmentCreatePage";
-import DevEnvironmentEditPage from "@/pages/dev-environments/DevEnvironmentEditPage";
+import DevEnvironmentListPage from "@/pages/environments/DevEnvironmentListPage";
+import DevEnvironmentCreatePage from "@/pages/environments/DevEnvironmentCreatePage";
+import DevEnvironmentEditPage from "@/pages/environments/DevEnvironmentEditPage";
 
-import GitCredentialListPage from "@/pages/git-credentials/GitCredentialListPage";
-import GitCredentialCreatePage from "@/pages/git-credentials/GitCredentialCreatePage";
-import GitCredentialEditPage from "@/pages/git-credentials/GitCredentialEditPage";
+import GitCredentialListPage from "@/pages/credentials/GitCredentialListPage";
+import GitCredentialCreatePage from "@/pages/credentials/GitCredentialCreatePage";
+import GitCredentialEditPage from "@/pages/credentials/GitCredentialEditPage";
 
 import TaskListPage from "@/pages/tasks/TaskListPage";
 import TaskCreatePage from "@/pages/tasks/TaskCreatePage";
@@ -33,7 +36,7 @@ import TaskEditPage from "@/pages/tasks/TaskEditPage";
 import TaskConversationPage from "@/pages/tasks/TaskConversationPage";
 import TaskConversationGitDiffPage from "@/pages/tasks/TaskConversationGitDiffPage";
 
-import SystemConfigEditPage from "@/pages/system-configs/SystemConfigEditPage";
+import SystemConfigEditPage from "@/pages/settings/SystemConfigEditPage";
 import TaskGitDiffPage from "@/pages/tasks/TaskGitDiffPage";
 
 import "./App.css";
@@ -106,7 +109,7 @@ function App() {
             />
 
             <Route
-              path="/dev-environments"
+              path="/environments"
               element={
                 <ProtectedRoute>
                   <Layout>
@@ -116,7 +119,7 @@ function App() {
               }
             />
             <Route
-              path="/dev-environments/create"
+              path="/environments/create"
               element={
                 <ProtectedRoute>
                   <Layout>
@@ -126,7 +129,7 @@ function App() {
               }
             />
             <Route
-              path="/dev-environments/:id/edit"
+              path="/environments/:id/edit"
               element={
                 <ProtectedRoute>
                   <Layout>
@@ -137,7 +140,7 @@ function App() {
             />
 
             <Route
-              path="/git-credentials"
+              path="/credentials"
               element={
                 <ProtectedRoute>
                   <Layout>
@@ -147,7 +150,7 @@ function App() {
               }
             />
             <Route
-              path="/git-credentials/create"
+              path="/credentials/create"
               element={
                 <ProtectedRoute>
                   <Layout>
@@ -157,7 +160,7 @@ function App() {
               }
             />
             <Route
-              path="/git-credentials/:id/edit"
+              path="/credentials/:id/edit"
               element={
                 <ProtectedRoute>
                   <Layout>
@@ -240,7 +243,38 @@ function App() {
             />
 
             <Route
-              path="/system-configs"
+              path="/audit/operation-logs"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <OperationLogsPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/audit/login-logs"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <LoginLogsPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/audit/stats"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AuditStatsPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/settings"
               element={
                 <ProtectedRoute>
                   <Layout>
