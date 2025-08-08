@@ -1,6 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { LoginLog } from "@/types/admin-logs";
-import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, User, Calendar, Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -32,11 +31,11 @@ export function useLoginLogColumns() {
             ) : (
               <XCircle className="w-4 h-4 text-red-500" />
             )}
-            <Badge variant={success ? "default" : "destructive"}>
+            <span className={`text-sm ${success ? "text-green-600" : "text-red-600"}`}>
               {success
                 ? t("adminLogs.loginLogs.status.success")
                 : t("adminLogs.loginLogs.status.failed")}
-            </Badge>
+            </span>
           </div>
         );
       },

@@ -26,7 +26,6 @@ import type { ColumnFiltersState } from "@tanstack/react-table";
 export const LoginLogTab: React.FC = () => {
   const { t } = useTranslation();
   const [logs, setLogs] = useState<LoginLog[]>([]);
-  const [loading, setLoading] = useState(false);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -65,20 +64,11 @@ export const LoginLogTab: React.FC = () => {
         type: "info" as const,
         filterKey: "",
       },
-      {
-        title: t("adminLogs.loginLogs.metrics.successRate"),
-        value: totalCurrentPage > 0 ? `${Math.round((successCount / totalCurrentPage) * 100)}%` : "0%",
-        variant: successCount > failedCount ? "success" as const : "warning" as const,
-        type: "info" as const,
-        filterKey: "",
-      },
     ];
   }, [logs, t]);
 
   const loadLogs = async (page = currentPage, filters = columnFilters) => {
     try {
-      setLoading(true);
-
       // Convert DataTable filters to API parameters
       const apiParams: any = {
         page,
@@ -113,8 +103,6 @@ export const LoginLogTab: React.FC = () => {
     } catch (err: any) {
       logError(err, "Failed to load login logs");
       console.error("Failed to load login logs:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
