@@ -128,7 +128,7 @@ export function MetricCardBadge({
   value: number;
   decimal?: number;
 }) {
-  const round = 10 ** decimal; // 10^1 = 10 (1 decimal), 10^2 = 100 (2 decimals), etc.
+  const round = 10 ** decimal;
   const percentage = Math.round((value - 1) * 100 * round) / round;
 
   const variant: VariantProps<typeof badgeVariants>["variant"] =

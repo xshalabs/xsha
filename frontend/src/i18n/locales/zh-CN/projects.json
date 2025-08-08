@@ -50,5 +50,9 @@
     "title": "筛选项目",
     "name_placeholder": "按项目名称搜索"
   },
-  "list": "项目列表"
+  "list": "项目列表",
+  "metrics": {
+    "total": "项目总数",
+    "withCredentials": "已配置凭据"
+  }
 } 

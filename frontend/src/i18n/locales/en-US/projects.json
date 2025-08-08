@@ -50,5 +50,9 @@
     "title": "Filter Projects",
     "name_placeholder": "Search by project name"
   },
-  "list": "Project List"
+  "list": "Project List",
+  "metrics": {
+    "total": "Total Projects",
+    "withCredentials": "With Credentials"
+  }
 } 

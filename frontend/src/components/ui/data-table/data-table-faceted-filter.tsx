@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Column } from "@tanstack/react-table";
 import { Check, PlusCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -20,53 +21,50 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 
-interface DataTableFacetedFilterProps {
+interface DataTableFacetedFilterProps<TData, TValue> {
+  column?: Column<TData, TValue>;
   title?: string;
   options: {
     label: string;
     value: string;
     icon?: React.ComponentType<{ className?: string }>;
   }[];
-  selectedValues?: string[];
-  onSelectionChange?: (values: string[]) => void;
-  singleSelect?: boolean; // Add single select mode
 }
 
-export function DataTableFacetedFilter({
+export function DataTableFacetedFilter<TData, TValue>({
+  column,
   title,
   options,
-  selectedValues = [],
-  onSelectionChange,
-  singleSelect = false,
-}: DataTableFacetedFilterProps) {
-  const selectedSet = new Set(selectedValues);
+}: DataTableFacetedFilterProps<TData, TValue>) {
+  const facets = column?.getFacetedUniqueValues();
+  const selectedValues = new Set(column?.getFilterValue() as string[]);
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 border-dashed">
-          <PlusCircle className="mr-2 h-4 w-4" />
+          <PlusCircle />
           {title}
-          {selectedSet?.size > 0 && (
+          {selectedValues?.size > 0 && (
             <>
               <Separator orientation="vertical" className="mx-2 h-4" />
               <Badge
                 variant="secondary"
                 className="rounded-sm px-1 font-normal lg:hidden"
               >
-                {selectedSet.size}
+                {selectedValues.size}
               </Badge>
               <div className="hidden space-x-1 lg:flex">
-                {selectedSet.size > 2 ? (
+                {selectedValues.size > 2 ? (
                   <Badge
                     variant="secondary"
                     className="rounded-sm px-1 font-normal"
                   >
-                    {selectedSet.size} selected
+                    {selectedValues.size} selected
                   </Badge>
                 ) : (
                   options
-                    .filter((option) => selectedSet.has(option.value))
+                    .filter((option) => selectedValues.has(option.value))
                     .map((option) => (
                       <Badge
                         variant="secondary"
@@ -84,32 +82,25 @@ export function DataTableFacetedFilter({
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0" align="start">
         <Command>
-          <CommandInput placeholder={`Search ${title?.toLowerCase()}...`} />
+          <CommandInput placeholder={title} />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => {
-                const isSelected = selectedSet.has(option.value);
+                const isSelected = selectedValues.has(option.value);
                 return (
                   <CommandItem
                     key={option.value}
-                    value={option.value}
-                    onSelect={(value) => {
-                      if (singleSelect) {
-                        // Single select mode: toggle the selection or select new
-                        const newArray = isSelected ? [] : [value];
-                        onSelectionChange?.(newArray);
+                    onSelect={() => {
+                      if (isSelected) {
+                        selectedValues.delete(option.value);
                       } else {
-                        // Multi select mode: add/remove from selection
-                        const newSelectedValues = new Set(selectedValues);
-                        if (isSelected) {
-                          newSelectedValues.delete(value);
-                        } else {
-                          newSelectedValues.add(value);
-                        }
-                        const newArray = Array.from(newSelectedValues);
-                        onSelectionChange?.(newArray);
+                        selectedValues.add(option.value);
                       }
+                      const filterValues = Array.from(selectedValues);
+                      column?.setFilterValue(
+                        filterValues.length ? filterValues : undefined
+                      );
                     }}
                   >
                     <div
@@ -120,23 +111,27 @@ export function DataTableFacetedFilter({
                           : "opacity-50 [&_svg]:invisible"
                       )}
                     >
-                      <Check className="h-4 w-4" />
+                      <Check />
                     </div>
                     {option.icon && (
                       <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                     )}
                     <span>{option.label}</span>
+                    {facets?.get(option.value) && (
+                      <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
+                        {facets.get(option.value)}
+                      </span>
+                    )}
                   </CommandItem>
                 );
               })}
             </CommandGroup>
-            {selectedSet.size > 0 && (
+            {selectedValues.size > 0 && (
               <>
                 <CommandSeparator />
                 <CommandGroup>
                   <CommandItem
-                    value="clear-filters"
-                    onSelect={() => onSelectionChange?.([])}
+                    onSelect={() => column?.setFilterValue(undefined)}
                     className="justify-center text-center"
                   >
                     Clear filters

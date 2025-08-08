@@ -4,10 +4,12 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ModeToggle } from "@/components/mode-toggle";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { usePageActions } from "@/contexts/PageActionsContext";
 
 export function SiteHeader() {
   const location = useLocation();
   const { t } = useTranslation();
+  const { actions } = usePageActions();
 
   const getPageTitle = (pathname: string): string => {
     const projectTasksMatch = pathname.match(/^\/projects\/(\d+)\/tasks$/);
@@ -44,6 +46,8 @@ export function SiteHeader() {
       </div>
       <div className="ml-auto px-3">
         <div className="flex items-center gap-2">
+          {actions}
+          {actions && <Separator orientation="vertical" className="h-4" />}
           <ModeToggle />
           <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
             <a
