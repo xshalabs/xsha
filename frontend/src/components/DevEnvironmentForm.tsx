@@ -11,8 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
 import {
   FormCard,
   FormCardContent,
@@ -438,33 +437,93 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
         
         <FormCardContent>
           <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  {t("devEnvironments.env_vars.add_new")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-3">
-                    <Label>{t("devEnvironments.env_vars.key")}</Label>
+            <div className="flex flex-col gap-3">
+              <Label>{t("devEnvironments.env_vars.title")}</Label>
+              <div className="space-y-3">
+                {Object.keys(envVars).length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    {t("devEnvironments.env_vars.empty_message")}
+                  </p>
+                )}
+                {Object.entries(envVars).map(([key, value]) => (
+                  <div key={key} className="grid gap-2 grid-cols-5">
                     <Input
-                      value={newEnvKey}
-                      onChange={(e) => setNewEnvKey(e.target.value)}
-                      placeholder="VARIABLE_NAME"
+                      placeholder={t("devEnvironments.env_vars.key")}
+                      className="col-span-2"
+                      value={key}
+                      onChange={(e) => {
+                        const newKey = e.target.value;
+                        if (newKey !== key) {
+                          // Check if new key already exists
+                          if (newKey && envVars[newKey]) {
+                            toast.error(t("devEnvironments.env_vars.key_exists"));
+                            return;
+                          }
+                          const newVars = { ...envVars };
+                          delete newVars[key];
+                          if (newKey) {
+                            newVars[newKey] = value;
+                          }
+                          setEnvVars(newVars);
+                        }
+                      }}
                     />
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <Label>{t("devEnvironments.env_vars.value")}</Label>
                     <Input
-                      value={newEnvValue}
-                      onChange={(e) => setNewEnvValue(e.target.value)}
-                      placeholder="variable_value"
+                      placeholder={t("devEnvironments.env_vars.value")}
+                      className="col-span-2"
+                      value={value}
+                      onChange={(e) => updateEnvVar(key, e.target.value)}
                     />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => removeEnvVar(key)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                </div>
+                ))}
+              </div>
+              <div className="grid gap-2 grid-cols-5">
+                <Input
+                  placeholder={t("devEnvironments.env_vars.key")}
+                  className="col-span-2"
+                  value={newEnvKey}
+                  onChange={(e) => setNewEnvKey(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newEnvKey.trim()) {
+                      e.preventDefault();
+                      addEnvVar();
+                    }
+                  }}
+                />
+                <Input
+                  placeholder={t("devEnvironments.env_vars.value")}
+                  className="col-span-2"
+                  value={newEnvValue}
+                  onChange={(e) => setNewEnvValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newEnvKey.trim()) {
+                      e.preventDefault();
+                      addEnvVar();
+                    }
+                  }}
+                />
                 <Button
                   type="button"
+                  size="icon"
+                  variant="ghost"
+                  onClick={addEnvVar}
+                  disabled={!newEnvKey.trim()}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <div>
+                <Button
+                  type="button"
+                  size="sm"
                   variant="outline"
                   onClick={addEnvVar}
                   disabled={!newEnvKey.trim()}
@@ -472,46 +531,8 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                   <Plus className="h-4 w-4 mr-2" />
                   {t("devEnvironments.env_vars.add")}
                 </Button>
-              </CardContent>
-            </Card>
-
-            {Object.keys(envVars).length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">
-                    {t("devEnvironments.env_vars.current")}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col gap-3">
-                    {Object.entries(envVars).map(([key, value]) => (
-                      <div key={key} className="flex items-center gap-3">
-                        <Badge
-                          variant="outline"
-                          className="min-w-0 flex-shrink-0"
-                        >
-                          {key}
-                        </Badge>
-                        <Input
-                          value={value}
-                          onChange={(e) => updateEnvVar(key, e.target.value)}
-                          className="flex-1"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeEnvVar(key)}
-                          className="flex-shrink-0"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+              </div>
+            </div>
           </div>
         </FormCardContent>
 

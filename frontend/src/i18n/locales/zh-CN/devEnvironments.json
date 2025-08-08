@@ -83,11 +83,13 @@
   "editHelpText": "修改环境设置，调整资源限制和管理环境变量。",
   "configurationHelp": "环境配置将在容器创建或重启时应用。",
   "env_vars": {
+    "title": "环境变量",
     "add_new": "添加环境变量",
     "current": "当前环境变量",
     "key": "变量名",
     "value": "变量值",
     "add": "添加",
+    "empty_message": "暂无环境变量配置，请在下方添加。",
     "key_required": "变量名不能为空",
     "key_exists": "变量名已存在"
   }
