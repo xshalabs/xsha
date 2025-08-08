@@ -36,7 +36,7 @@ import type {
   GitCredentialListParams,
 } from "@/types/git-credentials";
 import { GitCredentialType } from "@/types/git-credentials";
-import { Plus, Key, Shield, User, ListFilter } from "lucide-react";
+import { Plus, Key, Shield, User, ListFilter, CheckCircle } from "lucide-react";
 
 const GitCredentialListPage: React.FC = () => {
   const { t } = useTranslation();
@@ -150,8 +150,6 @@ const GitCredentialListPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-
-
   const handleBatchDelete = async (ids: number[]) => {
     try {
       await Promise.all(ids.map(id => apiService.gitCredentials.delete(id)));
@@ -163,7 +161,7 @@ const GitCredentialListPage: React.FC = () => {
     }
   };
 
-  // Calculate statistics
+  // Calculate statistics  
   const statistics = useMemo(() => {
     const passwordCount = credentials.filter(
       (cred) => cred.type === GitCredentialType.PASSWORD
@@ -247,30 +245,30 @@ const GitCredentialListPage: React.FC = () => {
           <MetricCardGroup>
             {statistics.map((stat) => {
               const isActive = typeFilter === stat.type || (stat.type === undefined && typeFilter === undefined);
-              const Icon = stat.icon;
+              
+              // Determine icon based on state (like openstatus)
+              let Icon;
+              if (stat.type === undefined) {
+                // Total always uses ListFilter
+                Icon = ListFilter;
+              } else {
+                // Filter types use CheckCircle when active, type icon when inactive
+                Icon = isActive ? CheckCircle : stat.icon;
+              }
 
               return (
                 <MetricCardButton
                   key={stat.title}
                   variant={stat.variant}
                   onClick={() => handleStatisticClick(stat.type)}
-                  className={`transition-all duration-200 hover:scale-[1.02] ${
-                    isActive 
-                      ? "ring-2 ring-ring ring-offset-2 shadow-md" 
-                      : "hover:shadow-sm"
-                  }`}
                 >
                   <MetricCardHeader className="flex justify-between items-center gap-2 w-full">
-                    <MetricCardTitle className="truncate font-medium">
+                    <MetricCardTitle className="truncate">
                       {stat.title}
                     </MetricCardTitle>
-                    <Icon className={`size-4 transition-colors ${
-                      isActive ? "text-current" : "text-muted-foreground"
-                    }`} />
+                    <Icon className="size-4" />
                   </MetricCardHeader>
-                  <MetricCardValue className="text-xl font-semibold">
-                    {stat.value}
-                  </MetricCardValue>
+                  <MetricCardValue>{stat.value}</MetricCardValue>
                 </MetricCardButton>
               );
             })}
