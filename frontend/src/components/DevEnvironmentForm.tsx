@@ -364,12 +364,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
                 <SelectContent className="max-w-[400px]">
                   {environmentImages.map((imgOption) => (
                     <SelectItem key={imgOption.image} value={imgOption.image}>
-                      <div className="flex flex-col min-w-0 w-full">
-                        <span className="font-medium truncate">{imgOption.image}</span>
-                        <span className="text-xs text-muted-foreground truncate">
-                          {imgOption.description}
-                        </span>
-                      </div>
+                      <span className="font-medium truncate">{imgOption.name}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
