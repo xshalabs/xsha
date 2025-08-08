@@ -18,6 +18,7 @@ import { tasksApi } from "./tasks";
 import { taskConversationsApi } from "./task-conversations";
 import { taskConversationResultsApi } from "./task-conversation-results";
 import { taskExecutionLogsApi } from "./task-execution-logs";
+import { dashboardApi } from "./dashboard";
 
 export {
   authApi,
@@ -29,6 +30,7 @@ export {
   taskConversationsApi,
   taskConversationResultsApi,
   taskExecutionLogsApi,
+  dashboardApi,
 };
 
 export const apiService = {
@@ -52,4 +54,6 @@ export const apiService = {
   taskConversationResults: taskConversationResultsApi,
 
   taskExecutionLogs: taskExecutionLogsApi,
+
+  dashboard: dashboardApi,
 };

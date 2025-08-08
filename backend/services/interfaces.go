@@ -141,3 +141,8 @@ type SystemConfigService interface {
 	GetGitSSLVerify() (bool, error)
 	GetDockerTimeout() (time.Duration, error)
 }
+
+type DashboardService interface {
+	GetDashboardStats() (map[string]interface{}, error)
+	GetRecentTasks(limit int) ([]database.Task, error)
+}

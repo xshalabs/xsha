@@ -129,3 +129,8 @@ type SystemConfigRepository interface {
 	SetValueWithCategoryAndSort(key, value, description, category, formType string, isEditable bool, sortOrder int) error
 	InitializeDefaultConfigs() error
 }
+
+type DashboardRepository interface {
+	GetDashboardStats() (map[string]interface{}, error)
+	GetRecentTasks(limit int) ([]database.Task, error)
+}
