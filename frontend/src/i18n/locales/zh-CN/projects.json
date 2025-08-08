@@ -4,7 +4,7 @@
   "create": "创建",
   "edit": "编辑",
   "delete": "删除",
-  "tasksManagement": "任务管理",
+  "tasksManagement": "任务",
   "createDescription": "创建一个新的项目配置",
   "editDescription": "编辑项目配置信息",
   "name": "项目名称",

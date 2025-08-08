@@ -7,6 +7,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuGroup,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -237,40 +239,40 @@ export const createTaskColumns = ({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="h-7 w-7 data-[state=open]:bg-accent">
                 <span className="sr-only">{t("common.open_menu")}</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{t("common.actions")}</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuGroup>
+                {onViewConversation && (
+                  <DropdownMenuItem onClick={() => onViewConversation(task)}>
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    {t("tasks.actions.viewConversation")}
+                  </DropdownMenuItem>
+                )}
 
-              {onViewConversation && (
-                <DropdownMenuItem onClick={() => onViewConversation(task)}>
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  {t("tasks.actions.viewConversation")}
+                {onViewGitDiff && task.work_branch && (
+                  <DropdownMenuItem onClick={() => onViewGitDiff(task)}>
+                    <GitCompare className="h-4 w-4 mr-2" />
+                    {t("tasks.actions.viewGitDiff")}
+                  </DropdownMenuItem>
+                )}
+
+                {onPushBranch && (
+                  <DropdownMenuItem onClick={() => onPushBranch(task)}>
+                    <GitBranch className="h-4 w-4 mr-2" />
+                    {t("tasks.actions.pushBranch")}
+                  </DropdownMenuItem>
+                )}
+
+                <DropdownMenuItem onClick={() => onEdit(task)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  {t("common.edit")}
                 </DropdownMenuItem>
-              )}
-
-              {onViewGitDiff && task.work_branch && (
-                <DropdownMenuItem onClick={() => onViewGitDiff(task)}>
-                  <GitCompare className="h-4 w-4 mr-2" />
-                  {t("tasks.actions.viewGitDiff")}
-                </DropdownMenuItem>
-              )}
-
-              {onPushBranch && (
-                <DropdownMenuItem onClick={() => onPushBranch(task)}>
-                  <GitBranch className="h-4 w-4 mr-2" />
-                  {t("tasks.actions.pushBranch")}
-                </DropdownMenuItem>
-              )}
-
-              <DropdownMenuItem onClick={() => onEdit(task)}>
-                <Edit className="h-4 w-4 mr-2" />
-                {t("common.edit")}
-              </DropdownMenuItem>
-
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => onDelete(task.id)}
                 className="text-destructive"

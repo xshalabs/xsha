@@ -7,6 +7,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuGroup,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -117,21 +119,23 @@ export const createProjectColumns = ({
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
+            <Button variant="ghost" className="h-7 w-7 data-[state=open]:bg-accent">
               <span className="sr-only">{t("common.open_menu")}</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{t("common.actions")}</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => onManageTasks(project)}>
-              <FolderOpen className="mr-2 h-4 w-4" />
-              {t("projects.tasksManagement")}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEdit(project)}>
-              <Edit className="mr-2 h-4 w-4" />
-              {t("common.edit")}
-            </DropdownMenuItem>
+          <DropdownMenuContent align="end" className="w-36">
+            <DropdownMenuGroup>
+              <DropdownMenuItem onClick={() => onManageTasks(project)}>
+                <FolderOpen className="mr-2 h-4 w-4" />
+                {t("projects.tasksManagement")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit(project)}>
+                <Edit className="mr-2 h-4 w-4" />
+                {t("common.edit")}
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => onDelete(project.id)}
               className="text-destructive"
