@@ -133,6 +133,7 @@ export const createGitCredentialColumns = ({
 
       const deleteAction = {
         title: credential.name,
+        confirmationValue: credential.name,
         submitAction: async () => {
           await onDelete(credential.id);
         },

@@ -123,6 +123,7 @@ export const createProjectColumns = ({
 
       const deleteAction = {
         title: project.name,
+        confirmationValue: project.name,
         submitAction: async () => {
           await onDelete(project.id);
         },

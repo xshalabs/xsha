@@ -267,6 +267,7 @@ export const createTaskColumns = ({
 
             const deleteAction = {
               title: task.title,
+              confirmationValue: task.title,
               submitAction: async () => {
                 await onDelete(task.id);
               },

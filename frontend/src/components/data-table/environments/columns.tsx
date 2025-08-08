@@ -105,6 +105,7 @@ export const createDevEnvironmentColumns = ({
 
       const deleteAction = {
         title: environment.name,
+        confirmationValue: environment.name,
         submitAction: async () => {
           await onDelete(environment.id);
         },
