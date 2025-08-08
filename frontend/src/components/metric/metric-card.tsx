@@ -1,10 +1,13 @@
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
+import { ChevronDown, ChevronUp } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 
 import { cn } from "@/lib/utils";
 
 const metricCardVariants = cva(
-  "flex flex-col gap-1 border rounded-lg px-3 py-2 text-card-foreground transition-all hover:shadow-sm",
+  "flex flex-col gap-1 border rounded-lg px-3 py-2 text-card-foreground",
   {
     variants: {
       variant: {
@@ -101,8 +104,55 @@ export function MetricCardGroup({
   );
 }
 
+const badgeVariants = cva("px-1.5 font-mono text-[10px]", {
+  variants: {
+    variant: {
+      default: "border-border",
+      increase:
+        "border-destructive/20 bg-destructive/10 hover:bg-destructive/10 text-destructive",
+      decrease:
+        "border-success/20 bg-success/10 hover:bg-success/10 text-success",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+});
+
+export function MetricCardBadge({
+  value,
+  decimal = 1,
+  className,
+  ...props
+}: React.ComponentProps<typeof Badge> & {
+  value: number;
+  decimal?: number;
+}) {
+  const round = 10 ** decimal; // 10^1 = 10 (1 decimal), 10^2 = 100 (2 decimals), etc.
+  const percentage = Math.round((value - 1) * 100 * round) / round;
+
+  const variant: VariantProps<typeof badgeVariants>["variant"] =
+    percentage > 0 ? "increase" : percentage < 0 ? "decrease" : "default";
+
+  return (
+    <Badge
+      variant="secondary"
+      className={badgeVariants({ variant, className })}
+      {...props}
+    >
+      {percentage !== 0 ? (
+        <span>
+          {percentage > 0 ? <ChevronUp className="mr-px size-2.5" /> : null}
+          {percentage < 0 ? <ChevronDown className="mr-px size-2.5" /> : null}
+        </span>
+      ) : null}
+      {Math.abs(percentage)}%
+    </Badge>
+  );
+}
+
 const metricCardButtonVariants = cva(
-  "group w-full text-left transition-all rounded-md outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer hover:shadow-md"
+  "group w-full text-left transition-all rounded-md outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 cursor-pointer"
 );
 
 export function MetricCardButton({

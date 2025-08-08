@@ -1,17 +1,37 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/constants";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  SectionGroup,
+  Section,
+  SectionHeader,
+  SectionHeaderRow,
+  SectionTitle,
+  SectionDescription,
+  EmptyStateContainer,
+  EmptyStateTitle,
+  EmptyStateDescription,
+} from "@/components/content";
+import {
+  MetricCard,
+  MetricCardGroup,
+  MetricCardHeader,
+  MetricCardTitle,
+  MetricCardValue,
+} from "@/components/metric";
+import {
+  Folder,
+  Key,
+  Container,
+  Activity,
+  Plus,
+  FileText,
+  Clock,
+} from "lucide-react";
 
 export const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
@@ -20,104 +40,144 @@ export const DashboardPage: React.FC = () => {
 
   usePageTitle("common.pageTitle.dashboard");
 
+  // Mock metrics data - in real app this would come from API
+  const metrics = [
+    {
+      title: t("dashboard.metrics.totalProjects"),
+      value: "12",
+      href: ROUTES.projects,
+      variant: "default" as const,
+      icon: Folder,
+    },
+    {
+      title: t("dashboard.metrics.activeEnvironments"),
+      value: "8",
+      href: "/dev-environments",
+      variant: "success" as const,
+      icon: Container,
+    },
+    {
+      title: t("dashboard.metrics.gitCredentials"),
+      value: "5",
+      href: ROUTES.gitCredentials,
+      variant: "default" as const,
+      icon: Key,
+    },
+    {
+      title: t("dashboard.metrics.recentTasks"),
+      value: "23",
+      href: "/tasks",
+      variant: "default" as const,
+      icon: Activity,
+    },
+  ];
+
+  const quickActions = [
+    {
+      title: t("dashboard.quickActions.newProject"),
+      description: t("dashboard.quickActions.newProjectDesc"),
+      icon: Folder,
+      action: () => navigate("/projects/create"),
+    },
+    {
+      title: t("dashboard.quickActions.newEnvironment"),
+      description: t("dashboard.quickActions.newEnvironmentDesc"),
+      icon: Container,
+      action: () => navigate("/dev-environments/create"),
+    },
+    {
+      title: t("dashboard.quickActions.addCredential"),
+      description: t("dashboard.quickActions.addCredentialDesc"),
+      icon: Key,
+      action: () => navigate("/git-credentials/create"),
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {t("dashboard.title")}
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t("dashboard.welcome")}, {user}!
-            </p>
-          </div>
+    <SectionGroup>
+      <Section>
+        <SectionHeader>
+          <SectionTitle>{t("dashboard.title")}</SectionTitle>
+          <SectionDescription>
+            {t("dashboard.welcome")}, {user}! {t("dashboard.description")}
+          </SectionDescription>
+        </SectionHeader>
+        <MetricCardGroup>
+          {metrics.map((metric) => (
+            <Link to={metric.href} key={metric.title}>
+              <MetricCard variant={metric.variant}>
+                <MetricCardHeader className="flex justify-between items-center gap-2">
+                  <MetricCardTitle className="truncate">
+                    {metric.title}
+                  </MetricCardTitle>
+                  <metric.icon className="size-4" />
+                </MetricCardHeader>
+                <MetricCardValue>{metric.value}</MetricCardValue>
+              </MetricCard>
+            </Link>
+          ))}
+        </MetricCardGroup>
+      </Section>
+
+      <Section>
+        <SectionHeaderRow>
+          <SectionHeader>
+            <SectionTitle>{t("dashboard.quickActions.title")}</SectionTitle>
+            <SectionDescription>
+              {t("dashboard.quickActions.description")}
+            </SectionDescription>
+          </SectionHeader>
+        </SectionHeaderRow>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {quickActions.map((action) => (
+            <div
+              key={action.title}
+              className="border border-border rounded-lg p-4 hover:border-primary/50 transition-colors cursor-pointer"
+              onClick={action.action}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
+                  <action.icon className="size-4 text-primary" />
+                </div>
+                <h3 className="font-medium">{action.title}</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">
+                {action.description}
+              </p>
+              <Button size="sm" variant="outline" className="w-full">
+                <Plus className="size-4 mr-2" />
+                {t("common.create")}
+              </Button>
+            </div>
+          ))}
         </div>
-      </div>
+      </Section>
 
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => navigate(ROUTES.projects)}
-            >
-              <CardHeader>
-                <CardTitle>{t("dashboard.projectManagement.title")}</CardTitle>
-                <CardDescription>
-                  {t("dashboard.projectManagement.description")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {t("dashboard.projectManagement.content")}
-                </p>
-                <Button
-                  className="mt-4"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(ROUTES.projects);
-                  }}
-                >
-                  {t("projects.title")}
-                </Button>
-              </CardContent>
-            </Card>
+      <Section>
+        <SectionHeaderRow>
+          <SectionHeader>
+            <SectionTitle>{t("dashboard.recentActivity.title")}</SectionTitle>
+            <SectionDescription>
+              {t("dashboard.recentActivity.description")}
+            </SectionDescription>
+          </SectionHeader>
+          <Button size="sm" variant="ghost" asChild>
+            <Link to="/admin/logs">
+              <FileText className="size-4 mr-2" />
+              {t("dashboard.viewAllLogs")}
+            </Link>
+          </Button>
+        </SectionHeaderRow>
+        <EmptyStateContainer className="min-h-[200px]">
+          <Clock className="size-8 text-muted-foreground mb-2" />
+          <EmptyStateTitle>{t("dashboard.recentActivity.empty")}</EmptyStateTitle>
+          <EmptyStateDescription>
+            {t("dashboard.recentActivity.emptyDesc")}
+          </EmptyStateDescription>
+        </EmptyStateContainer>
+      </Section>
 
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => navigate(ROUTES.gitCredentials)}
-            >
-              <CardHeader>
-                <CardTitle>{t("dashboard.gitCredentials.title")}</CardTitle>
-                <CardDescription>
-                  {t("dashboard.gitCredentials.description")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {t("dashboard.gitCredentials.content")}
-                </p>
-                <Button
-                  className="mt-4"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(ROUTES.gitCredentials);
-                  }}
-                >
-                  {t("dashboard.gitCredentials.manage")}
-                </Button>
-              </CardContent>
-            </Card>
 
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => navigate(ROUTES.adminLogs)}
-            >
-              <CardHeader>
-                <CardTitle>{t("dashboard.adminLogs.title")}</CardTitle>
-                <CardDescription>
-                  {t("dashboard.adminLogs.description")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {t("dashboard.adminLogs.content")}
-                </p>
-                <Button
-                  className="mt-4"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(ROUTES.adminLogs);
-                  }}
-                >
-                  {t("dashboard.adminLogs.manage")}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    </div>
+    </SectionGroup>
   );
 };

@@ -1,6 +1,7 @@
 {
   "welcome": "Welcome",
-  "title": "XSHA Dashboard",
+  "title": "Overview",
+  "description": "Your AI-powered DevOps platform dashboard.",
   "projectManagement": {
     "title": "Project Management",
     "description": "Manage your projects and Git credentials",
@@ -17,5 +18,28 @@
     "description": "View system operation and login logs",
     "content": "Monitor system activities, operation records and login status.",
     "manage": "View Logs"
-  }
+  },
+  "metrics": {
+    "totalProjects": "Total Projects",
+    "activeEnvironments": "Active Environments",
+    "gitCredentials": "Git Credentials",
+    "recentTasks": "Recent Tasks"
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "description": "Get started quickly with common tasks.",
+    "newProject": "New Project",
+    "newProjectDesc": "Create a new project to start your development workflow.",
+    "newEnvironment": "New Environment",
+    "newEnvironmentDesc": "Set up a new development environment for your team.",
+    "addCredential": "Add Credential",
+    "addCredentialDesc": "Add Git credentials to access your repositories."
+  },
+  "recentActivity": {
+    "title": "Recent Activity",
+    "description": "Latest system activities and operations.",
+    "empty": "No recent activity",
+    "emptyDesc": "When you start using the platform, your recent activities will appear here."
+  },
+  "viewAllLogs": "View All Logs"
 } 
