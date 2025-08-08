@@ -2,6 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Edit, MessageSquare, GitCompare, GitBranch, CheckCircle, Clock, Play, X } from "lucide-react";
 import { TFunction } from "react-i18next";
 import { QuickActions } from "@/components/ui/quick-actions";
+import { Badge } from "@/components/ui/badge";
 
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -187,7 +188,8 @@ export const createTaskColumns = ({
       enableSorting: false,
     },
     {
-      accessorKey: "dev_environment.name",
+      id: "dev_environment.name",
+      accessorFn: (row) => row.dev_environment?.name || "",
       header: t("tasks.table.environment"),
       cell: ({ row }) => {
         const devEnv = row.original.dev_environment;
