@@ -35,11 +35,10 @@
     "addCredential": "添加凭据",
     "addCredentialDesc": "添加凭据以访问您的代码仓库。"
   },
-  "recentActivity": {
-    "title": "最近活动",
-    "description": "最新的系统活动和操作。",
-    "empty": "暂无最近活动",
-    "emptyDesc": "当您开始使用平台时，您的最近活动将会在这里显示。"
-  },
-  "viewAllLogs": "查看所有日志"
+  "recentTask": {
+    "title": "最近任务",
+    "description": "最新的项目任务和状态。",
+    "empty": "暂无最近任务",
+    "emptyDesc": "当您开始使用平台时，您的最近任务将会在这里显示。"
+  }
 }

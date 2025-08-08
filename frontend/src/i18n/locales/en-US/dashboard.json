@@ -35,11 +35,10 @@
     "addCredential": "Add Credential",
     "addCredentialDesc": "Add Git credentials to access your repositories."
   },
-  "recentActivity": {
-    "title": "Recent Activity",
-    "description": "Latest system activities and operations.",
-    "empty": "No recent activity",
-    "emptyDesc": "When you start using the platform, your recent activities will appear here."
-  },
-  "viewAllLogs": "View All Logs"
-} 
+  "recentTask": {
+    "title": "Recent Tasks",
+    "description": "Latest project tasks and status.",
+    "empty": "No recent tasks",
+    "emptyDesc": "When you start using the platform, your recent tasks will appear here."
+  }
+}

@@ -155,18 +155,18 @@ export const DashboardPage: React.FC = () => {
       <Section>
         <SectionHeaderRow>
           <SectionHeader>
-            <SectionTitle>{t("dashboard.recentActivity.title")}</SectionTitle>
+            <SectionTitle>{t("dashboard.recentTask.title")}</SectionTitle>
             <SectionDescription>
-              {t("dashboard.recentActivity.description")}
+              {t("dashboard.recentTask.description")}
             </SectionDescription>
           </SectionHeader>
 
         </SectionHeaderRow>
         <EmptyStateContainer className="min-h-[200px]">
           <Clock className="size-8 text-muted-foreground mb-2" />
-          <EmptyStateTitle>{t("dashboard.recentActivity.empty")}</EmptyStateTitle>
+          <EmptyStateTitle>{t("dashboard.recentTask.empty")}</EmptyStateTitle>
           <EmptyStateDescription>
-            {t("dashboard.recentActivity.emptyDesc")}
+            {t("dashboard.recentTask.emptyDesc")}
           </EmptyStateDescription>
         </EmptyStateContainer>
       </Section>
