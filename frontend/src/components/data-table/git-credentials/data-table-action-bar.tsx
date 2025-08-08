@@ -6,26 +6,24 @@ import {
   DataTableActionBar,
   DataTableActionBarAction,
   DataTableActionBarSelection,
-} from "@/components/ui/data-table";
+} from "@/components/ui/data-table/data-table-action-bar";
 import { Separator } from "@/components/ui/separator";
 import { GitCredential } from "@/types/git-credentials";
 
 interface GitCredentialDataTableActionBarProps {
   table: Table<GitCredential>;
-  onDelete?: (ids: number[]) => void;
+  onBatchDelete: (ids: number[]) => void;
 }
 
 export function GitCredentialDataTableActionBar({
   table,
-  onDelete,
+  onBatchDelete,
 }: GitCredentialDataTableActionBarProps) {
   const rows = table.getFilteredSelectedRowModel().rows;
 
-  const handleDelete = () => {
-    if (onDelete) {
-      const ids = rows.map((row) => row.original.id);
-      onDelete(ids);
-    }
+  const handleBatchDelete = () => {
+    const selectedIds = rows.map((row) => row.original.id);
+    onBatchDelete(selectedIds);
   };
 
   return (
@@ -36,7 +34,11 @@ export function GitCredentialDataTableActionBar({
         className="hidden data-[orientation=vertical]:h-5 sm:block"
       />
       <div className="flex items-center gap-1.5">
-        <DataTableActionBarAction size="icon" tooltip="Delete credentials" onClick={handleDelete}>
+        <DataTableActionBarAction
+          size="icon"
+          tooltip="Delete credentials"
+          onClick={handleBatchDelete}
+        >
           <Trash2 />
         </DataTableActionBarAction>
       </div>

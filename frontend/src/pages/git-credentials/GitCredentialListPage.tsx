@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
+import { usePageActions } from "@/contexts/PageActionsContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -13,6 +14,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Section,
+  SectionGroup,
+  SectionHeader,
+  SectionTitle,
+  SectionDescription,
+} from "@/components/content/section";
+import {
+  MetricCardGroup,
+  MetricCardHeader,
+  MetricCardTitle,
+  MetricCardValue,
+  MetricCardButton,
+} from "@/components/metric/metric-card";
 import { GitCredentialList } from "@/components/GitCredentialList";
 import { toast } from "sonner";
 import { apiService } from "@/lib/api/index";
@@ -21,12 +36,13 @@ import type {
   GitCredentialListParams,
 } from "@/types/git-credentials";
 import { GitCredentialType } from "@/types/git-credentials";
-import { Plus } from "lucide-react";
+import { Plus, Key, Shield, User, ListFilter } from "lucide-react";
 
 const GitCredentialListPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { setItems } = useBreadcrumb();
+  const { setActions } = usePageActions();
 
   const [credentials, setCredentials] = useState<GitCredential[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,14 +58,28 @@ const GitCredentialListPage: React.FC = () => {
 
   usePageTitle(t("common.pageTitle.gitCredentials"));
 
-  // Clear breadcrumb items (we're at root level)
+  // Set page actions (Create button in header) and clear breadcrumb
   useEffect(() => {
+    const handleCreateNew = () => {
+      navigate("/git-credentials/create");
+    };
+
+    setActions(
+      <Button onClick={handleCreateNew} size="sm">
+        <Plus className="h-4 w-4 mr-2" />
+        {t("gitCredentials.create")}
+      </Button>
+    );
+
+    // Clear breadcrumb items (we're at root level)
     setItems([]);
 
+    // Cleanup when component unmounts
     return () => {
+      setActions(null);
       setItems([]);
     };
-  }, [setItems]);
+  }, [navigate, setActions, setItems, t]);
 
   const loadCredentials = async (params?: GitCredentialListParams) => {
     try {
@@ -120,57 +150,150 @@ const GitCredentialListPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleCreateNew = () => {
-    navigate("/git-credentials/create");
+
+
+  const handleBatchDelete = async (ids: number[]) => {
+    try {
+      await Promise.all(ids.map(id => apiService.gitCredentials.delete(id)));
+      toast.success(t("gitCredentials.messages.batchDeleteSuccess", `Successfully deleted ${ids.length} credentials`));
+      await loadCredentials();
+    } catch (err: any) {
+      const errorMessage = err.message || t("gitCredentials.messages.batchDeleteFailed", "Failed to delete credentials");
+      toast.error(errorMessage);
+    }
+  };
+
+  // Calculate statistics
+  const statistics = useMemo(() => {
+    const passwordCount = credentials.filter(
+      (cred) => cred.type === GitCredentialType.PASSWORD
+    ).length;
+    const tokenCount = credentials.filter(
+      (cred) => cred.type === GitCredentialType.TOKEN
+    ).length;
+    const sshKeyCount = credentials.filter(
+      (cred) => cred.type === GitCredentialType.SSH_KEY
+    ).length;
+
+    return [
+      {
+        title: t("gitCredentials.filter.password"),
+        value: passwordCount,
+        variant: "success" as const,
+        type: GitCredentialType.PASSWORD,
+        icon: Key,
+      },
+      {
+        title: t("gitCredentials.filter.token"),
+        value: tokenCount,
+        variant: "warning" as const,
+        type: GitCredentialType.TOKEN,
+        icon: Shield,
+      },
+      {
+        title: t("gitCredentials.filter.sshKey"),
+        value: sshKeyCount,
+        variant: "default" as const,
+        type: GitCredentialType.SSH_KEY,
+        icon: User,
+      },
+      {
+        title: t("common.total"),
+        value: total,
+        variant: "ghost" as const,
+        type: undefined,
+        icon: ListFilter,
+      },
+    ];
+  }, [credentials, total, t]);
+
+  const handleStatisticClick = (statisticType: GitCredentialType | undefined) => {
+    if (statisticType === undefined) {
+      // Clear all filters
+      setTypeFilter(undefined);
+    } else {
+      // Toggle filter
+      if (typeFilter === statisticType) {
+        setTypeFilter(undefined);
+      } else {
+        setTypeFilter(statisticType);
+      }
+    }
+    setCurrentPage(1);
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {t("gitCredentials.title")}
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
+    <>
+      <SectionGroup>
+        <Section>
+          <SectionHeader>
+            <SectionTitle>{t("gitCredentials.title")}</SectionTitle>
+            <SectionDescription>
               {t(
                 "gitCredentials.subtitle",
                 "Manage your Git repository access credentials"
               )}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={handleCreateNew}>
-              <Plus className="h-4 w-4 mr-2" />
-              {t("gitCredentials.create")}
-            </Button>
-          </div>
-        </div>
-      </div>
+            </SectionDescription>
+          </SectionHeader>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {error && (
-          <Card className="mb-6 border-red-200 bg-red-50">
-            <CardContent className="pt-6">
-              <p className="text-red-600">{error}</p>
-            </CardContent>
-          </Card>
-        )}
+          {error && (
+            <Card className="border-destructive/20 bg-destructive/10">
+              <CardContent className="pt-6">
+                <p className="text-destructive">{error}</p>
+              </CardContent>
+            </Card>
+          )}
 
-        <GitCredentialList
-          credentials={credentials}
-          loading={loading}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          total={total}
-          typeFilter={typeFilter}
-          onPageChange={handlePageChange}
-          onTypeFilterChange={handleTypeFilterChange}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onRefresh={handleRefresh}
-        />
-      </div>
+          <MetricCardGroup>
+            {statistics.map((stat) => {
+              const isActive = typeFilter === stat.type || (stat.type === undefined && typeFilter === undefined);
+              const Icon = stat.icon;
+
+              return (
+                <MetricCardButton
+                  key={stat.title}
+                  variant={stat.variant}
+                  onClick={() => handleStatisticClick(stat.type)}
+                  className={`transition-all duration-200 hover:scale-[1.02] ${
+                    isActive 
+                      ? "ring-2 ring-ring ring-offset-2 shadow-md" 
+                      : "hover:shadow-sm"
+                  }`}
+                >
+                  <MetricCardHeader className="flex justify-between items-center gap-2 w-full">
+                    <MetricCardTitle className="truncate font-medium">
+                      {stat.title}
+                    </MetricCardTitle>
+                    <Icon className={`size-4 transition-colors ${
+                      isActive ? "text-current" : "text-muted-foreground"
+                    }`} />
+                  </MetricCardHeader>
+                  <MetricCardValue className="text-xl font-semibold">
+                    {stat.value}
+                  </MetricCardValue>
+                </MetricCardButton>
+              );
+            })}
+          </MetricCardGroup>
+        </Section>
+
+        <Section>
+          <GitCredentialList
+            credentials={credentials}
+            loading={loading}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            total={total}
+            typeFilter={typeFilter}
+            onPageChange={handlePageChange}
+            onTypeFilterChange={handleTypeFilterChange}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onBatchDelete={handleBatchDelete}
+            onRefresh={handleRefresh}
+          />
+        </Section>
+      </SectionGroup>
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
@@ -200,7 +323,7 @@ const GitCredentialListPage: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 };
 
