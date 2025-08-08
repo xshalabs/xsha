@@ -103,6 +103,9 @@
     "updateStatus": "Update Status",
     "selectStatus": "Select Status"
   },
+  "metrics": {
+    "total": "Total Tasks"
+  },
   "errors": {
     "fetchBranchesFailed": "Failed to fetch repository branches",
     "fetchBranchesFailedTitle": "Failed to fetch branches",

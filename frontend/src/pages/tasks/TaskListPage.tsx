@@ -11,8 +11,22 @@ import type { Task, TaskStatus } from "@/types/task";
 import type { Project } from "@/types/project";
 import type { DevEnvironment } from "@/types/dev-environment";
 import { toast } from "sonner";
+import {
+  Section,
+  SectionDescription,
+  SectionGroup,
+  SectionHeader,
+  SectionTitle,
+} from "@/components/content";
+import {
+  MetricCardGroup,
+  MetricCardHeader,
+  MetricCardTitle,
+  MetricCardValue,
+  MetricCardButton,
+} from "@/components/metric";
 
-import { Plus } from "lucide-react";
+import { Plus, CheckCircle, Clock, Play, X, ListFilter } from "lucide-react";
 
 const TaskListPage: React.FC = () => {
   const { t } = useTranslation();
@@ -46,6 +60,55 @@ const TaskListPage: React.FC = () => {
   );
 
   const pageSize = 20;
+
+  // Metrics for task status
+  const metrics = React.useMemo(() => [
+    {
+      title: t("tasks.status.todo"),
+      value: tasks.filter((task) => task.status === "todo").length,
+      variant: "default" as const,
+      type: "filter" as const,
+      status: "todo" as TaskStatus,
+    },
+    {
+      title: t("tasks.status.in_progress"),
+      value: tasks.filter((task) => task.status === "in_progress").length,
+      variant: "warning" as const,
+      type: "filter" as const,
+      status: "in_progress" as TaskStatus,
+    },
+    {
+      title: t("tasks.status.done"),
+      value: tasks.filter((task) => task.status === "done").length,
+      variant: "success" as const,
+      type: "filter" as const,
+      status: "done" as TaskStatus,
+    },
+    {
+      title: t("tasks.status.cancelled"),
+      value: tasks.filter((task) => task.status === "cancelled").length,
+      variant: "destructive" as const,
+      type: "filter" as const,
+      status: "cancelled" as TaskStatus,
+    },
+    {
+      title: t("tasks.metrics.total"),
+      value: total,
+      variant: "ghost" as const,
+      type: "info" as const,
+    },
+  ], [tasks, total, t]);
+
+  const icons = {
+    filter: {
+      active: CheckCircle,
+      inactive: ListFilter,
+    },
+    info: {
+      active: ListFilter,
+      inactive: ListFilter,
+    },
+  };
 
   const loadProjects = async () => {
     try {
@@ -315,56 +378,90 @@ const TaskListPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {t("tasks.title")}
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t("tasks.page_description")}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={handleTaskCreate}>
-              <Plus className="h-4 w-4 mr-2" />
-              {t("tasks.create")}
-            </Button>
-          </div>
-        </div>
-      </div>
+      <SectionGroup>
+        <Section>
+          <SectionHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <SectionTitle>
+                  {currentProject ? `${currentProject.name} - ${t("tasks.title")}` : t("tasks.title")}
+                </SectionTitle>
+                <SectionDescription>
+                  {t("tasks.page_description")}
+                </SectionDescription>
+              </div>
+              <Button onClick={handleTaskCreate} size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                {t("tasks.create")}
+              </Button>
+            </div>
+          </SectionHeader>
+          <MetricCardGroup>
+            {metrics.map((metric) => {
+              const isFilterActive = statusFilter === metric.status;
+              const isActive = metric.type === "filter" ? isFilterActive : false;
+              const Icon = icons[metric.type][isActive ? "active" : "inactive"];
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <TaskList
-          tasks={tasks}
-          projects={projects}
-          devEnvironments={devEnvironments}
-          loading={tasksLoading}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          total={total}
-          statusFilter={statusFilter}
-          projectFilter={projectId ? parseInt(projectId, 10) : undefined}
-          titleFilter={titleFilter}
-          branchFilter={branchFilter}
-          devEnvironmentFilter={devEnvironmentFilter}
-          hideProjectFilter={true}
-          onPageChange={handlePageChange}
-          onStatusFilterChange={handleStatusFilterChange}
-          onProjectFilterChange={handleProjectFilterChange}
-          onTitleFilterChange={handleTitleFilterChange}
-          onBranchFilterChange={handleBranchFilterChange}
-          onDevEnvironmentFilterChange={handleDevEnvironmentFilterChange}
-          onFiltersApply={handleFiltersApply}
-          onEdit={handleTaskEdit}
-          onDelete={handleTaskDelete}
-          onViewConversation={handleViewConversation}
-          onViewGitDiff={handleViewGitDiff}
-          onPushBranch={handlePushBranch}
-          onCreateNew={handleTaskCreate}
-          onBatchUpdateStatus={handleBatchUpdateStatus}
-        />
-      </div>
+              return (
+                <MetricCardButton
+                  key={metric.title}
+                  variant={metric.variant}
+                  onClick={() => {
+                    if (metric.type === "filter" && metric.status) {
+                      if (!isFilterActive) {
+                        handleStatusFilterChange(metric.status);
+                      } else {
+                        handleStatusFilterChange(undefined);
+                      }
+                    }
+                  }}
+                  disabled={metric.type === "info"}
+                  className={metric.type === "info" ? "cursor-default" : ""}
+                >
+                  <MetricCardHeader className="flex justify-between items-center gap-2 w-full">
+                    <MetricCardTitle className="truncate">
+                      {metric.title}
+                    </MetricCardTitle>
+                    {metric.type === "filter" && <Icon className="size-4" />}
+                  </MetricCardHeader>
+                  <MetricCardValue>{metric.value}</MetricCardValue>
+                </MetricCardButton>
+              );
+            })}
+          </MetricCardGroup>
+        </Section>
+        <Section>
+          <TaskList
+            tasks={tasks}
+            projects={projects}
+            devEnvironments={devEnvironments}
+            loading={tasksLoading}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            total={total}
+            statusFilter={statusFilter}
+            projectFilter={projectId ? parseInt(projectId, 10) : undefined}
+            titleFilter={titleFilter}
+            branchFilter={branchFilter}
+            devEnvironmentFilter={devEnvironmentFilter}
+            hideProjectFilter={true}
+            onPageChange={handlePageChange}
+            onStatusFilterChange={handleStatusFilterChange}
+            onProjectFilterChange={handleProjectFilterChange}
+            onTitleFilterChange={handleTitleFilterChange}
+            onBranchFilterChange={handleBranchFilterChange}
+            onDevEnvironmentFilterChange={handleDevEnvironmentFilterChange}
+            onFiltersApply={handleFiltersApply}
+            onEdit={handleTaskEdit}
+            onDelete={handleTaskDelete}
+            onViewConversation={handleViewConversation}
+            onViewGitDiff={handleViewGitDiff}
+            onPushBranch={handlePushBranch}
+            onCreateNew={handleTaskCreate}
+            onBatchUpdateStatus={handleBatchUpdateStatus}
+          />
+        </Section>
+      </SectionGroup>
 
       <PushBranchDialog
         open={pushDialogOpen}

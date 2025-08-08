@@ -8,13 +8,11 @@ import {
   EmptyStateContainer,
   EmptyStateTitle,
   EmptyStateDescription,
-} from "@/components/content/empty-state";
-import {
   Section,
   SectionGroup,
   SectionHeader,
   SectionTitle,
-} from "@/components/content/section";
+} from "@/components/content";
 import type { DevEnvironmentDisplay } from "@/types/dev-environment";
 
 const DevEnvironmentCreatePage: React.FC = () => {

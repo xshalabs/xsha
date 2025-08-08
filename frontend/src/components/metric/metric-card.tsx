@@ -14,8 +14,8 @@ const metricCardVariants = cva(
         default: "border-input bg-card",
         ghost: "border-transparent",
         destructive: "border-destructive/80 bg-destructive/10",
-        success: "border-green-600/80 bg-green-600/10",
-        warning: "border-yellow-600/80 bg-yellow-600/10",
+        success: "border-green-500/80 bg-green-500/10",
+        warning: "border-yellow-500/80 bg-yellow-500/10",
       },
     },
     defaultVariants: {
@@ -111,7 +111,7 @@ const badgeVariants = cva("px-1.5 font-mono text-[10px]", {
       increase:
         "border-destructive/20 bg-destructive/10 hover:bg-destructive/10 text-destructive",
       decrease:
-        "border-green-600/20 bg-green-600/10 hover:bg-green-600/10 text-green-600",
+        "border-green-500/20 bg-green-500/10 hover:bg-green-500/10 text-green-600",
     },
   },
   defaultVariants: {
@@ -152,7 +152,7 @@ export function MetricCardBadge({
 }
 
 const metricCardButtonVariants = cva(
-  "group w-full text-left transition-all rounded-md outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 cursor-pointer hover:shadow-sm"
+  "group w-full text-left transition-all rounded-md outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 cursor-pointer hover:opacity-80"
 );
 
 export function MetricCardButton({

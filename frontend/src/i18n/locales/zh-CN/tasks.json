@@ -102,6 +102,9 @@
     "updateStatus": "更新状态",
     "selectStatus": "选择状态"
   },
+  "metrics": {
+    "total": "总任务数"
+  },
   "errors": {
     "fetchBranchesFailed": "获取仓库分支失败",
     "fetchBranchesFailedTitle": "获取分支失败",

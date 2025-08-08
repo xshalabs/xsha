@@ -8,13 +8,11 @@ import {
   EmptyStateContainer,
   EmptyStateTitle,
   EmptyStateDescription,
-} from "@/components/content/empty-state";
-import {
   Section,
   SectionGroup,
   SectionHeader,
   SectionTitle,
-} from "@/components/content/section";
+} from "@/components/content";
 import type { Project } from "@/types/project";
 
 const ProjectCreatePage: React.FC = () => {

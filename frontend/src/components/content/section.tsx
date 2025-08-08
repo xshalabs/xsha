@@ -58,11 +58,11 @@ export function SectionTitle({
   children,
   className,
   ...props
-}: React.ComponentProps<"p">) {
+}: React.ComponentProps<"h2">) {
   return (
-    <p className={cn("text-lg font-medium", className)} {...props}>
+    <h2 className={cn("text-lg font-medium", className)} {...props}>
       {children}
-    </p>
+    </h2>
   );
 }
 
@@ -97,10 +97,10 @@ export function SectionGroupTitle({
   children,
   className,
   ...props
-}: React.ComponentProps<"p">) {
+}: React.ComponentProps<"h1">) {
   return (
-    <p className={cn("text-4xl font-bold", className)} {...props}>
+    <h1 className={cn("text-4xl font-bold", className)} {...props}>
       {children}
-    </p>
+    </h1>
   );
 }

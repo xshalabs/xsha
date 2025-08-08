@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -344,147 +343,75 @@ export function TaskList({
       </div>
 
       {showFilters && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">
-              {t("tasks.filters.title")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {!hideProjectFilter && (
-                <div className="flex flex-col gap-3">
-                  <Label htmlFor="project">{t("tasks.filters.project")}</Label>
-                  <Select
-                    value={localFilters.project?.toString() || "all"}
-                    onValueChange={(value) =>
-                      handleLocalFilterChange(
-                        "project",
-                        value === "all" ? undefined : parseInt(value)
-                      )
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={t("common.all")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t("common.all")}</SelectItem>
-                      {projects.map((project) => (
-                        <SelectItem
-                          key={project.id}
-                          value={project.id.toString()}
-                        >
-                          {project.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="status">{t("tasks.filters.status")}</Label>
-                <Select
-                  value={localFilters.status || "all"}
-                  onValueChange={(value) =>
-                    handleLocalFilterChange(
-                      "status",
-                      value === "all" ? undefined : (value as TaskStatus)
-                    )
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t("common.all")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("common.all")}</SelectItem>
-                    <SelectItem value="todo">
-                      {t("tasks.status.todo")}
-                    </SelectItem>
-                    <SelectItem value="in_progress">
-                      {t("tasks.status.in_progress")}
-                    </SelectItem>
-                    <SelectItem value="done">
-                      {t("tasks.status.done")}
-                    </SelectItem>
-                    <SelectItem value="cancelled">
-                      {t("tasks.status.cancelled")}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="title">{t("tasks.filters.taskTitle")}</Label>
-                <Input
-                  id="title"
-                  type="text"
-                  placeholder={t("tasks.filters.titlePlaceholder")}
-                  value={localFilters.title || ""}
-                  onChange={(e) =>
-                    handleLocalFilterChange("title", e.target.value)
-                  }
-                  className="w-full"
-                />
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="branch">{t("tasks.filters.branch")}</Label>
-                <Input
-                  id="branch"
-                  type="text"
-                  placeholder={t("tasks.filters.branchPlaceholder")}
-                  value={localFilters.branch || ""}
-                  onChange={(e) =>
-                    handleLocalFilterChange("branch", e.target.value)
-                  }
-                  className="w-full"
-                />
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="devEnvironment">
-                  {t("tasks.filters.devEnvironment")}
-                </Label>
-                <Select
-                  value={localFilters.devEnvironment?.toString() || "all"}
-                  onValueChange={(value) =>
-                    handleLocalFilterChange(
-                      "devEnvironment",
-                      value === "all" ? undefined : parseInt(value)
-                    )
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t("common.all")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("common.all")}</SelectItem>
-                    {devEnvironments.map((env) => (
-                      <SelectItem key={env.id} value={env.id.toString()}>
-                        {env.name} ({env.type})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        <div className="border rounded-lg p-4 space-y-4 bg-card">
+          <h3 className="text-sm font-medium">{t("tasks.filters.title")}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-sm">{t("tasks.filters.taskTitle")}</Label>
+              <Input
+                id="title"
+                type="text"
+                placeholder={t("tasks.filters.titlePlaceholder")}
+                value={localFilters.title || ""}
+                onChange={(e) =>
+                  handleLocalFilterChange("title", e.target.value)
+                }
+                className="h-8"
+              />
             </div>
 
-            <div className="flex gap-2 mt-4">
-              <Button onClick={applyFilters}>{t("common.apply")}</Button>
-              <Button variant="outline" onClick={resetFilters}>
-                {t("common.reset")}
-              </Button>
+            <div className="space-y-2">
+              <Label htmlFor="branch" className="text-sm">{t("tasks.filters.branch")}</Label>
+              <Input
+                id="branch"
+                type="text"
+                placeholder={t("tasks.filters.branchPlaceholder")}
+                value={localFilters.branch || ""}
+                onChange={(e) =>
+                  handleLocalFilterChange("branch", e.target.value)
+                }
+                className="h-8"
+              />
             </div>
-          </CardContent>
-        </Card>
+
+            <div className="space-y-2">
+              <Label htmlFor="devEnvironment" className="text-sm">
+                {t("tasks.filters.devEnvironment")}
+              </Label>
+              <Select
+                value={localFilters.devEnvironment?.toString() || "all"}
+                onValueChange={(value) =>
+                  handleLocalFilterChange(
+                    "devEnvironment",
+                    value === "all" ? undefined : parseInt(value)
+                  )
+                }
+              >
+                <SelectTrigger className="h-8">
+                  <SelectValue placeholder={t("common.all")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("common.all")}</SelectItem>
+                  {devEnvironments.map((env) => (
+                    <SelectItem key={env.id} value={env.id.toString()}>
+                      {env.name} ({env.type})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Button onClick={applyFilters} size="sm">{t("common.apply")}</Button>
+            <Button variant="outline" onClick={resetFilters} size="sm">
+              {t("common.reset")}
+            </Button>
+          </div>
+        </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("tasks.list")}</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="space-y-4">
           {tasks.length === 0 ? (
             <div className="text-center py-8">
               <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -722,8 +649,7 @@ export function TaskList({
               )}
             </div>
           )}
-        </CardContent>
-      </Card>
+      </div>
 
       <Dialog
         open={showBatchStatusDialog}
