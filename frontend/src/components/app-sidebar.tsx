@@ -62,20 +62,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ],
       },
       {
-        title: t("navigation.groups.audit"),
+        title: t("navigation.groups.logs"),
         items: [
           {
-            title: t("navigation.audit.operationLogs"),
-            url: "/audit/operation-logs",
-            icon: Activity,
-          },
-          {
-            title: t("navigation.audit.loginLogs"),
+            title: t("navigation.logs.loginLogs"),
             url: "/audit/login-logs",
             icon: Shield,
           },
           {
-            title: t("navigation.audit.stats"),
+            title: t("navigation.logs.operationLogs"),
+            url: "/audit/operation-logs",
+            icon: Activity,
+          },
+          {
+            title: t("navigation.logs.stats"),
             url: "/audit/stats",
             icon: TrendingUp,
           },

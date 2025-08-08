@@ -14,7 +14,7 @@ export const AuditStatsPage: React.FC = () => {
         <div className="flex justify-between items-center py-6">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              {t("navigation.audit.stats")}
+              {t("navigation.logs.stats")}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
               {t("adminLogs.stats.description")}

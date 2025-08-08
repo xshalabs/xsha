@@ -4,6 +4,10 @@
   "operationLogs": {
     "title": "Operation Logs",
     "description": "View and manage system operation logs including CRUD operations",
+    "overview": {
+      "title": "Operations Overview",
+      "description": "Click on metrics to filter operations by type or status"
+    },
     "columns": {
       "id": "ID",
       "username": "User",
@@ -80,7 +84,6 @@
     "search": "Filter",
     "reset": "Reset",
     "apply": "Apply",
-    "page": "Page",
     "total": "Total",
     "items": "items"
   }

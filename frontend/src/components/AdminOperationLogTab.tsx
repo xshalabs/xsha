@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
-import { AdminOperationLogList } from "./AdminOperationLogList";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import { useTranslation } from "react-i18next";
@@ -13,44 +12,135 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Section,
+  SectionHeader,
+  SectionTitle,
+  SectionDescription,
+} from "@/components/content/section";
+import {
+  MetricCardGroup,
+  MetricCardHeader,
+  MetricCardTitle,
+  MetricCardValue,
+  MetricCardButton,
+} from "@/components/metric/metric-card";
+import { DataTable } from "@/components/ui/data-table";
+import { useAdminOperationLogColumns } from "@/components/data-table/admin-logs/columns";
+import { AdminOperationLogDataTableToolbar } from "@/components/data-table/admin-logs/data-table-toolbar";
+import { CustomPagination } from "@/components/data-table/admin-logs/custom-pagination";
+import { CheckCircle, XCircle, Filter, Activity } from "lucide-react";
 import type {
   AdminOperationLog,
-  AdminOperationLogListParams,
 } from "@/types/admin-logs";
+import type { ColumnFiltersState } from "@tanstack/react-table";
 
 export const AdminOperationLogTab: React.FC = () => {
   const { t } = useTranslation();
   const [logs, setLogs] = useState<AdminOperationLog[]>([]);
   const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [filters, setFilters] = useState<AdminOperationLogListParams>({});
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedLog, setSelectedLog] = useState<AdminOperationLog | null>(
     null
   );
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 20;
+  
+  // DataTable state
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const pageSize = 10;
+  // Calculate metrics from current page logs (for now, could be enhanced with global stats API)
+  const metrics = useMemo(() => {
+    const operationCounts = {
+      create: logs.filter(log => log.operation === 'create').length,
+      read: logs.filter(log => log.operation === 'read').length,
+      update: logs.filter(log => log.operation === 'update').length,
+      delete: logs.filter(log => log.operation === 'delete').length,
+      login: logs.filter(log => log.operation === 'login').length,
+      logout: logs.filter(log => log.operation === 'logout').length,
+    };
 
-  const loadLogs = async (params?: AdminOperationLogListParams) => {
+    const successCount = logs.filter(log => log.success).length;
+    const failedCount = logs.filter(log => !log.success).length;
+
+    return [
+      {
+        title: t("adminLogs.operationLogs.operations.create"),
+        value: operationCounts.create,
+        variant: "success" as const,
+        type: "filter" as const,
+        filterKey: "create",
+      },
+      {
+        title: t("adminLogs.operationLogs.operations.update"),
+        value: operationCounts.update,
+        variant: "warning" as const,
+        type: "filter" as const,
+        filterKey: "update",
+      },
+      {
+        title: t("adminLogs.operationLogs.operations.delete"),
+        value: operationCounts.delete,
+        variant: "destructive" as const,
+        type: "filter" as const,
+        filterKey: "delete",
+      },
+      {
+        title: t("adminLogs.operationLogs.status.success"),
+        value: successCount,
+        variant: "success" as const,
+        type: "status-filter" as const,
+        filterKey: "true",
+      },
+      {
+        title: t("adminLogs.operationLogs.status.failed"),
+        value: failedCount,
+        variant: "destructive" as const,
+        type: "status-filter" as const,
+        filterKey: "false",
+      },
+    ];
+  }, [logs, t]);
+
+  const loadLogs = async (page = currentPage, filters = columnFilters) => {
     try {
       setLoading(true);
 
-      const requestParams = params ?? filters;
-
-      const response = await apiService.adminLogs.getOperationLogs({
-        page: params?.page ?? currentPage,
+      // Convert DataTable filters to API parameters
+      const apiParams: any = {
+        page,
         page_size: pageSize,
-        ...requestParams,
+      };
+
+      // Handle column filters
+      filters.forEach((filter) => {
+        if (filter.id === "username" && filter.value) {
+          apiParams.username = filter.value;
+        } else if (filter.id === "operation" && Array.isArray(filter.value) && filter.value.length > 0) {
+          apiParams.operation = filter.value[0]; // API expects single operation
+        } else if (filter.id === "success" && Array.isArray(filter.value) && filter.value.length > 0) {
+          apiParams.success = filter.value[0] === "true";
+        } else if (filter.id === "operation_time" && filter.value) {
+          const { startDate, endDate } = filter.value;
+          if (startDate) {
+            apiParams.start_time = startDate.toISOString().split('T')[0];
+          }
+          if (endDate) {
+            apiParams.end_time = endDate.toISOString().split('T')[0];
+          }
+        }
       });
+
+      const response = await apiService.adminLogs.getOperationLogs(apiParams);
 
       setLogs(response.logs);
       setTotal(response.total);
       setTotalPages(response.total_pages);
-      if (params?.page) {
-        setCurrentPage(params.page);
-      }
+      setCurrentPage(page);
     } catch (err: any) {
       logError(err, "Failed to load operation logs");
       console.error("Failed to load operation logs:", err);
@@ -59,13 +149,35 @@ export const AdminOperationLogTab: React.FC = () => {
     }
   };
 
-  const handlePageChange = (page: number) => {
-    loadLogs({ ...filters, page });
+  const handleMetricCardClick = (metric: typeof metrics[0]) => {
+    let newColumnFilters = [...columnFilters];
+    
+    if (metric.type === "filter") {
+      const currentFilter = columnFilters.find(f => f.id === "operation");
+      const currentValues = (currentFilter?.value as string[]) || [];
+      const isActive = currentValues.includes(metric.filterKey);
+      
+      newColumnFilters = columnFilters.filter(f => f.id !== "operation");
+      if (!isActive) {
+        newColumnFilters.push({ id: "operation", value: [metric.filterKey] });
+      }
+    } else if (metric.type === "status-filter") {
+      const currentFilter = columnFilters.find(f => f.id === "success");
+      const currentValues = (currentFilter?.value as string[]) || [];
+      const isActive = currentValues.includes(metric.filterKey);
+      
+      newColumnFilters = columnFilters.filter(f => f.id !== "success");
+      if (!isActive) {
+        newColumnFilters.push({ id: "success", value: [metric.filterKey] });
+      }
+    }
+    
+    setColumnFilters(newColumnFilters);
+    loadLogs(1, newColumnFilters); // Reset to page 1 when filtering
   };
 
-  const handleFiltersChange = (newFilters: AdminOperationLogListParams) => {
-    setFilters(newFilters);
-    loadLogs({ ...newFilters, page: 1 });
+  const handlePageChange = (page: number) => {
+    loadLogs(page);
   };
 
   const handleViewDetail = async (id: number) => {
@@ -85,24 +197,77 @@ export const AdminOperationLogTab: React.FC = () => {
     setSelectedLog(null);
   };
 
+  // Create columns with the view detail handler
+  const columns = useAdminOperationLogColumns({ onViewDetail: handleViewDetail });
+
+  // Handle column filter changes from DataTable toolbar (excluding initial empty state)
+  const [isInitialized, setIsInitialized] = useState(false);
+  
   useEffect(() => {
-    loadLogs();
+    if (isInitialized) {
+      loadLogs(1, columnFilters);
+    }
+  }, [columnFilters, isInitialized]);
+
+  useEffect(() => {
+    loadLogs().then(() => setIsInitialized(true));
   }, []);
 
   return (
     <>
-      <AdminOperationLogList
-        logs={logs}
-        loading={loading}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        total={total}
-        filters={filters}
-        onPageChange={handlePageChange}
-        onFiltersChange={handleFiltersChange}
-        onRefresh={() => loadLogs()}
-        onViewDetail={handleViewDetail}
-      />
+      <Section>
+        <SectionHeader>
+          <SectionTitle>{t("adminLogs.operationLogs.overview.title")}</SectionTitle>
+          <SectionDescription>
+            {t("adminLogs.operationLogs.overview.description")}
+          </SectionDescription>
+        </SectionHeader>
+        <MetricCardGroup>
+          {metrics.map((metric) => {
+            const currentFilter = columnFilters.find(f => 
+              f.id === (metric.type === "filter" ? "operation" : "success")
+            );
+            const currentValues = (currentFilter?.value as string[]) || [];
+            const isFilterActive = currentValues.includes(metric.filterKey);
+
+            const Icon = isFilterActive ? CheckCircle : Filter;
+
+            return (
+              <MetricCardButton
+                key={metric.title}
+                variant={metric.variant}
+                onClick={() => handleMetricCardClick(metric)}
+              >
+                <MetricCardHeader className="flex justify-between items-center gap-2 w-full">
+                  <MetricCardTitle className="truncate">
+                    {metric.title}
+                  </MetricCardTitle>
+                  <Icon className="size-4" />
+                </MetricCardHeader>
+                <MetricCardValue>{metric.value}</MetricCardValue>
+              </MetricCardButton>
+            );
+          })}
+        </MetricCardGroup>
+      </Section>
+
+      <Section>
+        <div className="space-y-4">
+          <DataTable
+            columns={columns}
+            data={logs}
+            toolbarComponent={AdminOperationLogDataTableToolbar}
+            columnFilters={columnFilters}
+            setColumnFilters={setColumnFilters}
+          />
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            total={total}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      </Section>
 
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
         <DialogContent className="max-w-2xl">

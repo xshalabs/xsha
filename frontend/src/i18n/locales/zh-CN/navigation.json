@@ -12,11 +12,11 @@
   "search": "搜索",
   "groups": {
     "workspace": "工作区",
-    "audit": "审计"
+    "logs": "日志"
   },
-  "audit": {
-    "operationLogs": "操作日志",
-    "loginLogs": "登录日志",
-    "stats": "统计信息"
+  "logs": {
+    "operationLogs": "操作",
+    "loginLogs": "登录",
+    "stats": "统计"
   }
 }

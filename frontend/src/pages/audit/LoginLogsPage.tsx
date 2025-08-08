@@ -14,7 +14,7 @@ export const LoginLogsPage: React.FC = () => {
         <div className="flex justify-between items-center py-6">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              {t("navigation.audit.loginLogs")}
+              {t("navigation.logs.loginLogs")}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
               {t("adminLogs.loginLogs.description")}

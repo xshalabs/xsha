@@ -4,6 +4,10 @@
   "operationLogs": {
     "title": "操作日志",
     "description": "查看和管理系统操作日志，包括增删改查操作",
+    "overview": {
+      "title": "操作概览",
+      "description": "点击指标卡片可按操作类型或状态筛选"
+    },
     "columns": {
       "id": "ID",
       "username": "用户",
@@ -80,7 +84,6 @@
     "search": "搜索",
     "reset": "重置",
     "apply": "应用",
-    "page": "页",
     "total": "共",
     "items": "项"
   }
