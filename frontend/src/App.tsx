@@ -13,7 +13,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { LoginPage } from "@/pages/LoginPage";
 import { DashboardPage } from "@/pages/DashboardPage";
-import { AdminLogsPage } from "@/pages/AdminLogsPage";
+
 import { OperationLogsPage } from "@/pages/logs/OperationLogsPage";
 import { LoginLogsPage } from "@/pages/logs/LoginLogsPage";
 import { AuditStatsPage } from "@/pages/logs/AuditStatsPage";
@@ -231,16 +231,7 @@ function App() {
               }
             />
 
-            <Route
-              path="/admin/logs"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <AdminLogsPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+
 
             <Route
               path="/logs/operation-logs"

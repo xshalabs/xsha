@@ -29,7 +29,6 @@ import {
   Container,
   Activity,
   Plus,
-  FileText,
   Clock,
 } from "lucide-react";
 
@@ -53,7 +52,7 @@ export const DashboardPage: React.FC = () => {
       title: t("dashboard.metrics.activeEnvironments"),
       value: "8",
       href: "/environments",
-      variant: "success" as const,
+      variant: "default" as const,
       icon: Container,
     },
     {
@@ -161,12 +160,7 @@ export const DashboardPage: React.FC = () => {
               {t("dashboard.recentActivity.description")}
             </SectionDescription>
           </SectionHeader>
-          <Button size="sm" variant="ghost" asChild>
-            <Link to="/admin/logs">
-              <FileText className="size-4 mr-2" />
-              {t("dashboard.viewAllLogs")}
-            </Link>
-          </Button>
+
         </SectionHeaderRow>
         <EmptyStateContainer className="min-h-[200px]">
           <Clock className="size-8 text-muted-foreground mb-2" />

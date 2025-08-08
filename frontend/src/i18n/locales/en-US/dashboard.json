@@ -20,10 +20,10 @@
     "manage": "View Logs"
   },
   "metrics": {
-    "totalProjects": "Total Projects",
-    "activeEnvironments": "Active Environments",
-    "gitCredentials": "Git Credentials",
-    "recentTasks": "Recent Tasks"
+    "totalProjects": "Projects",
+    "activeEnvironments": "Environments",
+    "gitCredentials": "Credentials",
+    "recentTasks": "Tasks"
   },
   "quickActions": {
     "title": "Quick Actions",

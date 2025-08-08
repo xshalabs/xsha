@@ -39,9 +39,7 @@ export function NavMain({
     if (itemUrl === "/environments") {
       return location.pathname.startsWith("/environments");
     }
-    if (itemUrl === "/admin/logs") {
-      return location.pathname.startsWith("/admin/logs");
-    }
+
     if (itemUrl === "/logs") {
       return location.pathname.startsWith("/logs");
     }

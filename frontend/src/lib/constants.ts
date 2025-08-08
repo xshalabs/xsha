@@ -47,7 +47,7 @@ export const ROUTES = {
   taskGitDiff: (projectId: number, taskId: number) =>
     `/projects/${projectId}/tasks/${taskId}/git-diff`,
 
-  adminLogs: "/admin/logs",
+
 
   systemConfigs: "/settings",
 

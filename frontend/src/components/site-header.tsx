@@ -29,8 +29,7 @@ export function SiteHeader() {
         return t("common.pageTitle.gitCredentials");
       case "/environments":
         return t("navigation.environments");
-      case "/admin/logs":
-        return t("common.pageTitle.adminLogs");
+
       case "/login":
         return t("common.pageTitle.login");
       default:

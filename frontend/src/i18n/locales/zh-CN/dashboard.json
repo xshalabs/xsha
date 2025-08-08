@@ -20,10 +20,10 @@
     "manage": "查看日志"
   },
   "metrics": {
-    "totalProjects": "项目总数",
-    "activeEnvironments": "活跃环境",
+    "totalProjects": "项目",
+    "activeEnvironments": "环境",
     "gitCredentials": "凭据",
-    "recentTasks": "最近任务"
+    "recentTasks": "任务"
   },
   "quickActions": {
     "title": "快捷操作",
