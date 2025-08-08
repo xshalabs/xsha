@@ -34,24 +34,22 @@ export function SiteHeader() {
   };
 
   return (
-    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b border-border transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
-      <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
-        <SidebarTrigger className="-ml-1 text-foreground" />
-        <Separator
-          orientation="vertical"
-          className="mx-2 data-[orientation=vertical]:h-4"
-        />
-        <h1 className="text-base font-medium text-foreground">
+    <header className="flex sticky top-0 bg-background h-14 shrink-0 items-center gap-2 border-b px-2 z-10">
+      <div className="flex flex-1 items-center gap-2 px-3">
+        <SidebarTrigger className="-ml-1" />
+        <Separator orientation="vertical" className="mr-2 h-4" />
+        <h1 className="text-sm font-semibold">
           {getPageTitle(location.pathname)}
         </h1>
-        <div className="ml-auto flex items-center gap-2">
+      </div>
+      <div className="ml-auto px-3">
+        <div className="flex items-center gap-2">
           <ModeToggle />
           <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
             <a
               href="https://github.com/XShaLabs/xsha"
               rel="noopener noreferrer"
               target="_blank"
-              className="dark:text-foreground"
             >
               GitHub
             </a>
