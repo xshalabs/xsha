@@ -17,7 +17,7 @@ export function CustomPagination({
 }: CustomPaginationProps) {
   const { t } = useTranslation();
 
-  if (totalPages <= 1) return null;
+
 
   return (
     <div className="flex items-center justify-between px-2">
