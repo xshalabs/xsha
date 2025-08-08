@@ -107,6 +107,8 @@
     "noStatsAvailable": "No statistics available",
     "totalOperations": "Total Operations",
     "totalResources": "Total Resources",
-    "dateFilterNotImplemented": "Date filtering will be implemented soon"
+    "selectDateRange": "Select Date Range",
+    "selectStartDate": "Select start date",
+    "selectEndDate": "Select end date"
   }
 }

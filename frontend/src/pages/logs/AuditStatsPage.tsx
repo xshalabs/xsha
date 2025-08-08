@@ -17,13 +17,7 @@ import {
   MetricCardTitle,
   MetricCardValue,
 } from "@/components/metric/metric-card";
-import { Button } from "@/components/ui/button";
-import { Calendar, RefreshCw, X } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { DateRangePicker, type DateRange } from "@/components/DateRangePicker";
 import type { AdminOperationStatsResponse } from "@/types/admin-logs";
 
 export const AuditStatsPage: React.FC = () => {
@@ -32,12 +26,21 @@ export const AuditStatsPage: React.FC = () => {
 
   const [stats, setStats] = useState<AdminOperationStatsResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const dateRange = "Last 7 days";
+  const [dateRange, setDateRange] = useState<DateRange>({});
 
-  const loadStats = async () => {
+  const loadStats = async (params?: { startDate?: Date; endDate?: Date }) => {
     try {
       setLoading(true);
-      const response = await apiService.adminLogs.getOperationStats();
+      const apiParams: any = {};
+      
+      if (params?.startDate) {
+        apiParams.start_time = params.startDate.toISOString().split('T')[0];
+      }
+      if (params?.endDate) {
+        apiParams.end_time = params.endDate.toISOString().split('T')[0];
+      }
+      
+      const response = await apiService.adminLogs.getOperationStats(apiParams);
       setStats(response);
     } catch (err: any) {
       logError(err, "Failed to load stats");
@@ -50,6 +53,16 @@ export const AuditStatsPage: React.FC = () => {
   useEffect(() => {
     loadStats();
   }, []);
+
+  const handleDateRangeChange = (newDateRange: DateRange) => {
+    setDateRange(newDateRange);
+    loadStats(newDateRange);
+  };
+
+  const handleDateRangeReset = () => {
+    setDateRange({});
+    loadStats();
+  };
 
   const getOperationText = (operation: string) => {
     const operationMap = {
@@ -78,11 +91,6 @@ export const AuditStatsPage: React.FC = () => {
   const getTotalOperations = () => {
     if (!stats) return 0;
     return Object.values(stats.operation_stats).reduce((sum, count) => sum + count, 0);
-  };
-
-  const getTotalResources = () => {
-    if (!stats) return 0;
-    return Object.values(stats.resource_stats).reduce((sum, count) => sum + count, 0);
   };
 
   if (loading) {
@@ -116,61 +124,18 @@ export const AuditStatsPage: React.FC = () => {
             {t("adminLogs.stats.timeRange")}: {stats.start_time} ~ {stats.end_time}
           </SectionDescription>
         </SectionHeader>
-        <div className="flex flex-wrap gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Calendar className="w-4 h-4 mr-2" />
-                {dateRange}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <div className="p-3">
-                <p className="text-sm text-muted-foreground">
-                  {t("adminLogs.stats.dateFilterNotImplemented")}
-                </p>
-              </div>
-            </PopoverContent>
-          </Popover>
-          <Button variant="ghost" size="sm" onClick={loadStats}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            {t("common.refresh")}
-          </Button>
-          <Button variant="ghost" size="sm">
-            <X className="w-4 h-4" />
-            {t("common.reset")}
-          </Button>
-        </div>
+        <DateRangePicker
+          value={dateRange}
+          onChange={handleDateRangeChange}
+          onReset={handleDateRangeReset}
+          placeholder={t("adminLogs.stats.selectDateRange")}
+        />
         <MetricCardGroup>
           <MetricCard variant="default">
             <MetricCardHeader>
               <MetricCardTitle>{t("adminLogs.stats.totalOperations")}</MetricCardTitle>
             </MetricCardHeader>
             <MetricCardValue>{getTotalOperations()}</MetricCardValue>
-          </MetricCard>
-          <MetricCard variant="default">
-            <MetricCardHeader>
-              <MetricCardTitle>{t("adminLogs.stats.totalResources")}</MetricCardTitle>
-            </MetricCardHeader>
-            <MetricCardValue>{getTotalResources()}</MetricCardValue>
-          </MetricCard>
-          <MetricCard variant="success">
-            <MetricCardHeader>
-              <MetricCardTitle>{t("adminLogs.operationLogs.operations.create")}</MetricCardTitle>
-            </MetricCardHeader>
-            <MetricCardValue>{stats.operation_stats.create || 0}</MetricCardValue>
-          </MetricCard>
-          <MetricCard variant="default">
-            <MetricCardHeader>
-              <MetricCardTitle>{t("adminLogs.operationLogs.operations.read")}</MetricCardTitle>
-            </MetricCardHeader>
-            <MetricCardValue>{stats.operation_stats.read || 0}</MetricCardValue>
-          </MetricCard>
-          <MetricCard variant="warning">
-            <MetricCardHeader>
-              <MetricCardTitle>{t("adminLogs.operationLogs.operations.update")}</MetricCardTitle>
-            </MetricCardHeader>
-            <MetricCardValue>{stats.operation_stats.update || 0}</MetricCardValue>
           </MetricCard>
         </MetricCardGroup>
       </Section>

@@ -107,6 +107,8 @@
     "noStatsAvailable": "暂无统计数据",
     "totalOperations": "总操作数",
     "totalResources": "总资源数",
-    "dateFilterNotImplemented": "日期筛选功能即将实现"
+    "selectDateRange": "选择日期范围",
+    "selectStartDate": "选择开始日期",
+    "selectEndDate": "选择结束日期"
   }
 } 
