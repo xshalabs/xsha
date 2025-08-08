@@ -36,7 +36,7 @@ import type {
   GitCredentialListParams,
 } from "@/types/git-credentials";
 import { GitCredentialType } from "@/types/git-credentials";
-import { Plus, Key, Shield, User, ListFilter, CheckCircle } from "lucide-react";
+import { Plus, Key, Shield, ListFilter, CheckCircle } from "lucide-react";
 
 const GitCredentialListPage: React.FC = () => {
   const { t } = useTranslation();
@@ -169,9 +169,6 @@ const GitCredentialListPage: React.FC = () => {
     const tokenCount = credentials.filter(
       (cred) => cred.type === GitCredentialType.TOKEN
     ).length;
-    const sshKeyCount = credentials.filter(
-      (cred) => cred.type === GitCredentialType.SSH_KEY
-    ).length;
 
     return [
       {
@@ -187,13 +184,6 @@ const GitCredentialListPage: React.FC = () => {
         variant: "warning" as const,
         type: GitCredentialType.TOKEN,
         icon: Shield,
-      },
-      {
-        title: t("gitCredentials.filter.sshKey"),
-        value: sshKeyCount,
-        variant: "default" as const,
-        type: GitCredentialType.SSH_KEY,
-        icon: User,
       },
       {
         title: t("common.total"),
