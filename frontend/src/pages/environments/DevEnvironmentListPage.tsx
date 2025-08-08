@@ -185,9 +185,14 @@ const DevEnvironmentListPage: React.FC = () => {
   ];
 
   const handleDeleteEnvironment = async (id: number) => {
-    await apiService.devEnvironments.delete(id);
-    await fetchEnvironments();
-    await fetchStats();
+    try {
+      await apiService.devEnvironments.delete(id);
+      await fetchEnvironments();
+      await fetchStats();
+    } catch (error) {
+      // Re-throw error to let QuickActions handle the user notification
+      throw error;
+    }
   };
 
 

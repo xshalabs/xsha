@@ -169,8 +169,13 @@ const ProjectListPage: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    await apiService.projects.delete(id);
-    await loadProjectsData();
+    try {
+      await apiService.projects.delete(id);
+      await loadProjectsData();
+    } catch (error) {
+      // Re-throw error to let QuickActions handle the user notification
+      throw error;
+    }
   };
 
   const handleManageTasks = (project: Project) => {

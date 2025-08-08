@@ -64,18 +64,39 @@ export function QuickActions({
   const [open, setOpen] = useState(false);
 
   const handleDelete = async () => {
+    const submitAction = deleteAction?.submitAction;
+    if (!submitAction) return;
+
     try {
       startTransition(async () => {
-        if (deleteAction?.submitAction) {
-          await deleteAction.submitAction();
+        try {
+          await submitAction();
           toast.success("Deleted successfully");
+          setOpen(false);
+          setValue(""); // Reset input value
+        } catch (error) {
+          console.error("Failed to delete:", error);
+          
+          // Extract error message
+          let errorMessage = "Failed to delete";
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          } else if (typeof error === "string") {
+            errorMessage = error;
+          } else if (error && typeof error === "object" && "message" in error) {
+            errorMessage = String(error.message);
+          }
+          
+          toast.error(errorMessage);
+          
+          // Keep dialog open on error so user can retry
+          // setOpen(false); // Don't close on error
         }
-        setOpen(false);
-        setValue(""); // Reset input value
       });
     } catch (error) {
-      console.error("Failed to delete:", error);
-      toast.error("Failed to delete");
+      // This catch handles any synchronous errors
+      console.error("Synchronous error in delete:", error);
+      toast.error("An unexpected error occurred");
     }
   };
 

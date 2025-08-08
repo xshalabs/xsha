@@ -225,8 +225,13 @@ const TaskListPage: React.FC = () => {
   };
 
   const handleTaskDelete = async (id: number) => {
-    await apiService.tasks.delete(id);
-    await loadTasksData();
+    try {
+      await apiService.tasks.delete(id);
+      await loadTasksData();
+    } catch (error) {
+      // Re-throw error to let QuickActions handle the user notification
+      throw error;
+    }
   };
 
 

@@ -133,8 +133,13 @@ const GitCredentialListPage: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    await apiService.gitCredentials.delete(id);
-    await loadCredentials();
+    try {
+      await apiService.gitCredentials.delete(id);
+      await loadCredentials();
+    } catch (error) {
+      // Re-throw error to let QuickActions handle the user notification
+      throw error;
+    }
   };
 
 
