@@ -34,8 +34,8 @@ import {
 } from "@/components/metric/metric-card";
 import { createProjectColumns } from "@/components/data-table/projects/columns";
 import { ProjectDataTableToolbar } from "@/components/data-table/projects/data-table-toolbar";
-import { DataTablePaginationI18n } from "@/components/ui/data-table/data-table-pagination-i18n";
-import type { Project } from "@/types/project";
+import { DataTablePaginationServer } from "@/components/ui/data-table/data-table-pagination-server";
+import type { Project, ProjectListParams } from "@/types/project";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 
 const ProjectListPage: React.FC = () => {
@@ -50,14 +50,39 @@ const ProjectListPage: React.FC = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const { setActions } = usePageActions();
   const { setItems } = useBreadcrumb();
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 10;
 
   usePageTitle(t("common.pageTitle.projects"));
 
-  const loadProjectsData = async () => {
+  const loadProjectsData = async (page = currentPage, filters = columnFilters) => {
     try {
       setLoading(true);
-      const response = await apiService.projects.list();
+      
+      // Convert DataTable filters to API parameters
+      const apiParams: ProjectListParams = {
+        page,
+        page_size: pageSize,
+      };
+
+      // Handle column filters
+      filters.forEach((filter) => {
+        if (filter.id === "name" && filter.value) {
+          apiParams.name = filter.value as string;
+        } else if (filter.id === "protocol" && filter.value) {
+          apiParams.protocol = filter.value as string;
+        }
+      });
+
+      const response = await apiService.projects.list(apiParams);
       setProjects(response.projects);
+      setTotal(response.total);
+      setTotalPages(response.total_pages);
+      setCurrentPage(page);
     } catch (error) {
       logError(error as Error, "Failed to load projects for metrics");
     } finally {
@@ -66,8 +91,21 @@ const ProjectListPage: React.FC = () => {
   };
 
   useEffect(() => {
-    loadProjectsData();
+    loadProjectsData().then(() => setIsInitialized(true));
   }, []);
+
+  // Handle column filter changes (skip initial empty state)
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  useEffect(() => {
+    if (isInitialized) {
+      loadProjectsData(1, columnFilters); // Reset to page 1 when filtering
+    }
+  }, [columnFilters, isInitialized]);
+
+  const handlePageChange = (page: number) => {
+    loadProjectsData(page);
+  };
 
   // Initialize filters from URL params
   useEffect(() => {
@@ -107,14 +145,14 @@ const ProjectListPage: React.FC = () => {
   const metrics = [
     {
       title: t("projects.metrics.total"),
-      value: projects.length,
+      value: total, // Use total from API instead of current page length
       variant: "default" as const,
       icon: FolderGit2,
       type: "info" as const,
     },
     {
       title: t("projects.metrics.withCredentials"),
-      value: projects.filter(p => p.credential_id).length,
+      value: projects.filter(p => p.credential_id).length, // Note: This shows current page data, ideally should be from API
       variant: "success" as const,
       icon: CheckCircle,
       type: "filter" as const,
@@ -274,16 +312,23 @@ const ProjectListPage: React.FC = () => {
           </MetricCardGroup>
         </Section>
         <Section>
-          <DataTable
-            columns={columns}
-            data={projects}
-            toolbarComponent={ProjectDataTableToolbar}
-            paginationComponent={DataTablePaginationI18n}
-            columnFilters={columnFilters}
-            setColumnFilters={setColumnFilters}
-            sorting={sorting}
-            setSorting={setSorting}
-          />
+          <div className="space-y-4">
+            <DataTable
+              columns={columns}
+              data={projects}
+              toolbarComponent={ProjectDataTableToolbar}
+              columnFilters={columnFilters}
+              setColumnFilters={setColumnFilters}
+              sorting={sorting}
+              setSorting={setSorting}
+            />
+            <DataTablePaginationServer
+              currentPage={currentPage}
+              totalPages={totalPages}
+              total={total}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </Section>
       </SectionGroup>
 

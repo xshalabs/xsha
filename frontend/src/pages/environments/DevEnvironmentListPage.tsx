@@ -32,7 +32,7 @@ import {
   MetricCardButton,
 } from "@/components/metric/metric-card";
 import { DataTable } from "@/components/ui/data-table/data-table";
-import { DataTablePaginationSimple } from "@/components/ui/data-table/data-table-pagination";
+import { DataTablePaginationServer } from "@/components/ui/data-table/data-table-pagination-server";
 import { createDevEnvironmentColumns } from "@/components/data-table/environments/columns";
 import { DevEnvironmentDataTableToolbar } from "@/components/data-table/environments/data-table-toolbar";
 import type {
@@ -76,11 +76,8 @@ const DevEnvironmentListPage: React.FC = () => {
   const [environments, setEnvironments] = useState<DevEnvironmentDisplay[]>([]);
   const [stats, setStats] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
-  const [listParams, setListParams] = useState<DevEnvironmentListParams>({
-    page: 1,
-    page_size: 10,
-  });
-  const [totalPages, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [environmentToDelete, setEnvironmentToDelete] = useState<number | null>(
@@ -88,6 +85,8 @@ const DevEnvironmentListPage: React.FC = () => {
   );
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
+  
+  const pageSize = 10;
 
   const transformEnvironments = (
     envs: DevEnvironment[]
@@ -113,18 +112,32 @@ const DevEnvironmentListPage: React.FC = () => {
     });
   };
 
-  const fetchEnvironments = async (
-    params: DevEnvironmentListParams = listParams
-  ) => {
+  const fetchEnvironments = async (page = currentPage, filters = columnFilters) => {
     setLoading(true);
     try {
-      const response = await apiService.devEnvironments.list(params);
+      // Convert DataTable filters to API parameters
+      const apiParams: DevEnvironmentListParams = {
+        page,
+        page_size: pageSize,
+      };
+
+      // Handle column filters
+      filters.forEach((filter) => {
+        if (filter.id === "name" && filter.value) {
+          apiParams.name = filter.value as string;
+        } else if (filter.id === "docker_image" && filter.value) {
+          apiParams.docker_image = filter.value as string;
+        }
+      });
+
+      const response = await apiService.devEnvironments.list(apiParams);
       const transformedEnvironments = transformEnvironments(
         response.environments
       );
       setEnvironments(transformedEnvironments);
       setTotalPages(response.total_pages);
       setTotal(response.total);
+      setCurrentPage(page);
     } catch (error) {
       logError(error as Error, "Failed to fetch environments");
       toast.error(
@@ -224,9 +237,22 @@ const DevEnvironmentListPage: React.FC = () => {
   });
 
   useEffect(() => {
-    fetchEnvironments();
+    fetchEnvironments().then(() => setIsInitialized(true));
     fetchStats();
   }, []);
+
+  // Handle column filter changes (skip initial empty state)
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  useEffect(() => {
+    if (isInitialized) {
+      fetchEnvironments(1, columnFilters); // Reset to page 1 when filtering
+    }
+  }, [columnFilters, isInitialized]);
+
+  const handlePageChange = (page: number) => {
+    fetchEnvironments(page);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -259,16 +285,23 @@ const DevEnvironmentListPage: React.FC = () => {
             </MetricCardGroup>
           </Section>
         <Section>
-          <DataTable
-            columns={columns}
-            data={environments}
-            toolbarComponent={DevEnvironmentDataTableToolbar}
-            paginationComponent={DataTablePaginationSimple}
-            columnFilters={columnFilters}
-            setColumnFilters={setColumnFilters}
-            sorting={sorting}
-            setSorting={setSorting}
-          />
+          <div className="space-y-4">
+            <DataTable
+              columns={columns}
+              data={environments}
+              toolbarComponent={DevEnvironmentDataTableToolbar}
+              columnFilters={columnFilters}
+              setColumnFilters={setColumnFilters}
+              sorting={sorting}
+              setSorting={setSorting}
+            />
+            <DataTablePaginationServer
+              currentPage={currentPage}
+              totalPages={totalPages}
+              total={total}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </Section>
       </SectionGroup>
 
