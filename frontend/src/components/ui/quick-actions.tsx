@@ -196,7 +196,7 @@ export function QuickActions({
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90"
+              className="bg-destructive text-white shadow-sm hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60"
               disabled={
                 (deleteAction.confirmationValue &&
                   value !== deleteAction.confirmationValue) ||
