@@ -9,7 +9,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Task, TaskStatus } from "@/types/task";
@@ -24,33 +24,33 @@ interface TaskColumnsProps {
   hideProjectColumn?: boolean;
 }
 
-const getStatusColor = (status: TaskStatus) => {
-  switch (status) {
-    case "todo":
-      return "bg-gray-100 text-gray-800 border-gray-300";
-    case "in_progress":
-      return "bg-blue-100 text-blue-800 border-blue-300";
-    case "done":
-      return "bg-green-100 text-green-800 border-green-300";
-    case "cancelled":
-      return "bg-red-100 text-red-800 border-red-300";
-    default:
-      return "bg-gray-100 text-gray-800 border-gray-300";
-  }
-};
-
 const getStatusIcon = (status: TaskStatus) => {
   switch (status) {
     case "todo":
-      return <Clock className="w-3 h-3" />;
+      return <Clock className="w-4 h-4 text-gray-500" />;
     case "in_progress":
-      return <Play className="w-3 h-3" />;
+      return <Play className="w-4 h-4 text-blue-500" />;
     case "done":
-      return <CheckCircle className="w-3 h-3" />;
+      return <CheckCircle className="w-4 h-4 text-green-500" />;
     case "cancelled":
-      return <X className="w-3 h-3" />;
+      return <X className="w-4 h-4 text-red-500" />;
     default:
-      return <Clock className="w-3 h-3" />;
+      return <Clock className="w-4 h-4 text-gray-500" />;
+  }
+};
+
+const getStatusTextColor = (status: TaskStatus) => {
+  switch (status) {
+    case "todo":
+      return "text-gray-600";
+    case "in_progress":
+      return "text-blue-600";
+    case "done":
+      return "text-green-600";
+    case "cancelled":
+      return "text-red-600";
+    default:
+      return "text-gray-600";
   }
 };
 
@@ -146,13 +146,12 @@ export const createTaskColumns = ({
         }[status] || status;
 
         return (
-          <Badge
-            variant="outline"
-            className={`text-xs ${getStatusColor(status)}`}
-          >
+          <div className="flex items-center space-x-2">
             {getStatusIcon(status)}
-            <span className="ml-1">{statusDisplay}</span>
-          </Badge>
+            <span className={`text-sm ${getStatusTextColor(status)}`}>
+              {statusDisplay}
+            </span>
+          </div>
         );
       },
       filterFn: (row, id, value) => {
