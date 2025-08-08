@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { TaskFormCreate } from "@/components/TaskFormCreate";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
@@ -15,6 +16,7 @@ const TaskCreatePage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { projectId } = useParams<{ projectId: string }>();
+  const { setItems } = useBreadcrumb();
 
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
 
@@ -36,6 +38,22 @@ const TaskCreatePage: React.FC = () => {
 
     loadCurrentProject();
   }, [projectId]);
+
+  // Set breadcrumb items
+  useEffect(() => {
+    if (currentProject) {
+      setItems([
+        { type: "link", label: t("navigation.projects"), href: "/projects" },
+        { type: "link", label: currentProject.name, href: `/projects/${projectId}/tasks` },
+        { type: "page", label: t("tasks.create") }
+      ]);
+    }
+
+    // Cleanup when component unmounts
+    return () => {
+      setItems([]);
+    };
+  }, [currentProject, projectId, setItems, t]);
 
   const handleSubmit = async (data: TaskFormData | { title: string }) => {
     try {

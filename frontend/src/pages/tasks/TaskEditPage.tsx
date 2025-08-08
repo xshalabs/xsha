@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { TaskFormEdit } from "@/components/TaskFormEdit";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
@@ -17,6 +18,7 @@ const TaskEditPage: React.FC = () => {
     projectId: string;
     taskId: string;
   }>();
+  const { setItems } = useBreadcrumb();
 
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,6 +56,22 @@ const TaskEditPage: React.FC = () => {
 
     loadData();
   }, [taskId, projectId, navigate, t]);
+
+  // Set breadcrumb items when task data is loaded
+  useEffect(() => {
+    if (task && task.project) {
+      setItems([
+        { type: "link", label: t("navigation.projects"), href: "/projects" },
+        { type: "link", label: task.project.name, href: `/projects/${projectId}/tasks` },
+        { type: "page", label: `${t("tasks.edit")} - ${task.title}` }
+      ]);
+    }
+
+    // Cleanup when component unmounts
+    return () => {
+      setItems([]);
+    };
+  }, [task, projectId, setItems, t]);
 
   const handleSubmit = async (data: TaskFormData | { title: string }) => {
     if (!taskId) return;
