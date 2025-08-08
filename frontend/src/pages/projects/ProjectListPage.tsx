@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
@@ -28,7 +27,11 @@ import {
 import { createProjectColumns } from "@/components/data-table/projects/columns";
 import { ProjectDataTableToolbar } from "@/components/data-table/projects/data-table-toolbar";
 import { DataTablePaginationServer } from "@/components/ui/data-table/data-table-pagination-server";
-import type { Project, ProjectListParams } from "@/types/project";
+import type {
+  Project,
+  ProjectListParams,
+  GitProtocolType,
+} from "@/types/project";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 
 const ProjectListPage: React.FC = () => {
@@ -42,7 +45,7 @@ const ProjectListPage: React.FC = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const { setActions } = usePageActions();
   const { setItems } = useBreadcrumb();
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -51,10 +54,13 @@ const ProjectListPage: React.FC = () => {
 
   usePageTitle(t("common.pageTitle.projects"));
 
-  const loadProjectsData = async (page = currentPage, filters = columnFilters) => {
+  const loadProjectsData = async (
+    page = currentPage,
+    filters = columnFilters
+  ) => {
     try {
       setLoading(true);
-      
+
       // Convert DataTable filters to API parameters
       const apiParams: ProjectListParams = {
         page,
@@ -66,7 +72,7 @@ const ProjectListPage: React.FC = () => {
         if (filter.id === "name" && filter.value) {
           apiParams.name = filter.value as string;
         } else if (filter.id === "protocol" && filter.value) {
-          apiParams.protocol = filter.value as string;
+          apiParams.protocol = filter.value as GitProtocolType;
         }
       });
 
@@ -88,7 +94,7 @@ const ProjectListPage: React.FC = () => {
 
   // Handle column filter changes (skip initial empty state)
   const [isInitialized, setIsInitialized] = useState(false);
-  
+
   useEffect(() => {
     if (isInitialized) {
       loadProjectsData(1, columnFilters); // Reset to page 1 when filtering
@@ -102,12 +108,12 @@ const ProjectListPage: React.FC = () => {
   // Initialize filters from URL params
   useEffect(() => {
     const credential = searchParams.get("credential");
-    
+
     const filters: ColumnFiltersState = [];
     if (credential) {
       filters.push({ id: "hasCredential", value: [credential] });
     }
-    
+
     setColumnFilters(filters);
   }, [searchParams]);
 
@@ -144,7 +150,7 @@ const ProjectListPage: React.FC = () => {
     },
     {
       title: t("projects.metrics.withCredentials"),
-      value: projects.filter(p => p.credential_id).length, // Note: This shows current page data, ideally should be from API
+      value: projects.filter((p) => p.credential_id).length, // Note: This shows current page data, ideally should be from API
       variant: "success" as const,
       icon: CheckCircle,
       type: "filter" as const,
@@ -182,26 +188,22 @@ const ProjectListPage: React.FC = () => {
     navigate(`/projects/${project.id}/tasks`);
   };
 
-
-
-
-
   // Handle metric card clicks for filtering
-  const handleMetricClick = (metric: typeof metrics[0]) => {
+  const handleMetricClick = (metric: (typeof metrics)[0]) => {
     if (metric.type !== "filter") return;
 
     const existingFilter = columnFilters.find(
       (filter) => filter.id === metric.filterKey
     );
-    
-    const isFilterActive = 
-      Array.isArray(existingFilter?.value) && 
+
+    const isFilterActive =
+      Array.isArray(existingFilter?.value) &&
       existingFilter?.value.includes(metric.filterValue);
 
     if (isFilterActive) {
       // Remove filter
-      setColumnFilters(prev => 
-        prev.filter(filter => filter.id !== metric.filterKey)
+      setColumnFilters((prev) =>
+        prev.filter((filter) => filter.id !== metric.filterKey)
       );
       // Update URL
       const newParams = new URLSearchParams(searchParams);
@@ -209,9 +211,12 @@ const ProjectListPage: React.FC = () => {
       setSearchParams(newParams);
     } else {
       // Add filter
-      setColumnFilters(prev => {
-        const others = prev.filter(filter => filter.id !== metric.filterKey);
-        return [...others, { id: metric.filterKey!, value: [metric.filterValue!] }];
+      setColumnFilters((prev) => {
+        const others = prev.filter((filter) => filter.id !== metric.filterKey);
+        return [
+          ...others,
+          { id: metric.filterKey!, value: [metric.filterValue!] },
+        ];
       });
       // Update URL
       const newParams = new URLSearchParams(searchParams);
@@ -256,15 +261,17 @@ const ProjectListPage: React.FC = () => {
               const existingFilter = columnFilters.find(
                 (filter) => filter.id === metric.filterKey
               );
-              const isFilterActive = 
+              const isFilterActive =
                 metric.type === "filter" &&
-                Array.isArray(existingFilter?.value) && 
+                Array.isArray(existingFilter?.value) &&
                 existingFilter?.value.includes(metric.filterValue);
 
-              const isActive = metric.type === "filter" ? isFilterActive : false;
-              const IconComponent = metric.type === "filter" 
-                ? icons[metric.type][isActive ? "active" : "inactive"]
-                : metric.icon;
+              const isActive =
+                metric.type === "filter" ? isFilterActive : false;
+              const IconComponent =
+                metric.type === "filter"
+                  ? icons[metric.type][isActive ? "active" : "inactive"]
+                  : metric.icon;
 
               return (
                 <MetricCardButton
