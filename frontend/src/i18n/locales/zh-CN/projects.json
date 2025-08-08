@@ -51,6 +51,10 @@
     "name_placeholder": "按项目名称搜索"
   },
   "list": "项目列表",
+  "createAndCustomize": "创建并开始自定义",
+  "createHelpText": "配置您的项目仓库设置，添加访问凭据，开始自动化您的开发工作流程。",
+  "editAndUpdate": "编辑并更新设置",
+  "editHelpText": "修改您的项目配置，更新仓库设置，管理访问凭据。",
   "metrics": {
     "total": "项目总数",
     "withCredentials": "已配置凭据"

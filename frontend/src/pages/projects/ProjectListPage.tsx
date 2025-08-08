@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/PageActionsContext";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import {
   Dialog,
   DialogContent,
@@ -48,6 +49,7 @@ const ProjectListPage: React.FC = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const { setActions } = usePageActions();
+  const { setItems } = useBreadcrumb();
 
   usePageTitle(t("common.pageTitle.projects"));
 
@@ -79,7 +81,7 @@ const ProjectListPage: React.FC = () => {
     setColumnFilters(filters);
   }, [searchParams]);
 
-  // Set page actions (Create button in header)
+  // Set page actions (Create button in header) and clear breadcrumb
   useEffect(() => {
     const handleCreateNew = () => {
       navigate("/projects/create");
@@ -92,11 +94,15 @@ const ProjectListPage: React.FC = () => {
       </Button>
     );
 
+    // Clear breadcrumb items (we're at the root level)
+    setItems([]);
+
     // Cleanup when component unmounts
     return () => {
       setActions(null);
+      setItems([]);
     };
-  }, [navigate, setActions, t]);
+  }, [navigate, setActions, setItems, t]);
 
   const metrics = [
     {

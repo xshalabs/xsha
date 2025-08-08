@@ -5,11 +5,14 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePageActions } from "@/contexts/PageActionsContext";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
+import { NavBreadcrumb } from "@/components/nav/nav-breadcrumb";
 
 export function SiteHeader() {
   const location = useLocation();
   const { t } = useTranslation();
   const { actions } = usePageActions();
+  const { items } = useBreadcrumb();
 
   const getPageTitle = (pathname: string): string => {
     const projectTasksMatch = pathname.match(/^\/projects\/(\d+)\/tasks$/);
@@ -40,9 +43,13 @@ export function SiteHeader() {
       <div className="flex flex-1 items-center gap-2 px-3">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 h-4" />
-        <h1 className="text-sm font-semibold">
-          {getPageTitle(location.pathname)}
-        </h1>
+        {items.length > 0 ? (
+          <NavBreadcrumb items={items} />
+        ) : (
+          <h1 className="text-sm font-semibold">
+            {getPageTitle(location.pathname)}
+          </h1>
+        )}
       </div>
       <div className="ml-auto px-3">
         <div className="flex items-center gap-2">
