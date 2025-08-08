@@ -2,11 +2,21 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { TaskFormEdit } from "@/components/TaskFormEdit";
+import {
+  Section,
+  SectionGroup,
+  SectionHeader,
+  SectionTitle,
+  SectionDescription,
+} from "@/components/content/section";
+import {
+  EmptyStateContainer,
+  EmptyStateTitle,
+  EmptyStateDescription,
+} from "@/components/content/empty-state";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import type { Task, TaskFormData } from "@/types/task";
@@ -95,16 +105,16 @@ const TaskEditPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="max-w-2xl mx-auto">
+      <SectionGroup>
+        <Section>
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
               <p className="text-muted-foreground">{t("common.loading")}</p>
             </div>
           </div>
-        </div>
-      </div>
+        </Section>
+      </SectionGroup>
     );
   }
 
@@ -113,22 +123,26 @@ const TaskEditPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-6">
-          <Button
-            variant="default"
-            onClick={() => navigate(`/projects/${projectId}/tasks`)}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {t("common.back")}
-          </Button>
-        </div>
-
-        <TaskFormEdit task={task} onSubmit={handleSubmit} onCancel={handleCancel} />
-      </div>
-    </div>
+    <SectionGroup>
+        <Section>
+          <SectionHeader>
+            <SectionTitle>{t("tasks.edit")} - {task.title}</SectionTitle>
+            <SectionDescription>
+              {t("tasks.form.editDescription")}
+            </SectionDescription>
+          </SectionHeader>
+          <TaskFormEdit task={task} onSubmit={handleSubmit} onCancel={handleCancel} />
+        </Section>
+        
+        <Section>
+          <EmptyStateContainer>
+            <EmptyStateTitle>{t("tasks.form.editHelpTitle")}</EmptyStateTitle>
+            <EmptyStateDescription>
+              {t("tasks.form.editHelpDescription")}
+            </EmptyStateDescription>
+          </EmptyStateContainer>
+        </Section>
+      </SectionGroup>
   );
 };
 

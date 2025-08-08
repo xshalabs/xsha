@@ -8,7 +8,7 @@ export function EmptyStateContainer({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center h-full border border-border border-dashed rounded-lg p-4 gap-2 min-h-32",
+        "flex flex-col items-center justify-center h-full border border-border border-dashed rounded-lg p-4 gap-2",
         className
       )}
       {...props}
