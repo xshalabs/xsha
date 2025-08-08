@@ -49,7 +49,15 @@
   "loginLogs": {
     "title": "Login Logs",
     "description": "View user authentication logs including successful and failed login attempts",
+    "overview": {
+      "title": "Login Overview",
+      "description": "Click on metrics to filter login attempts by status"
+    },
     "columns": {
+      "status": "Status",
+      "username": "User",
+      "ip": "IP Address",
+      "time": "Time",
       "reason": "Failure Reason",
       "userAgent": "User Agent"
     },
@@ -62,13 +70,31 @@
       "invalidUsername": "Invalid username",
       "invalidPassword": "Invalid password"
     },
+    "metrics": {
+      "totalAttempts": "Total Attempts",
+      "successRate": "Success Rate"
+    },
     "filters": {
       "all": "Filter Options",
-      "username": "Username"
+      "username": "Username",
+      "ip": "IP Address",
+      "status": "Status",
+      "startDate": "Start Date",
+      "endDate": "End Date"
     },
     "messages": {
       "noLogs": "No login records"
     }
+  },
+  "common": {
+    "search": "Search",
+    "refresh": "Refresh",
+    "apply": "Apply",
+    "reset": "Reset",
+    "total": "Total",
+    "items": "items",
+    "page": "Page",
+    "detail": "Detail"
   },
   "stats": {
     "title": "Operation Statistics",
