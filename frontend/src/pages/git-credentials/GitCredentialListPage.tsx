@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -25,6 +26,7 @@ import { Plus } from "lucide-react";
 const GitCredentialListPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { setItems } = useBreadcrumb();
 
   const [credentials, setCredentials] = useState<GitCredential[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +41,15 @@ const GitCredentialListPage: React.FC = () => {
   const pageSize = 10;
 
   usePageTitle(t("common.pageTitle.gitCredentials"));
+
+  // Clear breadcrumb items (we're at root level)
+  useEffect(() => {
+    setItems([]);
+
+    return () => {
+      setItems([]);
+    };
+  }, [setItems]);
 
   const loadCredentials = async (params?: GitCredentialListParams) => {
     try {

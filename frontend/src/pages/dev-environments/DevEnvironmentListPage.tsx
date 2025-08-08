@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,7 +26,18 @@ import DevEnvironmentList from "@/components/DevEnvironmentList";
 const DevEnvironmentListPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { setItems } = useBreadcrumb();
+  
   usePageTitle(t("navigation.dev_environments"));
+
+  // Clear breadcrumb items (we're at root level)
+  useEffect(() => {
+    setItems([]);
+
+    return () => {
+      setItems([]);
+    };
+  }, [setItems]);
 
   const [environments, setEnvironments] = useState<DevEnvironmentDisplay[]>([]);
   const [loading, setLoading] = useState(false);

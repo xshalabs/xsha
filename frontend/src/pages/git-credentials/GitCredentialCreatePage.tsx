@@ -1,42 +1,70 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { GitCredentialForm } from "@/components/GitCredentialForm";
+import {
+  EmptyStateContainer,
+  EmptyStateTitle,
+  EmptyStateDescription,
+} from "@/components/content/empty-state";
+import {
+  Section,
+  SectionGroup,
+  SectionHeader,
+  SectionTitle,
+} from "@/components/content/section";
+import type { GitCredential } from "@/types/git-credentials";
 
 const GitCredentialCreatePage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { setItems } = useBreadcrumb();
 
   usePageTitle(t("gitCredentials.create"));
 
-  const handleSuccess = () => {
-    navigate("/git-credentials");
-  };
+  // Set breadcrumb navigation
+  useEffect(() => {
+    setItems([
+      {
+        type: "link",
+        label: t("gitCredentials.list"),
+        href: "/git-credentials",
+      },
+      {
+        type: "page",
+        label: t("gitCredentials.create"),
+      },
+    ]);
 
-  const handleCancel = () => {
+    // Cleanup when component unmounts
+    return () => {
+      setItems([]);
+    };
+  }, [setItems, t]);
+
+  const handleSubmit = (_credential: GitCredential) => {
     navigate("/git-credentials");
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-6">
-          <Button
-            variant="default"
-            onClick={() => navigate("/git-credentials")}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {t("common.back")}
-          </Button>
-        </div>
-
-        <GitCredentialForm onSuccess={handleSuccess} onCancel={handleCancel} />
-      </div>
-    </div>
+    <SectionGroup>
+      <Section>
+        <SectionHeader>
+          <SectionTitle>{t("gitCredentials.create")}</SectionTitle>
+        </SectionHeader>
+        <GitCredentialForm onSubmit={handleSubmit} />
+      </Section>
+      <Section>
+        <EmptyStateContainer>
+          <EmptyStateTitle>{t("gitCredentials.createAndSecure")}</EmptyStateTitle>
+          <EmptyStateDescription>
+            {t("gitCredentials.createHelpText")}
+          </EmptyStateDescription>
+        </EmptyStateContainer>
+      </Section>
+    </SectionGroup>
   );
 };
 

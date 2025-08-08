@@ -13,8 +13,17 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, Save, X } from "lucide-react";
+import {
+  FormCard,
+  FormCardContent,
+  FormCardDescription,
+  FormCardFooter,
+  FormCardFooterInfo,
+  FormCardHeader,
+  FormCardSeparator,
+  FormCardTitle,
+} from "@/components/forms/form-card";
+import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { apiService } from "@/lib/api/index";
 import { devEnvironmentsApi } from "@/lib/api/dev-environments";
@@ -26,10 +35,8 @@ import type {
 } from "@/types/dev-environment";
 
 interface DevEnvironmentFormProps {
-  onClose: () => void;
-  onSuccess: () => void;
-  initialData?: DevEnvironmentDisplay | null;
-  mode: "create" | "edit";
+  environment?: DevEnvironmentDisplay;
+  onSubmit?: (environment: DevEnvironmentDisplay) => void;
 }
 
 const defaultResources = {
@@ -45,12 +52,11 @@ interface EnvironmentImageOption {
 }
 
 const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
-  onClose,
-  onSuccess,
-  initialData,
-  mode,
+  environment,
+  onSubmit,
 }) => {
   const { t } = useTranslation();
+  const isEdit = !!environment;
 
   const [environmentImages, setEnvironmentImages] = useState<
     EnvironmentImageOption[]
@@ -89,7 +95,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
         );
         setEnvironmentImages(images);
 
-        if (mode === "create" && images.length > 0) {
+        if (!isEdit && images.length > 0) {
           const defaultImage =
             images.find((img) => img.type === "claude-code") || images[0];
           setFormData((prev) => ({
@@ -107,7 +113,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
           description: "Claude Code",
         };
         setEnvironmentImages([fallbackImage]);
-        if (mode === "create") {
+        if (!isEdit) {
           setFormData((prev) => ({
             ...prev,
             docker_image: fallbackImage.image,
@@ -119,18 +125,18 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
     };
 
     loadEnvironmentImages();
-  }, [mode, t]);
+  }, [isEdit, t]);
 
   useEffect(() => {
-    if (initialData && mode === "edit") {
+    if (environment && isEdit) {
       setFormData({
-        name: initialData.name,
-        description: initialData.description,
-        docker_image: initialData.docker_image,
-        cpu_limit: initialData.cpu_limit,
-        memory_limit: initialData.memory_limit,
+        name: environment.name,
+        description: environment.description,
+        docker_image: environment.docker_image,
+        cpu_limit: environment.cpu_limit,
+        memory_limit: environment.memory_limit,
       });
-      setEnvVars(initialData.env_vars_map || {});
+      setEnvVars(environment.env_vars_map || {});
     } else {
       setFormData({
         name: "",
@@ -144,7 +150,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
     setValidationErrors({});
     setNewEnvKey("");
     setNewEnvValue("");
-  }, [initialData, mode]);
+  }, [environment, isEdit]);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -153,7 +159,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
       errors.name = t("devEnvironments.validation.name_required");
     }
 
-    if (mode === "create" && !formData.docker_image.trim()) {
+    if (!isEdit && !formData.docker_image.trim()) {
       errors.docker_image = t(
         "devEnvironments.validation.docker_image_required"
       );
@@ -233,14 +239,35 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
     }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
     try {
-      if (mode === "create") {
+      let result: DevEnvironmentDisplay;
+
+      if (isEdit && environment) {
+        const requestData: UpdateDevEnvironmentRequest = {
+          name: formData.name,
+          description: formData.description,
+          cpu_limit: formData.cpu_limit,
+          memory_limit: formData.memory_limit,
+          env_vars: envVars,
+        };
+        await apiService.devEnvironments.update(environment.id, requestData);
+        toast.success(t("devEnvironments.update_success"));
+        
+        // Get updated environment
+        const response = await apiService.devEnvironments.get(environment.id);
+        result = {
+          ...response.environment,
+          env_vars_map: envVars,
+        } as DevEnvironmentDisplay;
+      } else {
         const selectedImage = environmentImages.find(
           (img) => img.image === formData.docker_image
         );
@@ -251,21 +278,17 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
           type: envType,
           env_vars: envVars,
         };
-        await apiService.devEnvironments.create(requestData);
+        const response = await apiService.devEnvironments.create(requestData);
+        result = {
+          ...response.environment,
+          env_vars_map: envVars,
+        } as DevEnvironmentDisplay;
         toast.success(t("devEnvironments.create_success"));
-      } else {
-        const requestData: UpdateDevEnvironmentRequest = {
-          name: formData.name,
-          description: formData.description,
-          cpu_limit: formData.cpu_limit,
-          memory_limit: formData.memory_limit,
-          env_vars: envVars,
-        };
-        await apiService.devEnvironments.update(initialData!.id, requestData);
-        toast.success(t("devEnvironments.update_success"));
       }
 
-      onSuccess();
+      if (onSubmit) {
+        onSubmit(result);
+      }
     } catch (error: any) {
       console.error("Failed to save environment:", error);
       const errorMessage = handleApiError(error);
@@ -276,159 +299,150 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          {mode === "create"
-            ? t("devEnvironments.create")
-            : t("devEnvironments.edit")}
-        </CardTitle>
-        <p className="text-muted-foreground">
-          {mode === "create"
-            ? t("devEnvironments.create_description")
-            : t("devEnvironments.edit_description")}
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-6">
-          <div className="space-y-4">
+    <form onSubmit={handleSubmit}>
+      <FormCard>
+        <FormCardHeader>
+          <FormCardTitle>
+            {isEdit ? t("devEnvironments.edit") : t("devEnvironments.create")}
+          </FormCardTitle>
+          <FormCardDescription>
+            {isEdit
+              ? t("devEnvironments.edit_description")
+              : t("devEnvironments.create_description")}
+          </FormCardDescription>
+        </FormCardHeader>
+        
+        <FormCardContent className="grid gap-4">
+          <div className="flex flex-col gap-3">
+            <Label htmlFor="name">{t("devEnvironments.form.name")} *</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => handleFieldChange("name", e.target.value)}
+              placeholder={t("devEnvironments.form.name_placeholder")}
+              className={validationErrors.name ? "border-destructive" : ""}
+            />
+            {validationErrors.name && (
+              <p className="text-sm text-destructive">
+                {validationErrors.name}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <Label htmlFor="description">
+              {t("devEnvironments.form.description")}
+            </Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                handleFieldChange("description", e.target.value)
+              }
+              placeholder={t("devEnvironments.form.description_placeholder")}
+              rows={3}
+            />
+          </div>
+
+          {!isEdit && (
             <div className="flex flex-col gap-3">
-              <Label htmlFor="name">{t("devEnvironments.form.name")} *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleFieldChange("name", e.target.value)}
-                placeholder={t("devEnvironments.form.name_placeholder")}
-                className={validationErrors.name ? "border-destructive" : ""}
-              />
-              {validationErrors.name && (
+              <Label>{t("devEnvironments.form.docker_image")} *</Label>
+              <Select
+                value={formData.docker_image}
+                onValueChange={handleDockerImageChange}
+                disabled={loadingImages}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue
+                    placeholder={t(
+                      "devEnvironments.form.docker_image_placeholder"
+                    )}
+                  >
+                    {loadingImages ? t("common.loading") : undefined}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="max-w-[400px]">
+                  {environmentImages.map((imgOption) => (
+                    <SelectItem key={imgOption.image} value={imgOption.image}>
+                      <div className="flex flex-col min-w-0 w-full">
+                        <span className="font-medium truncate">{imgOption.image}</span>
+                        <span className="text-xs text-muted-foreground truncate">
+                          {imgOption.description}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {validationErrors.docker_image && (
                 <p className="text-sm text-destructive">
-                  {validationErrors.name}
+                  {validationErrors.docker_image}
+                </p>
+              )}
+            </div>
+          )}
+        </FormCardContent>
+
+        <FormCardSeparator />
+        
+        <FormCardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-3">
+              <Label htmlFor="cpu_limit">
+                {t("devEnvironments.form.cpu_limit")} * (0.1-16{" "}
+                {t("devEnvironments.stats.cores")})
+              </Label>
+              <Input
+                id="cpu_limit"
+                type="number"
+                step="0.1"
+                min="0.1"
+                max="16"
+                value={formData.cpu_limit}
+                onChange={(e) =>
+                  handleFieldChange("cpu_limit", parseFloat(e.target.value))
+                }
+                className={
+                  validationErrors.cpu_limit ? "border-destructive" : ""
+                }
+              />
+              {validationErrors.cpu_limit && (
+                <p className="text-sm text-destructive">
+                  {validationErrors.cpu_limit}
                 </p>
               )}
             </div>
 
             <div className="flex flex-col gap-3">
-              <Label htmlFor="description">
-                {t("devEnvironments.form.description")}
+              <Label htmlFor="memory_limit">
+                {t("devEnvironments.form.memory_limit")} * (128-32768 MB)
               </Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  handleFieldChange("description", e.target.value)
+              <Input
+                id="memory_limit"
+                type="number"
+                min="128"
+                max="32768"
+                value={formData.memory_limit}
+                onChange={(e) =>
+                  handleFieldChange("memory_limit", parseInt(e.target.value))
                 }
-                placeholder={t("devEnvironments.form.description_placeholder")}
-                rows={3}
+                className={
+                  validationErrors.memory_limit ? "border-destructive" : ""
+                }
               />
-            </div>
-
-            {mode === "create" && (
-              <div className="flex flex-col gap-3">
-                <Label>{t("devEnvironments.form.docker_image")} *</Label>
-                <Select
-                  value={formData.docker_image}
-                  onValueChange={handleDockerImageChange}
-                  disabled={loadingImages}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={t(
-                        "devEnvironments.form.docker_image_placeholder"
-                      )}
-                    >
-                      {loadingImages ? t("common.loading") : undefined}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="max-w-[400px]">
-                    {environmentImages.map((imgOption) => (
-                      <SelectItem key={imgOption.image} value={imgOption.image}>
-                        <div className="flex flex-col min-w-0 w-full">
-                          <span className="font-medium truncate">{imgOption.image}</span>
-                          <span className="text-xs text-muted-foreground truncate">
-                            {imgOption.description}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {validationErrors.docker_image && (
-                  <p className="text-sm text-destructive">
-                    {validationErrors.docker_image}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-
-          <Separator />
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">
-              {t("devEnvironments.form.resources")}
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="cpu_limit">
-                  {t("devEnvironments.form.cpu_limit")} * (0.1-16{" "}
-                  {t("devEnvironments.stats.cores")})
-                </Label>
-                <Input
-                  id="cpu_limit"
-                  type="number"
-                  step="0.1"
-                  min="0.1"
-                  max="16"
-                  value={formData.cpu_limit}
-                  onChange={(e) =>
-                    handleFieldChange("cpu_limit", parseFloat(e.target.value))
-                  }
-                  className={
-                    validationErrors.cpu_limit ? "border-destructive" : ""
-                  }
-                />
-                {validationErrors.cpu_limit && (
-                  <p className="text-sm text-destructive">
-                    {validationErrors.cpu_limit}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="memory_limit">
-                  {t("devEnvironments.form.memory_limit")} * (128-32768 MB)
-                </Label>
-                <Input
-                  id="memory_limit"
-                  type="number"
-                  min="128"
-                  max="32768"
-                  value={formData.memory_limit}
-                  onChange={(e) =>
-                    handleFieldChange("memory_limit", parseInt(e.target.value))
-                  }
-                  className={
-                    validationErrors.memory_limit ? "border-destructive" : ""
-                  }
-                />
-                {validationErrors.memory_limit && (
-                  <p className="text-sm text-destructive">
-                    {validationErrors.memory_limit}
-                  </p>
-                )}
-              </div>
+              {validationErrors.memory_limit && (
+                <p className="text-sm text-destructive">
+                  {validationErrors.memory_limit}
+                </p>
+              )}
             </div>
           </div>
+        </FormCardContent>
 
-          <Separator />
-
+        <FormCardSeparator />
+        
+        <FormCardContent>
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">
-              {t("devEnvironments.form.env_vars")}
-            </h3>
-
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">
@@ -504,20 +518,22 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
               </Card>
             )}
           </div>
-        </div>
+        </FormCardContent>
 
-        <div className="flex gap-2 justify-end">
-          <Button variant="outline" onClick={onClose} disabled={loading}>
-            <X className="h-4 w-4 mr-2" />
-            {t("common.cancel")}
+        <FormCardFooter>
+          <FormCardFooterInfo>
+            {t("devEnvironments.configurationHelp")}
+          </FormCardFooterInfo>
+          <Button type="submit" disabled={loading}>
+            {loading
+              ? t("common.loading")
+              : isEdit
+              ? t("common.save")
+              : t("devEnvironments.create")}
           </Button>
-          <Button onClick={handleSubmit} disabled={loading}>
-            <Save className="h-4 w-4 mr-2" />
-            {loading ? t("common.saving") : t("common.save")}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </FormCardFooter>
+      </FormCard>
+    </form>
   );
 };
 

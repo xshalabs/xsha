@@ -76,6 +76,11 @@
     "cpu_limit_invalid": "CPU限制必须在0.1-16核之间",
     "memory_limit_invalid": "内存限制必须在128-32768MB之间"
   },
+  "createAndCustomize": "创建并配置环境",
+  "createHelpText": "设置开发环境，包括自定义 Docker 镜像、资源限制和环境变量。",
+  "editAndUpdate": "编辑并更新配置",
+  "editHelpText": "修改环境设置，调整资源限制和管理环境变量。",
+  "configurationHelp": "环境配置将在容器创建或重启时应用。",
   "env_vars": {
     "add_new": "添加环境变量",
     "current": "当前环境变量",

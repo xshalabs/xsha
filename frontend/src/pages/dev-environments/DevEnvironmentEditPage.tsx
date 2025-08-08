@@ -1,19 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { apiService } from "@/lib/api/index";
 import { toast } from "sonner";
 import { handleApiError } from "@/lib/errors";
 import DevEnvironmentForm from "@/components/DevEnvironmentForm";
+import {
+  EmptyStateContainer,
+  EmptyStateTitle,
+  EmptyStateDescription,
+} from "@/components/content/empty-state";
+import {
+  Section,
+  SectionGroup,
+  SectionHeader,
+  SectionTitle,
+} from "@/components/content/section";
 import type { DevEnvironmentDisplay } from "@/types/dev-environment";
 
 const DevEnvironmentEditPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { setItems } = useBreadcrumb();
 
   const [environment, setEnvironment] = useState<DevEnvironmentDisplay | null>(
     null
@@ -25,6 +36,27 @@ const DevEnvironmentEditPage: React.FC = () => {
       ? `${t("devEnvironments.edit")} - ${environment.name}`
       : t("devEnvironments.edit")
   );
+
+  // Set dynamic breadcrumb navigation (including resource name)
+  useEffect(() => {
+    if (environment) {
+      setItems([
+        {
+          type: "link",
+          label: t("devEnvironments.list"),
+          href: "/dev-environments",
+        },
+        {
+          type: "page",
+          label: `${t("devEnvironments.edit")} - ${environment.name}`,
+        },
+      ]);
+    }
+
+    return () => {
+      setItems([]);
+    };
+  }, [environment, setItems, t]);
 
   useEffect(() => {
     const loadEnvironment = async () => {
@@ -64,26 +96,22 @@ const DevEnvironmentEditPage: React.FC = () => {
     loadEnvironment();
   }, [id, navigate, t]);
 
-  const handleSuccess = () => {
-    navigate("/dev-environments");
-  };
-
-  const handleCancel = () => {
+  const handleSubmit = (_environment: DevEnvironmentDisplay) => {
     navigate("/dev-environments");
   };
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-6">
-        <div className="max-w-2xl mx-auto">
+      <SectionGroup>
+        <Section>
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
               <p className="text-muted-foreground">{t("common.loading")}</p>
             </div>
           </div>
-        </div>
-      </div>
+        </Section>
+      </SectionGroup>
     );
   }
 
@@ -92,27 +120,24 @@ const DevEnvironmentEditPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-6">
-          <Button
-            variant="default"
-            onClick={() => navigate("/dev-environments")}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {t("common.back")}
-          </Button>
-        </div>
-
-        <DevEnvironmentForm
-          onClose={handleCancel}
-          onSuccess={handleSuccess}
-          initialData={environment}
-          mode="edit"
-        />
-      </div>
-    </div>
+    <SectionGroup>
+      <Section>
+        <SectionHeader>
+          <SectionTitle>
+            {t("devEnvironments.edit")} - {environment.name}
+          </SectionTitle>
+        </SectionHeader>
+        <DevEnvironmentForm environment={environment} onSubmit={handleSubmit} />
+      </Section>
+      <Section>
+        <EmptyStateContainer>
+          <EmptyStateTitle>{t("devEnvironments.editAndUpdate")}</EmptyStateTitle>
+          <EmptyStateDescription>
+            {t("devEnvironments.editHelpText")}
+          </EmptyStateDescription>
+        </EmptyStateContainer>
+      </Section>
+    </SectionGroup>
   );
 };
 

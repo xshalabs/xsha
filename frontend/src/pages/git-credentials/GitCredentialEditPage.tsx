@@ -2,18 +2,29 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import { GitCredentialForm } from "@/components/GitCredentialForm";
+import {
+  EmptyStateContainer,
+  EmptyStateTitle,
+  EmptyStateDescription,
+} from "@/components/content/empty-state";
+import {
+  Section,
+  SectionGroup,
+  SectionHeader,
+  SectionTitle,
+} from "@/components/content/section";
 import type { GitCredential } from "@/types/git-credentials";
 
 const GitCredentialEditPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { setItems } = useBreadcrumb();
 
   const [credential, setCredential] = useState<GitCredential | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,6 +34,27 @@ const GitCredentialEditPage: React.FC = () => {
       ? `${t("gitCredentials.edit")} - ${credential.name}`
       : t("gitCredentials.edit")
   );
+
+  // Set dynamic breadcrumb navigation (including resource name)
+  useEffect(() => {
+    if (credential) {
+      setItems([
+        {
+          type: "link",
+          label: t("gitCredentials.list"),
+          href: "/git-credentials",
+        },
+        {
+          type: "page",
+          label: `${t("gitCredentials.edit")} - ${credential.name}`,
+        },
+      ]);
+    }
+
+    return () => {
+      setItems([]);
+    };
+  }, [credential, setItems, t]);
 
   useEffect(() => {
     const loadCredential = async () => {
@@ -55,26 +87,22 @@ const GitCredentialEditPage: React.FC = () => {
     loadCredential();
   }, [id, navigate, t]);
 
-  const handleSuccess = () => {
-    navigate("/git-credentials");
-  };
-
-  const handleCancel = () => {
+  const handleSubmit = (_credential: GitCredential) => {
     navigate("/git-credentials");
   };
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="max-w-2xl mx-auto">
+      <SectionGroup>
+        <Section>
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
               <p className="text-muted-foreground">{t("common.loading")}</p>
             </div>
           </div>
-        </div>
-      </div>
+        </Section>
+      </SectionGroup>
     );
   }
 
@@ -83,26 +111,24 @@ const GitCredentialEditPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-6">
-          <Button
-            variant="default"
-            onClick={() => navigate("/git-credentials")}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {t("common.back")}
-          </Button>
-        </div>
-
-        <GitCredentialForm
-          credential={credential}
-          onSuccess={handleSuccess}
-          onCancel={handleCancel}
-        />
-      </div>
-    </div>
+    <SectionGroup>
+      <Section>
+        <SectionHeader>
+          <SectionTitle>
+            {t("gitCredentials.edit")} - {credential.name}
+          </SectionTitle>
+        </SectionHeader>
+        <GitCredentialForm credential={credential} onSubmit={handleSubmit} />
+      </Section>
+      <Section>
+        <EmptyStateContainer>
+          <EmptyStateTitle>{t("gitCredentials.editAndUpdate")}</EmptyStateTitle>
+          <EmptyStateDescription>
+            {t("gitCredentials.editHelpText")}
+          </EmptyStateDescription>
+        </EmptyStateContainer>
+      </Section>
+    </SectionGroup>
   );
 };
 

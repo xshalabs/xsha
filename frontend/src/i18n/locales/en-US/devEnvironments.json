@@ -56,6 +56,11 @@
     "cpu_limit_invalid": "CPU limit must be between 0.1-16 cores",
     "memory_limit_invalid": "Memory limit must be between 128-32768MB"
   },
+  "createAndCustomize": "Create and configure environments",
+  "createHelpText": "Set up development environments with custom Docker images, resource limits, and environment variables.",
+  "editAndUpdate": "Edit and update configuration",
+  "editHelpText": "Modify environment settings, adjust resource limits, and manage environment variables.",
+  "configurationHelp": "Environment configurations are applied when containers are created or restarted.",
   "env_vars": {
     "add_new": "Add Environment Variable",
     "current": "Current Environment Variables",
