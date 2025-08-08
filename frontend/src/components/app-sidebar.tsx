@@ -75,7 +75,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">XSHA</span>
-                  <span className="truncate text-xs">AI DevOps Platform</span>
+                  <span className="truncate text-xs">AI Dev Platform</span>
                 </div>
               </a>
             </SidebarMenuButton>

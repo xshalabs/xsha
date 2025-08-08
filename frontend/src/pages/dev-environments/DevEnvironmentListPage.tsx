@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
+import { usePageActions } from "@/contexts/PageActionsContext";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,35 +12,69 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { Plus, HardDrive, Cpu, Server } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import { toast } from "sonner";
+import {
+  Section,
+  SectionDescription,
+  SectionGroup,
+  SectionHeader,
+  SectionTitle,
+} from "@/components/content/section";
+import {
+  MetricCardGroup,
+  MetricCardHeader,
+  MetricCardTitle,
+  MetricCardValue,
+  MetricCardButton,
+} from "@/components/metric/metric-card";
+import { DataTable } from "@/components/ui/data-table/data-table";
+import { DataTablePaginationSimple } from "@/components/ui/data-table/data-table-pagination";
+import { createDevEnvironmentColumns } from "@/components/data-table/dev-environments/columns";
+import { DevEnvironmentDataTableToolbar } from "@/components/data-table/dev-environments/data-table-toolbar";
 import type {
   DevEnvironment,
   DevEnvironmentDisplay,
   DevEnvironmentListParams,
 } from "@/types/dev-environment";
-import DevEnvironmentList from "@/components/DevEnvironmentList";
+import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 
 const DevEnvironmentListPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { setItems } = useBreadcrumb();
+  const { setActions } = usePageActions();
   
   usePageTitle(t("navigation.dev_environments"));
 
-  // Clear breadcrumb items (we're at root level)
+  // Set page actions (Create button in header) and clear breadcrumb
   useEffect(() => {
+    const handleCreateNew = () => {
+      navigate("/dev-environments/create");
+    };
+
+    setActions(
+      <Button onClick={handleCreateNew} size="sm">
+        <Plus className="h-4 w-4 mr-2" />
+        {t("devEnvironments.create")}
+      </Button>
+    );
+
+    // Clear breadcrumb items (we're at the root level)
     setItems([]);
 
+    // Cleanup when component unmounts
     return () => {
+      setActions(null);
       setItems([]);
     };
-  }, [setItems]);
+  }, [navigate, setActions, setItems, t]);
 
   const [environments, setEnvironments] = useState<DevEnvironmentDisplay[]>([]);
+  const [stats, setStats] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
   const [listParams, setListParams] = useState<DevEnvironmentListParams>({
     page: 1,
@@ -51,6 +86,8 @@ const DevEnvironmentListPage: React.FC = () => {
   const [environmentToDelete, setEnvironmentToDelete] = useState<number | null>(
     null
   );
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   const transformEnvironments = (
     envs: DevEnvironment[]
@@ -100,10 +137,53 @@ const DevEnvironmentListPage: React.FC = () => {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const response = await apiService.devEnvironments.getStats();
+      setStats(response.stats);
+    } catch (error) {
+      logError(error as Error, "Failed to fetch environment stats");
+    }
+  };
+
+  const formatMemory = (mb: number) => {
+    if (mb >= 1024) {
+      return `${(mb / 1024).toFixed(1)} GB`;
+    }
+    return `${mb} MB`;
+  };
+
+  const formatCPU = (cores: number) => {
+    return cores === 1 ? `${cores} core` : `${cores} cores`;
+  };
+
+  const metrics = [
+    {
+      title: t("devEnvironments.stats.total"),
+      value: stats.total || 0,
+      variant: "default" as const,
+      icon: Server,
+    },
+    {
+      title: t("devEnvironments.stats.total_cpu"),
+      value: formatCPU((stats.total_cpu || 0) / 100),
+      variant: "ghost" as const,
+      icon: Cpu,
+    },
+    {
+      title: t("devEnvironments.stats.total_memory"),
+      value: formatMemory(stats.total_memory || 0),
+      variant: "ghost" as const,
+      icon: HardDrive,
+    },
+  ];
+
   const handleDeleteEnvironment = (id: number) => {
     setEnvironmentToDelete(id);
     setDeleteDialogOpen(true);
   };
+
+
 
   const handleConfirmDelete = async () => {
     if (!environmentToDelete) return;
@@ -112,6 +192,7 @@ const DevEnvironmentListPage: React.FC = () => {
       await apiService.devEnvironments.delete(environmentToDelete);
       toast.success(t("devEnvironments.delete_success"));
       await fetchEnvironments();
+      await fetchStats();
     } catch (error) {
       logError(error as Error, "Failed to delete environment");
       toast.error(
@@ -134,56 +215,59 @@ const DevEnvironmentListPage: React.FC = () => {
     navigate(`/dev-environments/${environment.id}/edit`);
   };
 
-  const handlePageChange = (page: number) => {
-    const newParams = { ...listParams, page };
-    setListParams(newParams);
-    fetchEnvironments(newParams);
-  };
-
-  const handleFiltersChange = (filters: DevEnvironmentListParams) => {
-    setListParams(filters);
-    fetchEnvironments(filters);
-  };
+  const columns = createDevEnvironmentColumns({
+    onEdit: handleEditEnvironment,
+    onDelete: handleDeleteEnvironment,
+  });
 
   useEffect(() => {
     fetchEnvironments();
+    fetchStats();
   }, []);
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {t("navigation.dev_environments")}
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t("devEnvironments.page_description")}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={() => navigate("/dev-environments/create")}>
-              <Plus className="h-4 w-4 mr-2" />
-              {t("devEnvironments.create")}
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <DevEnvironmentList
-          environments={environments}
-          loading={loading}
-          params={listParams}
-          totalPages={totalPages}
-          total={total}
-          onPageChange={handlePageChange}
-          onFiltersChange={handleFiltersChange}
-          onRefresh={() => fetchEnvironments()}
-          onEdit={handleEditEnvironment}
-          onDelete={handleDeleteEnvironment}
-        />
-      </div>
+      <SectionGroup>
+          <Section>
+            <SectionHeader>
+              <SectionTitle>{t("navigation.dev_environments")}</SectionTitle>
+              <SectionDescription>
+                {t("devEnvironments.page_description")}
+              </SectionDescription>
+            </SectionHeader>
+            <MetricCardGroup>
+              {metrics.map((metric) => {
+                const Icon = metric.icon;
+                return (
+                  <MetricCardButton
+                    key={metric.title}
+                    variant={metric.variant}
+                  >
+                    <MetricCardHeader className="flex justify-between items-center gap-2 w-full">
+                      <MetricCardTitle className="truncate">
+                        {metric.title}
+                      </MetricCardTitle>
+                      <Icon className="size-4" />
+                    </MetricCardHeader>
+                    <MetricCardValue>{metric.value}</MetricCardValue>
+                  </MetricCardButton>
+                );
+              })}
+            </MetricCardGroup>
+          </Section>
+        <Section>
+          <DataTable
+            columns={columns}
+            data={environments}
+            toolbarComponent={DevEnvironmentDataTableToolbar}
+            paginationComponent={DataTablePaginationSimple}
+            columnFilters={columnFilters}
+            setColumnFilters={setColumnFilters}
+            sorting={sorting}
+            setSorting={setSorting}
+          />
+        </Section>
+      </SectionGroup>
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>

@@ -81,4 +81,10 @@ export const devEnvironmentsApi = {
       "/dev-environments/available-images"
     );
   },
+
+  getStats: async (): Promise<{ stats: Record<string, number> }> => {
+    return request<{ stats: Record<string, number> }>(
+      "/dev-environments/stats"
+    );
+  },
 };

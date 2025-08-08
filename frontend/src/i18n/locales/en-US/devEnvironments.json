@@ -35,6 +35,10 @@
     "docker_image_placeholder": "Search by Docker image name"
   },
   "stats": {
+    "total": "Total Environments",
+    "docker_environments": "Docker Environments",
+    "total_cpu": "Total CPU",
+    "total_memory": "Total Memory",
     "cores": "cores",
     "memory": "Memory"
   },

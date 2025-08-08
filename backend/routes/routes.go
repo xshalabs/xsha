@@ -122,6 +122,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			devEnvs.POST("", devEnvHandlers.CreateEnvironment)
 			devEnvs.GET("", devEnvHandlers.ListEnvironments)
 			devEnvs.GET("/available-images", devEnvHandlers.GetAvailableImages)
+			devEnvs.GET("/stats", devEnvHandlers.GetStats)
 			devEnvs.GET("/:id", devEnvHandlers.GetEnvironment)
 			devEnvs.PUT("/:id", devEnvHandlers.UpdateEnvironment)
 			devEnvs.DELETE("/:id", devEnvHandlers.DeleteEnvironment)

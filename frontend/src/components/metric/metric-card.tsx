@@ -14,8 +14,8 @@ const metricCardVariants = cva(
         default: "border-input bg-card",
         ghost: "border-transparent",
         destructive: "border-destructive/80 bg-destructive/10",
-        success: "border-success/80 bg-success/10",
-        warning: "border-warning/80 bg-warning/10",
+        success: "border-green-600/80 bg-green-600/10",
+        warning: "border-yellow-600/80 bg-yellow-600/10",
       },
     },
     defaultVariants: {
@@ -63,8 +63,8 @@ export function MetricCardHeader({
       className={cn(
         "text-muted-foreground",
         "group-data-[variant=destructive]:text-destructive",
-        "group-data-[variant=success]:text-success",
-        "group-data-[variant=warning]:text-warning",
+        "group-data-[variant=success]:text-green-600",
+        "group-data-[variant=warning]:text-yellow-600",
         className
       )}
       {...props}
@@ -111,7 +111,7 @@ const badgeVariants = cva("px-1.5 font-mono text-[10px]", {
       increase:
         "border-destructive/20 bg-destructive/10 hover:bg-destructive/10 text-destructive",
       decrease:
-        "border-success/20 bg-success/10 hover:bg-success/10 text-success",
+        "border-green-600/20 bg-green-600/10 hover:bg-green-600/10 text-green-600",
     },
   },
   defaultVariants: {

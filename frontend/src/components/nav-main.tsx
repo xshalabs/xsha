@@ -14,10 +14,10 @@ export function NavMain({
   items,
 }: {
   items: {
-    title: string
-    url: string
-    icon?: LucideIcon
-  }[]
+    title: string;
+    url: string;
+    icon?: LucideIcon;
+  }[];
 }) {
   const location = useLocation();
   const { setOpenMobile } = useSidebar();
@@ -43,11 +43,11 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
+      <SidebarGroupLabel>Workspace</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton 
+            <SidebarMenuButton
               tooltip={item.title}
               asChild
               isActive={isActive(item.url)}

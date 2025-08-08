@@ -37,9 +37,10 @@
   },
   "stats": {
     "total": "环境总数",
-    "cpu_total": "总CPU",
+    "docker_environments": "Docker环境",
+    "total_cpu": "总CPU",
+    "total_memory": "总内存",
     "cores": "核",
-    "memory_total": "总内存",
     "memory": "内存"
   },
   "types": {

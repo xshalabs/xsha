@@ -394,3 +394,29 @@ func (h *DevEnvironmentHandlers) GetAvailableImages(c *gin.Context) {
 		"images": images,
 	})
 }
+
+// GetStats gets development environment statistics
+// @Summary Get development environment statistics
+// @Description Get statistics about development environments
+// @Tags Development Environment
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} object{stats=map[string]int64} "Environment statistics"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /dev-environments/stats [get]
+func (h *DevEnvironmentHandlers) GetStats(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	stats, err := h.devEnvService.GetStats()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"stats": stats,
+	})
+}

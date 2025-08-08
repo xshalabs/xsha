@@ -1,9 +1,1 @@
-// Metric card components
-export {
-  MetricCard,
-  MetricCardTitle,
-  MetricCardHeader,
-  MetricCardValue,
-  MetricCardGroup,
-  MetricCardButton,
-} from "./metric-card";
+export * from "./metric-card";
