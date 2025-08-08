@@ -10,7 +10,6 @@ import {
   SectionGroup,
   SectionHeader,
   SectionTitle,
-  SectionDescription,
 } from "@/components/content/section";
 import {
   EmptyStateContainer,
@@ -72,8 +71,12 @@ const TaskEditPage: React.FC = () => {
     if (task && task.project) {
       setItems([
         { type: "link", label: t("navigation.projects"), href: "/projects" },
-        { type: "link", label: task.project.name, href: `/projects/${projectId}/tasks` },
-        { type: "page", label: `${t("tasks.edit")} - ${task.title}` }
+        {
+          type: "link",
+          label: task.project.name,
+          href: `/projects/${projectId}/tasks`,
+        },
+        { type: "page", label: `${t("tasks.edit")} - ${task.title}` },
       ]);
     }
 
@@ -120,25 +123,24 @@ const TaskEditPage: React.FC = () => {
 
   return (
     <SectionGroup>
-        <Section>
-          <SectionHeader>
-            <SectionTitle>{t("tasks.edit")} - {task.title}</SectionTitle>
-            <SectionDescription>
-              {t("tasks.form.editDescription")}
-            </SectionDescription>
-          </SectionHeader>
-          <TaskFormEdit task={task} onSubmit={handleSubmit} />
-        </Section>
-        
-        <Section>
-          <EmptyStateContainer>
-            <EmptyStateTitle>{t("tasks.form.editHelpTitle")}</EmptyStateTitle>
-            <EmptyStateDescription>
-              {t("tasks.form.editHelpDescription")}
-            </EmptyStateDescription>
-          </EmptyStateContainer>
-        </Section>
-      </SectionGroup>
+      <Section>
+        <SectionHeader>
+          <SectionTitle>
+            {t("tasks.edit")} - {task.title}
+          </SectionTitle>
+        </SectionHeader>
+        <TaskFormEdit task={task} onSubmit={handleSubmit} />
+      </Section>
+
+      <Section>
+        <EmptyStateContainer>
+          <EmptyStateTitle>{t("tasks.form.editHelpTitle")}</EmptyStateTitle>
+          <EmptyStateDescription>
+            {t("tasks.form.editHelpDescription")}
+          </EmptyStateDescription>
+        </EmptyStateContainer>
+      </Section>
+    </SectionGroup>
   );
 };
 
