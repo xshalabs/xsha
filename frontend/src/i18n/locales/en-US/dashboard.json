@@ -1,7 +1,7 @@
 {
   "welcome": "Welcome",
   "title": "Overview",
-  "description": "Your AI-powered DevOps platform dashboard.",
+  "description": "Your AI-powered Dev platform dashboard.",
   "projectManagement": {
     "title": "Project Management",
     "description": "Manage your projects and Git credentials",
