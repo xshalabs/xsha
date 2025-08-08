@@ -66,17 +66,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         items: [
           {
             title: t("navigation.logs.loginLogs"),
-            url: "/audit/login-logs",
+            url: "/logs/login-logs",
             icon: Shield,
           },
           {
             title: t("navigation.logs.operationLogs"),
-            url: "/audit/operation-logs",
+            url: "/logs/operation-logs",
             icon: Activity,
           },
           {
             title: t("navigation.logs.stats"),
-            url: "/audit/stats",
+            url: "/logs/stats",
             icon: TrendingUp,
           },
         ],

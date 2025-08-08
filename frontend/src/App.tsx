@@ -14,9 +14,9 @@ import { Layout } from "@/components/Layout";
 import { LoginPage } from "@/pages/LoginPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { AdminLogsPage } from "@/pages/AdminLogsPage";
-import { OperationLogsPage } from "@/pages/audit/OperationLogsPage";
-import { LoginLogsPage } from "@/pages/audit/LoginLogsPage";
-import { AuditStatsPage } from "@/pages/audit/AuditStatsPage";
+import { OperationLogsPage } from "@/pages/logs/OperationLogsPage";
+import { LoginLogsPage } from "@/pages/logs/LoginLogsPage";
+import { AuditStatsPage } from "@/pages/logs/AuditStatsPage";
 
 import ProjectListPage from "@/pages/projects/ProjectListPage";
 import ProjectCreatePage from "@/pages/projects/ProjectCreatePage";
@@ -243,7 +243,7 @@ function App() {
             />
 
             <Route
-              path="/audit/operation-logs"
+              path="/logs/operation-logs"
               element={
                 <ProtectedRoute>
                   <Layout>
@@ -253,7 +253,7 @@ function App() {
               }
             />
             <Route
-              path="/audit/login-logs"
+              path="/logs/login-logs"
               element={
                 <ProtectedRoute>
                   <Layout>
@@ -263,7 +263,7 @@ function App() {
               }
             />
             <Route
-              path="/audit/stats"
+              path="/logs/stats"
               element={
                 <ProtectedRoute>
                   <Layout>
