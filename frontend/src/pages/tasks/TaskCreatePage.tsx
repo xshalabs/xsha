@@ -9,7 +9,6 @@ import {
   SectionGroup,
   SectionHeader,
   SectionTitle,
-  SectionDescription,
 } from "@/components/content/section";
 import {
   EmptyStateContainer,
@@ -90,9 +89,6 @@ const TaskCreatePage: React.FC = () => {
         <Section>
           <SectionHeader>
             <SectionTitle>{t("tasks.create")}</SectionTitle>
-            <SectionDescription>
-              {t("tasks.form.createDescription")}
-            </SectionDescription>
           </SectionHeader>
           <TaskFormCreate
             defaultProjectId={projectId ? parseInt(projectId, 10) : undefined}

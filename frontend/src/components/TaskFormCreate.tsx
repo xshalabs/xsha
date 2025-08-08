@@ -193,49 +193,49 @@ export function TaskFormCreate({
   };
 
   return (
-    <FormCard className="relative">
-      {fetchingBranches && (
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center">
-          <div className="flex flex-col items-center space-y-3">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            <p className="text-sm text-foreground">{t("tasks.form.fetchingBranches")}</p>
-          </div>
-        </div>
-      )}
-      
-      {branchFetchError && !fetchingBranches && (
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center">
-          <div className="flex flex-col items-center space-y-4 max-w-md mx-auto p-6 text-center">
-            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-              <AlertCircle className="h-6 w-6 text-red-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-medium text-foreground mb-2">
-                {t("tasks.errors.fetchBranchesFailedTitle")}
-              </h3>
-              <p className="text-sm text-red-600 mb-4">{branchFetchError}</p>
-              <Button 
-                onClick={() => {
-                  setBranchFetchError("");
-                  fetchProjectBranches();
-                }}
-                size="sm"
-              >
-                {t("common.retry")}
-              </Button>
+    <form onSubmit={handleSubmit}>
+      <FormCard className="relative">
+        {fetchingBranches && (
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center">
+            <div className="flex flex-col items-center space-y-3">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+              <p className="text-sm text-foreground">{t("tasks.form.fetchingBranches")}</p>
             </div>
           </div>
-        </div>
-      )}
+        )}
+        
+        {branchFetchError && !fetchingBranches && (
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center">
+            <div className="flex flex-col items-center space-y-4 max-w-md mx-auto p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertCircle className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  {t("tasks.errors.fetchBranchesFailedTitle")}
+                </h3>
+                <p className="text-sm text-red-600 mb-4">{branchFetchError}</p>
+                <Button 
+                  onClick={() => {
+                    setBranchFetchError("");
+                    fetchProjectBranches();
+                  }}
+                  size="sm"
+                >
+                  {t("common.retry")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
-      <FormCardHeader>
-        <FormCardTitle>{t("tasks.actions.create")}</FormCardTitle>
-        <FormCardDescription>
-          {t("tasks.form.createDescription")}
-        </FormCardDescription>
-      </FormCardHeader>
+        <FormCardHeader>
+          <FormCardTitle>{t("tasks.actions.create")}</FormCardTitle>
+          <FormCardDescription>
+            {t("tasks.form.createDescription")}
+          </FormCardDescription>
+        </FormCardHeader>
 
-      <form onSubmit={handleSubmit}>
         <FormCardContent className="grid gap-4">
           <div className="flex flex-col gap-3">
             <Label htmlFor="title">
@@ -375,7 +375,7 @@ export function TaskFormCreate({
               : t("tasks.actions.create")}
           </Button>
         </FormCardFooter>
-      </form>
-    </FormCard>
+      </FormCard>
+    </form>
   );
 }

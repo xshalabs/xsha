@@ -79,15 +79,15 @@ export function TaskFormEdit({
   };
 
   return (
-    <FormCard>
-      <FormCardHeader>
-        <FormCardTitle>{t("tasks.actions.edit")}</FormCardTitle>
-        <FormCardDescription>
-          {t("tasks.form.editDescription")}
-        </FormCardDescription>
-      </FormCardHeader>
+    <form onSubmit={handleSubmit}>
+      <FormCard>
+        <FormCardHeader>
+          <FormCardTitle>{t("tasks.actions.edit")}</FormCardTitle>
+          <FormCardDescription>
+            {t("tasks.form.editDescription")}
+          </FormCardDescription>
+        </FormCardHeader>
 
-      <form onSubmit={handleSubmit}>
         <FormCardContent className="grid gap-4">
           <div className="flex flex-col gap-3">
             <Label htmlFor="title">
@@ -119,7 +119,7 @@ export function TaskFormEdit({
               : t("common.save")}
           </Button>
         </FormCardFooter>
-      </form>
-    </FormCard>
+      </FormCard>
+    </form>
   );
 }
