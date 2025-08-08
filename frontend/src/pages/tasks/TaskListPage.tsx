@@ -11,6 +11,9 @@ import type { Task, TaskStatus } from "@/types/task";
 import type { Project } from "@/types/project";
 import type { DevEnvironment } from "@/types/dev-environment";
 import { toast } from "sonner";
+import { usePageActions } from "@/contexts/PageActionsContext";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
+import { DataTablePaginationServer } from "@/components/ui/data-table/data-table-pagination-server";
 import {
   Section,
   SectionDescription,
@@ -32,6 +35,8 @@ const TaskListPage: React.FC = () => {
   const { t } = useTranslation();
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const { setActions } = usePageActions();
+  const { setItems } = useBreadcrumb();
 
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
 
@@ -151,7 +156,6 @@ const TaskListPage: React.FC = () => {
       setTasks(response.data.tasks);
       setTotalPages(Math.ceil(response.data.total / pageSize));
       setTotal(response.data.total);
-      setCurrentPage(page);
     } catch (error) {
       logError(error as Error, "Failed to load tasks");
     } finally {
@@ -182,6 +186,34 @@ const TaskListPage: React.FC = () => {
         });
     }
   }, [projectId]);
+
+  // Set page actions (Create button in header) and breadcrumb
+  useEffect(() => {
+    const handleCreateNew = () => {
+      navigate(`/projects/${projectId}/tasks/create`);
+    };
+
+    setActions(
+      <Button onClick={handleCreateNew} size="sm">
+        <Plus className="h-4 w-4 mr-2" />
+        {t("tasks.create")}
+      </Button>
+    );
+
+    // Set breadcrumb items
+    if (currentProject) {
+      setItems([
+        { label: t("navigation.projects"), href: "/projects" },
+        { label: currentProject.name, href: `/projects/${projectId}/tasks` }
+      ]);
+    }
+
+    // Cleanup when component unmounts
+    return () => {
+      setActions(null);
+      setItems([]);
+    };
+  }, [navigate, setActions, setItems, t, projectId, currentProject]);
 
   const handleTaskCreate = () => {
     navigate(`/projects/${projectId}/tasks/create`);
@@ -222,6 +254,7 @@ const TaskListPage: React.FC = () => {
   };
 
   const handlePageChange = (page: number) => {
+    setCurrentPage(page);
     loadTasks(
       page,
       statusFilter,
@@ -234,6 +267,7 @@ const TaskListPage: React.FC = () => {
 
   const handleStatusFilterChange = (status: TaskStatus | undefined) => {
     setStatusFilter(status);
+    setCurrentPage(1); // Reset to first page when filtering
     loadTasks(
       1,
       status,
@@ -246,6 +280,7 @@ const TaskListPage: React.FC = () => {
 
   const handleTitleFilterChange = (title: string | undefined) => {
     setTitleFilter(title);
+    setCurrentPage(1);
     loadTasks(
       1,
       statusFilter,
@@ -258,6 +293,7 @@ const TaskListPage: React.FC = () => {
 
   const handleBranchFilterChange = (branch: string | undefined) => {
     setBranchFilter(branch);
+    setCurrentPage(1);
     loadTasks(
       1,
       statusFilter,
@@ -270,6 +306,7 @@ const TaskListPage: React.FC = () => {
 
   const handleDevEnvironmentFilterChange = (envId: number | undefined) => {
     setDevEnvironmentFilter(envId);
+    setCurrentPage(1);
     loadTasks(
       1,
       statusFilter,
@@ -297,6 +334,7 @@ const TaskListPage: React.FC = () => {
     setTitleFilter(filters.title);
     setBranchFilter(filters.branch);
     setDevEnvironmentFilter(filters.devEnvironment);
+    setCurrentPage(1);
 
     loadTasks(
       1,
@@ -381,20 +419,12 @@ const TaskListPage: React.FC = () => {
       <SectionGroup>
         <Section>
           <SectionHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <SectionTitle>
-                  {currentProject ? `${currentProject.name} - ${t("tasks.title")}` : t("tasks.title")}
-                </SectionTitle>
-                <SectionDescription>
-                  {t("tasks.page_description")}
-                </SectionDescription>
-              </div>
-              <Button onClick={handleTaskCreate} size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                {t("tasks.create")}
-              </Button>
-            </div>
+            <SectionTitle>
+              {currentProject ? `${currentProject.name} - ${t("tasks.title")}` : t("tasks.title")}
+            </SectionTitle>
+            <SectionDescription>
+              {t("tasks.page_description")}
+            </SectionDescription>
           </SectionHeader>
           <MetricCardGroup>
             {metrics.map((metric) => {
@@ -431,35 +461,44 @@ const TaskListPage: React.FC = () => {
           </MetricCardGroup>
         </Section>
         <Section>
-          <TaskList
-            tasks={tasks}
-            projects={projects}
-            devEnvironments={devEnvironments}
-            loading={tasksLoading}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            total={total}
-            statusFilter={statusFilter}
-            projectFilter={projectId ? parseInt(projectId, 10) : undefined}
-            titleFilter={titleFilter}
-            branchFilter={branchFilter}
-            devEnvironmentFilter={devEnvironmentFilter}
-            hideProjectFilter={true}
-            onPageChange={handlePageChange}
-            onStatusFilterChange={handleStatusFilterChange}
-            onProjectFilterChange={handleProjectFilterChange}
-            onTitleFilterChange={handleTitleFilterChange}
-            onBranchFilterChange={handleBranchFilterChange}
-            onDevEnvironmentFilterChange={handleDevEnvironmentFilterChange}
-            onFiltersApply={handleFiltersApply}
-            onEdit={handleTaskEdit}
-            onDelete={handleTaskDelete}
-            onViewConversation={handleViewConversation}
-            onViewGitDiff={handleViewGitDiff}
-            onPushBranch={handlePushBranch}
-            onCreateNew={handleTaskCreate}
-            onBatchUpdateStatus={handleBatchUpdateStatus}
-          />
+          <div className="space-y-4">
+            <TaskList
+              tasks={tasks}
+              projects={projects}
+              devEnvironments={devEnvironments}
+              loading={tasksLoading}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              total={total}
+              statusFilter={statusFilter}
+              projectFilter={projectId ? parseInt(projectId, 10) : undefined}
+              titleFilter={titleFilter}
+              branchFilter={branchFilter}
+              devEnvironmentFilter={devEnvironmentFilter}
+              hideProjectFilter={true}
+              onPageChange={handlePageChange}
+              onStatusFilterChange={handleStatusFilterChange}
+              onProjectFilterChange={handleProjectFilterChange}
+              onTitleFilterChange={handleTitleFilterChange}
+              onBranchFilterChange={handleBranchFilterChange}
+              onDevEnvironmentFilterChange={handleDevEnvironmentFilterChange}
+              onFiltersApply={handleFiltersApply}
+              onEdit={handleTaskEdit}
+              onDelete={handleTaskDelete}
+              onViewConversation={handleViewConversation}
+              onViewGitDiff={handleViewGitDiff}
+              onPushBranch={handlePushBranch}
+              onCreateNew={handleTaskCreate}
+              onBatchUpdateStatus={handleBatchUpdateStatus}
+              hidePagination={true}
+            />
+            <DataTablePaginationServer
+              currentPage={currentPage}
+              totalPages={totalPages}
+              total={total}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </Section>
       </SectionGroup>
 

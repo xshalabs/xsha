@@ -71,6 +71,7 @@ interface TaskListProps {
   branchFilter?: string;
   devEnvironmentFilter?: number;
   hideProjectFilter?: boolean;
+  hidePagination?: boolean;
   onPageChange: (page: number) => void;
   onStatusFilterChange: (status: TaskStatus | undefined) => void;
   onProjectFilterChange: (projectId: number | undefined) => void;
@@ -107,6 +108,7 @@ export function TaskList({
   branchFilter,
   devEnvironmentFilter,
   hideProjectFilter = false,
+  hidePagination = false,
   onPageChange,
   onStatusFilterChange,
   onProjectFilterChange,
@@ -622,7 +624,7 @@ export function TaskList({
                 </TableBody>
               </Table>
 
-              {totalPages > 1 && (
+              {!hidePagination && totalPages > 1 && (
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-muted-foreground">
                     {t("common.page")} {currentPage} / {totalPages}
