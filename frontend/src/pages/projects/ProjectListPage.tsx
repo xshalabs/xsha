@@ -6,7 +6,7 @@ import { usePageActions } from "@/contexts/PageActionsContext";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 
 import { DataTable } from "@/components/ui/data-table/data-table";
-import { Plus, FolderGit2, CheckCircle, ListFilter } from "lucide-react";
+import { Plus } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
@@ -17,13 +17,7 @@ import {
   SectionHeader,
   SectionTitle,
 } from "@/components/content/section";
-import {
-  MetricCardButton,
-  MetricCardGroup,
-  MetricCardHeader,
-  MetricCardTitle,
-  MetricCardValue,
-} from "@/components/metric/metric-card";
+
 import { createProjectColumns } from "@/components/data-table/projects/columns";
 import { ProjectDataTableToolbar } from "@/components/data-table/projects/data-table-toolbar";
 import { DataTablePaginationServer } from "@/components/ui/data-table/data-table-pagination-server";
@@ -82,7 +76,7 @@ const ProjectListPage: React.FC = () => {
       setTotalPages(response.total_pages);
       setCurrentPage(page);
     } catch (error) {
-      logError(error as Error, "Failed to load projects for metrics");
+      logError(error as Error, "Failed to load projects");
     } finally {
       setLoading(false);
     }
@@ -140,35 +134,7 @@ const ProjectListPage: React.FC = () => {
     };
   }, [navigate, setActions, setItems, t]);
 
-  const metrics = [
-    {
-      title: t("projects.metrics.total"),
-      value: total, // Use total from API instead of current page length
-      variant: "default" as const,
-      icon: FolderGit2,
-      type: "info" as const,
-    },
-    {
-      title: t("projects.metrics.withCredentials"),
-      value: projects.filter((p) => p.credential_id).length, // Note: This shows current page data, ideally should be from API
-      variant: "success" as const,
-      icon: CheckCircle,
-      type: "filter" as const,
-      filterKey: "hasCredential",
-      filterValue: "true",
-    },
-  ];
 
-  const icons = {
-    filter: {
-      active: CheckCircle,
-      inactive: ListFilter,
-    },
-    info: {
-      active: FolderGit2,
-      inactive: FolderGit2,
-    },
-  };
 
   const handleEdit = (project: Project) => {
     navigate(`/projects/${project.id}/edit`);
@@ -188,42 +154,7 @@ const ProjectListPage: React.FC = () => {
     navigate(`/projects/${project.id}/tasks`);
   };
 
-  // Handle metric card clicks for filtering
-  const handleMetricClick = (metric: (typeof metrics)[0]) => {
-    if (metric.type !== "filter") return;
 
-    const existingFilter = columnFilters.find(
-      (filter) => filter.id === metric.filterKey
-    );
-
-    const isFilterActive =
-      Array.isArray(existingFilter?.value) &&
-      existingFilter?.value.includes(metric.filterValue);
-
-    if (isFilterActive) {
-      // Remove filter
-      setColumnFilters((prev) =>
-        prev.filter((filter) => filter.id !== metric.filterKey)
-      );
-      // Update URL
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete(metric.filterKey!);
-      setSearchParams(newParams);
-    } else {
-      // Add filter
-      setColumnFilters((prev) => {
-        const others = prev.filter((filter) => filter.id !== metric.filterKey);
-        return [
-          ...others,
-          { id: metric.filterKey!, value: [metric.filterValue!] },
-        ];
-      });
-      // Update URL
-      const newParams = new URLSearchParams(searchParams);
-      newParams.set(metric.filterKey!, metric.filterValue!);
-      setSearchParams(newParams);
-    }
-  };
 
   const columns = createProjectColumns({
     t,
@@ -256,41 +187,7 @@ const ProjectListPage: React.FC = () => {
               {t("projects.page_description")}
             </SectionDescription>
           </SectionHeader>
-          <MetricCardGroup>
-            {metrics.map((metric) => {
-              const existingFilter = columnFilters.find(
-                (filter) => filter.id === metric.filterKey
-              );
-              const isFilterActive =
-                metric.type === "filter" &&
-                Array.isArray(existingFilter?.value) &&
-                existingFilter?.value.includes(metric.filterValue);
 
-              const isActive =
-                metric.type === "filter" ? isFilterActive : false;
-              const IconComponent =
-                metric.type === "filter"
-                  ? icons[metric.type][isActive ? "active" : "inactive"]
-                  : metric.icon;
-
-              return (
-                <MetricCardButton
-                  key={metric.title}
-                  variant={metric.variant}
-                  onClick={() => handleMetricClick(metric)}
-                  disabled={metric.type === "info"}
-                >
-                  <MetricCardHeader className="flex justify-between items-center gap-2 w-full">
-                    <MetricCardTitle className="truncate">
-                      {metric.title}
-                    </MetricCardTitle>
-                    <IconComponent className="size-4" />
-                  </MetricCardHeader>
-                  <MetricCardValue>{metric.value}</MetricCardValue>
-                </MetricCardButton>
-              );
-            })}
-          </MetricCardGroup>
         </Section>
         <Section>
           <div className="space-y-4">
