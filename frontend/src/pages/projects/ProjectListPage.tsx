@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,7 @@ const ProjectListPage: React.FC = () => {
 
   usePageTitle(t("common.pageTitle.projects"));
 
-  const loadProjectsData = async (
+  const loadProjectsData = useCallback(async (
     page = currentPage,
     filters = columnFilters
   ) => {
@@ -79,11 +79,11 @@ const ProjectListPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pageSize]); // Removed currentPage and columnFilters from dependencies to avoid infinite loops
 
   useEffect(() => {
-    loadProjectsData().then(() => setIsInitialized(true));
-  }, []);
+    loadProjectsData(currentPage, columnFilters).then(() => setIsInitialized(true));
+  }, [loadProjectsData]);
 
   // Handle column filter changes (skip initial empty state)
   const [isInitialized, setIsInitialized] = useState(false);
@@ -92,11 +92,11 @@ const ProjectListPage: React.FC = () => {
     if (isInitialized) {
       loadProjectsData(1, columnFilters); // Reset to page 1 when filtering
     }
-  }, [columnFilters, isInitialized]);
+  }, [columnFilters, isInitialized, loadProjectsData]);
 
-  const handlePageChange = (page: number) => {
-    loadProjectsData(page);
-  };
+  const handlePageChange = useCallback((page: number) => {
+    loadProjectsData(page, columnFilters);
+  }, [loadProjectsData, columnFilters]);
 
 
 
@@ -125,32 +125,32 @@ const ProjectListPage: React.FC = () => {
 
 
 
-  const handleEdit = (project: Project) => {
+  const handleEdit = useCallback((project: Project) => {
     navigate(`/projects/${project.id}/edit`);
-  };
+  }, [navigate]);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = useCallback(async (id: number) => {
     try {
       await apiService.projects.delete(id);
-      await loadProjectsData();
+      await loadProjectsData(currentPage, columnFilters);
     } catch (error) {
       // Re-throw error to let QuickActions handle the user notification
       throw error;
     }
-  };
+  }, [loadProjectsData, currentPage, columnFilters]);
 
-  const handleManageTasks = (project: Project) => {
+  const handleManageTasks = useCallback((project: Project) => {
     navigate(`/projects/${project.id}/tasks`);
-  };
+  }, [navigate]);
 
 
 
-  const columns = createProjectColumns({
+  const columns = useMemo(() => createProjectColumns({
     t,
     onEdit: handleEdit,
     onDelete: handleDelete,
     onManageTasks: handleManageTasks,
-  });
+  }), [t, handleEdit, handleDelete, handleManageTasks]);
 
   if (loading) {
     return (
