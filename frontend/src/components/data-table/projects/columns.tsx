@@ -1,11 +1,11 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Edit, FolderOpen } from "lucide-react";
-import { TFunction } from "react-i18next";
+import type { TFunction } from "i18next";
 import { QuickActions } from "@/components/ui/quick-actions";
 
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
-import { Project } from "@/types/project";
+import type { Project } from "@/types/project";
 
 interface ProjectColumnsProps {
   t: TFunction;
@@ -62,7 +62,7 @@ export const createProjectColumns = ({
     cell: ({ row }) => {
       const hasCredential = row.getValue("hasCredential") === "true";
       return (
-        <Badge variant={hasCredential ? "success" : "secondary"}>
+        <Badge variant={hasCredential ? "default" : "secondary"}>
           {hasCredential ? t("common.yes") : t("common.no")}
         </Badge>
       );
