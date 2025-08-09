@@ -91,7 +91,6 @@ const ProjectListPage: React.FC = () => {
             apiParams.protocol = filter.value as GitProtocolType;
           }
         });
-
         const response = await apiService.projects.list(apiParams);
         setProjects(response.projects);
         setTotal(response.total);
@@ -128,13 +127,15 @@ const ProjectListPage: React.FC = () => {
           if (lastRequestRef.current === requestKey) {
             lastRequestRef.current = "";
           }
-        }, 100);
+        }, 500); // Increase delay to prevent rapid duplicate requests
       }
     },
     [pageSize, setSearchParams]
   );
 
   // Initialize from URL on component mount (only once)
+  const [isInitialized, setIsInitialized] = useState(false);
+
   useEffect(() => {
     // Get URL params directly to avoid dependency issues
     const nameParam = searchParams.get("name");
@@ -156,59 +157,30 @@ const ProjectListPage: React.FC = () => {
 
     const initialPage = pageParam ? parseInt(pageParam, 10) : 1;
 
+    // Set state first
     setColumnFilters(initialFilters);
     setCurrentPage(initialPage);
 
-    // Load initial data directly without dependencies
-    const loadInitialData = async () => {
-      try {
-        setLoading(true);
-
-        const apiParams: ProjectListParams = {
-          page: initialPage,
-          page_size: pageSize,
-        };
-
-        // Handle column filters
-        initialFilters.forEach((filter) => {
-          if (filter.id === "name" && filter.value) {
-            apiParams.name = filter.value as string;
-          } else if (filter.id === "protocol" && filter.value) {
-            apiParams.protocol = filter.value as GitProtocolType;
-          }
-        });
-
-        const response = await apiService.projects.list(apiParams);
-        setProjects(response.projects);
-        setTotal(response.total);
-        setTotalPages(response.total_pages);
-        setIsInitialized(true);
-      } catch (error) {
-        logError(error as Error, "Failed to load projects");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadInitialData();
+    // Load initial data using the unified function
+    loadProjectsData(initialPage, initialFilters, false).then(() => {
+      setIsInitialized(true);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run once on mount
 
-  // Handle column filter changes (skip initial empty state)
-  const [isInitialized, setIsInitialized] = useState(false);
-
+  // Handle column filter changes (skip initial load)
   useEffect(() => {
     if (isInitialized) {
       loadProjectsData(1, columnFilters); // Reset to page 1 when filtering
     }
-  }, [columnFilters, isInitialized]); // Remove loadProjectsData dependency
+  }, [columnFilters, isInitialized, loadProjectsData]);
 
   const handlePageChange = useCallback(
     (page: number) => {
       loadProjectsData(page, columnFilters);
     },
-    [columnFilters]
-  ); // Remove loadProjectsData dependency
+    [columnFilters, loadProjectsData]
+  );
 
   // Set page actions (Create button in header) and clear breadcrumb
   useEffect(() => {
