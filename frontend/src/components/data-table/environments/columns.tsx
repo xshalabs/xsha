@@ -1,8 +1,8 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Edit } from "lucide-react";
 import { QuickActions } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
-import { DevEnvironmentDisplay } from "@/types/dev-environment";
+import type { DevEnvironmentDisplay } from "@/types/dev-environment";
 
 interface DevEnvironmentColumnsProps {
   onEdit: (environment: DevEnvironmentDisplay) => void;

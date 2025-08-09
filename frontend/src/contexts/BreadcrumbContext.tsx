@@ -1,10 +1,16 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState } from 'react';
+import type { ReactNode } from 'react';
 
-interface BreadcrumbItem {
-  type: "link" | "page";
-  label: string;
-  href?: string;
-}
+type BreadcrumbItem = 
+  | {
+      type: "link";
+      label: string;
+      href: string;
+    }
+  | {
+      type: "page";
+      label: string;
+    };
 
 interface BreadcrumbContextType {
   items: BreadcrumbItem[];

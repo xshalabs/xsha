@@ -1,7 +1,7 @@
-import { Table } from "@tanstack/react-table";
+import type { Table } from "@tanstack/react-table";
 import { useTranslation } from "react-i18next";
 import { DataTableToolbar } from "@/components/ui/data-table";
-import { DevEnvironmentDisplay } from "@/types/dev-environment";
+import type { DevEnvironmentDisplay } from "@/types/dev-environment";
 
 export interface DevEnvironmentDataTableToolbarProps {
   table: Table<DevEnvironmentDisplay>;

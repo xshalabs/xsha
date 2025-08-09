@@ -1,4 +1,4 @@
-import { Table } from "@tanstack/react-table";
+import type { Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

@@ -1,12 +1,14 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Edit, MessageSquare, GitCompare, GitBranch, CheckCircle, Clock, Play, X } from "lucide-react";
-import { TFunction } from "react-i18next";
+import { useTranslation } from "react-i18next";
+
+type TFunction = ReturnType<typeof useTranslation>['t'];
 import { QuickActions } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
 
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Task, TaskStatus } from "@/types/task";
+import type { Task, TaskStatus } from "@/types/task";
 
 interface TaskColumnsProps {
   t: TFunction;
@@ -148,8 +150,8 @@ export const createTaskColumns = ({
           </div>
         );
       },
-      filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
+      filterFn: (row, _id, value) => {
+        return value.includes(row.getValue(_id));
       },
       enableSorting: false,
     },
@@ -202,7 +204,7 @@ export const createTaskColumns = ({
           <span className="text-xs text-muted-foreground">-</span>
         );
       },
-      filterFn: (row, id, value) => {
+      filterFn: (row, _id, value) => {
         const devEnvId = row.original.dev_environment?.id;
         return value.includes(devEnvId?.toString() || "");
       },

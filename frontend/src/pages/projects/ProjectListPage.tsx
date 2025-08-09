@@ -31,7 +31,7 @@ import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 const ProjectListPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);

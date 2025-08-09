@@ -1,10 +1,11 @@
-import { Table } from "@tanstack/react-table";
+import type { Table } from "@tanstack/react-table";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableFacetedFilter } from "@/components/ui/data-table/data-table-faceted-filter";
-import { GitCredential, GitCredentialType } from "@/types/credentials";
+import type { GitCredential } from "@/types/credentials";
+import { GitCredentialType } from "@/types/credentials";
 
 export interface GitCredentialDataTableToolbarProps {
   table: Table<GitCredential>;

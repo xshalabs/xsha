@@ -17,6 +17,14 @@ import type {
   SortingState,
   VisibilityState,
 } from "@tanstack/react-table";
+
+// Extend the ColumnMeta interface to include custom className properties
+declare module "@tanstack/react-table" {
+  interface ColumnMeta<TData, TValue> {
+    headerClassName?: string;
+    cellClassName?: string;
+  }
+}
 import {
   Table,
   TableBody,

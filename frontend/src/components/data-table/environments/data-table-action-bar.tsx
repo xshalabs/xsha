@@ -1,6 +1,6 @@
 import type { Table } from "@tanstack/react-table";
 import { Trash2 } from "lucide-react";
-import * as React from "react";
+
 
 import {
   DataTableActionBar,
@@ -8,7 +8,7 @@ import {
   DataTableActionBarSelection,
 } from "@/components/ui/data-table";
 import { Separator } from "@/components/ui/separator";
-import { DevEnvironmentDisplay } from "@/types/dev-environment";
+import type { DevEnvironmentDisplay } from "@/types/dev-environment";
 
 interface DevEnvironmentDataTableActionBarProps {
   table: Table<DevEnvironmentDisplay>;

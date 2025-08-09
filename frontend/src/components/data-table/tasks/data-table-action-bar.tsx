@@ -1,7 +1,7 @@
 import { SelectTrigger } from "@radix-ui/react-select";
 import type { Table } from "@tanstack/react-table";
 import { CheckCircle2, Trash2 } from "lucide-react";
-import * as React from "react";
+
 import { useTranslation } from "react-i18next";
 
 import {
@@ -16,7 +16,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Task, TaskStatus } from "@/types/task";
+import type { Task, TaskStatus } from "@/types/task";
 
 interface TaskDataTableActionBarProps {
   table: Table<Task>;

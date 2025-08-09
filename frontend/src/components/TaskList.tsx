@@ -96,7 +96,7 @@ interface TaskListProps {
 
 export function TaskList({
   tasks,
-  projects,
+  projects: _projects,
   devEnvironments,
   loading,
   currentPage,

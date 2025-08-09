@@ -109,7 +109,7 @@ export function useAdminOperationLogColumns({ onViewDetail }: AdminOperationLogC
         );
       },
       filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id).toString());
+        return value.includes((row.getValue(id) as string).toString());
       },
     },
     {

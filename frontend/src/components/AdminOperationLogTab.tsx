@@ -29,7 +29,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { useAdminOperationLogColumns } from "@/components/data-table/admin-logs/columns";
 import { AdminOperationLogDataTableToolbar } from "@/components/data-table/admin-logs/data-table-toolbar";
 import { CustomPagination } from "@/components/data-table/admin-logs/custom-pagination";
-import { CheckCircle, XCircle, Filter, Activity } from "lucide-react";
+import { CheckCircle, Filter } from "lucide-react";
 import type {
   AdminOperationLog,
 } from "@/types/admin-logs";
@@ -38,7 +38,8 @@ import type { ColumnFiltersState } from "@tanstack/react-table";
 export const AdminOperationLogTab: React.FC = () => {
   const { t } = useTranslation();
   const [logs, setLogs] = useState<AdminOperationLog[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
+
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedLog, setSelectedLog] = useState<AdminOperationLog | null>(
     null
@@ -125,7 +126,7 @@ export const AdminOperationLogTab: React.FC = () => {
         } else if (filter.id === "success" && Array.isArray(filter.value) && filter.value.length > 0) {
           apiParams.success = filter.value[0] === "true";
         } else if (filter.id === "operation_time" && filter.value) {
-          const { startDate, endDate } = filter.value;
+          const { startDate, endDate } = filter.value as { startDate?: Date; endDate?: Date };
           if (startDate) {
             apiParams.start_time = startDate.toISOString().split('T')[0];
           }

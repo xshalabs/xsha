@@ -60,7 +60,8 @@ const EnvironmentListPage: React.FC = () => {
   }, [navigate, setActions, setItems, t]);
 
   const [environments, setEnvironments] = useState<DevEnvironmentDisplay[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
