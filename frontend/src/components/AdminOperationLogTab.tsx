@@ -202,6 +202,9 @@ export const AdminOperationLogTab: React.FC = () => {
 
   // Initialize component (only once)
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Ref for tracking previous column filters to avoid unnecessary resets
+  const prevColumnFiltersRef = useRef<ColumnFiltersState>([]);
 
   // Initialize from URL on component mount (only once)
   useEffect(() => {
@@ -243,6 +246,9 @@ export const AdminOperationLogTab: React.FC = () => {
     // Set state first
     setColumnFilters(initialFilters);
     setCurrentPage(initialPage);
+    
+    // Initialize the ref for filter comparison
+    prevColumnFiltersRef.current = initialFilters;
 
     // Load initial data using the unified function
     loadOperationLogsData(initialPage, initialFilters, false, false).then(() => {
@@ -254,7 +260,12 @@ export const AdminOperationLogTab: React.FC = () => {
   // Handle column filter changes (skip initial load)
   useEffect(() => {
     if (isInitialized) {
-      loadOperationLogsData(1, columnFilters); // Reset to page 1 when filtering
+      // Deep compare columnFilters to avoid unnecessary resets
+      const filtersChanged = JSON.stringify(prevColumnFiltersRef.current) !== JSON.stringify(columnFilters);
+      if (filtersChanged) {
+        prevColumnFiltersRef.current = columnFilters;
+        loadOperationLogsData(1, columnFilters); // Reset to page 1 when filtering
+      }
     }
   }, [columnFilters, isInitialized, loadOperationLogsData]);
 
