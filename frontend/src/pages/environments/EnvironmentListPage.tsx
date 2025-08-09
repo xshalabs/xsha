@@ -5,7 +5,7 @@ import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { Button } from "@/components/ui/button";
 
-import { Plus, HardDrive, Cpu, Server } from "lucide-react";
+import { Plus } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
@@ -17,13 +17,6 @@ import {
   SectionHeader,
   SectionTitle,
 } from "@/components/content/section";
-import {
-  MetricCardGroup,
-  MetricCardHeader,
-  MetricCardTitle,
-  MetricCardValue,
-  MetricCardButton,
-} from "@/components/metric/metric-card";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTablePaginationServer } from "@/components/ui/data-table/data-table-pagination-server";
 import { createDevEnvironmentColumns } from "@/components/data-table/environments/columns";
@@ -67,7 +60,6 @@ const EnvironmentListPage: React.FC = () => {
   }, [navigate, setActions, setItems, t]);
 
   const [environments, setEnvironments] = useState<DevEnvironmentDisplay[]>([]);
-  const [stats, setStats] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -140,55 +132,12 @@ const EnvironmentListPage: React.FC = () => {
     }
   };
 
-  const fetchStats = async () => {
-    try {
-      const response = await apiService.devEnvironments.getStats();
-      setStats(response.stats);
-    } catch (error) {
-      logError(error as Error, "Failed to fetch environment stats");
-    }
-  };
 
-  const formatMemory = (mb: number) => {
-    if (mb >= 1024) {
-      return `${(mb / 1024).toFixed(1)} GB`;
-    }
-    return `${mb} MB`;
-  };
-
-  const formatCPU = (cores: number) => {
-    // Round to 1 decimal place and remove unnecessary decimals
-    const rounded = Math.round(cores * 10) / 10;
-    const formatted = rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(1);
-    return `${formatted} ${rounded === 1 ? 'core' : 'cores'}`;
-  };
-
-  const metrics = [
-    {
-      title: t("devEnvironments.stats.total"),
-      value: stats.total || 0,
-      variant: "default" as const,
-      icon: Server,
-    },
-    {
-      title: t("devEnvironments.stats.total_cpu"),
-      value: formatCPU(stats.total_cpu || 0),
-      variant: "ghost" as const,
-      icon: Cpu,
-    },
-    {
-      title: t("devEnvironments.stats.total_memory"),
-      value: formatMemory(stats.total_memory || 0),
-      variant: "ghost" as const,
-      icon: HardDrive,
-    },
-  ];
 
   const handleDeleteEnvironment = async (id: number) => {
     try {
       await apiService.devEnvironments.delete(id);
       await fetchEnvironments();
-      await fetchStats();
     } catch (error) {
       // Re-throw error to let QuickActions handle the user notification
       throw error;
@@ -210,7 +159,6 @@ const EnvironmentListPage: React.FC = () => {
 
   useEffect(() => {
     fetchEnvironments().then(() => setIsInitialized(true));
-    fetchStats();
   }, []);
 
   // Handle column filter changes (skip initial empty state)
@@ -236,25 +184,7 @@ const EnvironmentListPage: React.FC = () => {
                 {t("devEnvironments.page_description")}
               </SectionDescription>
             </SectionHeader>
-            <MetricCardGroup>
-              {metrics.map((metric) => {
-                const Icon = metric.icon;
-                return (
-                  <MetricCardButton
-                    key={metric.title}
-                    variant={metric.variant}
-                  >
-                    <MetricCardHeader className="flex justify-between items-center gap-2 w-full">
-                      <MetricCardTitle className="truncate">
-                        {metric.title}
-                      </MetricCardTitle>
-                      <Icon className="size-4" />
-                    </MetricCardHeader>
-                    <MetricCardValue>{metric.value}</MetricCardValue>
-                  </MetricCardButton>
-                );
-              })}
-            </MetricCardGroup>
+
           </Section>
         <Section>
           <div className="space-y-4">

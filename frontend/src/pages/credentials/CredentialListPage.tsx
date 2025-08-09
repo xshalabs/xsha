@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -14,13 +14,6 @@ import {
   SectionTitle,
   SectionDescription,
 } from "@/components/content/section";
-import {
-  MetricCardGroup,
-  MetricCardHeader,
-  MetricCardTitle,
-  MetricCardValue,
-  MetricCardButton,
-} from "@/components/metric/metric-card";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTablePaginationServer } from "@/components/ui/data-table/data-table-pagination-server";
 import { createGitCredentialColumns } from "@/components/data-table/credentials/columns";
@@ -33,7 +26,7 @@ import type {
   GitCredentialListParams,
 } from "@/types/credentials";
 import { GitCredentialType } from "@/types/credentials";
-import { Plus, Key, Shield, ListFilter, CheckCircle } from "lucide-react";
+import { Plus } from "lucide-react";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 
 const CredentialListPage: React.FC = () => {
@@ -165,62 +158,7 @@ const CredentialListPage: React.FC = () => {
     }
   };
 
-  // Calculate statistics
-  const statistics = useMemo(() => {
-    const passwordCount = credentials.filter(
-      (cred) => cred.type === GitCredentialType.PASSWORD
-    ).length;
-    const tokenCount = credentials.filter(
-      (cred) => cred.type === GitCredentialType.TOKEN
-    ).length;
 
-    return [
-      {
-        title: t("gitCredentials.filter.password"),
-        value: passwordCount,
-        variant: "success" as const,
-        type: GitCredentialType.PASSWORD,
-        icon: Key,
-      },
-      {
-        title: t("gitCredentials.filter.token"),
-        value: tokenCount,
-        variant: "warning" as const,
-        type: GitCredentialType.TOKEN,
-        icon: Shield,
-      },
-      {
-        title: t("common.total"),
-        value: total,
-        variant: "ghost" as const,
-        type: undefined,
-        icon: ListFilter,
-      },
-    ];
-  }, [credentials, total, t]);
-
-  const handleStatisticClick = (
-    statisticType: GitCredentialType | undefined
-  ) => {
-    let newColumnFilters = [...columnFilters];
-    
-    if (statisticType === undefined) {
-      // Clear all filters
-      newColumnFilters = columnFilters.filter(f => f.id !== "type");
-    } else {
-      // Toggle filter
-      const currentFilter = columnFilters.find(f => f.id === "type");
-      const currentValues = (currentFilter?.value as string[]) || [];
-      const isActive = currentValues.includes(statisticType);
-      
-      newColumnFilters = columnFilters.filter(f => f.id !== "type");
-      if (!isActive) {
-        newColumnFilters.push({ id: "type", value: [statisticType] });
-      }
-    }
-    
-    setColumnFilters(newColumnFilters);
-  };
 
   return (
     <>
@@ -236,41 +174,7 @@ const CredentialListPage: React.FC = () => {
             </SectionDescription>
           </SectionHeader>
 
-          <MetricCardGroup>
-            {statistics.map((stat) => {
-              const currentFilter = columnFilters.find(f => f.id === "type");
-              const currentValues = (currentFilter?.value as string[]) || [];
-              const isActive = stat.type === undefined 
-                ? currentValues.length === 0 
-                : currentValues.includes(stat.type);
 
-              // Determine icon based on state (like openstatus)
-              let Icon;
-              if (stat.type === undefined) {
-                // Total always uses ListFilter
-                Icon = ListFilter;
-              } else {
-                // Filter types use CheckCircle when active, type icon when inactive
-                Icon = isActive ? CheckCircle : stat.icon;
-              }
-
-              return (
-                <MetricCardButton
-                  key={stat.title}
-                  variant={stat.variant}
-                  onClick={() => handleStatisticClick(stat.type)}
-                >
-                  <MetricCardHeader className="flex justify-between items-center gap-2 w-full">
-                    <MetricCardTitle className="truncate">
-                      {stat.title}
-                    </MetricCardTitle>
-                    <Icon className="size-4" />
-                  </MetricCardHeader>
-                  <MetricCardValue>{stat.value}</MetricCardValue>
-                </MetricCardButton>
-              );
-            })}
-          </MetricCardGroup>
         </Section>
 
         <Section>
