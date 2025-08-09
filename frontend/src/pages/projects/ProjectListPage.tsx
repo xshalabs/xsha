@@ -271,20 +271,6 @@ const ProjectListPage: React.FC = () => {
     [t, handleEdit, handleDelete, handleManageTasks]
   );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <SectionGroup>
-          <Section>
-            <div className="flex items-center justify-center h-64">
-              <div className="text-gray-500">{t("common.loading")}</div>
-            </div>
-          </Section>
-        </SectionGroup>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <SectionGroup>
@@ -306,6 +292,7 @@ const ProjectListPage: React.FC = () => {
               setColumnFilters={setColumnFilters}
               sorting={sorting}
               setSorting={setSorting}
+              loading={loading}
             />
             <DataTablePaginationServer
               currentPage={currentPage}

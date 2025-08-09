@@ -33,6 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Fragment } from "react";
 import type { DataTableActionBarProps } from "./data-table-action-bar";
 import type { DataTablePaginationProps } from "./data-table-pagination";
@@ -49,6 +50,7 @@ export interface DataTableProps<TData, TValue> {
   defaultSorting?: SortingState;
   defaultColumnVisibility?: VisibilityState;
   defaultColumnFilters?: ColumnFiltersState;
+  loading?: boolean;
 
   /** access the state from the parent component */
   columnFilters?: ColumnFiltersState;
@@ -68,6 +70,7 @@ export function DataTable<TData, TValue>({
   defaultSorting = [],
   defaultColumnVisibility = {},
   defaultColumnFilters = [],
+  loading = false,
   columnFilters,
   setColumnFilters,
   sorting,
@@ -141,7 +144,18 @@ export function DataTable<TData, TValue>({
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows?.length ? (
+          {loading ? (
+            // Show skeleton rows when loading
+            Array.from({ length: 5 }).map((_, index) => (
+              <TableRow key={`skeleton-${index}`}>
+                {columns.map((_, columnIndex) => (
+                  <TableCell key={`skeleton-cell-${index}-${columnIndex}`}>
+                    <Skeleton className="h-5 w-full" />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <Fragment key={row.id}>
                 <TableRow
