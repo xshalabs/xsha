@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import { apiService } from "@/lib/api/index";
@@ -20,18 +20,12 @@ import {
   SectionTitle,
   SectionDescription,
 } from "@/components/content/section";
-import {
-  MetricCardGroup,
-  MetricCardHeader,
-  MetricCardTitle,
-  MetricCardValue,
-  MetricCardButton,
-} from "@/components/metric/metric-card";
+
 import { DataTable } from "@/components/ui/data-table";
 import { useAdminOperationLogColumns } from "@/components/data-table/admin-logs/columns";
 import { AdminOperationLogDataTableToolbar } from "@/components/data-table/admin-logs/data-table-toolbar";
 import { CustomPagination } from "@/components/data-table/admin-logs/custom-pagination";
-import { CheckCircle, Filter } from "lucide-react";
+
 import type {
   AdminOperationLog,
 } from "@/types/admin-logs";
@@ -60,58 +54,7 @@ export const AdminOperationLogTab: React.FC = () => {
   // Prevent duplicate requests
   const lastRequestRef = useRef<string>("");
 
-  // Calculate metrics from current page logs (for now, could be enhanced with global stats API)
-  const metrics = useMemo(() => {
-    const operationCounts = {
-      create: logs.filter(log => log.operation === 'create').length,
-      read: logs.filter(log => log.operation === 'read').length,
-      update: logs.filter(log => log.operation === 'update').length,
-      delete: logs.filter(log => log.operation === 'delete').length,
-      login: logs.filter(log => log.operation === 'login').length,
-      logout: logs.filter(log => log.operation === 'logout').length,
-    };
 
-    const successCount = logs.filter(log => log.success).length;
-    const failedCount = logs.filter(log => !log.success).length;
-
-    return [
-      {
-        title: t("adminLogs.operationLogs.operations.create"),
-        value: operationCounts.create,
-        variant: "success" as const,
-        type: "filter" as const,
-        filterKey: "create",
-      },
-      {
-        title: t("adminLogs.operationLogs.operations.update"),
-        value: operationCounts.update,
-        variant: "warning" as const,
-        type: "filter" as const,
-        filterKey: "update",
-      },
-      {
-        title: t("adminLogs.operationLogs.operations.delete"),
-        value: operationCounts.delete,
-        variant: "destructive" as const,
-        type: "filter" as const,
-        filterKey: "delete",
-      },
-      {
-        title: t("adminLogs.operationLogs.status.success"),
-        value: successCount,
-        variant: "success" as const,
-        type: "status-filter" as const,
-        filterKey: "true",
-      },
-      {
-        title: t("adminLogs.operationLogs.status.failed"),
-        value: failedCount,
-        variant: "destructive" as const,
-        type: "status-filter" as const,
-        filterKey: "false",
-      },
-    ];
-  }, [logs, t]);
 
   // Unified data loading function with debouncing and duplicate request prevention
   const loadOperationLogsData = useCallback(
@@ -228,32 +171,7 @@ export const AdminOperationLogTab: React.FC = () => {
     [pageSize, setSearchParams]
   );
 
-  const handleMetricCardClick = (metric: typeof metrics[0]) => {
-    let newColumnFilters = [...columnFilters];
-    
-    if (metric.type === "filter") {
-      const currentFilter = columnFilters.find(f => f.id === "operation");
-      const currentValues = (currentFilter?.value as string[]) || [];
-      const isActive = currentValues.includes(metric.filterKey);
-      
-      newColumnFilters = columnFilters.filter(f => f.id !== "operation");
-      if (!isActive) {
-        newColumnFilters.push({ id: "operation", value: [metric.filterKey] });
-      }
-    } else if (metric.type === "status-filter") {
-      const currentFilter = columnFilters.find(f => f.id === "success");
-      const currentValues = (currentFilter?.value as string[]) || [];
-      const isActive = currentValues.includes(metric.filterKey);
-      
-      newColumnFilters = columnFilters.filter(f => f.id !== "success");
-      if (!isActive) {
-        newColumnFilters.push({ id: "success", value: [metric.filterKey] });
-      }
-    }
-    
-    setColumnFilters(newColumnFilters);
-    loadOperationLogsData(1, newColumnFilters); // Reset to page 1 when filtering
-  };
+
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -349,33 +267,6 @@ export const AdminOperationLogTab: React.FC = () => {
             {t("adminLogs.operationLogs.overview.description")}
           </SectionDescription>
         </SectionHeader>
-        <MetricCardGroup>
-          {metrics.map((metric) => {
-            const currentFilter = columnFilters.find(f => 
-              f.id === (metric.type === "filter" ? "operation" : "success")
-            );
-            const currentValues = (currentFilter?.value as string[]) || [];
-            const isFilterActive = currentValues.includes(metric.filterKey);
-
-            const Icon = isFilterActive ? CheckCircle : Filter;
-
-            return (
-              <MetricCardButton
-                key={metric.title}
-                variant={metric.variant}
-                onClick={() => handleMetricCardClick(metric)}
-              >
-                <MetricCardHeader className="flex justify-between items-center gap-2 w-full">
-                  <MetricCardTitle className="truncate">
-                    {metric.title}
-                  </MetricCardTitle>
-                  <Icon className="size-4" />
-                </MetricCardHeader>
-                <MetricCardValue>{metric.value}</MetricCardValue>
-              </MetricCardButton>
-            );
-          })}
-        </MetricCardGroup>
       </Section>
 
       <Section>

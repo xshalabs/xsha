@@ -32,14 +32,14 @@ export const AuditStatsPage: React.FC = () => {
     try {
       setLoading(true);
       const apiParams: any = {};
-      
+
       if (params?.startDate) {
-        apiParams.start_time = params.startDate.toISOString().split('T')[0];
+        apiParams.start_time = params.startDate.toISOString().split("T")[0];
       }
       if (params?.endDate) {
-        apiParams.end_time = params.endDate.toISOString().split('T')[0];
+        apiParams.end_time = params.endDate.toISOString().split("T")[0];
       }
-      
+
       const response = await apiService.adminLogs.getOperationStats(apiParams);
       setStats(response);
     } catch (err: any) {
@@ -76,21 +76,12 @@ export const AuditStatsPage: React.FC = () => {
     return operationMap[operation as keyof typeof operationMap] || operation;
   };
 
-  const getOperationVariant = (operation: string) => {
-    const variantMap = {
-      create: "success" as const,
-      read: "default" as const,
-      update: "warning" as const,
-      delete: "destructive" as const,
-      login: "default" as const,
-      logout: "ghost" as const,
-    };
-    return variantMap[operation as keyof typeof variantMap] || "default";
-  };
-
   const getTotalOperations = () => {
     if (!stats) return 0;
-    return Object.values(stats.operation_stats).reduce((sum, count) => sum + count, 0);
+    return Object.values(stats.operation_stats).reduce(
+      (sum, count) => sum + count,
+      0
+    );
   };
 
   if (loading) {
@@ -121,7 +112,8 @@ export const AuditStatsPage: React.FC = () => {
         <SectionHeader>
           <SectionTitle>{t("adminLogs.stats.title")}</SectionTitle>
           <SectionDescription>
-            {t("adminLogs.stats.timeRange")}: {stats.start_time} ~ {stats.end_time}
+            {t("adminLogs.stats.timeRange")}: {stats.start_time} ~{" "}
+            {stats.end_time}
           </SectionDescription>
         </SectionHeader>
         <DateRangePicker
@@ -133,7 +125,9 @@ export const AuditStatsPage: React.FC = () => {
         <MetricCardGroup>
           <MetricCard variant="default">
             <MetricCardHeader>
-              <MetricCardTitle>{t("adminLogs.stats.totalOperations")}</MetricCardTitle>
+              <MetricCardTitle>
+                {t("adminLogs.stats.totalOperations")}
+              </MetricCardTitle>
             </MetricCardHeader>
             <MetricCardValue>{getTotalOperations()}</MetricCardValue>
           </MetricCard>
@@ -149,7 +143,7 @@ export const AuditStatsPage: React.FC = () => {
         </SectionHeader>
         <MetricCardGroup>
           {Object.entries(stats.operation_stats).map(([operation, count]) => (
-            <MetricCard key={operation} variant={getOperationVariant(operation)}>
+            <MetricCard key={operation} variant="default">
               <MetricCardHeader>
                 <MetricCardTitle className="truncate">
                   {getOperationText(operation)}
