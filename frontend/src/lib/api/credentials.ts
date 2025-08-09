@@ -22,7 +22,7 @@ export const gitCredentialsApi = {
     params?: GitCredentialListParams
   ): Promise<GitCredentialListResponse> => {
     const searchParams = new URLSearchParams();
-    if (params?.type) searchParams.set("type", params.type);
+    if (params?.name) searchParams.set("name", params.name);
     if (params?.page) searchParams.set("page", params.page.toString());
     if (params?.page_size)
       searchParams.set("page_size", params.page_size.toString());

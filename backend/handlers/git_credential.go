@@ -125,11 +125,12 @@ func (h *GitCredentialHandlers) GetCredential(c *gin.Context) {
 
 // ListCredentials gets the Git credential list
 // @Summary Get Git credential list
-// @Description Get the current user's Git credential list, supporting filtering by type and pagination
+// @Description Get the current user's Git credential list, supporting filtering by name, type and pagination
 // @Tags Git Credentials
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Param name query string false "Credential name filter"
 // @Param type query string false "Credential type filter (password/token/ssh_key)"
 // @Param page query int false "Page number, defaults to 1"
 // @Param page_size query int false "Page size, defaults to 20, maximum 100"
@@ -142,6 +143,7 @@ func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 	// Parse query parameters
 	page := 1
 	pageSize := 20
+	var name *string
 	var credType *database.GitCredentialType
 
 	if p := c.Query("page"); p != "" {
@@ -154,12 +156,15 @@ func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 			pageSize = parsed
 		}
 	}
+	if n := c.Query("name"); n != "" {
+		name = &n
+	}
 	if t := c.Query("type"); t != "" {
 		credTypeValue := database.GitCredentialType(t)
 		credType = &credTypeValue
 	}
 
-	credentials, total, err := h.gitCredService.ListCredentials(credType, page, pageSize)
+	credentials, total, err := h.gitCredService.ListCredentials(name, credType, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "common.internal_error"),

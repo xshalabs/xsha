@@ -13,7 +13,7 @@ type TokenBlacklistRepository interface {
 
 type LoginLogRepository interface {
 	Add(username, ip, userAgent, reason string, success bool) error
-	GetLogs(username string, page, pageSize int) ([]database.LoginLog, int64, error)
+	GetLogs(username, ip *string, success *bool, startTime, endTime *string, page, pageSize int) ([]database.LoginLog, int64, error)
 	CleanOld(days int) error
 }
 
@@ -21,7 +21,7 @@ type GitCredentialRepository interface {
 	Create(credential *database.GitCredential) error
 	GetByID(id uint) (*database.GitCredential, error)
 	GetByName(name string) (*database.GitCredential, error)
-	List(credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
+	List(name *string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
 	Update(credential *database.GitCredential) error
 	Delete(id uint) error
 }

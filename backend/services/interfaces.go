@@ -14,14 +14,14 @@ type AuthService interface {
 }
 
 type LoginLogService interface {
-	GetLogs(username string, page, pageSize int) ([]database.LoginLog, int64, error)
+	GetLogs(username, ip *string, success *bool, startTime, endTime *string, page, pageSize int) ([]database.LoginLog, int64, error)
 	CleanOldLogs(days int) error
 }
 
 type GitCredentialService interface {
 	CreateCredential(name, description, credType, username string, secretData map[string]string, createdBy string) (*database.GitCredential, error)
 	GetCredential(id uint) (*database.GitCredential, error)
-	ListCredentials(credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
+	ListCredentials(name *string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
 	UpdateCredential(id uint, updates map[string]interface{}, secretData map[string]string) error
 	DeleteCredential(id uint) error
 	ListActiveCredentials(credType *database.GitCredentialType) ([]database.GitCredential, error)

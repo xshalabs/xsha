@@ -53,7 +53,7 @@ export interface CreateGitCredentialResponse {
 }
 
 export interface GitCredentialListParams {
-  type?: GitCredentialType;
+  name?: string;
   page?: number;
   page_size?: number;
 }

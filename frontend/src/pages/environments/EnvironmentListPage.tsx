@@ -1,6 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { Button } from "@/components/ui/button";
@@ -9,7 +15,7 @@ import { Plus } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
-import { toast } from "sonner";
+
 import {
   Section,
   SectionDescription,
@@ -31,6 +37,7 @@ import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 const EnvironmentListPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { setItems } = useBreadcrumb();
   const { setActions } = usePageActions();
   
@@ -60,7 +67,7 @@ const EnvironmentListPage: React.FC = () => {
   }, [navigate, setActions, setItems, t]);
 
   const [environments, setEnvironments] = useState<DevEnvironmentDisplay[]>([]);
-  const [_loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -68,6 +75,10 @@ const EnvironmentListPage: React.FC = () => {
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  // Add request deduplication
+  const lastRequestRef = useRef<string>("");
+  const isRequestInProgress = useRef(false);
   
   const pageSize = 10;
 
@@ -95,85 +106,165 @@ const EnvironmentListPage: React.FC = () => {
     });
   };
 
-  const fetchEnvironments = async (page = currentPage, filters = columnFilters) => {
-    setLoading(true);
-    try {
-      // Convert DataTable filters to API parameters
-      const apiParams: DevEnvironmentListParams = {
-        page,
-        page_size: pageSize,
-      };
+  const loadEnvironmentsData = useCallback(
+    async (page: number, filters: ColumnFiltersState, updateUrl = true) => {
+      // Create a unique request key for deduplication
+      const requestKey = JSON.stringify({ page, filters, updateUrl });
 
-      // Handle column filters
-      filters.forEach((filter) => {
-        if (filter.id === "name" && filter.value) {
-          apiParams.name = filter.value as string;
-        } else if (filter.id === "docker_image" && filter.value) {
-          apiParams.docker_image = filter.value as string;
+      // Skip if same request is already in progress or just completed
+      if (
+        isRequestInProgress.current ||
+        lastRequestRef.current === requestKey
+      ) {
+        return;
+      }
+
+      isRequestInProgress.current = true;
+      lastRequestRef.current = requestKey;
+
+      try {
+        setLoading(true);
+
+        // Convert DataTable filters to API parameters
+        const apiParams: DevEnvironmentListParams = {
+          page,
+          page_size: pageSize,
+        };
+
+        // Handle column filters
+        filters.forEach((filter) => {
+          if (filter.id === "name" && filter.value) {
+            apiParams.name = filter.value as string;
+          } else if (filter.id === "docker_image" && filter.value) {
+            apiParams.docker_image = filter.value as string;
+          }
+        });
+
+        const response = await apiService.devEnvironments.list(apiParams);
+        const transformedEnvironments = transformEnvironments(
+          response.environments
+        );
+        setEnvironments(transformedEnvironments);
+        setTotalPages(response.total_pages);
+        setTotal(response.total);
+        setCurrentPage(page);
+
+        // Update URL parameters
+        if (updateUrl) {
+          const params = new URLSearchParams();
+
+          // Add filter parameters
+          filters.forEach((filter) => {
+            if (filter.value) {
+              params.set(filter.id, String(filter.value));
+            }
+          });
+
+          // Add page parameter (only if not page 1)
+          if (page > 1) {
+            params.set("page", String(page));
+          }
+
+          // Update URL without causing navigation
+          setSearchParams(params, { replace: true });
         }
-      });
+      } catch (error) {
+        logError(error as Error, "Failed to fetch environments");
+      } finally {
+        setLoading(false);
+        isRequestInProgress.current = false;
 
-      const response = await apiService.devEnvironments.list(apiParams);
-      const transformedEnvironments = transformEnvironments(
-        response.environments
-      );
-      setEnvironments(transformedEnvironments);
-      setTotalPages(response.total_pages);
-      setTotal(response.total);
-      setCurrentPage(page);
-    } catch (error) {
-      logError(error as Error, "Failed to fetch environments");
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t("devEnvironments.fetch_failed")
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+        // Clear the request key after a short delay to allow legitimate new requests
+        setTimeout(() => {
+          if (lastRequestRef.current === requestKey) {
+            lastRequestRef.current = "";
+          }
+        }, 500); // Increase delay to prevent rapid duplicate requests
+      }
+    },
+    [pageSize, setSearchParams]
+  );
 
 
 
-  const handleDeleteEnvironment = async (id: number) => {
-    try {
-      await apiService.devEnvironments.delete(id);
-      await fetchEnvironments();
-    } catch (error) {
-      // Re-throw error to let QuickActions handle the user notification
-      throw error;
-    }
-  };
+  const handleDeleteEnvironment = useCallback(
+    async (id: number) => {
+      try {
+        await apiService.devEnvironments.delete(id);
+        await loadEnvironmentsData(currentPage, columnFilters);
+      } catch (error) {
+        // Re-throw error to let QuickActions handle the user notification
+        throw error;
+      }
+    },
+    [loadEnvironmentsData, currentPage, columnFilters]
+  );
 
 
 
 
 
-  const handleEditEnvironment = (environment: DevEnvironmentDisplay) => {
-    navigate(`/environments/${environment.id}/edit`);
-  };
+  const handleEditEnvironment = useCallback(
+    (environment: DevEnvironmentDisplay) => {
+      navigate(`/environments/${environment.id}/edit`);
+    },
+    [navigate]
+  );
 
-  const columns = createDevEnvironmentColumns({
-    onEdit: handleEditEnvironment,
-    onDelete: handleDeleteEnvironment,
-  });
+  const columns = useMemo(
+    () =>
+      createDevEnvironmentColumns({
+        onEdit: handleEditEnvironment,
+        onDelete: handleDeleteEnvironment,
+      }),
+    [handleEditEnvironment, handleDeleteEnvironment]
+  );
+
+  // Initialize from URL on component mount (only once)
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    fetchEnvironments().then(() => setIsInitialized(true));
-  }, []);
+    // Get URL params directly to avoid dependency issues
+    const nameParam = searchParams.get("name");
+    const dockerImageParam = searchParams.get("docker_image");
+    const pageParam = searchParams.get("page");
 
-  // Handle column filter changes (skip initial empty state)
-  const [isInitialized, setIsInitialized] = useState(false);
-  
+    const initialFilters: ColumnFiltersState = [];
+
+    if (nameParam) {
+      initialFilters.push({ id: "name", value: nameParam });
+    }
+
+    if (dockerImageParam) {
+      initialFilters.push({ id: "docker_image", value: dockerImageParam });
+    }
+
+    const initialPage = pageParam ? parseInt(pageParam, 10) : 1;
+
+    // Set state first
+    setColumnFilters(initialFilters);
+    setCurrentPage(initialPage);
+
+    // Load initial data using the unified function
+    loadEnvironmentsData(initialPage, initialFilters, false).then(() => {
+      setIsInitialized(true);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - only run once on mount
+
+  // Handle column filter changes (skip initial load)
   useEffect(() => {
     if (isInitialized) {
-      fetchEnvironments(1, columnFilters); // Reset to page 1 when filtering
+      loadEnvironmentsData(1, columnFilters); // Reset to page 1 when filtering
     }
-  }, [columnFilters, isInitialized]);
+  }, [columnFilters, isInitialized, loadEnvironmentsData]);
 
-  const handlePageChange = (page: number) => {
-    fetchEnvironments(page);
-  };
+  const handlePageChange = useCallback(
+    (page: number) => {
+      loadEnvironmentsData(page, columnFilters);
+    },
+    [columnFilters, loadEnvironmentsData]
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -197,6 +288,7 @@ const EnvironmentListPage: React.FC = () => {
               setColumnFilters={setColumnFilters}
               sorting={sorting}
               setSorting={setSorting}
+              loading={loading}
             />
             <DataTablePaginationServer
               currentPage={currentPage}

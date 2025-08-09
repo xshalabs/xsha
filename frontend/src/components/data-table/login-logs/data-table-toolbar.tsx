@@ -21,17 +21,56 @@ export function LoginLogDataTableToolbar({
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
 
+  // Local state for debounced input values
+  const [usernameValue, setUsernameValue] = useState("");
+  const [ipValue, setIpValue] = useState("");
+
   const statusOptions = [
     { label: t("adminLogs.loginLogs.status.success"), value: "true" },
     { label: t("adminLogs.loginLogs.status.failed"), value: "false" },
   ];
+
+  // Sync input values with table filter values on mount and filter changes
+  useEffect(() => {
+    const usernameFilter = table.getColumn("username")?.getFilterValue() as string | undefined;
+    const ipFilter = table.getColumn("ip")?.getFilterValue() as string | undefined;
+    const loginTimeFilter = table.getColumn("login_time")?.getFilterValue() as { startDate?: Date; endDate?: Date } | undefined;
+
+    setUsernameValue(usernameFilter || "");
+    setIpValue(ipFilter || "");
+    
+    if (loginTimeFilter) {
+      setStartDate(loginTimeFilter.startDate);
+      setEndDate(loginTimeFilter.endDate);
+    } else {
+      setStartDate(undefined);
+      setEndDate(undefined);
+    }
+  }, [table.getState().columnFilters]);
+
+  // Debounce input changes
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      table.getColumn("username")?.setFilterValue(usernameValue || undefined);
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [usernameValue, table]);
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      table.getColumn("ip")?.setFilterValue(ipValue || undefined);
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [ipValue, table]);
 
   // Apply date filter when dates change
   useEffect(() => {
     const column = table.getColumn("login_time");
     if (column && (startDate || endDate)) {
       column.setFilterValue({ startDate, endDate });
-    } else if (column) {
+    } else if (column && !startDate && !endDate) {
       column.setFilterValue(undefined);
     }
   }, [startDate, endDate, table]);
@@ -41,22 +80,14 @@ export function LoginLogDataTableToolbar({
       <div className="flex flex-1 items-center space-x-2 flex-wrap gap-2">
         <Input
           placeholder={t("adminLogs.loginLogs.filters.username")}
-          value={
-            (table.getColumn("username")?.getFilterValue() as string) ?? ""
-          }
-          onChange={(event) =>
-            table.getColumn("username")?.setFilterValue(event.target.value)
-          }
+          value={usernameValue}
+          onChange={(event) => setUsernameValue(event.target.value)}
           className="h-8 w-[150px] lg:w-[200px]"
         />
         <Input
           placeholder={t("adminLogs.loginLogs.filters.ip")}
-          value={
-            (table.getColumn("ip")?.getFilterValue() as string) ?? ""
-          }
-          onChange={(event) =>
-            table.getColumn("ip")?.setFilterValue(event.target.value)
-          }
+          value={ipValue}
+          onChange={(event) => setIpValue(event.target.value)}
           className="h-8 w-[120px] lg:w-[150px]"
         />
         {table.getColumn("success") && (
@@ -83,8 +114,6 @@ export function LoginLogDataTableToolbar({
             variant="ghost"
             onClick={() => {
               table.resetColumnFilters();
-              setStartDate(undefined);
-              setEndDate(undefined);
             }}
             className="h-8 px-2 lg:px-3"
           >

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
+import { formatDateToLocal } from "@/lib/utils";
 import {
   Section,
   SectionDescription,
@@ -30,10 +31,10 @@ export const AdminStatsTab: React.FC = () => {
       const apiParams: any = {};
       
       if (params?.startDate) {
-        apiParams.start_time = params.startDate.toISOString().split('T')[0];
+        apiParams.start_time = formatDateToLocal(params.startDate);
       }
       if (params?.endDate) {
-        apiParams.end_time = params.endDate.toISOString().split('T')[0];
+        apiParams.end_time = formatDateToLocal(params.endDate);
       }
       
       const response = await apiService.adminLogs.getOperationStats(apiParams);
