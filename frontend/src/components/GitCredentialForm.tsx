@@ -229,28 +229,35 @@ export const GitCredentialForm: React.FC<GitCredentialFormProps> = ({
 
           <div className="flex flex-col gap-3">
             <Label htmlFor="type">{t("gitCredentials.type")} *</Label>
-            <Select
-              value={formData.type}
-              onValueChange={(value) =>
-                updateField("type", value as GitCredentialType)
-              }
-              disabled={isEditing}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t("gitCredentials.type")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={CredentialTypes.PASSWORD}>
-                  {t("gitCredentials.types.password")}
-                </SelectItem>
-                <SelectItem value={CredentialTypes.TOKEN}>
-                  {t("gitCredentials.types.token")}
-                </SelectItem>
-                {/* <SelectItem value={CredentialTypes.SSH_KEY}>
-                  {t("gitCredentials.types.ssh_key")}
-                </SelectItem> */}
-              </SelectContent>
-            </Select>
+            {isEditing ? (
+              <div className="flex items-center h-9 px-3 py-2 border border-input rounded-md bg-muted text-muted-foreground">
+                {formData.type === CredentialTypes.PASSWORD && t("gitCredentials.types.password")}
+                {formData.type === CredentialTypes.TOKEN && t("gitCredentials.types.token")}
+                {formData.type === CredentialTypes.SSH_KEY && t("gitCredentials.types.ssh_key")}
+              </div>
+            ) : (
+              <Select
+                value={formData.type}
+                onValueChange={(value) =>
+                  updateField("type", value as GitCredentialType)
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t("gitCredentials.type")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={CredentialTypes.PASSWORD}>
+                    {t("gitCredentials.types.password")}
+                  </SelectItem>
+                  <SelectItem value={CredentialTypes.TOKEN}>
+                    {t("gitCredentials.types.token")}
+                  </SelectItem>
+                  {/* <SelectItem value={CredentialTypes.SSH_KEY}>
+                    {t("gitCredentials.types.ssh_key")}
+                  </SelectItem> */}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {formData.type !== CredentialTypes.SSH_KEY && (
