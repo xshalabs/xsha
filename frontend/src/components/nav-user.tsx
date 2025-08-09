@@ -1,11 +1,6 @@
-import {
-  ChevronsUpDown,
-  LogOut,
-  Languages,
-} from "lucide-react";
+import { ChevronsUpDown, LogOut, Languages } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -31,7 +26,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SUPPORTED_LANGUAGES, STORAGE_KEYS } from "@/lib/constants";
 
 export function NavUser() {
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile } = useSidebar();
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
