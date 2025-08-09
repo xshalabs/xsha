@@ -1,6 +1,12 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
@@ -31,6 +37,7 @@ import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 const ProjectListPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +45,10 @@ const ProjectListPage: React.FC = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const { setActions } = usePageActions();
   const { setItems } = useBreadcrumb();
+
+  // Add request deduplication
+  const lastRequestRef = useRef<string>("");
+  const isRequestInProgress = useRef(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -47,43 +58,141 @@ const ProjectListPage: React.FC = () => {
 
   usePageTitle(t("common.pageTitle.projects"));
 
-  const loadProjectsData = useCallback(async (
-    page = currentPage,
-    filters = columnFilters
-  ) => {
-    try {
-      setLoading(true);
+  const loadProjectsData = useCallback(
+    async (page: number, filters: ColumnFiltersState, updateUrl = true) => {
+      // Create a unique request key for deduplication
+      const requestKey = JSON.stringify({ page, filters, updateUrl });
 
-      // Convert DataTable filters to API parameters
-      const apiParams: ProjectListParams = {
-        page,
-        page_size: pageSize,
-      };
+      // Skip if same request is already in progress or just completed
+      if (
+        isRequestInProgress.current ||
+        lastRequestRef.current === requestKey
+      ) {
+        return;
+      }
 
-      // Handle column filters
-      filters.forEach((filter) => {
-        if (filter.id === "name" && filter.value) {
-          apiParams.name = filter.value as string;
-        } else if (filter.id === "protocol" && filter.value) {
-          apiParams.protocol = filter.value as GitProtocolType;
+      isRequestInProgress.current = true;
+      lastRequestRef.current = requestKey;
+
+      try {
+        setLoading(true);
+
+        // Convert DataTable filters to API parameters
+        const apiParams: ProjectListParams = {
+          page,
+          page_size: pageSize,
+        };
+
+        // Handle column filters
+        filters.forEach((filter) => {
+          if (filter.id === "name" && filter.value) {
+            apiParams.name = filter.value as string;
+          } else if (filter.id === "protocol" && filter.value) {
+            apiParams.protocol = filter.value as GitProtocolType;
+          }
+        });
+
+        const response = await apiService.projects.list(apiParams);
+        setProjects(response.projects);
+        setTotal(response.total);
+        setTotalPages(response.total_pages);
+        setCurrentPage(page);
+
+        // Update URL parameters
+        if (updateUrl) {
+          const params = new URLSearchParams();
+
+          // Add filter parameters
+          filters.forEach((filter) => {
+            if (filter.value) {
+              params.set(filter.id, String(filter.value));
+            }
+          });
+
+          // Add page parameter (only if not page 1)
+          if (page > 1) {
+            params.set("page", String(page));
+          }
+
+          // Update URL without causing navigation
+          setSearchParams(params, { replace: true });
         }
-      });
+      } catch (error) {
+        logError(error as Error, "Failed to load projects");
+      } finally {
+        setLoading(false);
+        isRequestInProgress.current = false;
 
-      const response = await apiService.projects.list(apiParams);
-      setProjects(response.projects);
-      setTotal(response.total);
-      setTotalPages(response.total_pages);
-      setCurrentPage(page);
-    } catch (error) {
-      logError(error as Error, "Failed to load projects");
-    } finally {
-      setLoading(false);
-    }
-  }, [pageSize]); // Removed currentPage and columnFilters from dependencies to avoid infinite loops
+        // Clear the request key after a short delay to allow legitimate new requests
+        setTimeout(() => {
+          if (lastRequestRef.current === requestKey) {
+            lastRequestRef.current = "";
+          }
+        }, 100);
+      }
+    },
+    [pageSize, setSearchParams]
+  );
 
+  // Initialize from URL on component mount (only once)
   useEffect(() => {
-    loadProjectsData(currentPage, columnFilters).then(() => setIsInitialized(true));
-  }, [loadProjectsData]);
+    // Get URL params directly to avoid dependency issues
+    const nameParam = searchParams.get("name");
+    const protocolParam = searchParams.get("protocol");
+    const pageParam = searchParams.get("page");
+
+    const initialFilters: ColumnFiltersState = [];
+
+    if (nameParam) {
+      initialFilters.push({ id: "name", value: nameParam });
+    }
+
+    if (protocolParam) {
+      initialFilters.push({
+        id: "protocol",
+        value: protocolParam as GitProtocolType,
+      });
+    }
+
+    const initialPage = pageParam ? parseInt(pageParam, 10) : 1;
+
+    setColumnFilters(initialFilters);
+    setCurrentPage(initialPage);
+
+    // Load initial data directly without dependencies
+    const loadInitialData = async () => {
+      try {
+        setLoading(true);
+
+        const apiParams: ProjectListParams = {
+          page: initialPage,
+          page_size: pageSize,
+        };
+
+        // Handle column filters
+        initialFilters.forEach((filter) => {
+          if (filter.id === "name" && filter.value) {
+            apiParams.name = filter.value as string;
+          } else if (filter.id === "protocol" && filter.value) {
+            apiParams.protocol = filter.value as GitProtocolType;
+          }
+        });
+
+        const response = await apiService.projects.list(apiParams);
+        setProjects(response.projects);
+        setTotal(response.total);
+        setTotalPages(response.total_pages);
+        setIsInitialized(true);
+      } catch (error) {
+        logError(error as Error, "Failed to load projects");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - only run once on mount
 
   // Handle column filter changes (skip initial empty state)
   const [isInitialized, setIsInitialized] = useState(false);
@@ -92,13 +201,14 @@ const ProjectListPage: React.FC = () => {
     if (isInitialized) {
       loadProjectsData(1, columnFilters); // Reset to page 1 when filtering
     }
-  }, [columnFilters, isInitialized, loadProjectsData]);
+  }, [columnFilters, isInitialized]); // Remove loadProjectsData dependency
 
-  const handlePageChange = useCallback((page: number) => {
-    loadProjectsData(page, columnFilters);
-  }, [loadProjectsData, columnFilters]);
-
-
+  const handlePageChange = useCallback(
+    (page: number) => {
+      loadProjectsData(page, columnFilters);
+    },
+    [columnFilters]
+  ); // Remove loadProjectsData dependency
 
   // Set page actions (Create button in header) and clear breadcrumb
   useEffect(() => {
@@ -123,34 +233,43 @@ const ProjectListPage: React.FC = () => {
     };
   }, [navigate, setActions, setItems, t]);
 
+  const handleEdit = useCallback(
+    (project: Project) => {
+      navigate(`/projects/${project.id}/edit`);
+    },
+    [navigate]
+  );
 
+  const handleDelete = useCallback(
+    async (id: number) => {
+      try {
+        await apiService.projects.delete(id);
+        await loadProjectsData(currentPage, columnFilters);
+      } catch (error) {
+        // Re-throw error to let QuickActions handle the user notification
+        throw error;
+      }
+    },
+    [loadProjectsData, currentPage, columnFilters]
+  );
 
-  const handleEdit = useCallback((project: Project) => {
-    navigate(`/projects/${project.id}/edit`);
-  }, [navigate]);
+  const handleManageTasks = useCallback(
+    (project: Project) => {
+      navigate(`/projects/${project.id}/tasks`);
+    },
+    [navigate]
+  );
 
-  const handleDelete = useCallback(async (id: number) => {
-    try {
-      await apiService.projects.delete(id);
-      await loadProjectsData(currentPage, columnFilters);
-    } catch (error) {
-      // Re-throw error to let QuickActions handle the user notification
-      throw error;
-    }
-  }, [loadProjectsData, currentPage, columnFilters]);
-
-  const handleManageTasks = useCallback((project: Project) => {
-    navigate(`/projects/${project.id}/tasks`);
-  }, [navigate]);
-
-
-
-  const columns = useMemo(() => createProjectColumns({
-    t,
-    onEdit: handleEdit,
-    onDelete: handleDelete,
-    onManageTasks: handleManageTasks,
-  }), [t, handleEdit, handleDelete, handleManageTasks]);
+  const columns = useMemo(
+    () =>
+      createProjectColumns({
+        t,
+        onEdit: handleEdit,
+        onDelete: handleDelete,
+        onManageTasks: handleManageTasks,
+      }),
+    [t, handleEdit, handleDelete, handleManageTasks]
+  );
 
   if (loading) {
     return (
@@ -176,7 +295,6 @@ const ProjectListPage: React.FC = () => {
               {t("projects.page_description")}
             </SectionDescription>
           </SectionHeader>
-
         </Section>
         <Section>
           <div className="space-y-4">

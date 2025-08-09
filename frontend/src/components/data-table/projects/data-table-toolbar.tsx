@@ -16,20 +16,22 @@ export function ProjectDataTableToolbar({
 }: ProjectDataTableToolbarProps) {
   const { t } = useTranslation();
   const isFiltered = table.getState().columnFilters.length > 0;
-  
+
   // Local state for the input value
   const [searchValue, setSearchValue] = useState("");
   const isUserInput = useRef(false);
 
   // Sync searchValue with table filter value
   useEffect(() => {
-    const currentFilter = table.getColumn("name")?.getFilterValue() as string | undefined;
-    
+    const currentFilter = table.getColumn("name")?.getFilterValue() as
+      | string
+      | undefined;
+
     // Only update if it's not from user input to avoid conflicts
     if (!isUserInput.current) {
       setSearchValue(currentFilter || "");
     }
-    
+
     // Reset the flag after processing
     isUserInput.current = false;
   }, [table.getState().columnFilters]);
@@ -39,21 +41,25 @@ export function ProjectDataTableToolbar({
     if (!isUserInput.current) {
       return;
     }
-    
+
     const debounceTimer = setTimeout(() => {
-      table.getColumn("name")?.setFilterValue(searchValue || undefined);
-      isUserInput.current = false;
+      if (isUserInput.current) {
+        // Double check before setting filter
+        table.getColumn("name")?.setFilterValue(searchValue || undefined);
+        isUserInput.current = false;
+      }
     }, 500); // 500ms delay
 
-    return () => clearTimeout(debounceTimer);
+    return () => {
+      clearTimeout(debounceTimer);
+      // Don't reset isUserInput here as it might interfere with the timer
+    };
   }, [searchValue, table]);
 
   const handleSearchChange = (value: string) => {
     isUserInput.current = true;
     setSearchValue(value);
   };
-
-
 
   return (
     <div className="flex items-center justify-between">
