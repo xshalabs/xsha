@@ -67,9 +67,6 @@ export const createProjectColumns = ({
         </Badge>
       );
     },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
   },
   {
     accessorKey: "task_count",

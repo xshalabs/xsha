@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DataTableFacetedFilter } from "@/components/ui/data-table/data-table-faceted-filter";
 import type { Project } from "@/types/project";
 
 export interface ProjectDataTableToolbarProps {
@@ -29,16 +28,7 @@ export function ProjectDataTableToolbar({
           className="h-8 w-[150px] lg:w-[250px]"
         />
 
-        {table.getColumn("hasCredential") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("hasCredential")}
-            title={t("projects.credential")}
-            options={[
-              { label: t("projects.metrics.withCredentials"), value: "true" },
-              { label: t("common.no"), value: "false" },
-            ]}
-          />
-        )}
+
         {isFiltered && (
           <Button
             variant="ghost"

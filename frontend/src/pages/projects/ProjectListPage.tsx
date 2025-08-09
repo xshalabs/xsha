@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
@@ -31,7 +31,6 @@ import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 const ProjectListPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,17 +98,7 @@ const ProjectListPage: React.FC = () => {
     loadProjectsData(page);
   };
 
-  // Initialize filters from URL params
-  useEffect(() => {
-    const credential = searchParams.get("credential");
 
-    const filters: ColumnFiltersState = [];
-    if (credential) {
-      filters.push({ id: "hasCredential", value: [credential] });
-    }
-
-    setColumnFilters(filters);
-  }, [searchParams]);
 
   // Set page actions (Create button in header) and clear breadcrumb
   useEffect(() => {
