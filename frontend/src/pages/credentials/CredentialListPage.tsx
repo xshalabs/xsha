@@ -278,16 +278,6 @@ const CredentialListPage: React.FC = () => {
             <div className="flex items-center justify-center h-64">
               <div className="text-gray-500">{t("common.loading")}</div>
             </div>
-          ) : credentials.length === 0 ? (
-            <div className="text-center py-8">
-              <Key className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">
-                {t("gitCredentials.messages.noCredentials")}
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                {t("gitCredentials.messages.noCredentialsDesc")}
-              </p>
-            </div>
           ) : (
             <div className="space-y-4">
               <DataTable
