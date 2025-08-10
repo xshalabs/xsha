@@ -311,7 +311,8 @@ export const AdminOperationLogTab: React.FC = () => {
           </DialogHeader>
 
           {selectedLog && (
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Basic Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-foreground">
@@ -327,14 +328,6 @@ export const AdminOperationLogTab: React.FC = () => {
                   </label>
                   <p className="text-sm text-muted-foreground mt-1">
                     {selectedLog.operation}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-foreground">
-                    {t("adminLogs.operationLogs.columns.resource")}
-                  </label>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {selectedLog.resource || "N/A"}
                   </p>
                 </div>
                 <div>
@@ -355,11 +348,82 @@ export const AdminOperationLogTab: React.FC = () => {
                 </div>
               </div>
 
+              {/* Resource Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-foreground">
+                    {t("adminLogs.operationLogs.columns.resource")}
+                  </label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {selectedLog.resource || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground">
+                    {t("adminLogs.operationLogs.columns.resourceId")}
+                  </label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {selectedLog.resource_id || "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Request Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-foreground">
+                    {t("adminLogs.operationLogs.columns.method")}
+                  </label>
+                  <p className="text-sm text-muted-foreground mt-1 font-mono">
+                    {selectedLog.method || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground">
+                    {t("adminLogs.operationLogs.columns.ip")}
+                  </label>
+                  <p className="text-sm text-muted-foreground mt-1 font-mono">
+                    {selectedLog.ip || "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Path Information */}
+              <div>
+                <label className="text-sm font-medium text-foreground">
+                  {t("adminLogs.operationLogs.columns.path")}
+                </label>
+                <p className="text-sm text-muted-foreground mt-1 font-mono bg-muted/30 p-2 rounded">
+                  {selectedLog.path || "N/A"}
+                </p>
+              </div>
+
+              {/* User Agent */}
+              <div>
+                <label className="text-sm font-medium text-foreground">
+                  {t("adminLogs.operationLogs.columns.userAgent")}
+                </label>
+                <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap bg-muted/30 p-2 rounded break-all">
+                  {selectedLog.user_agent || "N/A"}
+                </p>
+              </div>
+
+              {/* Description */}
               <div>
                 <label className="text-sm font-medium text-foreground">
                   {t("adminLogs.operationLogs.columns.description")}
                 </label>
                 <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">
+                  {selectedLog.description || "N/A"}
+                </p>
+              </div>
+
+              {/* Details */}
+              <div>
+                <label className="text-sm font-medium text-foreground">
+                  {t("adminLogs.operationLogs.columns.details")}
+                </label>
+                <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap bg-muted/30 p-2 rounded">
                   {selectedLog.details || "N/A"}
                 </p>
               </div>

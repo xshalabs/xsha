@@ -14,7 +14,12 @@
       "operation": "Operation",
       "ip": "IP Address",
       "resource": "Resource",
+      "resourceId": "Resource ID",
       "description": "Description",
+      "details": "Details",
+      "userAgent": "User Agent",
+      "method": "HTTP Method",
+      "path": "Request Path",
       "time": "Time"
     },
     "operations": {
