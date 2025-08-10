@@ -37,7 +37,7 @@ func (r *projectRepository) GetByName(name string) (*database.Project, error) {
 	return &project, nil
 }
 
-func (r *projectRepository) List(name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error) {
+func (r *projectRepository) List(name string, protocol *database.GitProtocolType, sortBy, sortDirection string, page, pageSize int) ([]database.Project, int64, error) {
 	var projects []database.Project
 	var total int64
 
@@ -55,8 +55,35 @@ func (r *projectRepository) List(name string, protocol *database.GitProtocolType
 		return nil, 0, err
 	}
 
+	// Handle sorting
+	var orderClause string
+	switch sortBy {
+	case "name":
+		orderClause = "name " + sortDirection
+	case "created_at":
+		orderClause = "created_at " + sortDirection
+	case "task_count":
+		// For task_count sorting, we need to join with task counts
+		// We'll use a subquery to get task counts and order by it
+		subQuery := r.db.Table("tasks").
+			Select("project_id, COUNT(*) as task_count").
+			Where("deleted_at IS NULL").
+			Group("project_id")
+
+		query = query.
+			Select("projects.*, COALESCE(task_counts.task_count, 0) as task_count").
+			Joins("LEFT JOIN (?) as task_counts ON projects.id = task_counts.project_id", subQuery).
+			Order("task_count " + sortDirection + ", projects.created_at DESC")
+	default:
+		orderClause = "created_at " + sortDirection
+	}
+
+	if sortBy != "task_count" {
+		query = query.Order(orderClause)
+	}
+
 	offset := (page - 1) * pageSize
-	if err := query.Preload("Credential").Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&projects).Error; err != nil {
+	if err := query.Preload("Credential").Offset(offset).Limit(pageSize).Find(&projects).Error; err != nil {
 		return nil, 0, err
 	}
 

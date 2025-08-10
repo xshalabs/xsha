@@ -33,7 +33,7 @@ type ProjectService interface {
 	CreateProject(name, description, repoURL, protocol string, credentialID *uint, createdBy string) (*database.Project, error)
 	GetProject(id uint) (*database.Project, error)
 	ListProjects(name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
-	ListProjectsWithTaskCount(name string, protocol *database.GitProtocolType, page, pageSize int) (interface{}, int64, error)
+	ListProjectsWithTaskCount(name string, protocol *database.GitProtocolType, sortBy, sortDirection string, page, pageSize int) (interface{}, int64, error)
 	UpdateProject(id uint, updates map[string]interface{}) error
 	DeleteProject(id uint) error
 	ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint) error

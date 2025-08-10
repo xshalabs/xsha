@@ -59,9 +59,9 @@ const ProjectListPage: React.FC = () => {
   usePageTitle(t("common.pageTitle.projects"));
 
   const loadProjectsData = useCallback(
-    async (page: number, filters: ColumnFiltersState, updateUrl = true) => {
+    async (page: number, filters: ColumnFiltersState, sortingState: SortingState, updateUrl = true) => {
       // Create a unique request key for deduplication
-      const requestKey = JSON.stringify({ page, filters, updateUrl });
+      const requestKey = JSON.stringify({ page, filters, sortingState, updateUrl });
 
       // Skip if same request is already in progress or just completed
       if (
@@ -91,6 +91,14 @@ const ProjectListPage: React.FC = () => {
             apiParams.protocol = filter.value as GitProtocolType;
           }
         });
+
+        // Handle sorting
+        if (sortingState.length > 0) {
+          const sort = sortingState[0];
+          apiParams.sort_by = sort.id;
+          apiParams.sort_direction = sort.desc ? 'desc' : 'asc';
+        }
+
         const response = await apiService.projects.list(apiParams);
         setProjects(response.projects);
         setTotal(response.total);
@@ -107,6 +115,13 @@ const ProjectListPage: React.FC = () => {
               params.set(filter.id, String(filter.value));
             }
           });
+
+          // Add sorting parameters
+          if (sortingState.length > 0) {
+            const sort = sortingState[0];
+            params.set("sort_by", sort.id);
+            params.set("sort_direction", sort.desc ? 'desc' : 'asc');
+          }
 
           // Add page parameter (only if not page 1)
           if (page > 1) {
@@ -141,6 +156,8 @@ const ProjectListPage: React.FC = () => {
     const nameParam = searchParams.get("name");
     const protocolParam = searchParams.get("protocol");
     const pageParam = searchParams.get("page");
+    const sortByParam = searchParams.get("sort_by");
+    const sortDirectionParam = searchParams.get("sort_direction");
 
     const initialFilters: ColumnFiltersState = [];
 
@@ -157,12 +174,22 @@ const ProjectListPage: React.FC = () => {
 
     const initialPage = pageParam ? parseInt(pageParam, 10) : 1;
 
+    // Initialize sorting from URL
+    const initialSorting: SortingState = [];
+    if (sortByParam) {
+      initialSorting.push({
+        id: sortByParam,
+        desc: sortDirectionParam === 'desc'
+      });
+    }
+
     // Set state first
     setColumnFilters(initialFilters);
     setCurrentPage(initialPage);
+    setSorting(initialSorting);
 
     // Load initial data using the unified function
-    loadProjectsData(initialPage, initialFilters, false).then(() => {
+    loadProjectsData(initialPage, initialFilters, initialSorting, false).then(() => {
       setIsInitialized(true);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -171,15 +198,22 @@ const ProjectListPage: React.FC = () => {
   // Handle column filter changes (skip initial load)
   useEffect(() => {
     if (isInitialized) {
-      loadProjectsData(1, columnFilters); // Reset to page 1 when filtering
+      loadProjectsData(1, columnFilters, sorting); // Reset to page 1 when filtering
     }
-  }, [columnFilters, isInitialized, loadProjectsData]);
+  }, [columnFilters, isInitialized, loadProjectsData, sorting]);
+
+  // Handle sorting changes (skip initial load)
+  useEffect(() => {
+    if (isInitialized) {
+      loadProjectsData(1, columnFilters, sorting); // Reset to page 1 when sorting
+    }
+  }, [sorting, isInitialized, loadProjectsData, columnFilters]);
 
   const handlePageChange = useCallback(
     (page: number) => {
-      loadProjectsData(page, columnFilters);
+      loadProjectsData(page, columnFilters, sorting);
     },
-    [columnFilters, loadProjectsData]
+    [columnFilters, sorting, loadProjectsData]
   );
 
   // Set page actions (Create button in header) and clear breadcrumb
@@ -216,13 +250,13 @@ const ProjectListPage: React.FC = () => {
     async (id: number) => {
       try {
         await apiService.projects.delete(id);
-        await loadProjectsData(currentPage, columnFilters);
+        await loadProjectsData(currentPage, columnFilters, sorting);
       } catch (error) {
         // Re-throw error to let QuickActions handle the user notification
         throw error;
       }
     },
-    [loadProjectsData, currentPage, columnFilters]
+    [loadProjectsData, currentPage, columnFilters, sorting]
   );
 
   const handleManageTasks = useCallback(

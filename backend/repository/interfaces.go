@@ -30,7 +30,7 @@ type ProjectRepository interface {
 	Create(project *database.Project) error
 	GetByID(id uint) (*database.Project, error)
 	GetByName(name string) (*database.Project, error)
-	List(name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
+	List(name string, protocol *database.GitProtocolType, sortBy, sortDirection string, page, pageSize int) ([]database.Project, int64, error)
 	Update(project *database.Project) error
 	Delete(id uint) error
 

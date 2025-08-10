@@ -31,6 +31,8 @@ export const projectsApi = {
     if (params?.page) searchParams.set("page", params.page.toString());
     if (params?.page_size)
       searchParams.set("page_size", params.page_size.toString());
+    if (params?.sort_by) searchParams.set("sort_by", params.sort_by);
+    if (params?.sort_direction) searchParams.set("sort_direction", params.sort_direction);
 
     const queryString = searchParams.toString();
     const url = queryString ? `/projects?${queryString}` : "/projects";

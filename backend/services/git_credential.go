@@ -110,7 +110,7 @@ func (s *gitCredentialService) DeleteCredential(id uint) error {
 		return err
 	}
 
-	projects, _, err := s.projectRepo.List("", nil, 1, 1000)
+	projects, _, err := s.projectRepo.List("", nil, "created_at", "desc", 1, 1000)
 	if err != nil {
 		return fmt.Errorf("failed to check credential usage: %v", err)
 	}
