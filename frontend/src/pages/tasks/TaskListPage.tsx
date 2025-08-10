@@ -109,13 +109,7 @@ const TaskListPage: React.FC = () => {
       type: "filter" as const,
       status: "cancelled" as TaskStatus,
     },
-    {
-      title: t("tasks.metrics.total"),
-      value: total,
-      variant: "ghost" as const,
-      type: "info" as const,
-    },
-  ], [tasks, total, t]);
+  ], [tasks, t]);
 
   const icons = {
     filter: {
