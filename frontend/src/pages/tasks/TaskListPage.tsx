@@ -1,6 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { useTranslation } from "react-i18next";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { PushBranchDialog } from "@/components/PushBranchDialog";
@@ -40,8 +46,13 @@ const TaskListPage: React.FC = () => {
   const { t } = useTranslation();
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { setActions } = usePageActions();
   const { setItems } = useBreadcrumb();
+
+  // Add request deduplication
+  const lastRequestRef = useRef<string>("");
+  const isRequestInProgress = useRef(false);
 
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
 
@@ -55,6 +66,7 @@ const TaskListPage: React.FC = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const [devEnvironments, setDevEnvironments] = useState<DevEnvironment[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [pushDialogOpen, setPushDialogOpen] = useState(false);
   const [selectedTaskForPush, setSelectedTaskForPush] = useState<Task | null>(null);
@@ -68,7 +80,7 @@ const TaskListPage: React.FC = () => {
   const pageSize = 20;
 
   // Metrics for task status
-  const metrics = React.useMemo(() => [
+  const metrics = useMemo(() => [
     {
       title: t("tasks.status.todo"),
       value: tasks.filter((task) => task.status === "todo").length,
@@ -127,49 +139,135 @@ const TaskListPage: React.FC = () => {
     }
   };
 
-  const loadTasksData = async (page = currentPage, filters = columnFilters) => {
-    try {
-      
-      // Convert DataTable filters to API parameters
-      const apiParams: any = {
-        page,
-        page_size: pageSize,
-        project_id: projectId ? parseInt(projectId, 10) : undefined,
-      };
+  const loadTasksData = useCallback(
+    async (page: number, filters: ColumnFiltersState, updateUrl = true) => {
+      // Create a unique request key for deduplication
+      const requestKey = JSON.stringify({ page, filters, updateUrl, projectId });
 
-      // Handle column filters
-      filters.forEach((filter) => {
-        if (filter.id === "title" && filter.value) {
-          apiParams.title = filter.value as string;
-        } else if (filter.id === "status" && filter.value) {
-          const statusArray = filter.value as string[];
-          if (statusArray.length > 0) {
-            apiParams.status = statusArray[0]; // API expects single status
+      // Skip if same request is already in progress or just completed
+      if (
+        isRequestInProgress.current ||
+        lastRequestRef.current === requestKey
+      ) {
+        return;
+      }
+
+      isRequestInProgress.current = true;
+      lastRequestRef.current = requestKey;
+
+      try {
+        setLoading(true);
+
+        // Convert DataTable filters to API parameters
+        const apiParams: any = {
+          page,
+          page_size: pageSize,
+          project_id: projectId ? parseInt(projectId, 10) : undefined,
+        };
+
+        // Handle column filters
+        filters.forEach((filter) => {
+          if (filter.id === "title" && filter.value) {
+            apiParams.title = filter.value as string;
+          } else if (filter.id === "status" && filter.value) {
+            const statusArray = filter.value as string[];
+            if (statusArray.length > 0) {
+              apiParams.status = statusArray[0]; // API expects single status
+            }
+          } else if (filter.id === "start_branch" && filter.value) {
+            apiParams.branch = filter.value as string;
+          } else if (filter.id === "dev_environment.name" && filter.value) {
+            const envIdArray = filter.value as string[];
+            if (envIdArray.length > 0) {
+              apiParams.dev_environment_id = parseInt(envIdArray[0]);
+            }
           }
-        } else if (filter.id === "start_branch" && filter.value) {
-          apiParams.branch = filter.value as string;
-        } else if (filter.id === "dev_environment.name" && filter.value) {
-          const envIdArray = filter.value as string[];
-          if (envIdArray.length > 0) {
-            apiParams.dev_environment_id = parseInt(envIdArray[0]);
+        });
+
+        const response = await apiService.tasks.list(apiParams);
+        setTasks(response.data.tasks);
+        setTotalPages(Math.ceil(response.data.total / pageSize));
+        setTotal(response.data.total);
+        setCurrentPage(page);
+
+        // Update URL parameters
+        if (updateUrl) {
+          const params = new URLSearchParams();
+
+          // Add filter parameters
+          filters.forEach((filter) => {
+            if (filter.value) {
+              params.set(filter.id, Array.isArray(filter.value) ? filter.value.join(',') : String(filter.value));
+            }
+          });
+
+          // Add page parameter (only if not page 1)
+          if (page > 1) {
+            params.set("page", String(page));
           }
+
+          // Update URL without causing navigation
+          setSearchParams(params, { replace: true });
         }
-      });
+      } catch (error) {
+        logError(error as Error, "Failed to load tasks");
+      } finally {
+        setLoading(false);
+        isRequestInProgress.current = false;
 
-      const response = await apiService.tasks.list(apiParams);
-      setTasks(response.data.tasks);
-      setTotalPages(Math.ceil(response.data.total / pageSize));
-      setTotal(response.data.total);
-      setCurrentPage(page);
-    } catch (error) {
-      logError(error as Error, "Failed to load tasks");
-    }
-  };
+        // Clear the request key after a short delay to allow legitimate new requests
+        setTimeout(() => {
+          if (lastRequestRef.current === requestKey) {
+            lastRequestRef.current = "";
+          }
+        }, 500); // Increase delay to prevent rapid duplicate requests
+      }
+    },
+    [pageSize, projectId, setSearchParams]
+  );
+
+  // Initialize from URL on component mount (only once)
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     loadDevEnvironments();
-    loadTasksData().then(() => setIsInitialized(true));
-    
+
+    // Get URL params directly to avoid dependency issues
+    const titleParam = searchParams.get("title");
+    const statusParam = searchParams.get("status");
+    const branchParam = searchParams.get("start_branch");
+    const envParam = searchParams.get("dev_environment.name");
+    const pageParam = searchParams.get("page");
+
+    const initialFilters: ColumnFiltersState = [];
+
+    if (titleParam) {
+      initialFilters.push({ id: "title", value: titleParam });
+    }
+
+    if (statusParam) {
+      initialFilters.push({ id: "status", value: statusParam.split(',') });
+    }
+
+    if (branchParam) {
+      initialFilters.push({ id: "start_branch", value: branchParam });
+    }
+
+    if (envParam) {
+      initialFilters.push({ id: "dev_environment.name", value: envParam.split(',') });
+    }
+
+    const initialPage = pageParam ? parseInt(pageParam, 10) : 1;
+
+    // Set state first
+    setColumnFilters(initialFilters);
+    setCurrentPage(initialPage);
+
+    // Load initial data using the unified function
+    loadTasksData(initialPage, initialFilters, false).then(() => {
+      setIsInitialized(true);
+    });
+
     if (projectId) {
       apiService.projects
         .get(parseInt(projectId, 10))
@@ -181,16 +279,15 @@ const TaskListPage: React.FC = () => {
           navigate("/projects");
         });
     }
-  }, [projectId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]); // Only run once on mount or projectId change
 
-  // Handle column filter changes (skip initial empty state)
-  const [isInitialized, setIsInitialized] = useState(false);
-  
+  // Handle column filter changes (skip initial load)
   useEffect(() => {
     if (isInitialized) {
       loadTasksData(1, columnFilters); // Reset to page 1 when filtering
     }
-  }, [columnFilters, isInitialized]);
+  }, [columnFilters, isInitialized, loadTasksData]);
 
   // Set page actions (Create button in header) and breadcrumb
   useEffect(() => {
@@ -220,33 +317,31 @@ const TaskListPage: React.FC = () => {
     };
   }, [navigate, setActions, setItems, t, projectId, currentProject]);
 
-  const handleTaskEdit = (task: Task) => {
+  const handleTaskEdit = useCallback((task: Task) => {
     navigate(`/projects/${projectId}/tasks/${task.id}/edit`);
-  };
+  }, [navigate, projectId]);
 
-  const handleTaskDelete = async (id: number) => {
+  const handleTaskDelete = useCallback(async (id: number) => {
     try {
       await apiService.tasks.delete(id);
-      await loadTasksData();
+      await loadTasksData(currentPage, columnFilters);
     } catch (error) {
       // Re-throw error to let QuickActions handle the user notification
       throw error;
     }
-  };
+  }, [loadTasksData, currentPage, columnFilters]);
 
-
-
-  const handleViewConversation = (task: Task) => {
+  const handleViewConversation = useCallback((task: Task) => {
     navigate(`/projects/${projectId}/tasks/${task.id}/conversation`);
-  };
+  }, [navigate, projectId]);
 
-  const handleViewGitDiff = (task: Task) => {
+  const handleViewGitDiff = useCallback((task: Task) => {
     navigate(`/projects/${projectId}/tasks/${task.id}/git-diff`);
-  };
+  }, [navigate, projectId]);
 
-  const handlePageChange = (page: number) => {
-    loadTasksData(page);
-  };
+  const handlePageChange = useCallback((page: number) => {
+    loadTasksData(page, columnFilters);
+  }, [loadTasksData, columnFilters]);
 
   // Handle metric card clicks for filtering
   const handleMetricClick = (metric: typeof metrics[0]) => {
@@ -274,7 +369,7 @@ const TaskListPage: React.FC = () => {
     }
   };
 
-  const handleBatchUpdateStatus = async (
+  const handleBatchUpdateStatus = useCallback(async (
     taskIds: number[],
     status: TaskStatus
   ) => {
@@ -301,7 +396,7 @@ const TaskListPage: React.FC = () => {
         );
       }
 
-      await loadTasksData();
+      await loadTasksData(currentPage, columnFilters);
     } catch (error) {
       logError(error as Error, "Failed to batch update task status");
       toast.error(
@@ -310,16 +405,16 @@ const TaskListPage: React.FC = () => {
           : t("tasks.messages.batchUpdateFailed")
       );
     }
-  };
+  }, [loadTasksData, currentPage, columnFilters, t]);
 
-  const handleBatchDelete = async (taskIds: number[]) => {
+  const handleBatchDelete = useCallback(async (taskIds: number[]) => {
     try {
       // Assuming there's a batch delete API
       for (const id of taskIds) {
         await apiService.tasks.delete(id);
       }
       toast.success(t("tasks.messages.deleteSuccess"));
-      await loadTasksData();
+      await loadTasksData(currentPage, columnFilters);
     } catch (error) {
       logError(error as Error, "Failed to batch delete tasks");
       toast.error(
@@ -328,9 +423,9 @@ const TaskListPage: React.FC = () => {
           : t("tasks.messages.deleteFailed")
       );
     }
-  };
+  }, [loadTasksData, currentPage, columnFilters, t]);
 
-  const handlePushBranch = async (task: Task) => {
+  const handlePushBranch = useCallback(async (task: Task) => {
     if (!task.work_branch) {
       toast.error(t("tasks.messages.push_failed"), {
         description: "Task has no work branch",
@@ -340,11 +435,11 @@ const TaskListPage: React.FC = () => {
 
     setSelectedTaskForPush(task);
     setPushDialogOpen(true);
-  };
+  }, [t]);
 
-  const handlePushSuccess = async () => {
-    await loadTasksData();
-  };
+  const handlePushSuccess = useCallback(async () => {
+    await loadTasksData(currentPage, columnFilters);
+  }, [loadTasksData, currentPage, columnFilters]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -394,7 +489,7 @@ const TaskListPage: React.FC = () => {
         <Section>
           <div className="space-y-4">
             <DataTable
-              columns={createTaskColumns({
+              columns={useMemo(() => createTaskColumns({
                 t,
                 onEdit: handleTaskEdit,
                 onDelete: handleTaskDelete,
@@ -402,7 +497,7 @@ const TaskListPage: React.FC = () => {
                 onViewGitDiff: handleViewGitDiff,
                 onPushBranch: handlePushBranch,
                 hideProjectColumn: true,
-              })}
+              }), [t, handleTaskEdit, handleTaskDelete, handleViewConversation, handleViewGitDiff, handlePushBranch])}
               data={tasks}
               toolbarComponent={(props) => (
                 <TaskDataTableToolbar 
@@ -421,6 +516,7 @@ const TaskListPage: React.FC = () => {
               setColumnFilters={setColumnFilters}
               sorting={sorting}
               setSorting={setSorting}
+              loading={loading}
             />
             <DataTablePaginationServer
               currentPage={currentPage}
