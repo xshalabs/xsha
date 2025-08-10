@@ -32,15 +32,7 @@ import {
   SectionHeader,
   SectionTitle,
 } from "@/components/content";
-import {
-  MetricCardGroup,
-  MetricCardHeader,
-  MetricCardTitle,
-  MetricCardValue,
-  MetricCardButton,
-} from "@/components/metric";
-
-import { Plus, CheckCircle, ListFilter } from "lucide-react";
+import { Plus } from "lucide-react";
 
 const TaskListPage: React.FC = () => {
   const { t } = useTranslation();
@@ -79,48 +71,7 @@ const TaskListPage: React.FC = () => {
 
   const pageSize = 20;
 
-  // Metrics for task status
-  const metrics = useMemo(() => [
-    {
-      title: t("tasks.status.todo"),
-      value: tasks.filter((task) => task.status === "todo").length,
-      variant: "default" as const,
-      type: "filter" as const,
-      status: "todo" as TaskStatus,
-    },
-    {
-      title: t("tasks.status.in_progress"),
-      value: tasks.filter((task) => task.status === "in_progress").length,
-      variant: "warning" as const,
-      type: "filter" as const,
-      status: "in_progress" as TaskStatus,
-    },
-    {
-      title: t("tasks.status.done"),
-      value: tasks.filter((task) => task.status === "done").length,
-      variant: "success" as const,
-      type: "filter" as const,
-      status: "done" as TaskStatus,
-    },
-    {
-      title: t("tasks.status.cancelled"),
-      value: tasks.filter((task) => task.status === "cancelled").length,
-      variant: "destructive" as const,
-      type: "filter" as const,
-      status: "cancelled" as TaskStatus,
-    },
-  ], [tasks, t]);
 
-  const icons = {
-    filter: {
-      active: CheckCircle,
-      inactive: ListFilter,
-    },
-    info: {
-      active: ListFilter,
-      inactive: ListFilter,
-    },
-  };
 
 
 
@@ -337,31 +288,7 @@ const TaskListPage: React.FC = () => {
     loadTasksData(page, columnFilters);
   }, [loadTasksData, columnFilters]);
 
-  // Handle metric card clicks for filtering
-  const handleMetricClick = (metric: typeof metrics[0]) => {
-    if (metric.type !== "filter") return;
 
-    const existingFilter = columnFilters.find(
-      (filter) => filter.id === "status"
-    );
-    
-    const isFilterActive = 
-      Array.isArray(existingFilter?.value) && 
-      existingFilter?.value.includes(metric.status);
-
-    if (isFilterActive) {
-      // Remove filter
-      setColumnFilters(prev => 
-        prev.filter(filter => filter.id !== "status")
-      );
-    } else {
-      // Add filter
-      setColumnFilters(prev => {
-        const others = prev.filter(filter => filter.id !== "status");
-        return [...others, { id: "status", value: [metric.status!] }];
-      });
-    }
-  };
 
   const handleBatchUpdateStatus = useCallback(async (
     taskIds: number[],
@@ -447,38 +374,7 @@ const TaskListPage: React.FC = () => {
               {t("tasks.page_description")}
             </SectionDescription>
           </SectionHeader>
-          <MetricCardGroup>
-            {metrics.map((metric) => {
-              const existingFilter = columnFilters.find(
-                (filter) => filter.id === "status"
-              );
-              const isFilterActive = 
-                metric.type === "filter" &&
-                Array.isArray(existingFilter?.value) && 
-                existingFilter?.value.includes(metric.status);
 
-              const isActive = metric.type === "filter" ? isFilterActive : false;
-              const Icon = icons[metric.type][isActive ? "active" : "inactive"];
-
-              return (
-                <MetricCardButton
-                  key={metric.title}
-                  variant={metric.variant}
-                  onClick={() => handleMetricClick(metric)}
-                  disabled={metric.type === "info"}
-                  className={metric.type === "info" ? "cursor-default" : ""}
-                >
-                  <MetricCardHeader className="flex justify-between items-center gap-2 w-full">
-                    <MetricCardTitle className="truncate">
-                      {metric.title}
-                    </MetricCardTitle>
-                    {metric.type === "filter" && <Icon className="size-4" />}
-                  </MetricCardHeader>
-                  <MetricCardValue>{metric.value}</MetricCardValue>
-                </MetricCardButton>
-              );
-            })}
-          </MetricCardGroup>
         </Section>
         <Section>
           <div className="space-y-4">
