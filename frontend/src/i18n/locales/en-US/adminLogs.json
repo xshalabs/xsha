@@ -12,6 +12,7 @@
       "id": "ID",
       "username": "User",
       "operation": "Operation",
+      "ip": "IP Address",
       "resource": "Resource",
       "description": "Description",
       "time": "Time"

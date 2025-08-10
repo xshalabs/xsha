@@ -12,6 +12,7 @@
       "id": "ID",
       "username": "用户",
       "operation": "操作",
+      "ip": "IP地址",
       "resource": "资源",
       "description": "描述",
       "time": "时间"

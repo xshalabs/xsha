@@ -2,7 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { AdminOperationLog } from "@/types/admin-logs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, CheckCircle, XCircle, User, Activity, Calendar } from "lucide-react";
+import { Eye, CheckCircle, XCircle, User, Activity, Calendar, Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface AdminOperationLogColumnsProps {
@@ -72,6 +72,21 @@ export function useAdminOperationLogColumns({ onViewDetail }: AdminOperationLogC
           <div className="flex items-center space-x-2">
             <User className="w-4 h-4 text-muted-foreground" />
             <span className="font-medium">{username}</span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "ip",
+      header: t("adminLogs.operationLogs.columns.ip"),
+      cell: ({ row }) => {
+        const ip = row.getValue("ip") as string;
+        return (
+          <div className="flex items-center space-x-2">
+            <Globe className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-mono text-muted-foreground">
+              {ip || "N/A"}
+            </span>
           </div>
         );
       },

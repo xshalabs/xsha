@@ -8,7 +8,7 @@ import (
 
 type AuthService interface {
 	Login(username, password, clientIP, userAgent string) (bool, string, error)
-	Logout(token, username string) error
+	Logout(token, username, clientIP, userAgent string) error
 	IsTokenBlacklisted(token string) (bool, error)
 	CleanExpiredTokens() error
 }

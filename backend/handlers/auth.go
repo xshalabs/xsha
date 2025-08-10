@@ -106,7 +106,10 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 		return
 	}
 
-	if err := h.authService.Logout(token, claims.Username); err != nil {
+	clientIP := c.ClientIP()
+	userAgent := c.GetHeader("User-Agent")
+
+	if err := h.authService.Logout(token, claims.Username, clientIP, userAgent); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "logout.failed"),
 		})
