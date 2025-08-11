@@ -68,5 +68,10 @@
     "deleteSuccess": "删除成功",
     "deleteFailed": "删除失败",
     "unexpectedError": "发生了意外错误"
+  },
+  "sorting": {
+    "asc": "升序",
+    "desc": "降序",
+    "hide": "隐藏"
   }
 } 

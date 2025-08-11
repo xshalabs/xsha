@@ -68,5 +68,10 @@
     "deleteSuccess": "Deleted successfully",
     "deleteFailed": "Failed to delete",
     "unexpectedError": "An unexpected error occurred"
+  },
+  "sorting": {
+    "asc": "Asc",
+    "desc": "Desc",
+    "hide": "Hide"
   }
 } 
