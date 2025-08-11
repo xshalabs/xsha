@@ -8,8 +8,8 @@
   "actions": {
     "create": "Create",
     "edit": "Edit",
-    "viewConversation": "View Conversation",
-    "viewGitDiff": "View Git Diff",
+    "viewConversation": "Conversation",
+    "viewGitDiff": "Git Diff",
     "pushBranch": "Push Branch"
   },
   "status": {

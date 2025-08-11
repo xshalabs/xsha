@@ -8,8 +8,8 @@
   "actions": {
     "create": "创建",
     "edit": "编辑",
-    "viewConversation": "查看对话",
-    "viewGitDiff": "查看Git差异",
+    "viewConversation": "对话",
+    "viewGitDiff": "Git差异",
     "pushBranch": "推送分支"
   },
   "status": {
