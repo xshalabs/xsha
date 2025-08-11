@@ -107,7 +107,12 @@
   },
   "batch": {
     "updateStatus": "Update Status",
-    "selectStatus": "Select Status"
+    "selectStatus": "Select Status",
+    "delete": "Batch Delete",
+    "deleteConfirmTitle": "Confirm Batch Delete Tasks",
+    "deleteConfirmDescription": "You are about to delete {{count}} tasks. This action cannot be undone, and related conversation records and execution logs will also be deleted.",
+    "deleteSuccess": "Successfully deleted {{count}} tasks",
+    "deleteFailed": "Batch delete failed"
   },
   "metrics": {
     "total": "Total Tasks"

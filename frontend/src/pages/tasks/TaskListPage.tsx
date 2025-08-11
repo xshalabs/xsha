@@ -345,14 +345,14 @@ const TaskListPage: React.FC = () => {
       for (const id of taskIds) {
         await apiService.tasks.delete(id);
       }
-      toast.success(t("tasks.messages.deleteSuccess"));
+      toast.success(t("tasks.batch.deleteSuccess", { count: taskIds.length }));
       await loadTasksData(currentPage, columnFilters, sorting);
     } catch (error) {
       logError(error as Error, "Failed to batch delete tasks");
       toast.error(
         error instanceof Error
           ? error.message
-          : t("tasks.messages.deleteFailed")
+          : t("tasks.batch.deleteFailed")
       );
     }
   }, [currentPage, columnFilters, sorting, t]);

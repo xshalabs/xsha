@@ -106,7 +106,12 @@
   },
   "batch": {
     "updateStatus": "更新状态",
-    "selectStatus": "选择状态"
+    "selectStatus": "选择状态",
+    "delete": "批量删除",
+    "deleteConfirmTitle": "确认批量删除任务",
+    "deleteConfirmDescription": "您即将删除 {{count}} 个任务。此操作不可撤销，相关的对话记录和执行日志也将被删除。",
+    "deleteSuccess": "成功删除 {{count}} 个任务",
+    "deleteFailed": "批量删除失败"
   },
   "metrics": {
     "total": "总任务数"
