@@ -73,5 +73,9 @@
     "asc": "Asc",
     "desc": "Desc",
     "hide": "Hide"
+  },
+  "table": {
+    "noResults": "No data available",
+    "selected": "selected"
   }
 } 

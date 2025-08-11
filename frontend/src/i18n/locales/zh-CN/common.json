@@ -73,5 +73,9 @@
     "asc": "升序",
     "desc": "降序",
     "hide": "隐藏"
+  },
+  "table": {
+    "noResults": "暂无数据",
+    "selected": "已选择"
   }
 } 

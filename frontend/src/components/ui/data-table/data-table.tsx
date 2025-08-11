@@ -10,6 +10,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { useTranslation } from "react-i18next";
 import type {
   ColumnDef,
   ColumnFiltersState,
@@ -51,6 +52,7 @@ export interface DataTableProps<TData, TValue> {
   defaultColumnVisibility?: VisibilityState;
   defaultColumnFilters?: ColumnFiltersState;
   loading?: boolean;
+  noResultsText?: string; // Custom no results text
 
   /** access the state from the parent component */
   columnFilters?: ColumnFiltersState;
@@ -71,11 +73,13 @@ export function DataTable<TData, TValue>({
   defaultColumnVisibility = {},
   defaultColumnFilters = [],
   loading = false,
+  noResultsText,
   columnFilters,
   setColumnFilters,
   sorting,
   setSorting,
 }: DataTableProps<TData, TValue>) {
+  const { t } = useTranslation();
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>(defaultColumnVisibility);
@@ -183,7 +187,7 @@ export function DataTable<TData, TValue>({
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+                {noResultsText || t("common.table.noResults")}
               </TableCell>
             </TableRow>
           )}
