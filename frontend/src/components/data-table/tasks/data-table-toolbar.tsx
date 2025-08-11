@@ -96,8 +96,8 @@ export function TaskDataTableToolbar({
   };
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2 flex-wrap">
+    <div className="flex flex-col space-y-4">
+      <div className="flex flex-1 items-center space-x-2 flex-wrap gap-2">
         <Input
           placeholder={t("tasks.filters.titlePlaceholder")}
           value={titleSearchValue}
@@ -139,7 +139,7 @@ export function TaskDataTableToolbar({
             className="h-8 px-2 lg:px-3"
           >
             {t("common.reset")}
-            <X />
+            <X className="ml-2 h-4 w-4" />
           </Button>
         )}
       </div>
