@@ -106,10 +106,30 @@ const EnvironmentListPage: React.FC = () => {
     });
   };
 
+  // Separate URL update function to avoid dependency issues
+  const updateUrl = useCallback((page: number, filters: ColumnFiltersState) => {
+    const params = new URLSearchParams();
+
+    // Add filter parameters
+    filters.forEach((filter) => {
+      if (filter.value) {
+        params.set(filter.id, String(filter.value));
+      }
+    });
+
+    // Add page parameter (only if not page 1)
+    if (page > 1) {
+      params.set("page", String(page));
+    }
+
+    // Update URL without causing navigation
+    setSearchParams(params, { replace: true });
+  }, [setSearchParams]);
+
   const loadEnvironmentsData = useCallback(
-    async (page: number, filters: ColumnFiltersState, updateUrl = true) => {
+    async (page: number, filters: ColumnFiltersState, shouldUpdateUrl = true) => {
       // Create a unique request key for deduplication
-      const requestKey = JSON.stringify({ page, filters, updateUrl });
+      const requestKey = JSON.stringify({ page, filters, shouldUpdateUrl });
 
       // Skip if same request is already in progress or just completed
       if (
@@ -149,24 +169,9 @@ const EnvironmentListPage: React.FC = () => {
         setTotal(response.total);
         setCurrentPage(page);
 
-        // Update URL parameters
-        if (updateUrl) {
-          const params = new URLSearchParams();
-
-          // Add filter parameters
-          filters.forEach((filter) => {
-            if (filter.value) {
-              params.set(filter.id, String(filter.value));
-            }
-          });
-
-          // Add page parameter (only if not page 1)
-          if (page > 1) {
-            params.set("page", String(page));
-          }
-
-          // Update URL without causing navigation
-          setSearchParams(params, { replace: true });
+        // Update URL parameters after successful data load
+        if (shouldUpdateUrl) {
+          updateUrl(page, filters);
         }
       } catch (error) {
         logError(error as Error, "Failed to fetch environments");
@@ -182,7 +187,7 @@ const EnvironmentListPage: React.FC = () => {
         }, 500); // Increase delay to prevent rapid duplicate requests
       }
     },
-    [pageSize, setSearchParams]
+    [pageSize, updateUrl]
   );
 
 
@@ -222,6 +227,9 @@ const EnvironmentListPage: React.FC = () => {
 
   // Initialize from URL on component mount (only once)
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Keep track of previous filter values to detect actual changes
+  const previousFiltersRef = useRef<ColumnFiltersState>([]);
 
   useEffect(() => {
     // Get URL params directly to avoid dependency issues
@@ -244,6 +252,7 @@ const EnvironmentListPage: React.FC = () => {
     // Set state first
     setColumnFilters(initialFilters);
     setCurrentPage(initialPage);
+    previousFiltersRef.current = initialFilters;
 
     // Load initial data using the unified function
     loadEnvironmentsData(initialPage, initialFilters, false).then(() => {
@@ -254,7 +263,13 @@ const EnvironmentListPage: React.FC = () => {
 
   // Handle column filter changes (skip initial load)
   useEffect(() => {
-    if (isInitialized) {
+    if (!isInitialized) return;
+
+    // Check if the filter values actually changed
+    const filtersChanged = JSON.stringify(previousFiltersRef.current) !== JSON.stringify(columnFilters);
+    
+    if (filtersChanged) {
+      previousFiltersRef.current = columnFilters;
       loadEnvironmentsData(1, columnFilters); // Reset to page 1 when filtering
     }
   }, [columnFilters, isInitialized, loadEnvironmentsData]);

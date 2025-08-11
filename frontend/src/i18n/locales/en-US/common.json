@@ -46,8 +46,8 @@
   "pageTitle": {
     "dashboard": "Dashboard",
     "login": "Login",
-    "projects": "Projects Management",
-    "projectTasks": "Tasks Management",
+    "projects": "Projects",
+    "projectTasks": "Tasks",
     "gitCredentials": "Credentials",
     "adminLogs": "Audit Logs",
     "operationLogs": "Operation Logs",
