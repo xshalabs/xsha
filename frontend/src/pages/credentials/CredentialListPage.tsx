@@ -241,8 +241,9 @@ const CredentialListPage: React.FC = () => {
       createGitCredentialColumns({
         onEdit: handleEdit,
         onDelete: handleDelete,
+        t: (key: string) => t(key),
       }),
-    [handleEdit, handleDelete]
+    [handleEdit, handleDelete, t]
   );
 
 

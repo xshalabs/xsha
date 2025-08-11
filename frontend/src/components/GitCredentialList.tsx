@@ -32,6 +32,7 @@ export const GitCredentialList: React.FC<GitCredentialListProps> = ({
   const columns = createGitCredentialColumns({
     onEdit,
     onDelete,
+    t: (key: string) => t(key),
   });
 
   const ActionBar = ({ table }: { table: any }) => {

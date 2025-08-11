@@ -8,34 +8,36 @@ import { GitCredentialType } from "@/types/credentials";
 interface GitCredentialColumnsProps {
   onEdit: (credential: GitCredential) => void;
   onDelete: (id: number) => void;
+  t: (key: string) => string;
 }
 
 export const createGitCredentialColumns = ({
   onEdit,
   onDelete,
+  t,
 }: GitCredentialColumnsProps): ColumnDef<GitCredential>[] => [
   {
     accessorKey: "name",
-    header: "Name",
+    header: t("gitCredentials.columns.name"),
     cell: ({ row }) => (
       <div className="font-medium">{row.getValue("name")}</div>
     ),
   },
   {
     accessorKey: "description",
-    header: "Description",
+    header: t("gitCredentials.columns.description"),
     cell: ({ row }) => {
       const description = row.getValue("description") as string;
       return (
         <div className="max-w-[300px] truncate text-muted-foreground">
-          {description || "No description"}
+          {description || t("gitCredentials.columns.noDescription")}
         </div>
       );
     },
   },
   {
     accessorKey: "type",
-    header: "Type",
+    header: t("gitCredentials.columns.type"),
     cell: ({ row }) => {
       const type = row.getValue("type") as GitCredentialType;
       const getTypeIcon = () => {
@@ -54,11 +56,11 @@ export const createGitCredentialColumns = ({
       const getTypeName = () => {
         switch (type) {
           case GitCredentialType.PASSWORD:
-            return "Password";
+            return t("gitCredentials.types.password");
           case GitCredentialType.TOKEN:
-            return "Token";
+            return t("gitCredentials.types.token");
           case GitCredentialType.SSH_KEY:
-            return "SSH Key";
+            return t("gitCredentials.types.ssh_key");
           default:
             return "Unknown";
         }
@@ -74,7 +76,7 @@ export const createGitCredentialColumns = ({
   },
   {
     accessorKey: "username",
-    header: "Username",
+    header: t("gitCredentials.columns.username"),
     cell: ({ row }) => {
       const username = row.getValue("username") as string;
       return (
@@ -84,7 +86,7 @@ export const createGitCredentialColumns = ({
   },
   {
     accessorKey: "created_at",
-    header: "Created",
+    header: t("gitCredentials.columns.created"),
     cell: ({ row }) => {
       const date = new Date(row.getValue("created_at"));
       return (
@@ -102,7 +104,7 @@ export const createGitCredentialColumns = ({
       const actions = [
         {
           id: "edit",
-          label: "Edit",
+          label: t("gitCredentials.edit"),
           icon: Edit,
           onClick: () => onEdit(credential),
         },
