@@ -1,7 +1,7 @@
 {
   "title": "Projects",
   "page_description": "Manage your project repositories",
-  "description": "Project Description",
+  "description": "Description",
   "create": "Create",
   "edit": "Edit",
   "delete": "Delete",
@@ -10,7 +10,7 @@
   "editDescription": "Edit project configuration information",
   "name": "Project Name",
   "repoUrl": "Repository URL",
-  "credential": "Access Credential",
+  "credential": "Credential",
   "taskCount": "Tasks",
   "credentialHelp": "Select a credential to access this repository (optional)",
   "protocolAutoDetected": "Auto-detected protocol",

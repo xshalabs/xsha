@@ -1,7 +1,10 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Edit, FolderOpen } from "lucide-react";
+import { Edit, FolderOpen, Copy } from "lucide-react";
 import type { TFunction } from "i18next";
 import { QuickActions } from "@/components/ui/quick-actions";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -48,9 +51,36 @@ export const createProjectColumns = ({
     header: t("projects.repoUrl"),
     cell: ({ row }) => {
       const repoUrl = row.getValue("repo_url") as string;
+      
+      const copyToClipboard = async () => {
+        try {
+          await navigator.clipboard.writeText(repoUrl);
+          toast.success(t("common.copied_to_clipboard"));
+        } catch (err) {
+          toast.error(t("common.copy_failed"));
+        }
+      };
+
       return (
-        <div className="max-w-[200px] truncate font-mono text-sm">
-          {repoUrl}
+        <div className="flex items-center gap-2 max-w-[200px]">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="truncate font-mono text-sm cursor-help">
+                {repoUrl}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-[400px] break-all">
+              <p>{repoUrl}</p>
+            </TooltipContent>
+          </Tooltip>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={copyToClipboard}
+            className="h-6 w-6 p-0 hover:bg-muted/50"
+          >
+            <Copy className="h-3 w-3" />
+          </Button>
         </div>
       );
     },
