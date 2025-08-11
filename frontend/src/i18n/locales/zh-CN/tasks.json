@@ -68,7 +68,7 @@
     "conversations": "对话",
     "branch": "分支",
     "environment": "环境",
-    "updated": "更新时间"
+    "created": "创建时间"
   },
   "messages": {
     "loadFailed": "加载任务失败",

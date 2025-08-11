@@ -108,6 +108,15 @@ export function TaskDataTableToolbar({
           className="h-8 w-[150px] lg:w-[250px]"
         />
 
+        {table.getColumn("start_branch") && (
+          <Input
+            placeholder={t("tasks.filters.branchPlaceholder")}
+            value={branchSearchValue}
+            onChange={(event) => handleBranchSearchChange(event.target.value)}
+            className="h-8 w-[150px] lg:w-[200px]"
+          />
+        )}
+
         {table.getColumn("status") && (
           <DataTableFacetedFilter
             column={table.getColumn("status")}
@@ -118,15 +127,6 @@ export function TaskDataTableToolbar({
               { label: t("tasks.status.done"), value: "done" },
               { label: t("tasks.status.cancelled"), value: "cancelled" },
             ]}
-          />
-        )}
-
-        {table.getColumn("start_branch") && (
-          <Input
-            placeholder={t("tasks.filters.branchPlaceholder")}
-            value={branchSearchValue}
-            onChange={(event) => handleBranchSearchChange(event.target.value)}
-            className="h-8 w-[150px] lg:w-[200px]"
           />
         )}
 

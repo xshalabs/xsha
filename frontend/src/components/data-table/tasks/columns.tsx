@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Edit, MessageSquare, GitCompare, GitBranch, CheckCircle, Clock, Play, X } from "lucide-react";
+import { Edit, MessageSquare, GitCompare, GitBranch } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 type TFunction = ReturnType<typeof useTranslation>['t'];
@@ -20,20 +20,7 @@ interface TaskColumnsProps {
   hideProjectColumn?: boolean;
 }
 
-const getStatusIcon = (status: TaskStatus) => {
-  switch (status) {
-    case "todo":
-      return <Clock className="w-4 h-4 text-gray-500" />;
-    case "in_progress":
-      return <Play className="w-4 h-4 text-blue-500" />;
-    case "done":
-      return <CheckCircle className="w-4 h-4 text-green-500" />;
-    case "cancelled":
-      return <X className="w-4 h-4 text-red-500" />;
-    default:
-      return <Clock className="w-4 h-4 text-gray-500" />;
-  }
-};
+
 
 const getStatusTextColor = (status: TaskStatus) => {
   switch (status) {
@@ -92,14 +79,12 @@ export const createTaskColumns = ({
         return (
           <div className="max-w-[300px]">
             <div
-              className="font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer transition-colors truncate"
+              className="font-medium text-primary hover:text-primary/80 underline cursor-pointer transition-colors truncate"
               onClick={() => onViewConversation?.(task)}
             >
               {task.title}
             </div>
-            <div className="text-xs text-muted-foreground">
-              {t("common.createdAt")}: {new Date(task.created_at).toLocaleString()}
-            </div>
+
           </div>
         );
       },
@@ -142,12 +127,9 @@ export const createTaskColumns = ({
         }[status] || status;
 
         return (
-          <div className="flex items-center space-x-2">
-            {getStatusIcon(status)}
-            <span className={`text-sm ${getStatusTextColor(status)}`}>
-              {statusDisplay}
-            </span>
-          </div>
+          <span className={`text-sm font-medium ${getStatusTextColor(status)}`}>
+            {statusDisplay}
+          </span>
         );
       },
       filterFn: (row, _id, value) => {
@@ -161,10 +143,7 @@ export const createTaskColumns = ({
       cell: ({ row }) => {
         const count = row.getValue("conversation_count") as number;
         return (
-          <div className="flex items-center space-x-2">
-            <MessageSquare className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium">{count}</span>
-          </div>
+          <span className="text-sm font-medium">{count}</span>
         );
       },
       enableSorting: true,
@@ -176,7 +155,6 @@ export const createTaskColumns = ({
         const task = row.original;
         return (
           <div className="flex items-center space-x-2">
-            <GitBranch className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm">{task.start_branch}</span>
             {task.has_pull_request && (
               <Badge variant="outline" className="text-xs">
@@ -196,10 +174,7 @@ export const createTaskColumns = ({
       cell: ({ row }) => {
         const devEnv = row.original.dev_environment;
         return devEnv ? (
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-            <span className="text-sm">{devEnv.name}</span>
-          </div>
+          <span className="text-sm">{devEnv.name}</span>
         ) : (
           <span className="text-xs text-muted-foreground">-</span>
         );
@@ -211,12 +186,12 @@ export const createTaskColumns = ({
       enableSorting: false,
     },
     {
-      accessorKey: "updated_at",
+      accessorKey: "created_at",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t("tasks.table.updated")} />
+        <DataTableColumnHeader column={column} title={t("tasks.table.created")} />
       ),
       cell: ({ row }) => {
-        const date = new Date(row.getValue("updated_at"));
+        const date = new Date(row.getValue("created_at"));
         return (
           <div className="text-xs text-muted-foreground">
             {date.toLocaleString()}

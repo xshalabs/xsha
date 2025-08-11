@@ -59,7 +59,7 @@
     "titlePlaceholder": "Search by title...",
     "branch": "Branch",
     "branchPlaceholder": "Filter by branch...",
-    "devEnvironment": "Development Environment"
+    "devEnvironment": "Environment"
   },
   "list": "Task List",
   "table": {
@@ -69,7 +69,7 @@
     "conversations": "Conversations",
     "branch": "Branch",
     "environment": "Environment",
-    "updated": "Updated"
+    "created": "Created"
   },
   "messages": {
     "loadFailed": "Failed to load task",
