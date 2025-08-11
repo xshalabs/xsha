@@ -48,7 +48,7 @@
     "login": "Login",
     "projects": "Projects Management",
     "projectTasks": "Tasks Management",
-    "gitCredentials": "Git Credentials",
+    "gitCredentials": "Credentials",
     "adminLogs": "Audit Logs",
     "operationLogs": "Operation Logs",
     "loginLogs": "Login Logs",
