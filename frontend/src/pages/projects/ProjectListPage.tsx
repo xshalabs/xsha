@@ -195,19 +195,12 @@ const ProjectListPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run once on mount
 
-  // Handle column filter changes (skip initial load)
+  // Handle filter and sorting changes (skip initial load)
   useEffect(() => {
     if (isInitialized) {
-      loadProjectsData(1, columnFilters, sorting); // Reset to page 1 when filtering
+      loadProjectsData(1, columnFilters, sorting); // Reset to page 1 when filtering or sorting
     }
-  }, [columnFilters, isInitialized, loadProjectsData, sorting]);
-
-  // Handle sorting changes (skip initial load)
-  useEffect(() => {
-    if (isInitialized) {
-      loadProjectsData(1, columnFilters, sorting); // Reset to page 1 when sorting
-    }
-  }, [sorting, isInitialized, loadProjectsData, columnFilters]);
+  }, [columnFilters, sorting, isInitialized]); // Combined effect for both filter and sorting changes
 
   const handlePageChange = useCallback(
     (page: number) => {
