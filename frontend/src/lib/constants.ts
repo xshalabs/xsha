@@ -56,6 +56,6 @@ export const ROUTES = {
 } as const;
 
 export const SUPPORTED_LANGUAGES = [
-  { code: "zh-CN", name: "Chinese", flag: "🇨🇳" },
+  { code: "zh-CN", name: "中文", flag: "🇨🇳" },
   { code: "en-US", name: "English", flag: "🇺🇸" },
 ] as const;
