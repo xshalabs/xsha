@@ -22,30 +22,35 @@ export const LoginLogTab: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [logs, setLogs] = useState<LoginLog[]>([]);
   const [loading, setLoading] = useState(false);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 20;
-  
+
   // DataTable state
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  
+
   // Prevent duplicate requests
   const lastRequestRef = useRef<string>("");
-  
+
   // Initialize component (only once)
   const [isInitialized, setIsInitialized] = useState(false);
-  
+
   // Track initial column filters to prevent duplicate requests
   const initialColumnFiltersRef = useRef<ColumnFiltersState>([]);
 
   // Unified data loading function with debouncing and duplicate request prevention
   const loadLoginLogsData = useCallback(
-    async (page: number, filters: ColumnFiltersState, shouldDebounce = true, updateUrl = true) => {
+    async (
+      page: number,
+      filters: ColumnFiltersState,
+      shouldDebounce = true,
+      updateUrl = true
+    ) => {
       const requestKey = `${page}-${JSON.stringify(filters)}`;
-      
+
       // Prevent duplicate requests
       if (lastRequestRef.current === requestKey) {
         return;
@@ -57,7 +62,7 @@ export const LoginLogTab: React.FC = () => {
           if (lastRequestRef.current === requestKey) {
             return; // Request was cancelled
           }
-          
+
           lastRequestRef.current = requestKey;
           await executeRequest();
         }, 300);
@@ -85,10 +90,17 @@ export const LoginLogTab: React.FC = () => {
               apiParams.username = filter.value;
             } else if (filter.id === "ip" && filter.value) {
               apiParams.ip = filter.value;
-            } else if (filter.id === "success" && Array.isArray(filter.value) && filter.value.length > 0) {
+            } else if (
+              filter.id === "success" &&
+              Array.isArray(filter.value) &&
+              filter.value.length > 0
+            ) {
               apiParams.success = filter.value[0] === "true";
             } else if (filter.id === "login_time" && filter.value) {
-              const dateRange = filter.value as { startDate?: Date; endDate?: Date };
+              const dateRange = filter.value as {
+                startDate?: Date;
+                endDate?: Date;
+              };
               if (dateRange.startDate) {
                 apiParams.start_time = formatDateToLocal(dateRange.startDate);
               }
@@ -114,17 +126,26 @@ export const LoginLogTab: React.FC = () => {
               if (filter.value) {
                 if (filter.id === "login_time") {
                   // Handle date range filter
-                  const { startDate, endDate } = filter.value as { startDate?: Date; endDate?: Date };
+                  const { startDate, endDate } = filter.value as {
+                    startDate?: Date;
+                    endDate?: Date;
+                  };
                   if (startDate) {
                     params.set("start_date", formatDateToLocal(startDate));
                   }
                   if (endDate) {
                     params.set("end_date", formatDateToLocal(endDate));
                   }
-                } else if (Array.isArray(filter.value) && filter.value.length > 0) {
+                } else if (
+                  Array.isArray(filter.value) &&
+                  filter.value.length > 0
+                ) {
                   // Handle array filters (success)
                   params.set(filter.id, filter.value[0]);
-                } else if (typeof filter.value === "string" && filter.value.trim()) {
+                } else if (
+                  typeof filter.value === "string" &&
+                  filter.value.trim()
+                ) {
                   // Handle string filters (username, ip)
                   params.set(filter.id, filter.value);
                 }
@@ -206,7 +227,7 @@ export const LoginLogTab: React.FC = () => {
     // Set state first
     setColumnFilters(initialFilters);
     setCurrentPage(initialPage);
-    
+
     // Store initial filters to prevent duplicate requests
     initialColumnFiltersRef.current = initialFilters;
 
@@ -221,8 +242,10 @@ export const LoginLogTab: React.FC = () => {
   useEffect(() => {
     if (isInitialized) {
       // Check if columnFilters has actually changed from initial values
-      const hasFilterChanged = JSON.stringify(columnFilters) !== JSON.stringify(initialColumnFiltersRef.current);
-      
+      const hasFilterChanged =
+        JSON.stringify(columnFilters) !==
+        JSON.stringify(initialColumnFiltersRef.current);
+
       if (hasFilterChanged) {
         loadLoginLogsData(1, columnFilters); // Reset to page 1 when filtering
         // Update the reference to current filters
@@ -232,29 +255,33 @@ export const LoginLogTab: React.FC = () => {
   }, [columnFilters, isInitialized, loadLoginLogsData]);
 
   return (
-    <Section>
-      <SectionHeader>
-        <SectionTitle>{t("adminLogs.loginLogs.title")}</SectionTitle>
-        <SectionDescription>
-          {t("adminLogs.loginLogs.description")}
-        </SectionDescription>
-      </SectionHeader>
-      <div className="space-y-4">
-        <DataTable
-          columns={columns}
-          data={logs}
-          loading={loading}
-          toolbarComponent={LoginLogDataTableToolbar}
-          columnFilters={columnFilters}
-          setColumnFilters={setColumnFilters}
-        />
-        <CustomPagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          total={total}
-          onPageChange={handlePageChange}
-        />
-      </div>
-    </Section>
+    <>
+      <Section>
+        <SectionHeader>
+          <SectionTitle>{t("adminLogs.loginLogs.title")}</SectionTitle>
+          <SectionDescription>
+            {t("adminLogs.loginLogs.description")}
+          </SectionDescription>
+        </SectionHeader>
+      </Section>
+      <Section>
+        <div className="space-y-4">
+          <DataTable
+            columns={columns}
+            data={logs}
+            loading={loading}
+            toolbarComponent={LoginLogDataTableToolbar}
+            columnFilters={columnFilters}
+            setColumnFilters={setColumnFilters}
+          />
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            total={total}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      </Section>
+    </>
   );
 };
