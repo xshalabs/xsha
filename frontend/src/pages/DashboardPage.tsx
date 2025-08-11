@@ -54,7 +54,7 @@ export const DashboardPage: React.FC = () => {
         
         const [statsData, tasksData] = await Promise.all([
           dashboardApi.getDashboardStats(),
-          dashboardApi.getRecentTasks(5)
+          dashboardApi.getRecentTasks(6)
         ]);
         
         setStats(statsData);
@@ -125,6 +125,10 @@ export const DashboardPage: React.FC = () => {
       action: () => navigate("/credentials/create"),
     },
   ];
+
+  const handleTaskClick = (task: RecentTask) => {
+    navigate(ROUTES.taskConversation(task.project_id, task.id));
+  };
 
   return (
     <SectionGroup>
@@ -225,11 +229,12 @@ export const DashboardPage: React.FC = () => {
             <span className="ml-2">{t("common.loading")}</span>
           </div>
         ) : recentTasks.length > 0 ? (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {recentTasks.map((task) => (
               <div
                 key={task.id}
-                className="border border-border rounded-lg p-4 hover:border-primary/50 transition-colors"
+                className="border border-border rounded-lg p-4 hover:border-primary/50 transition-colors cursor-pointer"
+                onClick={() => handleTaskClick(task)}
               >
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-medium truncate">{task.title}</h3>
