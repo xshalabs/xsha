@@ -22,6 +22,18 @@ export const createGitCredentialColumns = ({
     ),
   },
   {
+    accessorKey: "description",
+    header: "Description",
+    cell: ({ row }) => {
+      const description = row.getValue("description") as string;
+      return (
+        <div className="max-w-[300px] truncate text-muted-foreground">
+          {description || "No description"}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "type",
     header: "Type",
     cell: ({ row }) => {
@@ -67,18 +79,6 @@ export const createGitCredentialColumns = ({
       const username = row.getValue("username") as string;
       return (
         <div className="text-sm text-muted-foreground">{username || "N/A"}</div>
-      );
-    },
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => {
-      const description = row.getValue("description") as string;
-      return (
-        <div className="max-w-[300px] truncate text-muted-foreground">
-          {description || "No description"}
-        </div>
       );
     },
   },
