@@ -157,7 +157,7 @@ func (s *projectService) DeleteProject(id uint) error {
 	}
 
 	inProgressStatus := database.TaskStatusInProgress
-	tasks, _, err := s.taskRepo.List(&project.ID, &inProgressStatus, nil, nil, nil, 1, 1)
+	tasks, _, err := s.taskRepo.List(&project.ID, &inProgressStatus, nil, nil, nil, "created_at", "desc", 1, 1)
 	if err != nil {
 		return fmt.Errorf("failed to check project tasks: %v", err)
 	}

@@ -31,6 +31,8 @@ export const tasksApi = {
         "dev_environment_id",
         params.dev_environment_id.toString()
       );
+    if (params?.sort_by) searchParams.set("sort_by", params.sort_by);
+    if (params?.sort_direction) searchParams.set("sort_direction", params.sort_direction);
 
     const queryString = searchParams.toString();
     const url = queryString ? `/tasks?${queryString}` : "/tasks";

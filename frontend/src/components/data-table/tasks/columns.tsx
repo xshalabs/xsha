@@ -135,11 +135,13 @@ export const createTaskColumns = ({
       filterFn: (row, _id, value) => {
         return value.includes(row.getValue(_id));
       },
-      enableSorting: false,
+      enableSorting: true,
     },
     {
       accessorKey: "conversation_count",
-      header: t("tasks.table.conversations"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("tasks.table.conversations")} />
+      ),
       cell: ({ row }) => {
         const count = row.getValue("conversation_count") as number;
         return (
@@ -150,7 +152,9 @@ export const createTaskColumns = ({
     },
     {
       accessorKey: "start_branch",
-      header: t("tasks.table.branch"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("tasks.table.branch")} />
+      ),
       cell: ({ row }) => {
         const task = row.original;
         return (
@@ -165,12 +169,14 @@ export const createTaskColumns = ({
           </div>
         );
       },
-      enableSorting: false,
+      enableSorting: true,
     },
     {
       id: "dev_environment.name",
       accessorFn: (row) => row.dev_environment?.name || "",
-      header: t("tasks.table.environment"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("tasks.table.environment")} />
+      ),
       cell: ({ row }) => {
         const devEnv = row.original.dev_environment;
         return devEnv ? (
@@ -183,7 +189,7 @@ export const createTaskColumns = ({
         const devEnvId = row.original.dev_environment?.id;
         return value.includes(devEnvId?.toString() || "");
       },
-      enableSorting: false,
+      enableSorting: true,
     },
     {
       accessorKey: "created_at",

@@ -85,9 +85,9 @@ const TaskListPage: React.FC = () => {
   };
 
   const loadTasksData = useCallback(
-    async (page: number, filters: ColumnFiltersState, updateUrl = true) => {
+    async (page: number, filters: ColumnFiltersState, sorting: SortingState, updateUrl = true) => {
       // Create a unique request key for deduplication
-      const requestKey = JSON.stringify({ page, filters, updateUrl, projectId });
+      const requestKey = JSON.stringify({ page, filters, sorting, updateUrl, projectId });
 
       // Skip if same request is already in progress or just completed
       if (
@@ -103,12 +103,19 @@ const TaskListPage: React.FC = () => {
       try {
         setLoading(true);
 
-        // Convert DataTable filters to API parameters
+        // Convert DataTable filters and sorting to API parameters
         const apiParams: any = {
           page,
           page_size: pageSize,
           project_id: projectId ? parseInt(projectId, 10) : undefined,
         };
+
+        // Handle sorting
+        if (sorting.length > 0) {
+          const sort = sorting[0];
+          apiParams.sort_by = sort.id;
+          apiParams.sort_direction = sort.desc ? "desc" : "asc";
+        }
 
         // Handle column filters
         filters.forEach((filter) => {
@@ -145,6 +152,13 @@ const TaskListPage: React.FC = () => {
               params.set(filter.id, Array.isArray(filter.value) ? filter.value.join(',') : String(filter.value));
             }
           });
+
+          // Add sorting parameters
+          if (sorting.length > 0) {
+            const sort = sorting[0];
+            params.set("sort_by", sort.id);
+            params.set("sort_direction", sort.desc ? "desc" : "asc");
+          }
 
           // Add page parameter (only if not page 1)
           if (page > 1) {
@@ -183,6 +197,8 @@ const TaskListPage: React.FC = () => {
     const branchParam = searchParams.get("start_branch");
     const envParam = searchParams.get("dev_environment.name");
     const pageParam = searchParams.get("page");
+    const sortByParam = searchParams.get("sort_by");
+    const sortDirectionParam = searchParams.get("sort_direction");
 
     const initialFilters: ColumnFiltersState = [];
 
@@ -204,12 +220,22 @@ const TaskListPage: React.FC = () => {
 
     const initialPage = pageParam ? parseInt(pageParam, 10) : 1;
 
+    // Initialize sorting from URL
+    const initialSorting: SortingState = [];
+    if (sortByParam) {
+      initialSorting.push({
+        id: sortByParam,
+        desc: sortDirectionParam === 'desc'
+      });
+    }
+
     // Set state first
     setColumnFilters(initialFilters);
     setCurrentPage(initialPage);
+    setSorting(initialSorting);
 
     // Load initial data using the unified function
-    loadTasksData(initialPage, initialFilters, false).then(() => {
+    loadTasksData(initialPage, initialFilters, initialSorting, false).then(() => {
       setIsInitialized(true);
     });
 
@@ -227,12 +253,12 @@ const TaskListPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]); // Only run once on mount or projectId change
 
-  // Handle column filter changes (skip initial load)
+  // Handle filter and sorting changes (skip initial load)
   useEffect(() => {
     if (isInitialized) {
-      loadTasksData(1, columnFilters); // Reset to page 1 when filtering
+      loadTasksData(1, columnFilters, sorting); // Reset to page 1 when filtering or sorting
     }
-  }, [columnFilters, isInitialized, loadTasksData]);
+  }, [columnFilters, sorting, isInitialized, loadTasksData]);
 
   // Set page actions (Create button in header) and breadcrumb
   useEffect(() => {
@@ -269,12 +295,12 @@ const TaskListPage: React.FC = () => {
   const handleTaskDelete = useCallback(async (id: number) => {
     try {
       await apiService.tasks.delete(id);
-      await loadTasksData(currentPage, columnFilters);
+      await loadTasksData(currentPage, columnFilters, sorting);
     } catch (error) {
       // Re-throw error to let QuickActions handle the user notification
       throw error;
     }
-  }, [loadTasksData, currentPage, columnFilters]);
+  }, [loadTasksData, currentPage, columnFilters, sorting]);
 
   const handleViewConversation = useCallback((task: Task) => {
     navigate(`/projects/${projectId}/tasks/${task.id}/conversation`);
@@ -285,8 +311,8 @@ const TaskListPage: React.FC = () => {
   }, [navigate, projectId]);
 
   const handlePageChange = useCallback((page: number) => {
-    loadTasksData(page, columnFilters);
-  }, [loadTasksData, columnFilters]);
+    loadTasksData(page, columnFilters, sorting);
+  }, [loadTasksData, columnFilters, sorting]);
 
 
 
@@ -317,7 +343,7 @@ const TaskListPage: React.FC = () => {
         );
       }
 
-      await loadTasksData(currentPage, columnFilters);
+      await loadTasksData(currentPage, columnFilters, sorting);
     } catch (error) {
       logError(error as Error, "Failed to batch update task status");
       toast.error(
@@ -335,7 +361,7 @@ const TaskListPage: React.FC = () => {
         await apiService.tasks.delete(id);
       }
       toast.success(t("tasks.messages.deleteSuccess"));
-      await loadTasksData(currentPage, columnFilters);
+      await loadTasksData(currentPage, columnFilters, sorting);
     } catch (error) {
       logError(error as Error, "Failed to batch delete tasks");
       toast.error(
@@ -359,8 +385,8 @@ const TaskListPage: React.FC = () => {
   }, [t]);
 
   const handlePushSuccess = useCallback(async () => {
-    await loadTasksData(currentPage, columnFilters);
-  }, [loadTasksData, currentPage, columnFilters]);
+    await loadTasksData(currentPage, columnFilters, sorting);
+  }, [loadTasksData, currentPage, columnFilters, sorting]);
 
   return (
     <div className="min-h-screen bg-background">
