@@ -23,9 +23,18 @@
   },
   "table": {
     "name": "Name",
+    "description": "Description",
+    "cpu": "CPU",
+    "memory": "Memory",
+    "env_vars": "Env Vars",
+    "created": "Created",
     "type": "Type",
     "docker_image": "Docker Image",
-    "resources": "Resources"
+    "resources": "Resources",
+    "no_description": "No description",
+    "core": "core",
+    "cores": "cores",
+    "actions": "Actions"
   },
   "filters": {
     "title": "Filter Options",

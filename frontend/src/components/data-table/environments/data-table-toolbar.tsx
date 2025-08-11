@@ -64,7 +64,7 @@ export function DevEnvironmentDataTableToolbar({
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2 flex-wrap">
         <Input
-          placeholder={t("devEnvironments.filter.placeholder", "Filter environments...")}
+          placeholder={t("devEnvironments.filters.name_placeholder")}
           value={searchValue}
           onChange={(event) => handleSearchChange(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"

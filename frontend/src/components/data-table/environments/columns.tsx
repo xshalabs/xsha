@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Edit } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { QuickActions } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
 import type { DevEnvironmentDisplay } from "@/types/dev-environment";
@@ -7,47 +8,49 @@ import type { DevEnvironmentDisplay } from "@/types/dev-environment";
 interface DevEnvironmentColumnsProps {
   onEdit: (environment: DevEnvironmentDisplay) => void;
   onDelete: (id: number) => void;
+  t: (key: string) => string;
 }
 
 export const createDevEnvironmentColumns = ({
   onEdit,
   onDelete,
+  t,
 }: DevEnvironmentColumnsProps): ColumnDef<DevEnvironmentDisplay>[] => [
   {
     accessorKey: "name",
-    header: "Name",
+    header: t("devEnvironments.table.name"),
     cell: ({ row }) => (
       <div className="font-medium">{row.getValue("name")}</div>
     ),
   },
   {
     accessorKey: "description",
-    header: "Description",
+    header: t("devEnvironments.table.description"),
     cell: ({ row }) => {
       const description = row.getValue("description") as string;
       return (
         <div className="max-w-[300px] truncate text-muted-foreground">
-          {description || "No description"}
+          {description || t("devEnvironments.table.no_description")}
         </div>
       );
     },
   },
   {
     accessorKey: "cpu_limit",
-    header: "CPU",
+    header: t("devEnvironments.table.cpu"),
     cell: ({ row }) => {
       const cores = row.getValue("cpu_limit") as number;
       const coreCount = cores || 0;
       return (
         <Badge variant="secondary">
-          {coreCount} {coreCount === 1 ? "core" : "cores"}
+          {coreCount} {coreCount === 1 ? t("devEnvironments.table.core") : t("devEnvironments.table.cores")}
         </Badge>
       );
     },
   },
   {
     accessorKey: "memory_limit",
-    header: "Memory",
+    header: t("devEnvironments.table.memory"),
     cell: ({ row }) => {
       const memoryMb = row.getValue("memory_limit") as number;
       const memory = memoryMb || 0;
@@ -66,7 +69,7 @@ export const createDevEnvironmentColumns = ({
   },
   {
     id: "env_vars_count",
-    header: "Env Vars",
+    header: t("devEnvironments.table.env_vars"),
     cell: ({ row }) => {
       const envVarsMap = row.original.env_vars_map || {};
       const count = Object.keys(envVarsMap).length;
@@ -79,7 +82,7 @@ export const createDevEnvironmentColumns = ({
   },
   {
     accessorKey: "created_at",
-    header: "Created",
+    header: t("devEnvironments.table.created"),
     cell: ({ row }) => {
       const date = new Date(row.getValue("created_at"));
       return (
@@ -97,7 +100,7 @@ export const createDevEnvironmentColumns = ({
       const actions = [
         {
           id: "edit",
-          label: "Edit",
+          label: t("devEnvironments.edit"),
           icon: Edit,
           onClick: () => onEdit(environment),
         },

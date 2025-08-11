@@ -221,8 +221,9 @@ const EnvironmentListPage: React.FC = () => {
       createDevEnvironmentColumns({
         onEdit: handleEditEnvironment,
         onDelete: handleDeleteEnvironment,
+        t,
       }),
-    [handleEditEnvironment, handleDeleteEnvironment]
+    [handleEditEnvironment, handleDeleteEnvironment, t]
   );
 
   // Initialize from URL on component mount (only once)

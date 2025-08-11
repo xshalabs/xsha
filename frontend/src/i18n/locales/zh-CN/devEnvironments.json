@@ -1,7 +1,7 @@
 {
   "create": "创建",
   "edit": "编辑",
-  "list": "环境列表",
+  "list": "环境",
   "page_description": "管理您的开发环境",
   "create_description": "创建新的开发环境",
   "edit_description": "修改开发环境配置信息",
@@ -23,9 +23,18 @@
   },
   "table": {
     "name": "名称",
+    "description": "描述",
+    "cpu": "CPU",
+    "memory": "内存",
+    "env_vars": "环境变量",
+    "created": "创建时间",
     "type": "类型",
     "docker_image": "Docker镜像",
-    "resources": "资源"
+    "resources": "资源",
+    "no_description": "无描述",
+    "core": "核",
+    "cores": "核",
+    "actions": "操作"
   },
   "filters": {
     "title": "筛选条件",
