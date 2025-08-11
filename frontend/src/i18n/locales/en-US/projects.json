@@ -50,7 +50,7 @@
     "title": "Filter Projects",
     "name_placeholder": "Search by project name"
   },
-  "list": "Project List",
+  "list": "Projects",
   "createAndCustomize": "Create and start customizing",
   "createHelpText": "Configure your project repository settings, add credentials, and start automating your development workflow.",
   "editAndUpdate": "Edit and update settings",

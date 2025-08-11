@@ -59,5 +59,14 @@
     "light": "Light",
     "dark": "Dark",
     "system": "System"
+  },
+  "deleteDialog": {
+    "title": "Are you sure about deleting `{{name}}`?",
+    "description": "This action cannot be undone. This will permanently remove the entry from the database.",
+    "confirmInputLabel": "Please write '{{name}}' to confirm",
+    "deleting": "Deleting...",
+    "deleteSuccess": "Deleted successfully",
+    "deleteFailed": "Failed to delete",
+    "unexpectedError": "An unexpected error occurred"
   }
 } 

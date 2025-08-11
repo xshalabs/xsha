@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useState, useTransition } from "react";
+import { useTranslation } from "react-i18next";
 
 import { MoreHorizontal, Trash2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -59,6 +60,7 @@ export function QuickActions({
   children,
   ...props
 }: QuickActionsProps) {
+  const { t } = useTranslation();
   const [value, setValue] = useState("");
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
@@ -71,14 +73,14 @@ export function QuickActions({
       startTransition(async () => {
         try {
           await submitAction();
-          toast.success("Deleted successfully");
+          toast.success(t("common.deleteDialog.deleteSuccess"));
           setOpen(false);
           setValue(""); // Reset input value
         } catch (error) {
           console.error("Failed to delete:", error);
           
           // Extract error message
-          let errorMessage = "Failed to delete";
+          let errorMessage = t("common.deleteDialog.deleteFailed");
           if (error instanceof Error) {
             errorMessage = error.message;
           } else if (typeof error === "string") {
@@ -96,7 +98,7 @@ export function QuickActions({
     } catch (error) {
       // This catch handles any synchronous errors
       console.error("Synchronous error in delete:", error);
-      toast.error("An unexpected error occurred");
+      toast.error(t("common.deleteDialog.unexpectedError"));
     }
   };
 
@@ -146,7 +148,7 @@ export function QuickActions({
                   }}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
+                  {t("common.delete")}
                 </DropdownMenuItem>
               </AlertDialogTrigger>
             </>
@@ -163,21 +165,16 @@ export function QuickActions({
         >
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Are you sure about deleting `{deleteAction.title}`?
+              {t("common.deleteDialog.title", { name: deleteAction.title })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently remove the entry
-              from the database.
+              {t("common.deleteDialog.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           {deleteAction.confirmationValue ? (
             <form id="form-alert-dialog" className="space-y-0.5">
               <p className="text-muted-foreground text-xs">
-                Please write &apos;
-                <span className="font-semibold">
-                  {deleteAction.confirmationValue}
-                </span>
-                &apos; to confirm
+                {t("common.deleteDialog.confirmInputLabel", { name: deleteAction.confirmationValue })}
               </p>
               <Input 
                 value={value} 
@@ -193,7 +190,7 @@ export function QuickActions({
                 setValue(""); // Reset input value on cancel
               }}
             >
-              Cancel
+              {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-white shadow-sm hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60"
@@ -209,7 +206,7 @@ export function QuickActions({
                 handleDelete();
               }}
             >
-              {isPending ? "Deleting..." : "Delete"}
+              {isPending ? t("common.deleteDialog.deleting") : t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
