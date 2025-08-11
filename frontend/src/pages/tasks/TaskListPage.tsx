@@ -15,7 +15,6 @@ import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import type { Task, TaskStatus } from "@/types/task";
 import type { Project } from "@/types/project";
-import type { DevEnvironment } from "@/types/dev-environment";
 import { toast } from "sonner";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
@@ -57,7 +56,6 @@ const TaskListPage: React.FC = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const [devEnvironments, setDevEnvironments] = useState<DevEnvironment[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [pushDialogOpen, setPushDialogOpen] = useState(false);
@@ -75,14 +73,7 @@ const TaskListPage: React.FC = () => {
 
 
 
-  const loadDevEnvironments = async () => {
-    try {
-      const response = await apiService.devEnvironments.list();
-      setDevEnvironments(response.environments);
-    } catch (error) {
-      logError(error as Error, "Failed to load dev environments");
-    }
-  };
+
 
   const loadTasksData = useCallback(
     async (page: number, filters: ColumnFiltersState, sorting: SortingState, updateUrl = true) => {
@@ -128,11 +119,6 @@ const TaskListPage: React.FC = () => {
             }
           } else if (filter.id === "start_branch" && filter.value) {
             apiParams.branch = filter.value as string;
-          } else if (filter.id === "dev_environment.name" && filter.value) {
-            const envIdArray = filter.value as string[];
-            if (envIdArray.length > 0) {
-              apiParams.dev_environment_id = parseInt(envIdArray[0]);
-            }
           }
         });
 
@@ -189,13 +175,10 @@ const TaskListPage: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    loadDevEnvironments();
-
     // Get URL params directly to avoid dependency issues
     const titleParam = searchParams.get("title");
     const statusParam = searchParams.get("status");
     const branchParam = searchParams.get("start_branch");
-    const envParam = searchParams.get("dev_environment.name");
     const pageParam = searchParams.get("page");
     const sortByParam = searchParams.get("sort_by");
     const sortDirectionParam = searchParams.get("sort_direction");
@@ -212,10 +195,6 @@ const TaskListPage: React.FC = () => {
 
     if (branchParam) {
       initialFilters.push({ id: "start_branch", value: branchParam });
-    }
-
-    if (envParam) {
-      initialFilters.push({ id: "dev_environment.name", value: envParam.split(',') });
     }
 
     const initialPage = pageParam ? parseInt(pageParam, 10) : 1;
@@ -417,8 +396,7 @@ const TaskListPage: React.FC = () => {
               data={tasks}
               toolbarComponent={(props) => (
                 <TaskDataTableToolbar 
-                  {...props} 
-                  devEnvironments={devEnvironments}
+                  {...props}
                 />
               )}
               actionBar={(props) => (

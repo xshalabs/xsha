@@ -239,7 +239,7 @@ export const DashboardPage: React.FC = () => {
                     task.status === 'cancelled' ? 'bg-red-100 text-red-700' :
                     'bg-gray-100 text-gray-700'
                   }`}>
-                    {task.status}
+                    {t(`tasks.status.${task.status}`)}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">

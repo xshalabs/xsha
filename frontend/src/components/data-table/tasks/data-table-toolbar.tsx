@@ -7,16 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableFacetedFilter } from "@/components/ui/data-table/data-table-faceted-filter";
 import type { Task } from "@/types/task";
-import type { DevEnvironment } from "@/types/dev-environment";
 
 export interface TaskDataTableToolbarProps {
   table: Table<Task>;
-  devEnvironments?: DevEnvironment[];
 }
 
 export function TaskDataTableToolbar({
   table,
-  devEnvironments = [],
 }: TaskDataTableToolbarProps) {
   const { t } = useTranslation();
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -130,16 +127,7 @@ export function TaskDataTableToolbar({
           />
         )}
 
-        {table.getColumn("dev_environment.name") && devEnvironments.length > 0 && (
-          <DataTableFacetedFilter
-            column={table.getColumn("dev_environment.name")}
-            title={t("tasks.filters.devEnvironment")}
-            options={devEnvironments.map((env) => ({
-              label: `${env.name} (${env.type})`,
-              value: env.id.toString(),
-            }))}
-          />
-        )}
+
 
         {isFiltered && (
           <Button
