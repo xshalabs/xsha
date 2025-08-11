@@ -183,7 +183,7 @@ func (h *TaskHandlers) ListTasks(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 	sortBy := c.Query("sort_by")
 	sortDirection := c.Query("sort_direction")
 

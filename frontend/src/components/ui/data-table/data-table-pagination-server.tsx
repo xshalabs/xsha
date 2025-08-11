@@ -50,7 +50,7 @@ export function DataTablePaginationServer({
           variant="outline"
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage >= totalPages}
+          disabled={currentPage >= totalPages || totalPages <= 1}
           title={t("common.goToNextPage")}
         >
           <ChevronRight className="h-4 w-4" />
@@ -59,7 +59,7 @@ export function DataTablePaginationServer({
           variant="outline"
           size="sm"
           onClick={() => onPageChange(totalPages)}
-          disabled={currentPage >= totalPages}
+          disabled={currentPage >= totalPages || totalPages <= 1}
           title={t("common.goToLastPage")}
         >
           <ChevronsRight className="h-4 w-4" />

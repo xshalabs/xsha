@@ -67,7 +67,7 @@ const TaskListPage: React.FC = () => {
       : t("tasks.title")
   );
 
-  const pageSize = 20;
+  const pageSize = 10;
 
 
 
@@ -124,7 +124,7 @@ const TaskListPage: React.FC = () => {
 
         const response = await apiService.tasks.list(apiParams);
         setTasks(response.data.tasks);
-        setTotalPages(Math.ceil(response.data.total / pageSize));
+        setTotalPages(Math.max(1, Math.ceil(response.data.total / pageSize)));
         setTotal(response.data.total);
         setCurrentPage(page);
 
