@@ -23,7 +23,8 @@
     "totalProjects": "Projects",
     "activeEnvironments": "Environments",
     "gitCredentials": "Credentials",
-    "recentTasks": "Tasks"
+    "recentTasks": "Tasks",
+    "taskConversations": "Conversations"
   },
   "quickActions": {
     "title": "Quick Actions",

@@ -58,6 +58,13 @@ func (r *dashboardRepository) GetDashboardStats() (map[string]interface{}, error
 	}
 	stats["recent_tasks"] = recentTaskCount
 
+	// Get task conversations count
+	var conversationCount int64
+	if err := r.db.Model(&database.TaskConversation{}).Count(&conversationCount).Error; err != nil {
+		return nil, err
+	}
+	stats["task_conversations"] = conversationCount
+
 	// Get tasks by status
 	var statusStats []struct {
 		Status string

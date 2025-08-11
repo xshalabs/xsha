@@ -33,6 +33,7 @@ import {
   Plus,
   Clock,
   Loader2,
+  MessageCircle,
 } from "lucide-react";
 
 export const DashboardPage: React.FC = () => {
@@ -101,6 +102,14 @@ export const DashboardPage: React.FC = () => {
       href: "/tasks",
       variant: "default" as const,
       icon: Activity,
+      clickable: false,
+    },
+    {
+      title: t("dashboard.metrics.taskConversations"),
+      value: stats.task_conversations.toString(),
+      href: "/tasks",
+      variant: "default" as const,
+      icon: MessageCircle,
       clickable: false,
     },
   ] : [];

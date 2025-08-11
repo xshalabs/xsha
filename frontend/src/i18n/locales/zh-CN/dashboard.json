@@ -23,7 +23,8 @@
     "totalProjects": "项目",
     "activeEnvironments": "环境",
     "gitCredentials": "凭据",
-    "recentTasks": "任务"
+    "recentTasks": "任务",
+    "taskConversations": "对话"
   },
   "quickActions": {
     "title": "快捷操作",

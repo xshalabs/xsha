@@ -6,6 +6,7 @@ export interface DashboardStats {
   git_credentials: number;
   total_tasks: number;
   recent_tasks: number;
+  task_conversations: number;
   task_status_counts: {
     [key: string]: number;
   };
