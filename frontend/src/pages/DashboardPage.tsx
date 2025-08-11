@@ -236,9 +236,9 @@ export const DashboardPage: React.FC = () => {
                 className="border border-border rounded-lg p-4 hover:border-primary/50 transition-colors cursor-pointer"
                 onClick={() => handleTaskClick(task)}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-medium truncate">{task.title}</h3>
-                  <span className={`text-xs px-2 py-1 rounded ${
+                <div className="flex justify-between items-start gap-2 mb-2">
+                  <h3 className="font-medium truncate flex-1 min-w-0">{task.title}</h3>
+                  <span className={`text-xs px-2 py-1 rounded flex-shrink-0 ${
                     task.status === 'done' ? 'bg-green-100 text-green-700' :
                     task.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
                     task.status === 'cancelled' ? 'bg-red-100 text-red-700' :
