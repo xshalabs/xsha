@@ -76,6 +76,7 @@
   },
   "table": {
     "noResults": "暂无数据",
-    "selected": "已选择"
+    "selected": "已选择",
+    "clearFilters": "清除筛选"
   }
 } 

@@ -76,6 +76,7 @@
   },
   "table": {
     "noResults": "No data available",
-    "selected": "selected"
+    "selected": "selected",
+    "clearFilters": "Clear filters"
   }
 } 
