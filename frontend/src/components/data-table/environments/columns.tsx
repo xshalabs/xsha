@@ -1,6 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Edit } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { QuickActions } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
 import type { DevEnvironmentDisplay } from "@/types/dev-environment";
