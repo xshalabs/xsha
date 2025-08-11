@@ -68,6 +68,7 @@
     "status": "Status",
     "conversations": "Conversations",
     "branch": "Branch",
+    "workBranch": "Work Branch",
     "environment": "Environment",
     "created": "Created"
   },

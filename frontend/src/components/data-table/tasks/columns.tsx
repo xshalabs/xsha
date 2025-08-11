@@ -1,10 +1,12 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Edit, MessageSquare, GitCompare, GitBranch } from "lucide-react";
+import { Edit, MessageSquare, GitCompare, GitBranch, Copy } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 type TFunction = ReturnType<typeof useTranslation>['t'];
 import { QuickActions } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -166,6 +168,46 @@ export const createTaskColumns = ({
                 PR
               </Badge>
             )}
+          </div>
+        );
+      },
+      enableSorting: true,
+    },
+    {
+      accessorKey: "work_branch",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("tasks.table.workBranch")} />
+      ),
+      cell: ({ row }) => {
+        const task = row.original;
+        
+        if (!task.work_branch) {
+          return <span className="text-xs text-muted-foreground">-</span>;
+        }
+        
+        const copyToClipboard = async () => {
+          try {
+            await navigator.clipboard.writeText(task.work_branch);
+            toast.success(t("common.copied_to_clipboard"));
+          } catch (err) {
+            toast.error(t("common.copy_failed"));
+          }
+        };
+
+        return (
+          <div className="flex items-center gap-2 max-w-[200px]">
+            <span className="text-sm font-mono truncate">
+              {task.work_branch}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={copyToClipboard}
+              className="h-6 w-6 p-0 hover:bg-muted/50 flex-shrink-0"
+              title={t("common.copy")}
+            >
+              <Copy className="h-3 w-3" />
+            </Button>
           </div>
         );
       },

@@ -67,6 +67,7 @@
     "status": "状态",
     "conversations": "对话",
     "branch": "分支",
+    "workBranch": "工作分支",
     "environment": "环境",
     "created": "创建时间"
   },
