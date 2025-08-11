@@ -181,11 +181,28 @@ const CredentialListPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run once on mount
 
+  // Track previous filter values to detect actual filter changes
+  const previousFiltersRef = useRef<ColumnFiltersState>([]);
+  
   // Handle column filter changes (skip initial load)
   useEffect(() => {
-    if (isInitialized) {
-      loadCredentialsData(1, columnFilters); // Reset to page 1 when filtering
+    if (!isInitialized) {
+      return;
     }
+
+    // Check if filters actually changed in content, not just reference
+    const currentFilterValues = columnFilters.map(f => ({ id: f.id, value: f.value }));
+    const previousFilterValues = previousFiltersRef.current.map(f => ({ id: f.id, value: f.value }));
+    
+    const hasActualFilterChange = JSON.stringify(currentFilterValues) !== JSON.stringify(previousFilterValues);
+    
+    if (hasActualFilterChange) {
+      // Only reset to page 1 when filter content actually changes
+      loadCredentialsData(1, columnFilters);
+    }
+    
+    // Update the previous filters reference
+    previousFiltersRef.current = columnFilters;
   }, [columnFilters, isInitialized, loadCredentialsData]);
 
   const handlePageChange = useCallback(
