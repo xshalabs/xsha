@@ -6,17 +6,7 @@ import { useTranslation } from "react-i18next";
 export function useLoginLogColumns() {
   const { t } = useTranslation();
 
-  const getReasonText = (reason: string) => {
-    if (!reason) return "";
-    
-    const reasonMap = {
-      'token_generation_failed': t("adminLogs.loginLogs.reasons.tokenGenerationFailed"),
-      'invalid_username': t("adminLogs.loginLogs.reasons.invalidUsername"),
-      'invalid_password': t("adminLogs.loginLogs.reasons.invalidPassword"),
-    } as const;
-    
-    return reasonMap[reason as keyof typeof reasonMap] || reason;
-  };
+
 
   const columns: ColumnDef<LoginLog>[] = [
     {
@@ -119,7 +109,7 @@ export function useLoginLogColumns() {
         return (
           <div className="max-w-xs">
             <span className="text-sm text-red-600 break-words">
-              {getReasonText(reason)}
+              {reason}
             </span>
           </div>
         );
