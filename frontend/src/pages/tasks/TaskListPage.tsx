@@ -75,101 +75,105 @@ const TaskListPage: React.FC = () => {
 
 
 
-  const loadTasksData = useCallback(
-    async (page: number, filters: ColumnFiltersState, sorting: SortingState, updateUrl = true) => {
-      // Create a unique request key for deduplication
-      const requestKey = JSON.stringify({ page, filters, sorting, updateUrl, projectId });
+  // Create stable loadTasksData function reference using useRef to prevent unnecessary re-renders
+  const loadTasksDataRef = useRef<(page: number, filters: ColumnFiltersState, sorting: SortingState, updateUrl?: boolean) => Promise<void>>(async () => {});
+  
+  loadTasksDataRef.current = async (page: number, filters: ColumnFiltersState, sorting: SortingState, updateUrl = true) => {
+    // Create a unique request key for deduplication
+    const requestKey = JSON.stringify({ page, filters, sorting, updateUrl, projectId });
 
-      // Skip if same request is already in progress or just completed
-      if (
-        isRequestInProgress.current ||
-        lastRequestRef.current === requestKey
-      ) {
-        return;
+    // Skip if same request is already in progress or just completed
+    if (
+      isRequestInProgress.current ||
+      lastRequestRef.current === requestKey
+    ) {
+      return;
+    }
+
+    isRequestInProgress.current = true;
+    lastRequestRef.current = requestKey;
+
+    try {
+      setLoading(true);
+
+      // Convert DataTable filters and sorting to API parameters
+      const apiParams: any = {
+        page,
+        page_size: pageSize,
+        project_id: projectId ? parseInt(projectId, 10) : undefined,
+      };
+
+      // Handle sorting
+      if (sorting.length > 0) {
+        const sort = sorting[0];
+        apiParams.sort_by = sort.id;
+        apiParams.sort_direction = sort.desc ? "desc" : "asc";
       }
 
-      isRequestInProgress.current = true;
-      lastRequestRef.current = requestKey;
-
-      try {
-        setLoading(true);
-
-        // Convert DataTable filters and sorting to API parameters
-        const apiParams: any = {
-          page,
-          page_size: pageSize,
-          project_id: projectId ? parseInt(projectId, 10) : undefined,
-        };
-
-        // Handle sorting
-        if (sorting.length > 0) {
-          const sort = sorting[0];
-          apiParams.sort_by = sort.id;
-          apiParams.sort_direction = sort.desc ? "desc" : "asc";
+      // Handle column filters
+      filters.forEach((filter) => {
+        if (filter.id === "title" && filter.value) {
+          apiParams.title = filter.value as string;
+        } else if (filter.id === "status" && filter.value) {
+          const statusArray = filter.value as string[];
+          if (statusArray.length > 0) {
+            apiParams.status = statusArray.join(","); // API now supports multiple statuses
+          }
+        } else if (filter.id === "start_branch" && filter.value) {
+          apiParams.branch = filter.value as string;
         }
+      });
 
-        // Handle column filters
+      const response = await apiService.tasks.list(apiParams);
+      setTasks(response.data.tasks);
+      setTotalPages(Math.max(1, Math.ceil(response.data.total / pageSize)));
+      setTotal(response.data.total);
+      setCurrentPage(page);
+
+      // Update URL parameters
+      if (updateUrl) {
+        const params = new URLSearchParams();
+
+        // Add filter parameters
         filters.forEach((filter) => {
-          if (filter.id === "title" && filter.value) {
-            apiParams.title = filter.value as string;
-          } else if (filter.id === "status" && filter.value) {
-            const statusArray = filter.value as string[];
-            if (statusArray.length > 0) {
-              apiParams.status = statusArray.join(","); // API now supports multiple statuses
-            }
-          } else if (filter.id === "start_branch" && filter.value) {
-            apiParams.branch = filter.value as string;
+          if (filter.value) {
+            params.set(filter.id, Array.isArray(filter.value) ? filter.value.join(',') : String(filter.value));
           }
         });
 
-        const response = await apiService.tasks.list(apiParams);
-        setTasks(response.data.tasks);
-        setTotalPages(Math.max(1, Math.ceil(response.data.total / pageSize)));
-        setTotal(response.data.total);
-        setCurrentPage(page);
-
-        // Update URL parameters
-        if (updateUrl) {
-          const params = new URLSearchParams();
-
-          // Add filter parameters
-          filters.forEach((filter) => {
-            if (filter.value) {
-              params.set(filter.id, Array.isArray(filter.value) ? filter.value.join(',') : String(filter.value));
-            }
-          });
-
-          // Add sorting parameters
-          if (sorting.length > 0) {
-            const sort = sorting[0];
-            params.set("sort_by", sort.id);
-            params.set("sort_direction", sort.desc ? "desc" : "asc");
-          }
-
-          // Add page parameter (only if not page 1)
-          if (page > 1) {
-            params.set("page", String(page));
-          }
-
-          // Update URL without causing navigation
-          setSearchParams(params, { replace: true });
+        // Add sorting parameters
+        if (sorting.length > 0) {
+          const sort = sorting[0];
+          params.set("sort_by", sort.id);
+          params.set("sort_direction", sort.desc ? "desc" : "asc");
         }
-      } catch (error) {
-        logError(error as Error, "Failed to load tasks");
-      } finally {
-        setLoading(false);
-        isRequestInProgress.current = false;
 
-        // Clear the request key after a short delay to allow legitimate new requests
-        setTimeout(() => {
-          if (lastRequestRef.current === requestKey) {
-            lastRequestRef.current = "";
-          }
-        }, 500); // Increase delay to prevent rapid duplicate requests
+        // Add page parameter (only if not page 1)
+        if (page > 1) {
+          params.set("page", String(page));
+        }
+
+        // Update URL without causing navigation
+        setSearchParams(params, { replace: true });
       }
-    },
-    [pageSize, projectId, setSearchParams]
-  );
+    } catch (error) {
+      logError(error as Error, "Failed to load tasks");
+    } finally {
+      setLoading(false);
+      isRequestInProgress.current = false;
+
+      // Clear the request key after a short delay to allow legitimate new requests
+      setTimeout(() => {
+        if (lastRequestRef.current === requestKey) {
+          lastRequestRef.current = "";
+        }
+      }, 500); // Increase delay to prevent rapid duplicate requests
+    }
+  };
+
+  const loadTasksData = useCallback((page: number, filters: ColumnFiltersState, sorting: SortingState, updateUrl = true) => {
+    return loadTasksDataRef.current!(page, filters, sorting, updateUrl);
+  }, []);
 
   // Initialize from URL on component mount (only once)
   const [isInitialized, setIsInitialized] = useState(false);
@@ -237,7 +241,9 @@ const TaskListPage: React.FC = () => {
     if (isInitialized) {
       loadTasksData(1, columnFilters, sorting); // Reset to page 1 when filtering or sorting
     }
-  }, [columnFilters, sorting, isInitialized, loadTasksData]);
+    // Note: removed loadTasksData from dependencies to prevent circular re-renders
+    // The loadTasksData function is now stable via useRef
+  }, [columnFilters, sorting, isInitialized]);
 
   // Set page actions (Create button in header) and breadcrumb
   useEffect(() => {
@@ -279,7 +285,7 @@ const TaskListPage: React.FC = () => {
       // Re-throw error to let QuickActions handle the user notification
       throw error;
     }
-  }, [loadTasksData, currentPage, columnFilters, sorting]);
+  }, [currentPage, columnFilters, sorting]);
 
   const handleViewConversation = useCallback((task: Task) => {
     navigate(`/projects/${projectId}/tasks/${task.id}/conversation`);
@@ -291,7 +297,7 @@ const TaskListPage: React.FC = () => {
 
   const handlePageChange = useCallback((page: number) => {
     loadTasksData(page, columnFilters, sorting);
-  }, [loadTasksData, columnFilters, sorting]);
+  }, [columnFilters, sorting]);
 
 
 
@@ -331,7 +337,7 @@ const TaskListPage: React.FC = () => {
           : t("tasks.messages.batchUpdateFailed")
       );
     }
-  }, [loadTasksData, currentPage, columnFilters, t]);
+  }, [currentPage, columnFilters, sorting, t]);
 
   const handleBatchDelete = useCallback(async (taskIds: number[]) => {
     try {
@@ -349,7 +355,7 @@ const TaskListPage: React.FC = () => {
           : t("tasks.messages.deleteFailed")
       );
     }
-  }, [loadTasksData, currentPage, columnFilters, t]);
+  }, [currentPage, columnFilters, sorting, t]);
 
   const handlePushBranch = useCallback(async (task: Task) => {
     if (!task.work_branch) {
@@ -365,7 +371,7 @@ const TaskListPage: React.FC = () => {
 
   const handlePushSuccess = useCallback(async () => {
     await loadTasksData(currentPage, columnFilters, sorting);
-  }, [loadTasksData, currentPage, columnFilters, sorting]);
+  }, [currentPage, columnFilters, sorting]);
 
   return (
     <div className="min-h-screen bg-background">
