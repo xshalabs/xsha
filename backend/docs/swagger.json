@@ -75,55 +75,41 @@
                     "200": {
                         "description": "Login log list",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "logs": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "page": {
-                                            "type": "number"
-                                        },
-                                        "page_size": {
-                                            "type": "number"
-                                        },
-                                        "total": {
-                                            "type": "number"
-                                        },
-                                        "total_pages": {
-                                            "type": "number"
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "logs": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "page": {
+                                    "type": "number"
+                                },
+                                "page_size": {
+                                    "type": "number"
+                                },
+                                "total": {
+                                    "type": "number"
+                                },
+                                "total_pages": {
+                                    "type": "number"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Failed to get login logs",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -201,55 +187,41 @@
                     "200": {
                         "description": "Operation log list",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "logs": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "page": {
-                                            "type": "number"
-                                        },
-                                        "page_size": {
-                                            "type": "number"
-                                        },
-                                        "total": {
-                                            "type": "number"
-                                        },
-                                        "total_pages": {
-                                            "type": "number"
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "logs": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "page": {
+                                    "type": "number"
+                                },
+                                "page_size": {
+                                    "type": "number"
+                                },
+                                "total": {
+                                    "type": "number"
+                                },
+                                "total_pages": {
+                                    "type": "number"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Failed to get operation logs",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -286,58 +258,37 @@
                     "200": {
                         "description": "Operation log details",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "log": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "log": {
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid log ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Log not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -385,49 +336,35 @@
                     "200": {
                         "description": "Operation statistics information",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "end_time": {
+                                    "type": "string"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "operation_stats": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "end_time": {
-                                            "type": "string"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "operation_stats": {
-                                            "type": "object"
-                                        },
-                                        "resource_stats": {
-                                            "type": "object"
-                                        },
-                                        "start_time": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "resource_stats": {
+                                    "type": "object"
+                                },
+                                "start_time": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Failed to get operation statistics",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -453,22 +390,15 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "password": {
+                                    "type": "string"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "password": {
-                                            "type": "string"
-                                        },
-                                        "username": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "username": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 ],
@@ -476,76 +406,48 @@
                     "200": {
                         "description": "Login successful",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "expires_at": {
+                                    "type": "string"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "expires_at": {
-                                            "type": "string"
-                                        },
-                                        "token": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "token": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "429": {
                         "description": "Too frequent requests",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -573,73 +475,45 @@
                     "200": {
                         "description": "Logout successful",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid token",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Logout failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -690,82 +564,54 @@
                     "200": {
                         "description": "Results retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object",
                                     "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "type": "object"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "page": {
-                                                            "type": "integer"
-                                                        },
-                                                        "page_size": {
-                                                            "type": "integer"
-                                                        },
-                                                        "results": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "object"
-                                                            }
-                                                        },
-                                                        "total": {
-                                                            "type": "integer"
-                                                        }
-                                                    }
-                                                }
-                                            ]
+                                        "page": {
+                                            "type": "integer"
                                         },
-                                        "message": {
-                                            "type": "string"
+                                        "page_size": {
+                                            "type": "integer"
+                                        },
+                                        "results": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer"
                                         }
                                     }
+                                },
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -802,58 +648,37 @@
                     "200": {
                         "description": "Result retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid result ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Result not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -897,37 +722,23 @@
                     "200": {
                         "description": "Result updated successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -962,37 +773,23 @@
                     "200": {
                         "description": "Result deleted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1043,100 +840,65 @@
                     "200": {
                         "description": "Conversations retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object",
                                     "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "type": "object"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "conversations": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "object"
-                                                            }
-                                                        },
-                                                        "page": {
-                                                            "type": "integer"
-                                                        },
-                                                        "page_size": {
-                                                            "type": "integer"
-                                                        },
-                                                        "total": {
-                                                            "type": "integer"
-                                                        }
-                                                    }
-                                                }
-                                            ]
+                                        "conversations": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
                                         },
-                                        "message": {
-                                            "type": "string"
+                                        "page": {
+                                            "type": "integer"
+                                        },
+                                        "page_size": {
+                                            "type": "integer"
+                                        },
+                                        "total": {
+                                            "type": "integer"
                                         }
                                     }
+                                },
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1173,58 +935,37 @@
                     "201": {
                         "description": "Conversation created successfully",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1261,76 +1002,48 @@
                     "200": {
                         "description": "Latest conversation retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Conversation not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1367,58 +1080,37 @@
                     "200": {
                         "description": "Result retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid conversation ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Result not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1455,76 +1147,48 @@
                     "200": {
                         "description": "Conversation retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid conversation ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Conversation not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1568,55 +1232,34 @@
                     "200": {
                         "description": "Conversation updated successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1651,73 +1294,45 @@
                     "200": {
                         "description": "Conversation deleted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid conversation ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Conversation not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1761,73 +1376,45 @@
                     "200": {
                         "description": "Git diff retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid conversation ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Failed to get Git diff",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -1871,88 +1458,53 @@
                     "200": {
                         "description": "File Git diff retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object",
                                     "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "type": "object"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "diff_content": {
-                                                            "type": "string"
-                                                        },
-                                                        "file_path": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                }
-                                            ]
+                                        "diff_content": {
+                                            "type": "string"
+                                        },
+                                        "file_path": {
+                                            "type": "string"
                                         }
                                     }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Failed to get file Git diff",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2006,55 +1558,41 @@
                     "200": {
                         "description": "Credential list",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "credentials": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "page": {
-                                            "type": "number"
-                                        },
-                                        "page_size": {
-                                            "type": "number"
-                                        },
-                                        "total": {
-                                            "type": "number"
-                                        },
-                                        "total_pages": {
-                                            "type": "number"
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "credentials": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "page": {
+                                    "type": "number"
+                                },
+                                "page_size": {
+                                    "type": "number"
+                                },
+                                "total": {
+                                    "type": "number"
+                                },
+                                "total_pages": {
+                                    "type": "number"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Failed to get credential list",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2091,58 +1629,37 @@
                     "201": {
                         "description": "Credential created successfully",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "credential": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "credential": {
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Failed to create credential",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2179,55 +1696,34 @@
                     "200": {
                         "description": "Credential details",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "credential": {
                                     "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "credential": {
-                                            "type": "object"
-                                        }
-                                    }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid credential ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Credential not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2271,55 +1767,34 @@
                     "200": {
                         "description": "Credential updated successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Credential not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2354,55 +1829,34 @@
                     "200": {
                         "description": "Credential deleted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid credential ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Credential not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2439,22 +1893,15 @@
                     "200": {
                         "description": "Recent tasks",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "tasks": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "tasks": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
@@ -2496,20 +1943,13 @@
                     "200": {
                         "description": "Dashboard statistics",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
+                            "type": "object",
+                            "properties": {
+                                "stats": {
                                     "type": "object",
-                                    "properties": {
-                                        "stats": {
-                                            "type": "object",
-                                            "additionalProperties": true
-                                        }
-                                    }
+                                    "additionalProperties": true
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
@@ -2570,25 +2010,18 @@
                     "200": {
                         "description": "Environment list",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "environments": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "total": {
-                                            "type": "number"
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "environments": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
+                                },
+                                "total": {
+                                    "type": "number"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2625,40 +2058,26 @@
                     "201": {
                         "description": "Environment created successfully",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "environment": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "environment": {
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2686,22 +2105,15 @@
                     "200": {
                         "description": "Available environment images",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "images": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "images": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2729,20 +2141,13 @@
                     "200": {
                         "description": "Environment statistics",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
+                            "type": "object",
+                            "properties": {
+                                "stats": {
                                     "type": "object",
-                                    "properties": {
-                                        "stats": {
-                                            "type": "object",
-                                            "additionalProperties": true
-                                        }
-                                    }
+                                    "additionalProperties": true
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
@@ -2786,37 +2191,23 @@
                     "200": {
                         "description": "Environment details",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "environment": {
                                     "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "environment": {
-                                            "type": "object"
-                                        }
-                                    }
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Environment not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2860,37 +2251,23 @@
                     "200": {
                         "description": "Environment updated successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2925,37 +2302,23 @@
                     "200": {
                         "description": "Environment deleted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Delete failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -2992,37 +2355,23 @@
                     "200": {
                         "description": "Environment variables",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "env_vars": {
                                     "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "env_vars": {
-                                            "type": "object"
-                                        }
-                                    }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Get failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -3069,37 +2418,23 @@
                     "200": {
                         "description": "Update successful",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Update failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -3122,25 +2457,18 @@
                     "200": {
                         "description": "Server status is normal",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "lang": {
+                                    "type": "string"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "lang": {
-                                            "type": "string"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "status": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -3153,7 +2481,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get current user's project list with pagination and name filtering",
+                "description": "Get current user's project list with pagination, filtering and sorting",
                 "consumes": [
                     "application/json"
                 ],
@@ -3188,55 +2516,53 @@
                         "description": "Page size, defaults to 20",
                         "name": "page_size",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field: name, task_count, created_at (defaults to created_at)",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort direction: asc, desc (defaults to desc)",
+                        "name": "sort_direction",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Project list",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "page": {
+                                    "type": "number"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "page": {
-                                            "type": "number"
-                                        },
-                                        "page_size": {
-                                            "type": "number"
-                                        },
-                                        "projects": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "total": {
-                                            "type": "number"
-                                        }
+                                "page_size": {
+                                    "type": "number"
+                                },
+                                "projects": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
+                                },
+                                "total": {
+                                    "type": "number"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Failed to get project list",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -3273,58 +2599,37 @@
                     "201": {
                         "description": "Project created successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "number"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "id": {
-                                            "type": "number"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Project creation failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -3363,58 +2668,37 @@
                     "200": {
                         "description": "Fetch branch list successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "result": {
-                                            "$ref": "#/definitions/handlers.FetchRepositoryBranchesResponse"
-                                        }
-                                    }
+                                "result": {
+                                    "$ref": "#/definitions/handlers.FetchRepositoryBranchesResponse"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Failed to fetch branch list",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -3451,43 +2735,29 @@
                     "200": {
                         "description": "Get credential list successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "credentials": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "credentials": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
+                                },
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -3526,40 +2796,26 @@
                     "200": {
                         "description": "Parse successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "result": {
-                                            "$ref": "#/definitions/handlers.ParseRepositoryURLResponse"
-                                        }
-                                    }
+                                "result": {
+                                    "$ref": "#/definitions/handlers.ParseRepositoryURLResponse"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -3598,40 +2854,26 @@
                     "200": {
                         "description": "Validation successful",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "can_access": {
+                                    "type": "boolean"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "can_access": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error or validation failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -3668,55 +2910,34 @@
                     "200": {
                         "description": "Project details",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "project": {
                                     "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "project": {
-                                            "type": "object"
-                                        }
-                                    }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid project ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Project not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -3760,55 +2981,34 @@
                     "200": {
                         "description": "Project updated successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Project not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -3843,55 +3043,34 @@
                     "200": {
                         "description": "Project deleted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid project ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Project not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -3942,64 +3121,43 @@
                     "200": {
                         "description": "Results retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object",
                                     "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "type": "object"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "items": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "object"
-                                                            }
-                                                        },
-                                                        "page": {
-                                                            "type": "integer"
-                                                        },
-                                                        "page_size": {
-                                                            "type": "integer"
-                                                        },
-                                                        "total": {
-                                                            "type": "integer"
-                                                        }
-                                                    }
-                                                }
-                                            ]
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
                                         },
-                                        "message": {
-                                            "type": "string"
+                                        "page": {
+                                            "type": "integer"
+                                        },
+                                        "page_size": {
+                                            "type": "integer"
+                                        },
+                                        "total": {
+                                            "type": "integer"
                                         }
                                     }
+                                },
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -4036,40 +3194,26 @@
                     "200": {
                         "description": "Project statistics retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -4097,22 +3241,15 @@
                     "200": {
                         "description": "All configurations",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "configs": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "configs": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -4149,37 +3286,23 @@
                     "200": {
                         "description": "Configurations updated successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -4430,7 +3553,7 @@
                             "cancelled"
                         ],
                         "type": "string",
-                        "description": "Filter by task status",
+                        "description": "Filter by task status (comma-separated for multiple)",
                         "name": "status",
                         "in": "query"
                     },
@@ -4451,88 +3574,85 @@
                         "description": "Filter by development environment ID",
                         "name": "dev_environment_id",
                         "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "title",
+                            "start_branch",
+                            "created_at",
+                            "updated_at",
+                            "status",
+                            "conversation_count",
+                            "dev_environment_name"
+                        ],
+                        "type": "string",
+                        "description": "Sort by field",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "Sort direction",
+                        "name": "sort_direction",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Tasks retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object",
                                     "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "type": "object"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "page": {
-                                                            "type": "integer"
-                                                        },
-                                                        "page_size": {
-                                                            "type": "integer"
-                                                        },
-                                                        "tasks": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/definitions/database.Task"
-                                                            }
-                                                        },
-                                                        "total": {
-                                                            "type": "integer"
-                                                        }
-                                                    }
-                                                }
-                                            ]
+                                        "page": {
+                                            "type": "integer"
                                         },
-                                        "message": {
-                                            "type": "string"
+                                        "page_size": {
+                                            "type": "integer"
+                                        },
+                                        "tasks": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/database.Task"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer"
                                         }
                                     }
+                                },
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -4569,58 +3689,37 @@
                     "201": {
                         "description": "Task created successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/handlers.CreateTaskResponse"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/handlers.CreateTaskResponse"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -4659,58 +3758,37 @@
                     "200": {
                         "description": "Batch update completed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/handlers.BatchUpdateTaskStatusResponse"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/handlers.BatchUpdateTaskStatusResponse"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -4747,76 +3825,48 @@
                     "200": {
                         "description": "Task retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/database.Task"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/database.Task"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid task ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Task not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -4860,55 +3910,34 @@
                     "200": {
                         "description": "Task updated successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -4943,73 +3972,45 @@
                     "200": {
                         "description": "Task deleted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid task ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Task not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -5053,109 +4054,67 @@
                     "200": {
                         "description": "Git diff retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid task ID or missing workspace",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "403": {
                         "description": "No permission to access task",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Task not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Failed to get git diff",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -5199,124 +4158,75 @@
                     "200": {
                         "description": "File diff retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object",
                                     "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "type": "object"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "diff_content": {
-                                                            "type": "string"
-                                                        },
-                                                        "file_path": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                }
-                                            ]
+                                        "diff_content": {
+                                            "type": "string"
+                                        },
+                                        "file_path": {
+                                            "type": "string"
                                         }
                                     }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid task ID or missing file path",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "403": {
                         "description": "No permission to access task",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "404": {
                         "description": "Task not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Failed to get file diff",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -5353,19 +4263,12 @@
                         "name": "request",
                         "in": "body",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "force_push": {
-                                            "type": "boolean"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "force_push": {
+                                    "type": "boolean"
                                 }
-                            ]
+                            }
                         }
                     }
                 ],
@@ -5373,91 +4276,56 @@
                     "200": {
                         "description": "Branch pushed successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object",
                                     "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "type": "object"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "output": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        },
-                                        "message": {
+                                        "output": {
                                             "type": "string"
                                         }
                                     }
+                                },
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Invalid task ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Failed to push branch",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "details": {
+                                    "type": "string"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "details": {
-                                            "type": "string"
-                                        },
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -5503,55 +4371,34 @@
                     "200": {
                         "description": "Task status updated successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "401": {
                         "description": "Authentication failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -5588,40 +4435,26 @@
                     "200": {
                         "description": "Task statistics retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
+                            "type": "object",
+                            "properties": {
+                                "data": {
                                     "type": "object"
                                 },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
+                                "message": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
                         "description": "Request parameter error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
@@ -5649,37 +4482,23 @@
                     "200": {
                         "description": "User information",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "username": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "username": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "500": {
                         "description": "Failed to get user information",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     }
                 }
