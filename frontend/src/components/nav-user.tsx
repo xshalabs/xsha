@@ -98,7 +98,7 @@ export function NavUser() {
             <DropdownMenuGroup>
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
-                  <Languages />
+                  <Languages className="size-4 mr-2" />
                   {t("navigation.language")}
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
