@@ -65,7 +65,7 @@ type DevEnvironmentRepository interface {
 type TaskRepository interface {
 	Create(task *database.Task) error
 	GetByID(id uint) (*database.Task, error)
-	List(projectID *uint, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error)
+	List(projectID *uint, statuses []database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error)
 	Update(task *database.Task) error
 	Delete(id uint) error
 

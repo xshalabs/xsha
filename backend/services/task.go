@@ -78,7 +78,7 @@ func (s *taskService) GetTask(id uint) (*database.Task, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *taskService) ListTasks(projectID *uint, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error) {
+func (s *taskService) ListTasks(projectID *uint, statuses []database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -86,7 +86,7 @@ func (s *taskService) ListTasks(projectID *uint, status *database.TaskStatus, ti
 		pageSize = 20
 	}
 
-	tasks, total, err := s.repo.List(projectID, status, title, branch, devEnvID, sortBy, sortDirection, page, pageSize)
+	tasks, total, err := s.repo.List(projectID, statuses, title, branch, devEnvID, sortBy, sortDirection, page, pageSize)
 	if err != nil {
 		return nil, 0, err
 	}

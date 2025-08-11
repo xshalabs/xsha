@@ -124,7 +124,7 @@ const TaskListPage: React.FC = () => {
           } else if (filter.id === "status" && filter.value) {
             const statusArray = filter.value as string[];
             if (statusArray.length > 0) {
-              apiParams.status = statusArray[0]; // API expects single status
+              apiParams.status = statusArray.join(","); // API now supports multiple statuses
             }
           } else if (filter.id === "start_branch" && filter.value) {
             apiParams.branch = filter.value as string;

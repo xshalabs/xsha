@@ -28,7 +28,7 @@ func (r *taskRepository) GetByID(id uint) (*database.Task, error) {
 	return &task, nil
 }
 
-func (r *taskRepository) List(projectID *uint, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error) {
+func (r *taskRepository) List(projectID *uint, statuses []database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error) {
 	var tasks []database.Task
 	var total int64
 
@@ -38,8 +38,8 @@ func (r *taskRepository) List(projectID *uint, status *database.TaskStatus, titl
 		query = query.Where("project_id = ?", *projectID)
 	}
 
-	if status != nil {
-		query = query.Where("status = ?", *status)
+	if len(statuses) > 0 {
+		query = query.Where("status IN ?", statuses)
 	}
 
 	if title != nil && *title != "" {

@@ -169,7 +169,7 @@ func (h *TaskHandlers) GetTask(c *gin.Context) {
 // @Param page query int false "Page number (default: 1)" default(1)
 // @Param page_size query int false "Number of items per page (default: 20)" default(20)
 // @Param project_id query int false "Filter by project ID"
-// @Param status query string false "Filter by task status" Enums(todo,in_progress,done,cancelled)
+// @Param status query string false "Filter by task status (comma-separated for multiple)" Enums(todo,in_progress,done,cancelled)
 // @Param title query string false "Filter by task title (partial match)"
 // @Param branch query string false "Filter by branch name"
 // @Param dev_environment_id query int false "Filter by development environment ID"
@@ -222,10 +222,16 @@ func (h *TaskHandlers) ListTasks(c *gin.Context) {
 		}
 	}
 
-	var status *database.TaskStatus
+	var statuses []database.TaskStatus
 	if s := c.Query("status"); s != "" {
-		taskStatus := database.TaskStatus(s)
-		status = &taskStatus
+		// Split comma-separated status values
+		statusStrings := strings.Split(s, ",")
+		for _, statusStr := range statusStrings {
+			statusStr = strings.TrimSpace(statusStr)
+			if statusStr != "" {
+				statuses = append(statuses, database.TaskStatus(statusStr))
+			}
+		}
 	}
 
 	var title *string
@@ -246,7 +252,7 @@ func (h *TaskHandlers) ListTasks(c *gin.Context) {
 		}
 	}
 
-	tasks, total, err := h.taskService.ListTasks(projectID, status, title, branch, devEnvID, sortBy, sortDirection, page, pageSize)
+	tasks, total, err := h.taskService.ListTasks(projectID, statuses, title, branch, devEnvID, sortBy, sortDirection, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
 		return
