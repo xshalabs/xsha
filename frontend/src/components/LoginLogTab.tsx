@@ -37,6 +37,9 @@ export const LoginLogTab: React.FC = () => {
   
   // Initialize component (only once)
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Track initial column filters to prevent duplicate requests
+  const initialColumnFiltersRef = useRef<ColumnFiltersState>([]);
 
   // Unified data loading function with debouncing and duplicate request prevention
   const loadLoginLogsData = useCallback(
@@ -203,6 +206,9 @@ export const LoginLogTab: React.FC = () => {
     // Set state first
     setColumnFilters(initialFilters);
     setCurrentPage(initialPage);
+    
+    // Store initial filters to prevent duplicate requests
+    initialColumnFiltersRef.current = initialFilters;
 
     // Load initial data using the unified function
     loadLoginLogsData(initialPage, initialFilters, false, false).then(() => {
@@ -214,7 +220,14 @@ export const LoginLogTab: React.FC = () => {
   // Handle column filter changes (skip initial load)
   useEffect(() => {
     if (isInitialized) {
-      loadLoginLogsData(1, columnFilters); // Reset to page 1 when filtering
+      // Check if columnFilters has actually changed from initial values
+      const hasFilterChanged = JSON.stringify(columnFilters) !== JSON.stringify(initialColumnFiltersRef.current);
+      
+      if (hasFilterChanged) {
+        loadLoginLogsData(1, columnFilters); // Reset to page 1 when filtering
+        // Update the reference to current filters
+        initialColumnFiltersRef.current = columnFilters;
+      }
     }
   }, [columnFilters, isInitialized, loadLoginLogsData]);
 
