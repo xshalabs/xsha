@@ -65,8 +65,28 @@ export function TaskFormCreate({
     const loadDevEnvironments = async () => {
       try {
         setLoadingDevEnvs(true);
-        const response = await devEnvironmentsApi.list();
-        setDevEnvironments(response.environments || []);
+        const allEnvironments: DevEnvironment[] = [];
+        let currentPage = 1;
+        let hasMorePages = true;
+        
+        // Fetch all pages recursively (backend limits page_size to max 100)
+        while (hasMorePages) {
+          const response = await devEnvironmentsApi.list({ 
+            page: currentPage, 
+            page_size: 100 
+          });
+          
+          if (response.environments && response.environments.length > 0) {
+            allEnvironments.push(...response.environments);
+            // Check if we've reached the last page
+            hasMorePages = currentPage < response.total_pages;
+            currentPage++;
+          } else {
+            hasMorePages = false;
+          }
+        }
+        
+        setDevEnvironments(allEnvironments);
       } catch (error) {
         console.error("Failed to load dev environments:", error);
         setDevEnvironments([]);
