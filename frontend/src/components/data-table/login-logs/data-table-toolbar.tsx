@@ -82,7 +82,7 @@ export function LoginLogDataTableToolbar({
           placeholder={t("adminLogs.loginLogs.filters.username")}
           value={usernameValue}
           onChange={(event) => setUsernameValue(event.target.value)}
-          className="h-8 w-[150px] lg:w-[200px]"
+          className="h-8 w-[75px] lg:w-[100px]"
         />
         <Input
           placeholder={t("adminLogs.loginLogs.filters.ip")}
@@ -102,12 +102,14 @@ export function LoginLogDataTableToolbar({
           placeholder={t("adminLogs.loginLogs.filters.startDate")}
           value={startDate}
           onChange={setStartDate}
+          buttonClassName="w-32"
         />
         <DatePicker
           id="end_date"
           placeholder={t("adminLogs.loginLogs.filters.endDate")}
           value={endDate}
           onChange={setEndDate}
+          buttonClassName="w-32"
         />
         {isFiltered && (
           <Button
