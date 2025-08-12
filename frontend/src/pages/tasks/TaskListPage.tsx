@@ -1,40 +1,62 @@
-import React, { useState, useEffect } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { useTranslation } from "react-i18next";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { TaskList } from "@/components/TaskList";
 import { PushBranchDialog } from "@/components/PushBranchDialog";
+
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import type { Task, TaskStatus } from "@/types/task";
 import type { Project } from "@/types/project";
-import type { DevEnvironment } from "@/types/dev-environment";
 import { toast } from "sonner";
-
+import { usePageActions } from "@/contexts/PageActionsContext";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
+import { DataTable } from "@/components/ui/data-table/data-table";
+import { createTaskColumns } from "@/components/data-table/tasks/columns";
+import { TaskDataTableToolbar } from "@/components/data-table/tasks/data-table-toolbar";
+import { TaskDataTableActionBar } from "@/components/data-table/tasks/data-table-action-bar";
+import { DataTablePaginationServer } from "@/components/ui/data-table/data-table-pagination-server";
+import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
+import {
+  Section,
+  SectionDescription,
+  SectionGroup,
+  SectionHeader,
+  SectionTitle,
+} from "@/components/content";
 import { Plus } from "lucide-react";
 
 const TaskListPage: React.FC = () => {
   const { t } = useTranslation();
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { setActions } = usePageActions();
+  const { setItems } = useBreadcrumb();
+
+  // Add request deduplication
+  const lastRequestRef = useRef<string>("");
+  const isRequestInProgress = useRef(false);
 
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
 
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [tasksLoading, setTasksLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [total, setTotal] = useState(0);
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | undefined>();
-  const [titleFilter, setTitleFilter] = useState<string | undefined>();
-  const [branchFilter, setBranchFilter] = useState<string | undefined>();
-  const [devEnvironmentFilter, setDevEnvironmentFilter] = useState<
-    number | undefined
-  >();
 
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [devEnvironments, setDevEnvironments] = useState<DevEnvironment[]>([]);
+  // New DataTable state management
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const [loading, setLoading] = useState(true);
 
   const [pushDialogOpen, setPushDialogOpen] = useState(false);
   const [selectedTaskForPush, setSelectedTaskForPush] = useState<Task | null>(null);
@@ -45,68 +67,161 @@ const TaskListPage: React.FC = () => {
       : t("tasks.title")
   );
 
-  const pageSize = 20;
+  const pageSize = 10;
 
-  const loadProjects = async () => {
-    try {
-      const response = await apiService.projects.list();
-      setProjects(response.projects);
-    } catch (error) {
-      logError(error as Error, "Failed to load projects");
+
+
+
+
+
+
+  // Create stable loadTasksData function reference using useRef to prevent unnecessary re-renders
+  const loadTasksDataRef = useRef<(page: number, filters: ColumnFiltersState, sorting: SortingState, updateUrl?: boolean) => Promise<void>>(async () => {});
+  
+  loadTasksDataRef.current = async (page: number, filters: ColumnFiltersState, sorting: SortingState, updateUrl = true) => {
+    // Create a unique request key for deduplication
+    const requestKey = JSON.stringify({ page, filters, sorting, updateUrl, projectId });
+
+    // Skip if same request is already in progress or just completed
+    if (
+      isRequestInProgress.current ||
+      lastRequestRef.current === requestKey
+    ) {
+      return;
     }
-  };
 
-  const loadDevEnvironments = async () => {
-    try {
-      const response = await apiService.devEnvironments.list();
-      setDevEnvironments(response.environments);
-    } catch (error) {
-      logError(error as Error, "Failed to load dev environments");
-    }
-  };
+    isRequestInProgress.current = true;
+    lastRequestRef.current = requestKey;
 
-  const loadTasks = async (
-    page = 1,
-    status?: TaskStatus,
-    projectId?: number,
-    title?: string,
-    branch?: string,
-    devEnvId?: number
-  ) => {
     try {
-      setTasksLoading(true);
-      const response = await apiService.tasks.list({
+      setLoading(true);
+
+      // Convert DataTable filters and sorting to API parameters
+      const apiParams: any = {
         page,
         page_size: pageSize,
-        status,
-        project_id: projectId,
-        title,
-        branch,
-        dev_environment_id: devEnvId,
+        project_id: projectId ? parseInt(projectId, 10) : undefined,
+      };
+
+      // Handle sorting
+      if (sorting.length > 0) {
+        const sort = sorting[0];
+        apiParams.sort_by = sort.id;
+        apiParams.sort_direction = sort.desc ? "desc" : "asc";
+      }
+
+      // Handle column filters
+      filters.forEach((filter) => {
+        if (filter.id === "title" && filter.value) {
+          apiParams.title = filter.value as string;
+        } else if (filter.id === "status" && filter.value) {
+          const statusArray = filter.value as string[];
+          if (statusArray.length > 0) {
+            apiParams.status = statusArray.join(","); // API now supports multiple statuses
+          }
+        } else if (filter.id === "start_branch" && filter.value) {
+          apiParams.branch = filter.value as string;
+        }
       });
 
+      const response = await apiService.tasks.list(apiParams);
       setTasks(response.data.tasks);
-      setTotalPages(Math.ceil(response.data.total / pageSize));
+      setTotalPages(Math.max(1, Math.ceil(response.data.total / pageSize)));
       setTotal(response.data.total);
       setCurrentPage(page);
+
+      // Update URL parameters
+      if (updateUrl) {
+        const params = new URLSearchParams();
+
+        // Add filter parameters
+        filters.forEach((filter) => {
+          if (filter.value) {
+            params.set(filter.id, Array.isArray(filter.value) ? filter.value.join(',') : String(filter.value));
+          }
+        });
+
+        // Add sorting parameters
+        if (sorting.length > 0) {
+          const sort = sorting[0];
+          params.set("sort_by", sort.id);
+          params.set("sort_direction", sort.desc ? "desc" : "asc");
+        }
+
+        // Add page parameter (only if not page 1)
+        if (page > 1) {
+          params.set("page", String(page));
+        }
+
+        // Update URL without causing navigation
+        setSearchParams(params, { replace: true });
+      }
     } catch (error) {
       logError(error as Error, "Failed to load tasks");
     } finally {
-      setTasksLoading(false);
+      setLoading(false);
+      isRequestInProgress.current = false;
+
+      // Clear the request key after a short delay to allow legitimate new requests
+      setTimeout(() => {
+        if (lastRequestRef.current === requestKey) {
+          lastRequestRef.current = "";
+        }
+      }, 500); // Increase delay to prevent rapid duplicate requests
     }
   };
 
+  const loadTasksData = useCallback((page: number, filters: ColumnFiltersState, sorting: SortingState, updateUrl = true) => {
+    return loadTasksDataRef.current!(page, filters, sorting, updateUrl);
+  }, []);
+
+  // Initialize from URL on component mount (only once)
+  const [isInitialized, setIsInitialized] = useState(false);
+
   useEffect(() => {
-    loadProjects();
-    loadDevEnvironments();
-    loadTasks(
-      1,
-      statusFilter,
-      projectId ? parseInt(projectId, 10) : undefined,
-      titleFilter,
-      branchFilter,
-      devEnvironmentFilter
-    );
+    // Get URL params directly to avoid dependency issues
+    const titleParam = searchParams.get("title");
+    const statusParam = searchParams.get("status");
+    const branchParam = searchParams.get("start_branch");
+    const pageParam = searchParams.get("page");
+    const sortByParam = searchParams.get("sort_by");
+    const sortDirectionParam = searchParams.get("sort_direction");
+
+    const initialFilters: ColumnFiltersState = [];
+
+    if (titleParam) {
+      initialFilters.push({ id: "title", value: titleParam });
+    }
+
+    if (statusParam) {
+      initialFilters.push({ id: "status", value: statusParam.split(',') });
+    }
+
+    if (branchParam) {
+      initialFilters.push({ id: "start_branch", value: branchParam });
+    }
+
+    const initialPage = pageParam ? parseInt(pageParam, 10) : 1;
+
+    // Initialize sorting from URL
+    const initialSorting: SortingState = [];
+    if (sortByParam) {
+      initialSorting.push({
+        id: sortByParam,
+        desc: sortDirectionParam === 'desc'
+      });
+    }
+
+    // Set state first
+    setColumnFilters(initialFilters);
+    setCurrentPage(initialPage);
+    setSorting(initialSorting);
+
+    // Load initial data using the unified function
+    loadTasksData(initialPage, initialFilters, initialSorting, false).then(() => {
+      setIsInitialized(true);
+    });
+
     if (projectId) {
       apiService.projects
         .get(parseInt(projectId, 10))
@@ -118,134 +233,75 @@ const TaskListPage: React.FC = () => {
           navigate("/projects");
         });
     }
-  }, [projectId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]); // Only run once on mount or projectId change
 
-  const handleTaskCreate = () => {
-    navigate(`/projects/${projectId}/tasks/create`);
-  };
+  // Handle filter and sorting changes (skip initial load)
+  useEffect(() => {
+    if (isInitialized) {
+      loadTasksData(1, columnFilters, sorting); // Reset to page 1 when filtering or sorting
+    }
+    // Note: removed loadTasksData from dependencies to prevent circular re-renders
+    // The loadTasksData function is now stable via useRef
+  }, [columnFilters, sorting, isInitialized]);
 
-  const handleTaskEdit = (task: Task) => {
+  // Set page actions (Create button in header) and breadcrumb
+  useEffect(() => {
+    const handleCreateNew = () => {
+      navigate(`/projects/${projectId}/tasks/create`);
+    };
+
+    setActions(
+      <Button onClick={handleCreateNew} size="sm">
+        <Plus className="h-4 w-4 mr-2" />
+        {t("tasks.create")}
+      </Button>
+    );
+
+    // Set breadcrumb items
+    if (currentProject) {
+      setItems([
+        { type: "link", label: t("navigation.projects"), href: "/projects" },
+        { type: "page", label: currentProject.name }
+      ]);
+    }
+
+    // Cleanup when component unmounts
+    return () => {
+      setActions(null);
+      setItems([]);
+    };
+  }, [navigate, setActions, setItems, t, projectId, currentProject]);
+
+  const handleTaskEdit = useCallback((task: Task) => {
     navigate(`/projects/${projectId}/tasks/${task.id}/edit`);
-  };
+  }, [navigate, projectId]);
 
-  const handleTaskDelete = async (id: number) => {
+  const handleTaskDelete = useCallback(async (id: number) => {
     try {
       await apiService.tasks.delete(id);
-      toast.success(t("tasks.messages.deleteSuccess"));
-      loadTasks(
-        currentPage,
-        statusFilter,
-        projectId ? parseInt(projectId, 10) : undefined,
-        titleFilter,
-        branchFilter,
-        devEnvironmentFilter
-      );
+      await loadTasksData(currentPage, columnFilters, sorting);
     } catch (error) {
-      logError(error as Error, "Failed to delete task");
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t("tasks.messages.deleteFailed")
-      );
+      // Re-throw error to let QuickActions handle the user notification
+      throw error;
     }
-  };
+  }, [currentPage, columnFilters, sorting]);
 
-  const handleViewConversation = (task: Task) => {
+  const handleViewConversation = useCallback((task: Task) => {
     navigate(`/projects/${projectId}/tasks/${task.id}/conversation`);
-  };
+  }, [navigate, projectId]);
 
-  const handleViewGitDiff = (task: Task) => {
+  const handleViewGitDiff = useCallback((task: Task) => {
     navigate(`/projects/${projectId}/tasks/${task.id}/git-diff`);
-  };
+  }, [navigate, projectId]);
 
-  const handlePageChange = (page: number) => {
-    loadTasks(
-      page,
-      statusFilter,
-      projectId ? parseInt(projectId, 10) : undefined,
-      titleFilter,
-      branchFilter,
-      devEnvironmentFilter
-    );
-  };
+  const handlePageChange = useCallback((page: number) => {
+    loadTasksData(page, columnFilters, sorting);
+  }, [columnFilters, sorting]);
 
-  const handleStatusFilterChange = (status: TaskStatus | undefined) => {
-    setStatusFilter(status);
-    loadTasks(
-      1,
-      status,
-      projectId ? parseInt(projectId, 10) : undefined,
-      titleFilter,
-      branchFilter,
-      devEnvironmentFilter
-    );
-  };
 
-  const handleTitleFilterChange = (title: string | undefined) => {
-    setTitleFilter(title);
-    loadTasks(
-      1,
-      statusFilter,
-      projectId ? parseInt(projectId, 10) : undefined,
-      title,
-      branchFilter,
-      devEnvironmentFilter
-    );
-  };
 
-  const handleBranchFilterChange = (branch: string | undefined) => {
-    setBranchFilter(branch);
-    loadTasks(
-      1,
-      statusFilter,
-      projectId ? parseInt(projectId, 10) : undefined,
-      titleFilter,
-      branch,
-      devEnvironmentFilter
-    );
-  };
-
-  const handleDevEnvironmentFilterChange = (envId: number | undefined) => {
-    setDevEnvironmentFilter(envId);
-    loadTasks(
-      1,
-      statusFilter,
-      projectId ? parseInt(projectId, 10) : undefined,
-      titleFilter,
-      branchFilter,
-      envId
-    );
-  };
-
-  const handleProjectFilterChange = (_projectId: number | undefined) => {
-    // This function is no longer needed as project filtering is handled by URL param.
-    // Keeping it for now, but it will not be called from the TaskList component
-    // as the project filter is now a URL param.
-  };
-
-  const handleFiltersApply = (filters: {
-    status?: TaskStatus;
-    project?: number;
-    title?: string;
-    branch?: string;
-    devEnvironment?: number;
-  }) => {
-    setStatusFilter(filters.status);
-    setTitleFilter(filters.title);
-    setBranchFilter(filters.branch);
-    setDevEnvironmentFilter(filters.devEnvironment);
-
-    loadTasks(
-      1,
-      filters.status,
-      projectId ? parseInt(projectId, 10) : undefined,
-      filters.title,
-      filters.branch,
-      filters.devEnvironment
-    );
-  };
-
-  const handleBatchUpdateStatus = async (
+  const handleBatchUpdateStatus = useCallback(async (
     taskIds: number[],
     status: TaskStatus
   ) => {
@@ -272,14 +328,7 @@ const TaskListPage: React.FC = () => {
         );
       }
 
-      loadTasks(
-        currentPage,
-        statusFilter,
-        projectId ? parseInt(projectId, 10) : undefined,
-        titleFilter,
-        branchFilter,
-        devEnvironmentFilter
-      );
+      await loadTasksData(currentPage, columnFilters, sorting);
     } catch (error) {
       logError(error as Error, "Failed to batch update task status");
       toast.error(
@@ -288,9 +337,27 @@ const TaskListPage: React.FC = () => {
           : t("tasks.messages.batchUpdateFailed")
       );
     }
-  };
+  }, [currentPage, columnFilters, sorting, t]);
 
-  const handlePushBranch = async (task: Task) => {
+  const handleBatchDelete = useCallback(async (taskIds: number[]) => {
+    try {
+      // Assuming there's a batch delete API
+      for (const id of taskIds) {
+        await apiService.tasks.delete(id);
+      }
+      toast.success(t("tasks.batch.deleteSuccess", { count: taskIds.length }));
+      await loadTasksData(currentPage, columnFilters, sorting);
+    } catch (error) {
+      logError(error as Error, "Failed to batch delete tasks");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("tasks.batch.deleteFailed")
+      );
+    }
+  }, [currentPage, columnFilters, sorting, t]);
+
+  const handlePushBranch = useCallback(async (task: Task) => {
     if (!task.work_branch) {
       toast.error(t("tasks.messages.push_failed"), {
         description: "Task has no work branch",
@@ -300,71 +367,66 @@ const TaskListPage: React.FC = () => {
 
     setSelectedTaskForPush(task);
     setPushDialogOpen(true);
-  };
+  }, [t]);
 
-  const handlePushSuccess = async () => {
-    await loadTasks(
-      currentPage,
-      statusFilter,
-      projectId ? parseInt(projectId, 10) : undefined,
-      titleFilter,
-      branchFilter,
-      devEnvironmentFilter
-    );
-  };
+  const handlePushSuccess = useCallback(async () => {
+    await loadTasksData(currentPage, columnFilters, sorting);
+  }, [currentPage, columnFilters, sorting]);
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {t("tasks.title")}
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
+      <SectionGroup>
+        <Section>
+          <SectionHeader>
+            <SectionTitle>
+              {currentProject ? `${currentProject.name} - ${t("tasks.title")}` : t("tasks.title")}
+            </SectionTitle>
+            <SectionDescription>
               {t("tasks.page_description")}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={handleTaskCreate}>
-              <Plus className="h-4 w-4 mr-2" />
-              {t("tasks.create")}
-            </Button>
-          </div>
-        </div>
-      </div>
+            </SectionDescription>
+          </SectionHeader>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <TaskList
-          tasks={tasks}
-          projects={projects}
-          devEnvironments={devEnvironments}
-          loading={tasksLoading}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          total={total}
-          statusFilter={statusFilter}
-          projectFilter={projectId ? parseInt(projectId, 10) : undefined}
-          titleFilter={titleFilter}
-          branchFilter={branchFilter}
-          devEnvironmentFilter={devEnvironmentFilter}
-          hideProjectFilter={true}
-          onPageChange={handlePageChange}
-          onStatusFilterChange={handleStatusFilterChange}
-          onProjectFilterChange={handleProjectFilterChange}
-          onTitleFilterChange={handleTitleFilterChange}
-          onBranchFilterChange={handleBranchFilterChange}
-          onDevEnvironmentFilterChange={handleDevEnvironmentFilterChange}
-          onFiltersApply={handleFiltersApply}
-          onEdit={handleTaskEdit}
-          onDelete={handleTaskDelete}
-          onViewConversation={handleViewConversation}
-          onViewGitDiff={handleViewGitDiff}
-          onPushBranch={handlePushBranch}
-          onCreateNew={handleTaskCreate}
-          onBatchUpdateStatus={handleBatchUpdateStatus}
-        />
-      </div>
+        </Section>
+        <Section>
+          <div className="space-y-4">
+            <DataTable
+              columns={useMemo(() => createTaskColumns({
+                t,
+                onEdit: handleTaskEdit,
+                onDelete: handleTaskDelete,
+                onViewConversation: handleViewConversation,
+                onViewGitDiff: handleViewGitDiff,
+                onPushBranch: handlePushBranch,
+                hideProjectColumn: true,
+              }), [t, handleTaskEdit, handleTaskDelete, handleViewConversation, handleViewGitDiff, handlePushBranch])}
+              data={tasks}
+              toolbarComponent={(props) => (
+                <TaskDataTableToolbar 
+                  {...props}
+                />
+              )}
+              actionBar={(props) => (
+                <TaskDataTableActionBar
+                  {...props}
+                  onBatchUpdateStatus={handleBatchUpdateStatus}
+                  onBatchDelete={handleBatchDelete}
+                />
+              )}
+              columnFilters={columnFilters}
+              setColumnFilters={setColumnFilters}
+              sorting={sorting}
+              setSorting={setSorting}
+              loading={loading}
+            />
+            <DataTablePaginationServer
+              currentPage={currentPage}
+              totalPages={totalPages}
+              total={total}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        </Section>
+      </SectionGroup>
 
       <PushBranchDialog
         open={pushDialogOpen}
@@ -372,6 +434,7 @@ const TaskListPage: React.FC = () => {
         task={selectedTaskForPush}
         onSuccess={handlePushSuccess}
       />
+
     </div>
   );
 };

@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  ArrowLeft,
   File,
   FileText,
   Plus,
@@ -18,6 +17,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import type { Task } from "@/types/task";
@@ -39,6 +39,7 @@ const TaskGitDiffPage: React.FC = () => {
     projectId: string;
     taskId: string;
   }>();
+  const { setItems } = useBreadcrumb();
 
   const getStatusText = (status: string) => {
     const statusMap = {
@@ -96,6 +97,22 @@ const TaskGitDiffPage: React.FC = () => {
 
     loadTask();
   }, [taskId, projectId, navigate, t]);
+
+  // Set breadcrumb items
+  useEffect(() => {
+    if (task) {
+      setItems([
+        { type: "link", label: t("navigation.projects"), href: "/projects" },
+        { type: "link", label: task.project?.name || "", href: `/projects/${projectId}/tasks` },
+        { type: "page", label: t("gitDiff.title") }
+      ]);
+    }
+
+    // Cleanup when component unmounts
+    return () => {
+      setItems([]);
+    };
+  }, [task, projectId, t, setItems]);
 
   useEffect(() => {
     const loadDiffSummary = async () => {
@@ -224,15 +241,7 @@ const TaskGitDiffPage: React.FC = () => {
     );
   };
 
-  const handleGoBack = () => {
-    navigate(`/projects/${projectId}/tasks`);
-  };
 
-  const handleGoToConversation = () => {
-    if (task) {
-      navigate(`/projects/${projectId}/tasks/${task.id}/conversation`);
-    }
-  };
 
   if (loading) {
     return (
@@ -256,22 +265,12 @@ const TaskGitDiffPage: React.FC = () => {
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <p className="text-red-600 mb-4">{error}</p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="text-foreground hover:text-foreground"
-                  onClick={handleGoBack}
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  {t("common.back")}
-                </Button>
-                <Button
-                  variant="default"
-                  onClick={() => window.location.reload()}
-                >
-                  {t("common.retry")}
-                </Button>
-              </div>
+              <Button
+                variant="default"
+                onClick={() => window.location.reload()}
+              >
+                {t("common.retry")}
+              </Button>
             </div>
           </div>
         </div>
@@ -288,14 +287,6 @@ const TaskGitDiffPage: React.FC = () => {
               <p className="text-muted-foreground">
                 {t("tasks.messages.loadFailed")}
               </p>
-              <Button
-                variant="outline"
-                onClick={handleGoBack}
-                className="mt-4 text-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {t("common.back")}
-              </Button>
             </div>
           </div>
         </div>
@@ -313,30 +304,14 @@ const TaskGitDiffPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
-          <div className="min-w-0 flex-1">
+        <div className="py-6">
+          <div className="min-w-0">
             <h1 className="text-3xl font-bold text-foreground">
               {t("gitDiff.title")}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
               {task.project?.name} - {task.title}
             </p>
-          </div>
-          <div className="flex gap-2 flex-shrink-0 ml-4">
-            <Button
-              variant="outline"
-              className="text-foreground hover:text-foreground"
-              onClick={handleGoBack}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">{t("common.back")}</span>
-            </Button>
-            <Button variant="default" onClick={handleGoToConversation}>
-              <span className="hidden sm:inline">
-                {t("tasks.actions.viewConversation")}
-              </span>
-              <span className="sm:hidden">{t("tasks.conversation")}</span>
-            </Button>
           </div>
         </div>
       </div>
@@ -351,9 +326,6 @@ const TaskGitDiffPage: React.FC = () => {
               <p className="text-sm mb-4">
                 {t("taskConversations.gitDiff.noWorkBranch.description")}
               </p>
-              <Button variant="outline" onClick={handleGoToConversation}>
-                {t("tasks.actions.viewConversation")}
-              </Button>
             </div>
           </div>
         ) : (

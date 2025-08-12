@@ -116,7 +116,7 @@ func (s *devEnvironmentService) DeleteEnvironment(id uint) error {
 		return err
 	}
 
-	tasks, _, err := s.taskRepo.List(nil, nil, nil, nil, &env.ID, 1, 1)
+	tasks, _, err := s.taskRepo.List(nil, nil, nil, nil, &env.ID, "created_at", "desc", 1, 1)
 	if err != nil {
 		return fmt.Errorf("failed to check environment usage: %v", err)
 	}
@@ -262,4 +262,8 @@ func (s *devEnvironmentService) generateSessionDir() (string, error) {
 	}
 
 	return sessionDir, nil
+}
+
+func (s *devEnvironmentService) GetStats() (map[string]interface{}, error) {
+	return s.repo.GetStats()
 }

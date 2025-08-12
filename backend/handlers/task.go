@@ -169,10 +169,12 @@ func (h *TaskHandlers) GetTask(c *gin.Context) {
 // @Param page query int false "Page number (default: 1)" default(1)
 // @Param page_size query int false "Number of items per page (default: 20)" default(20)
 // @Param project_id query int false "Filter by project ID"
-// @Param status query string false "Filter by task status" Enums(todo,in_progress,done,cancelled)
+// @Param status query string false "Filter by task status (comma-separated for multiple)" Enums(todo,in_progress,done,cancelled)
 // @Param title query string false "Filter by task title (partial match)"
 // @Param branch query string false "Filter by branch name"
 // @Param dev_environment_id query int false "Filter by development environment ID"
+// @Param sort_by query string false "Sort by field" Enums(title,start_branch,created_at,updated_at,status,conversation_count,dev_environment_name)
+// @Param sort_direction query string false "Sort direction" Enums(asc,desc)
 // @Success 200 {object} object{message=string,data=object{tasks=[]database.Task,total=int,page=int,page_size=int}} "Tasks retrieved successfully"
 // @Failure 401 {object} object{error=string} "Authentication failed"
 // @Failure 500 {object} object{error=string} "Internal server error"
@@ -181,7 +183,36 @@ func (h *TaskHandlers) ListTasks(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	sortBy := c.Query("sort_by")
+	sortDirection := c.Query("sort_direction")
+
+	// Default sort values
+	if sortBy == "" {
+		sortBy = "created_at"
+	}
+	if sortDirection == "" {
+		sortDirection = "desc"
+	}
+
+	// Validate sort_by field
+	validSortFields := map[string]bool{
+		"title":                true,
+		"start_branch":         true,
+		"created_at":           true,
+		"updated_at":           true,
+		"status":               true,
+		"conversation_count":   true,
+		"dev_environment_name": true,
+	}
+	if !validSortFields[sortBy] {
+		sortBy = "created_at"
+	}
+
+	// Validate sort_direction
+	if sortDirection != "asc" && sortDirection != "desc" {
+		sortDirection = "desc"
+	}
 
 	var projectID *uint
 	if pid := c.Query("project_id"); pid != "" {
@@ -191,10 +222,16 @@ func (h *TaskHandlers) ListTasks(c *gin.Context) {
 		}
 	}
 
-	var status *database.TaskStatus
+	var statuses []database.TaskStatus
 	if s := c.Query("status"); s != "" {
-		taskStatus := database.TaskStatus(s)
-		status = &taskStatus
+		// Split comma-separated status values
+		statusStrings := strings.Split(s, ",")
+		for _, statusStr := range statusStrings {
+			statusStr = strings.TrimSpace(statusStr)
+			if statusStr != "" {
+				statuses = append(statuses, database.TaskStatus(statusStr))
+			}
+		}
 	}
 
 	var title *string
@@ -215,7 +252,7 @@ func (h *TaskHandlers) ListTasks(c *gin.Context) {
 		}
 	}
 
-	tasks, total, err := h.taskService.ListTasks(projectID, status, title, branch, devEnvID, page, pageSize)
+	tasks, total, err := h.taskService.ListTasks(projectID, statuses, title, branch, devEnvID, sortBy, sortDirection, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
 		return

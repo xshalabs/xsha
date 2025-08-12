@@ -8,8 +8,8 @@
   "actions": {
     "create": "Create",
     "edit": "Edit",
-    "viewConversation": "View Conversation",
-    "viewGitDiff": "View Git Diff",
+    "viewConversation": "Conversation",
+    "viewGitDiff": "Git Diff",
     "pushBranch": "Push Branch"
   },
   "status": {
@@ -37,7 +37,13 @@
     "devEnvironmentHint": "Optionally select a development environment to execute this task",
     "fetchingBranches": "Fetching branches from repository...",
     "editDescription": "Edit task information and configuration",
-    "createDescription": "Create a new task with requirements and configuration"
+    "createDescription": "Create a new task with requirements and configuration",
+    "helpTitle": "Get started with task creation",
+    "helpDescription": "Define your requirements clearly, choose the appropriate development environment, and select the correct branch to begin working efficiently.",
+    "editHelpTitle": "Task editing tips",
+    "editHelpDescription": "You can update the task title and other basic information. For major changes to requirements, consider creating a new task conversation.",
+    "createFooterInfo": "Make sure to provide clear requirements and select the correct development environment for optimal task execution.",
+    "editFooterInfo": "Changes will be saved immediately. You can view task conversations and execution logs from the task list."
   },
   "validation": {
     "titleRequired": "Task title is required",
@@ -53,7 +59,7 @@
     "titlePlaceholder": "Search by title...",
     "branch": "Branch",
     "branchPlaceholder": "Filter by branch...",
-    "devEnvironment": "Development Environment"
+    "devEnvironment": "Environment"
   },
   "list": "Task List",
   "table": {
@@ -62,8 +68,9 @@
     "status": "Status",
     "conversations": "Conversations",
     "branch": "Branch",
+    "workBranch": "Work Branch",
     "environment": "Environment",
-    "updated": "Updated"
+    "created": "Created"
   },
   "messages": {
     "loadFailed": "Failed to load task",
@@ -101,7 +108,15 @@
   },
   "batch": {
     "updateStatus": "Update Status",
-    "selectStatus": "Select Status"
+    "selectStatus": "Select Status",
+    "delete": "Batch Delete",
+    "deleteConfirmTitle": "Confirm Batch Delete Tasks",
+    "deleteConfirmDescription": "You are about to delete {{count}} tasks. This action cannot be undone, and related conversation records and execution logs will also be deleted.",
+    "deleteSuccess": "Successfully deleted {{count}} tasks",
+    "deleteFailed": "Batch delete failed"
+  },
+  "metrics": {
+    "total": "Total Tasks"
   },
   "errors": {
     "fetchBranchesFailed": "Failed to fetch repository branches",

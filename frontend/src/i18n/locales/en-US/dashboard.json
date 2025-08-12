@@ -1,15 +1,16 @@
 {
   "welcome": "Welcome",
-  "title": "XSHA Dashboard",
+  "title": "Overview",
+  "description": "Your AI-powered Dev platform dashboard.",
   "projectManagement": {
     "title": "Project Management",
-    "description": "Manage your projects and Git credentials",
+    "description": "Manage your projects and credentials",
     "content": "Create, edit and manage your project configurations."
   },
   "gitCredentials": {
-    "title": "Git Credentials",
-    "description": "Manage your Git access credentials",
-    "content": "Add and configure access credentials for Git repositories.",
+    "title": "Credentials",
+    "description": "Manage your credentials",
+    "content": "Add and configure credentials for your projects.",
     "manage": "Manage Credentials"
   },
   "adminLogs": {
@@ -17,5 +18,28 @@
     "description": "View system operation and login logs",
     "content": "Monitor system activities, operation records and login status.",
     "manage": "View Logs"
+  },
+  "metrics": {
+    "totalProjects": "Projects",
+    "activeEnvironments": "Environments",
+    "gitCredentials": "Credentials",
+    "recentTasks": "Tasks",
+    "taskConversations": "Conversations"
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "description": "Get started quickly with common tasks.",
+    "newProject": "New Project",
+    "newProjectDesc": "Create a new project to start your development workflow.",
+    "newEnvironment": "New Environment",
+    "newEnvironmentDesc": "Set up a new development environment for your team.",
+    "addCredential": "Add Credential",
+    "addCredentialDesc": "Add credentials to access your projects."
+  },
+  "recentTask": {
+    "title": "Recent Tasks",
+    "description": "Latest project tasks and status.",
+    "empty": "No recent tasks",
+    "emptyDesc": "When you start using the platform, your recent tasks will appear here."
   }
-} 
+}

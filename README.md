@@ -1,8 +1,10 @@
 # 🚀 XSha - Open Source Alternative to Cursor Background | Claude Code Remote/Concurrent Solution 🌟
 
-[README-Chinese🇨🇳](README_CN.md)
+[README-中文](README_CN.md)
 
 XSha is a software system that combines project management, Git, and AI-driven development. Based on Claude Code, it enables project task development through conversational interactions, with multiple tasks running concurrently, each with its own isolated workspace. Docker containers are used to allocate execution environments for each task, ensuring security. With ENV variable configuration, you can easily integrate more cost-effective large language models like Kimi2, GLM 4.5, and Qwen Coder. ✨
+
+<p style="text-align:center"><img src="docs/preview.png" alt="XSha"/></p>
 
 ## 🔥 Core Features
 

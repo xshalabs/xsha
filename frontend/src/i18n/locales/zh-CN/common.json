@@ -5,6 +5,7 @@
   "cancel": "取消",
   "confirm": "确认",
   "save": "保存",
+  "create": "创建",
   "delete": "删除",
   "edit": "编辑",
   "back": "返回",
@@ -20,12 +21,21 @@
   "refresh": "刷新",
   "retry": "重试",
   "all": "全部",
+  "yes": "是",
+  "no": "否",
+  "created": "创建时间",
+  "noDescription": "暂无描述",
   "open_menu": "打开菜单",
   "apply": "应用",
   "total": "共",
   "items": "条记录",
   "toggle_sidebar": "切换侧边栏",
   "page": "第",
+  "itemsPerPage": "每页行数",
+  "goToFirstPage": "转到第一页",
+  "goToPreviousPage": "转到上一页",
+  "goToNextPage": "转到下一页", 
+  "goToLastPage": "转到最后一页",
   "continue": "继续",
   "close": "关闭",
   "copy": "复制",
@@ -36,15 +46,37 @@
   "pageTitle": {
     "dashboard": "仪表板",
     "login": "登录",
-    "projects": "项目管理",
-    "projectTasks": "任务管理",
-    "gitCredentials": "Git 凭据",
-    "adminLogs": "系统日志"
+    "projects": "项目",
+    "projectTasks": "任务",
+    "gitCredentials": "凭据",
+    "adminLogs": "系统日志",
+    "operationLogs": "操作日志",
+    "loginLogs": "登录日志",
+    "auditStats": "审计统计"
   },
   "theme": {
     "toggle": "切换主题",
     "light": "浅色",
     "dark": "深色",
     "system": "跟随系统"
+  },
+  "deleteDialog": {
+    "title": "确定要删除 `{{name}}` 吗？",
+    "description": "此操作无法撤销。这将永久从数据库中移除该记录。",
+    "confirmInputLabel": "请输入 '{{name}}' 以确认",
+    "deleting": "删除中...",
+    "deleteSuccess": "删除成功",
+    "deleteFailed": "删除失败",
+    "unexpectedError": "发生了意外错误"
+  },
+  "sorting": {
+    "asc": "升序",
+    "desc": "降序",
+    "hide": "隐藏"
+  },
+  "table": {
+    "noResults": "暂无数据",
+    "selected": "已选择",
+    "clearFilters": "清除筛选"
   }
 } 

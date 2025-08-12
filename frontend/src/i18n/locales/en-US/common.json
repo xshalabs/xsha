@@ -5,6 +5,7 @@
   "cancel": "Cancel",
   "confirm": "Confirm",
   "save": "Save",
+  "create": "Create",
   "delete": "Delete",
   "edit": "Edit",
   "back": "Back",
@@ -20,12 +21,21 @@
   "refresh": "Refresh",
   "retry": "Retry",
   "all": "All",
+  "yes": "Yes",
+  "no": "No",
+  "created": "Created",
+  "noDescription": "No description",
   "open_menu": "Open menu",
   "apply": "Apply",
   "total": "Total",
   "items": "items",
   "toggle_sidebar": "Toggle Sidebar",
   "page": "Page",
+  "itemsPerPage": "Rows per page",
+  "goToFirstPage": "Go to first page",
+  "goToPreviousPage": "Go to previous page", 
+  "goToNextPage": "Go to next page",
+  "goToLastPage": "Go to last page",
   "continue": "Continue",
   "close": "Close",
   "copy": "Copy",
@@ -36,15 +46,37 @@
   "pageTitle": {
     "dashboard": "Dashboard",
     "login": "Login",
-    "projects": "Projects Management",
-    "projectTasks": "Tasks Management",
-    "gitCredentials": "Git Credentials",
-    "adminLogs": "Audit Logs"
+    "projects": "Projects",
+    "projectTasks": "Tasks",
+    "gitCredentials": "Credentials",
+    "adminLogs": "Audit Logs",
+    "operationLogs": "Operation Logs",
+    "loginLogs": "Login Logs",
+    "auditStats": "Audit Statistics"
   },
   "theme": {
     "toggle": "Toggle theme",
     "light": "Light",
     "dark": "Dark",
     "system": "System"
+  },
+  "deleteDialog": {
+    "title": "Are you sure about deleting `{{name}}`?",
+    "description": "This action cannot be undone. This will permanently remove the entry from the database.",
+    "confirmInputLabel": "Please write '{{name}}' to confirm",
+    "deleting": "Deleting...",
+    "deleteSuccess": "Deleted successfully",
+    "deleteFailed": "Failed to delete",
+    "unexpectedError": "An unexpected error occurred"
+  },
+  "sorting": {
+    "asc": "Asc",
+    "desc": "Desc",
+    "hide": "Hide"
+  },
+  "table": {
+    "noResults": "No data available",
+    "selected": "selected",
+    "clearFilters": "Clear filters"
   }
 } 

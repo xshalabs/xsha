@@ -13,7 +13,7 @@ type TokenBlacklistRepository interface {
 
 type LoginLogRepository interface {
 	Add(username, ip, userAgent, reason string, success bool) error
-	GetLogs(username string, page, pageSize int) ([]database.LoginLog, int64, error)
+	GetLogs(username, ip *string, success *bool, startTime, endTime *string, page, pageSize int) ([]database.LoginLog, int64, error)
 	CleanOld(days int) error
 }
 
@@ -21,7 +21,7 @@ type GitCredentialRepository interface {
 	Create(credential *database.GitCredential) error
 	GetByID(id uint) (*database.GitCredential, error)
 	GetByName(name string) (*database.GitCredential, error)
-	List(credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
+	List(name *string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
 	Update(credential *database.GitCredential) error
 	Delete(id uint) error
 }
@@ -30,7 +30,7 @@ type ProjectRepository interface {
 	Create(project *database.Project) error
 	GetByID(id uint) (*database.Project, error)
 	GetByName(name string) (*database.Project, error)
-	List(name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
+	List(name string, protocol *database.GitProtocolType, sortBy, sortDirection string, page, pageSize int) ([]database.Project, int64, error)
 	Update(project *database.Project) error
 	Delete(id uint) error
 
@@ -59,12 +59,13 @@ type DevEnvironmentRepository interface {
 	List(name *string, dockerImage *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
 	Update(env *database.DevEnvironment) error
 	Delete(id uint) error
+	GetStats() (map[string]interface{}, error)
 }
 
 type TaskRepository interface {
 	Create(task *database.Task) error
 	GetByID(id uint) (*database.Task, error)
-	List(projectID *uint, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error)
+	List(projectID *uint, statuses []database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error)
 	Update(task *database.Task) error
 	Delete(id uint) error
 
@@ -127,4 +128,9 @@ type SystemConfigRepository interface {
 	SetValue(key, value string) error
 	SetValueWithCategoryAndSort(key, value, description, category, formType string, isEditable bool, sortOrder int) error
 	InitializeDefaultConfigs() error
+}
+
+type DashboardRepository interface {
+	GetDashboardStats() (map[string]interface{}, error)
+	GetRecentTasks(limit int) ([]database.Task, error)
 }

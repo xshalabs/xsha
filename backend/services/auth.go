@@ -118,13 +118,14 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 	return loginSuccess, token, nil
 }
 
-func (s *authService) Logout(token, username string) error {
+func (s *authService) Logout(token, username, clientIP, userAgent string) error {
 	expiresAt, err := utils.GetTokenExpiration(token, s.config.JWTSecret)
 	if err != nil {
 		go func() {
-			if logErr := s.operationLogService.LogLogout(username, "", "", false, err.Error()); logErr != nil {
+			if logErr := s.operationLogService.LogLogout(username, clientIP, userAgent, false, err.Error()); logErr != nil {
 				utils.Error("Failed to record admin operation log for logout failure",
 					"username", username,
+					"client_ip", clientIP,
 					"error", logErr.Error(),
 				)
 			}
@@ -141,15 +142,18 @@ func (s *authService) Logout(token, username string) error {
 			errorMsg = err.Error()
 		}
 
-		if logErr := s.operationLogService.LogLogout(username, "", "", logoutSuccess, errorMsg); logErr != nil {
+		if logErr := s.operationLogService.LogLogout(username, clientIP, userAgent, logoutSuccess, errorMsg); logErr != nil {
 			utils.Error("Failed to record admin operation log for logout",
 				"username", username,
+				"client_ip", clientIP,
 				"success", logoutSuccess,
 				"error", logErr.Error(),
 			)
 		} else if logoutSuccess {
 			utils.Info("User logged out successfully",
 				"username", username,
+				"client_ip", clientIP,
+				"user_agent", userAgent,
 			)
 		}
 	}()

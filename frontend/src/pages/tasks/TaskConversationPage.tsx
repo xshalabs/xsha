@@ -3,8 +3,10 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, GitCompare, GitBranch } from "lucide-react";
+import { GitCompare, GitBranch } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { usePageActions } from "@/contexts/PageActionsContext";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { TaskConversation } from "@/components/TaskConversation";
 import { TaskExecutionLog } from "@/components/TaskExecutionLog";
 import { TaskConversationResult } from "@/components/TaskConversationResult";
@@ -26,6 +28,8 @@ const TaskConversationPage: React.FC = () => {
     projectId: string;
     taskId: string;
   }>();
+  const { setActions } = usePageActions();
+  const { setItems } = useBreadcrumb();
 
   const [task, setTask] = useState<Task | null>(null);
   const [conversations, setConversations] = useState<
@@ -105,6 +109,58 @@ const TaskConversationPage: React.FC = () => {
       loadConversations(task.id);
     }
   }, [task]);
+
+  // Set breadcrumb items and page actions
+  useEffect(() => {
+    if (task) {
+      // Set breadcrumb navigation
+      setItems([
+        { type: "link", label: t("navigation.projects"), href: "/projects" },
+        { type: "link", label: task.project?.name || "", href: `/projects/${projectId}/tasks` },
+        { type: "page", label: t("tasks.conversation") }
+      ]);
+
+      // Set page actions (push branch and git diff buttons)
+      const actions = [];
+      if (task.work_branch) {
+        actions.push(
+          <Button
+            key="push"
+            variant="outline"
+            className="text-foreground hover:text-foreground"
+            onClick={handlePushBranch}
+          >
+            <GitBranch className="h-4 w-4 mr-2" />
+            {t("tasks.actions.pushBranch")}
+          </Button>
+        );
+        actions.push(
+          <Button
+            key="diff"
+            variant="default"
+            onClick={() =>
+              navigate(`/projects/${projectId}/tasks/${task.id}/git-diff`)
+            }
+          >
+            <GitCompare className="h-4 w-4 mr-2" />
+            {t("tasks.actions.viewGitDiff")}
+          </Button>
+        );
+      }
+
+      setActions(
+        <div className="flex gap-2">
+          {actions}
+        </div>
+      );
+    }
+
+    // Cleanup when component unmounts
+    return () => {
+      setActions(null);
+      setItems([]);
+    };
+  }, [task, projectId, taskId, t, navigate, setActions, setItems]);
 
   const handleSendMessage = async (data: ConversationFormData) => {
     if (!task) return;
@@ -206,14 +262,7 @@ const TaskConversationPage: React.FC = () => {
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <p className="text-red-600 mb-4">{error}</p>
-              <Button
-                variant="outline"
-                onClick={() => navigate(`/projects/${projectId}/tasks`)}
-                className="mr-2"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {t("common.back")}
-              </Button>
+
               <Button
                 variant="default"
                 className="text-foreground hover:text-foreground"
@@ -237,14 +286,7 @@ const TaskConversationPage: React.FC = () => {
               <p className="text-muted-foreground">
                 {t("tasks.messages.loadFailed")}
               </p>
-              <Button
-                variant="outline"
-                onClick={() => navigate(`/projects/${projectId}/tasks`)}
-                className="mt-4"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {t("common.back")}
-              </Button>
+
             </div>
           </div>
         </div>
@@ -258,49 +300,7 @@ const TaskConversationPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {task.project?.name} - {t("tasks.conversation")}
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">{task.title}</p>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="text-foreground hover:text-foreground"
-              onClick={() => navigate(`/projects/${projectId}/tasks`)}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              {t("common.back")}
-            </Button>
-            {task.work_branch && (
-              <>
-                <Button
-                  variant="outline"
-                  className="text-foreground hover:text-foreground"
-                  onClick={handlePushBranch}
-                >
-                  <GitBranch className="h-4 w-4 mr-2" />
-                  {t("tasks.actions.pushBranch")}
-                </Button>
-                <Button
-                  variant="default"
-                  onClick={() =>
-                    navigate(`/projects/${projectId}/tasks/${task.id}/git-diff`)
-                  }
-                >
-                  <GitCompare className="h-4 w-4 mr-2" />
-                  {t("tasks.actions.viewGitDiff")}
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="flex flex-col">
             <TaskConversation

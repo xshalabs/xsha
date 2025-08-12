@@ -126,7 +126,7 @@ func (h *ProjectHandlers) GetProject(c *gin.Context) {
 
 // ListProjects gets project list
 // @Summary Get project list
-// @Description Get current user's project list with pagination and name filtering
+// @Description Get current user's project list with pagination, filtering and sorting
 // @Tags Project
 // @Accept json
 // @Produce json
@@ -135,6 +135,8 @@ func (h *ProjectHandlers) GetProject(c *gin.Context) {
 // @Param protocol query string false "Protocol type filter (https/ssh)"
 // @Param page query int false "Page number, defaults to 1"
 // @Param page_size query int false "Page size, defaults to 20"
+// @Param sort_by query string false "Sort field: name, task_count, created_at (defaults to created_at)"
+// @Param sort_direction query string false "Sort direction: asc, desc (defaults to desc)"
 // @Success 200 {object} object{projects=[]object,total=number,page=number,page_size=number} "Project list"
 // @Failure 500 {object} object{error=string} "Failed to get project list"
 // @Router /projects [get]
@@ -146,6 +148,31 @@ func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 	pageSize := 20
 	var protocol *database.GitProtocolType
 	name := c.Query("name")
+	sortBy := c.Query("sort_by")
+	sortDirection := c.Query("sort_direction")
+
+	// Default sort values
+	if sortBy == "" {
+		sortBy = "created_at"
+	}
+	if sortDirection == "" {
+		sortDirection = "desc"
+	}
+
+	// Validate sort_by field
+	validSortFields := map[string]bool{
+		"name":       true,
+		"task_count": true,
+		"created_at": true,
+	}
+	if !validSortFields[sortBy] {
+		sortBy = "created_at"
+	}
+
+	// Validate sort_direction
+	if sortDirection != "asc" && sortDirection != "desc" {
+		sortDirection = "desc"
+	}
 
 	if p := c.Query("page"); p != "" {
 		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
@@ -162,7 +189,7 @@ func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 		protocol = &protocolValue
 	}
 
-	projects, total, err := h.projectService.ListProjectsWithTaskCount(name, protocol, page, pageSize)
+	projects, total, err := h.projectService.ListProjectsWithTaskCount(name, protocol, sortBy, sortDirection, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "common.internal_error"),

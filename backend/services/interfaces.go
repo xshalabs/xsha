@@ -8,20 +8,20 @@ import (
 
 type AuthService interface {
 	Login(username, password, clientIP, userAgent string) (bool, string, error)
-	Logout(token, username string) error
+	Logout(token, username, clientIP, userAgent string) error
 	IsTokenBlacklisted(token string) (bool, error)
 	CleanExpiredTokens() error
 }
 
 type LoginLogService interface {
-	GetLogs(username string, page, pageSize int) ([]database.LoginLog, int64, error)
+	GetLogs(username, ip *string, success *bool, startTime, endTime *string, page, pageSize int) ([]database.LoginLog, int64, error)
 	CleanOldLogs(days int) error
 }
 
 type GitCredentialService interface {
 	CreateCredential(name, description, credType, username string, secretData map[string]string, createdBy string) (*database.GitCredential, error)
 	GetCredential(id uint) (*database.GitCredential, error)
-	ListCredentials(credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
+	ListCredentials(name *string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
 	UpdateCredential(id uint, updates map[string]interface{}, secretData map[string]string) error
 	DeleteCredential(id uint) error
 	ListActiveCredentials(credType *database.GitCredentialType) ([]database.GitCredential, error)
@@ -33,7 +33,7 @@ type ProjectService interface {
 	CreateProject(name, description, repoURL, protocol string, credentialID *uint, createdBy string) (*database.Project, error)
 	GetProject(id uint) (*database.Project, error)
 	ListProjects(name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error)
-	ListProjectsWithTaskCount(name string, protocol *database.GitProtocolType, page, pageSize int) (interface{}, int64, error)
+	ListProjectsWithTaskCount(name string, protocol *database.GitProtocolType, sortBy, sortDirection string, page, pageSize int) (interface{}, int64, error)
 	UpdateProject(id uint, updates map[string]interface{}) error
 	DeleteProject(id uint) error
 	ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint) error
@@ -70,12 +70,13 @@ type DevEnvironmentService interface {
 	UpdateEnvironmentVars(id uint, envVars map[string]string) error
 	ValidateResourceLimits(cpuLimit float64, memoryLimit int64) error
 	GetAvailableEnvironmentImages() ([]map[string]interface{}, error)
+	GetStats() (map[string]interface{}, error)
 }
 
 type TaskService interface {
 	CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint, createdBy string) (*database.Task, error)
 	GetTask(id uint) (*database.Task, error)
-	ListTasks(projectID *uint, status *database.TaskStatus, title *string, branch *string, devEnvID *uint, page, pageSize int) ([]database.Task, int64, error)
+	ListTasks(projectID *uint, statuses []database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error)
 	UpdateTask(id uint, updates map[string]interface{}) error
 	UpdateTaskStatus(id uint, status database.TaskStatus) error
 	UpdateTaskSessionID(id uint, sessionID string) error
@@ -139,4 +140,9 @@ type SystemConfigService interface {
 	GetGitCloneTimeout() (time.Duration, error)
 	GetGitSSLVerify() (bool, error)
 	GetDockerTimeout() (time.Duration, error)
+}
+
+type DashboardService interface {
+	GetDashboardStats() (map[string]interface{}, error)
+	GetRecentTasks(limit int) ([]database.Task, error)
 }

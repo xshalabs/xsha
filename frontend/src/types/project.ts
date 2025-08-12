@@ -73,6 +73,8 @@ export interface ProjectListParams {
   protocol?: GitProtocolType;
   page?: number;
   page_size?: number;
+  sort_by?: string;
+  sort_direction?: 'asc' | 'desc';
 }
 
 export interface ProjectFormData {

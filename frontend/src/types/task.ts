@@ -47,6 +47,8 @@ export interface TaskListParams {
   title?: string;
   branch?: string;
   dev_environment_id?: number;
+  sort_by?: string;
+  sort_direction?: "asc" | "desc";
 }
 
 export interface TaskListResponse {

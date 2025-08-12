@@ -75,11 +75,11 @@ func (s *projectService) GetProject(id uint) (*database.Project, error) {
 }
 
 func (s *projectService) ListProjects(name string, protocol *database.GitProtocolType, page, pageSize int) ([]database.Project, int64, error) {
-	return s.repo.List(name, protocol, page, pageSize)
+	return s.repo.List(name, protocol, "created_at", "desc", page, pageSize)
 }
 
-func (s *projectService) ListProjectsWithTaskCount(name string, protocol *database.GitProtocolType, page, pageSize int) (interface{}, int64, error) {
-	projects, total, err := s.repo.List(name, protocol, page, pageSize)
+func (s *projectService) ListProjectsWithTaskCount(name string, protocol *database.GitProtocolType, sortBy, sortDirection string, page, pageSize int) (interface{}, int64, error) {
+	projects, total, err := s.repo.List(name, protocol, sortBy, sortDirection, page, pageSize)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -156,8 +156,8 @@ func (s *projectService) DeleteProject(id uint) error {
 		return err
 	}
 
-	inProgressStatus := database.TaskStatusInProgress
-	tasks, _, err := s.taskRepo.List(&project.ID, &inProgressStatus, nil, nil, nil, 1, 1)
+	inProgressStatuses := []database.TaskStatus{database.TaskStatusInProgress}
+	tasks, _, err := s.taskRepo.List(&project.ID, inProgressStatuses, nil, nil, nil, "created_at", "desc", 1, 1)
 	if err != nil {
 		return fmt.Errorf("failed to check project tasks: %v", err)
 	}
