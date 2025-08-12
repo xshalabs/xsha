@@ -109,7 +109,7 @@ export function AdminOperationLogDataTableToolbar({
           placeholder={t("adminLogs.operationLogs.filters.username")}
           value={usernameSearchValue}
           onChange={(event) => handleUsernameSearchChange(event.target.value)}
-          className="h-8 w-[150px] lg:w-[200px]"
+          className="h-8 w-[75px] lg:w-[100px]"
         />
         {table.getColumn("operation") && (
           <DataTableFacetedFilter
@@ -130,12 +130,14 @@ export function AdminOperationLogDataTableToolbar({
           placeholder={t("adminLogs.operationLogs.filters.startDate")}
           value={startDate}
           onChange={setStartDate}
+          buttonClassName="w-32"
         />
         <DatePicker
           id="end_date"
           placeholder={t("adminLogs.operationLogs.filters.endDate")}
           value={endDate}
           onChange={setEndDate}
+          buttonClassName="w-32"
         />
         {isFiltered && (
           <Button
