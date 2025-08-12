@@ -195,7 +195,7 @@ type TaskConversation struct {
 	TaskID uint  `gorm:"not null;index" json:"task_id"`
 	Task   *Task `gorm:"foreignKey:TaskID" json:"task"`
 
-	Content string             `gorm:"type:text;not null" json:"content"`
+	Content string             `gorm:"type:longtext;not null" json:"content"`
 	Status  ConversationStatus `gorm:"not null;index" json:"status"`
 
 	CommitHash string `gorm:"default:''" json:"commit_hash"`

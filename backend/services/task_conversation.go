@@ -188,7 +188,7 @@ func (s *taskConversationService) ValidateConversationData(taskID uint, content 
 		return appErrors.ErrRequired
 	}
 
-	if len(content) > 10000 {
+	if len(content) > 100000 {
 		return appErrors.ErrTooLong
 	}
 
