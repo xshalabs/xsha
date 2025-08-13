@@ -8,6 +8,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { formatDateToLocal } from "@/lib/timezone";
 
 export interface DateRange {
   startDate?: Date;
@@ -31,11 +32,11 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
   const formatDateRange = () => {
     if (value.startDate && value.endDate) {
-      return `${value.startDate.toLocaleDateString()} - ${value.endDate.toLocaleDateString()}`;
+      return `${formatDateToLocal(value.startDate)} - ${formatDateToLocal(value.endDate)}`;
     } else if (value.startDate) {
-      return `From ${value.startDate.toLocaleDateString()}`;
+      return `From ${formatDateToLocal(value.startDate)}`;
     } else if (value.endDate) {
-      return `Until ${value.endDate.toLocaleDateString()}`;
+      return `Until ${formatDateToLocal(value.endDate)}`;
     }
     return placeholder;
   };

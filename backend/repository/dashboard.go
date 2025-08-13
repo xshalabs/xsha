@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"time"
 	"xsha-backend/database"
+	"xsha-backend/utils"
 
 	"gorm.io/gorm"
 )
@@ -49,7 +49,7 @@ func (r *dashboardRepository) GetDashboardStats() (map[string]interface{}, error
 	stats["total_tasks"] = taskCount
 
 	// Get recent tasks count (last 30 days)
-	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+	thirtyDaysAgo := utils.Now().AddDate(0, 0, -30)
 	var recentTaskCount int64
 	if err := r.db.Model(&database.Task{}).
 		Where("created_at >= ?", thirtyDaysAgo).

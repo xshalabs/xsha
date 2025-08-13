@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import { formatDateToLocal } from "@/lib/utils";
+import { formatDateRangeForAPI, formatToLocal } from "@/lib/timezone";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
@@ -104,11 +105,12 @@ export const AdminOperationLogList: React.FC = () => {
               apiParams.success = filter.value[0] === "true";
             } else if (filter.id === "operation_time" && filter.value) {
               const { startDate, endDate } = filter.value as { startDate?: Date; endDate?: Date };
-              if (startDate) {
-                apiParams.start_time = formatDateToLocal(startDate);
+              const apiTimeParams = formatDateRangeForAPI(startDate, endDate);
+              if (apiTimeParams.start_time) {
+                apiParams.start_time = apiTimeParams.start_time;
               }
-              if (endDate) {
-                apiParams.end_time = formatDateToLocal(endDate);
+              if (apiTimeParams.end_time) {
+                apiParams.end_time = apiTimeParams.end_time;
               }
             }
           });
@@ -343,7 +345,7 @@ export const AdminOperationLogList: React.FC = () => {
                     {t("adminLogs.operationLogs.columns.time")}
                   </label>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {new Date(selectedLog.operation_time).toLocaleString()}
+                    {formatToLocal(selectedLog.operation_time)}
                   </p>
                 </div>
               </div>

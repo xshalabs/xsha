@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 	"xsha-backend/config"
 )
 
@@ -178,7 +177,7 @@ func logWithCaller(level slog.Level, msg string, args ...interface{}) {
 		file = filepath.Base(file)
 	}
 
-	record := slog.NewRecord(time.Now(), level, msg, pc)
+	record := slog.NewRecord(Now(), level, msg, pc)
 
 	if len(args) > 0 {
 		attrs := make([]slog.Attr, 0, len(args)/2)
@@ -221,7 +220,7 @@ func logWithCallerContext(ctx context.Context, level slog.Level, msg string, arg
 		file = filepath.Base(file)
 	}
 
-	record := slog.NewRecord(time.Now(), level, msg, pc)
+	record := slog.NewRecord(Now(), level, msg, pc)
 
 	if len(args) > 0 {
 		attrs := make([]slog.Attr, 0, len(args)/2)

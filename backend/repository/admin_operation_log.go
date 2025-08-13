@@ -3,6 +3,7 @@ package repository
 import (
 	"time"
 	"xsha-backend/database"
+	"xsha-backend/utils"
 
 	"gorm.io/gorm"
 )
@@ -16,7 +17,7 @@ func NewAdminOperationLogRepository(db *gorm.DB) AdminOperationLogRepository {
 }
 
 func (r *adminOperationLogRepository) Add(log *database.AdminOperationLog) error {
-	log.OperationTime = time.Now()
+	log.OperationTime = utils.Now()
 	return r.db.Create(log).Error
 }
 
@@ -122,6 +123,6 @@ func (r *adminOperationLogRepository) GetResourceStats(username string, startTim
 }
 
 func (r *adminOperationLogRepository) CleanOld(days int) error {
-	cutoffTime := time.Now().AddDate(0, 0, -days)
+	cutoffTime := utils.Now().AddDate(0, 0, -days)
 	return r.db.Where("operation_time < ?", cutoffTime).Delete(&database.AdminOperationLog{}).Error
 }

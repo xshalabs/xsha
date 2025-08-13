@@ -13,13 +13,13 @@ type Claims struct {
 }
 
 func GenerateJWT(username, secret string) (string, error) {
-	expirationTime := time.Now().Add(24 * time.Hour)
+	expirationTime := Now().Add(24 * time.Hour)
 
 	claims := &Claims{
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			IssuedAt:  jwt.NewNumericDate(Now()),
 		},
 	}
 

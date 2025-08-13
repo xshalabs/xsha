@@ -20,6 +20,7 @@ import type {
   ConversationFormData,
   ConversationStatus,
 } from "@/types/task-conversation";
+import { toUTCString, formatToLocal } from "@/lib/timezone";
 
 const TaskConversationPage: React.FC = () => {
   const { t } = useTranslation();
@@ -169,7 +170,7 @@ const TaskConversationPage: React.FC = () => {
       await apiService.taskConversations.create({
         task_id: task.id,
         content: data.content,
-        execution_time: data.execution_time?.toISOString(),
+        execution_time: data.execution_time ? toUTCString(data.execution_time) : undefined,
       });
 
       await loadConversations(task.id);

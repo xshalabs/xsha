@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"time"
 	"xsha-backend/database"
 	"xsha-backend/utils"
 
@@ -86,7 +85,7 @@ func (r *taskConversationRepository) ListByStatus(status database.ConversationSt
 
 func (r *taskConversationRepository) GetPendingConversationsWithDetails() ([]database.TaskConversation, error) {
 	var conversations []database.TaskConversation
-	now := time.Now()
+	now := utils.Now()
 
 	// 先查询所有 pending 状态的对话数量，用于日志统计
 	var totalPendingCount int64

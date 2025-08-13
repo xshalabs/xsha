@@ -30,6 +30,7 @@ import type {
   UsageStats,
   ParsedTaskConversationResult,
 } from "@/types/task-conversation-result";
+import { formatToLocal } from "@/lib/timezone";
 import { taskConversationResultsApi } from "@/lib/api";
 
 interface TaskConversationResultProps {
@@ -326,7 +327,7 @@ export function TaskConversationResult({
           </div>
           <div>
             {t("taskConversations.result.created_at")}:{" "}
-            {new Date(result.created_at).toLocaleString()}
+            {formatToLocal(result.created_at)}
           </div>
         </div>
       </CardContent>

@@ -8,6 +8,7 @@ import (
 	"xsha-backend/i18n"
 	"xsha-backend/middleware"
 	"xsha-backend/services"
+	"xsha-backend/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -80,14 +81,13 @@ func (h *AdminOperationLogHandlers) GetOperationLogs(c *gin.Context) {
 
 	var startTime, endTime *time.Time
 	if startTimeStr != "" {
-		if parsed, err := time.Parse("2006-01-02", startTimeStr); err == nil {
+		if parsed, err := utils.ParseStartTimeCompatible(startTimeStr); err == nil {
 			startTime = &parsed
 		}
 	}
 	if endTimeStr != "" {
-		if parsed, err := time.Parse("2006-01-02", endTimeStr); err == nil {
-			endOfDay := parsed.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
-			endTime = &endOfDay
+		if parsed, err := utils.ParseEndTimeCompatible(endTimeStr); err == nil {
+			endTime = &parsed
 		}
 	}
 
@@ -170,17 +170,17 @@ func (h *AdminOperationLogHandlers) GetOperationStats(c *gin.Context) {
 	startTimeStr := c.Query("start_time")
 	endTimeStr := c.Query("end_time")
 
-	endTime := time.Now()
+	endTime := utils.Now()
 	startTime := endTime.AddDate(0, 0, -30)
 
 	if startTimeStr != "" {
-		if parsed, err := time.Parse("2006-01-02", startTimeStr); err == nil {
+		if parsed, err := utils.ParseStartTimeCompatible(startTimeStr); err == nil {
 			startTime = parsed
 		}
 	}
 	if endTimeStr != "" {
-		if parsed, err := time.Parse("2006-01-02", endTimeStr); err == nil {
-			endTime = parsed.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+		if parsed, err := utils.ParseEndTimeCompatible(endTimeStr); err == nil {
+			endTime = parsed
 		}
 	}
 

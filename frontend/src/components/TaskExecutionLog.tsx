@@ -31,6 +31,7 @@ import type {
   ConversationStatus,
   TaskConversation,
 } from "@/types/task-conversation";
+import { formatToLocal } from "@/lib/timezone";
 
 interface TaskExecutionLogProps {
   conversationId: number;
@@ -169,7 +170,7 @@ export function TaskExecutionLog({
 
   const formatTime = (dateString: string | null) => {
     if (!dateString) return "-";
-    return new Date(dateString).toLocaleString();
+    return formatToLocal(dateString);
   };
 
   const formatDuration = (startTime: string | null, endTime: string | null) => {

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/constants";
 import { dashboardApi } from "@/lib/api/dashboard";
 import type { DashboardStats, RecentTask } from "@/lib/api/dashboard";
+import { formatDateToLocal } from "@/lib/timezone";
 import {
   SectionGroup,
   Section,
@@ -260,7 +261,7 @@ export const DashboardPage: React.FC = () => {
                   {task.project?.name || `Project ID: ${task.project_id}`}
                 </p>
                 <div className="text-xs text-muted-foreground">
-                  {t("common.created")} {new Date(task.created_at).toLocaleDateString()}
+                  {t("common.created")} {formatDateToLocal(task.created_at)}
                 </div>
               </div>
             ))}

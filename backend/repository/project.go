@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"time"
 	"xsha-backend/database"
+	"xsha-backend/utils"
 
 	"gorm.io/gorm"
 )
@@ -99,7 +99,7 @@ func (r *projectRepository) Delete(id uint) error {
 }
 
 func (r *projectRepository) UpdateLastUsed(id uint) error {
-	now := time.Now()
+	now := utils.Now()
 	return r.db.Model(&database.Project{}).
 		Where("id = ?", id).
 		Update("last_used", now).Error

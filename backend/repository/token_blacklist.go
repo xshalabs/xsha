@@ -3,6 +3,7 @@ package repository
 import (
 	"time"
 	"xsha-backend/database"
+	"xsha-backend/utils"
 
 	"gorm.io/gorm"
 )
@@ -29,7 +30,7 @@ func (r *tokenBlacklistRepository) Add(token string, username string, expiresAt 
 func (r *tokenBlacklistRepository) IsBlacklisted(token string) (bool, error) {
 	var count int64
 	err := r.db.Model(&database.TokenBlacklist{}).
-		Where("token = ? AND expires_at > ?", token, time.Now()).
+		Where("token = ? AND expires_at > ?", token, utils.Now()).
 		Count(&count).Error
 
 	if err != nil {
@@ -40,5 +41,5 @@ func (r *tokenBlacklistRepository) IsBlacklisted(token string) (bool, error) {
 }
 
 func (r *tokenBlacklistRepository) CleanExpired() error {
-	return r.db.Where("expires_at < ?", time.Now()).Delete(&database.TokenBlacklist{}).Error
+	return r.db.Where("expires_at < ?", utils.Now()).Delete(&database.TokenBlacklist{}).Error
 }

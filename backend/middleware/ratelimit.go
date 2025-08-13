@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 	"xsha-backend/i18n"
+	"xsha-backend/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,7 +40,7 @@ func (rl *RateLimiter) IsAllowed(key string) bool {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
-	now := time.Now()
+	now := utils.Now()
 	entry, exists := rl.entries[key]
 
 	if !exists {
@@ -91,7 +92,7 @@ func (rl *RateLimiter) cleanup() {
 
 	for range ticker.C {
 		rl.mu.Lock()
-		now := time.Now()
+		now := utils.Now()
 		for key, entry := range rl.entries {
 			if now.Sub(entry.LastTime) > rl.window*2 {
 				delete(rl.entries, key)

@@ -14,6 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { formatToLocal, getUserTimezone } from "@/lib/timezone"
 
 interface DateTimePickerProps {
   value?: Date
@@ -88,7 +89,7 @@ export function DateTimePicker({
   }
 
   const formatDateTime = (date: Date) => {
-    return format(date, "yyyy-MM-dd HH:mm")
+    return format(date, "yyyy-MM-dd HH:mm") + ` (${getUserTimezone()})`
   }
 
   const clearSelection = () => {

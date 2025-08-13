@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"time"
 	"xsha-backend/database"
+	"xsha-backend/utils"
 
 	"gorm.io/gorm"
 )
@@ -22,7 +22,7 @@ func (r *loginLogRepository) Add(username, ip, userAgent, reason string, success
 		IP:        ip,
 		UserAgent: userAgent,
 		Reason:    reason,
-		LoginTime: time.Now(),
+		LoginTime: utils.Now(),
 	}
 
 	return r.db.Create(&loginLog).Error
@@ -47,11 +47,19 @@ func (r *loginLogRepository) GetLogs(username, ip *string, success *bool, startT
 	}
 
 	if startTime != nil && *startTime != "" {
-		query = query.Where("login_time >= ?", *startTime+" 00:00:00")
+		parsed, err := utils.ParseStartTimeCompatible(*startTime)
+		if err != nil {
+			return nil, 0, err
+		}
+		query = query.Where("login_time >= ?", parsed)
 	}
 
 	if endTime != nil && *endTime != "" {
-		query = query.Where("login_time <= ?", *endTime+" 23:59:59")
+		parsed, err := utils.ParseEndTimeCompatible(*endTime)
+		if err != nil {
+			return nil, 0, err
+		}
+		query = query.Where("login_time <= ?", parsed)
 	}
 
 	if err := query.Count(&total).Error; err != nil {
@@ -67,6 +75,6 @@ func (r *loginLogRepository) GetLogs(username, ip *string, success *bool, startT
 }
 
 func (r *loginLogRepository) CleanOld(days int) error {
-	cutoffTime := time.Now().AddDate(0, 0, -days)
+	cutoffTime := utils.Now().AddDate(0, 0, -days)
 	return r.db.Where("login_time < ?", cutoffTime).Delete(&database.LoginLog{}).Error
 }

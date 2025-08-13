@@ -8,6 +8,7 @@ import type {
   LoginLogListParams,
   LoginLogListResponse,
 } from "@/types/admin-logs";
+import { toUTCString } from "@/lib/timezone";
 
 export const adminLogsApi = {
   getOperationLogs: async (
