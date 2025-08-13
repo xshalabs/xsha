@@ -106,8 +106,15 @@ func (s *taskService) ListTasks(projectID *uint, statuses []database.TaskStatus,
 		return tasks, total, nil
 	}
 
+	executionTimes, err := s.repo.GetLatestExecutionTimes(taskIDs)
+	if err != nil {
+		utils.Error("Failed to get latest execution times", "error", err)
+		return tasks, total, nil
+	}
+
 	for i := range tasks {
 		tasks[i].ConversationCount = conversationCounts[tasks[i].ID]
+		tasks[i].LatestExecutionTime = executionTimes[tasks[i].ID]
 	}
 
 	return tasks, total, nil

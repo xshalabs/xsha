@@ -6,11 +6,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 	"xsha-backend/config"
 	"xsha-backend/database"
 	appErrors "xsha-backend/errors"
 	"xsha-backend/repository"
+	"xsha-backend/utils"
 )
 
 type devEnvironmentService struct {
@@ -250,9 +250,9 @@ func (s *devEnvironmentService) generateSessionDir() (string, error) {
 
 	// Generate unique directory name using safe characters only
 	// Use timestamp and random suffix to ensure uniqueness
-	timestamp := time.Now().Unix()
+	timestamp := utils.Now().Unix()
 	// Generate a short random suffix for better uniqueness
-	randomSuffix := time.Now().Nanosecond() % 10000
+	randomSuffix := utils.Now().Nanosecond() % 10000
 	dirName := fmt.Sprintf("env-%d-%04d", timestamp, randomSuffix)
 	sessionDir := filepath.Join(s.config.DevSessionsDir, dirName)
 

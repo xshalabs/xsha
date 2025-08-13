@@ -182,8 +182,9 @@ type Task struct {
 
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 
-	Conversations     []TaskConversation `gorm:"foreignKey:TaskID" json:"conversations"`
-	ConversationCount int64              `gorm:"-" json:"conversation_count"`
+	Conversations       []TaskConversation `gorm:"foreignKey:TaskID" json:"conversations"`
+	ConversationCount   int64              `gorm:"-" json:"conversation_count"`
+	LatestExecutionTime *time.Time         `gorm:"-" json:"latest_execution_time"`
 }
 
 type TaskConversation struct {
@@ -197,6 +198,9 @@ type TaskConversation struct {
 
 	Content string             `gorm:"type:longtext;not null" json:"content"`
 	Status  ConversationStatus `gorm:"not null;index" json:"status"`
+
+	// ExecutionTime 执行时间，如果为空则立即执行
+	ExecutionTime *time.Time `gorm:"index" json:"execution_time"`
 
 	CommitHash string `gorm:"default:''" json:"commit_hash"`
 

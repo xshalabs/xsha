@@ -14,6 +14,7 @@ export interface Task {
   created_at: string;
   updated_at: string;
   conversation_count: number;
+  latest_execution_time?: string; // ISO 8601 date string
   project?: {
     id: number;
     name: string;
@@ -33,6 +34,7 @@ export interface CreateTaskRequest {
   dev_environment_id?: number;
   requirement_desc?: string;
   include_branches?: boolean;
+  execution_time?: string; // ISO 8601 date string
 }
 
 export interface UpdateTaskRequest {
@@ -78,6 +80,7 @@ export interface TaskFormData {
   dev_environment_id?: number;
   requirement_desc?: string;
   include_branches?: boolean;
+  execution_time?: Date; // Date object for form handling
 }
 
 export interface BatchUpdateStatusRequest {

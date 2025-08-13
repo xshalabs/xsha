@@ -3,7 +3,6 @@ package utils
 import (
 	"fmt"
 	"strings"
-	"time"
 )
 
 func GenerateWorkBranchName(title, createdBy string) string {
@@ -30,7 +29,7 @@ func GenerateWorkBranchName(title, createdBy string) string {
 		cleanTitle = "task"
 	}
 
-	timestamp := time.Now().Format("20060102-150405")
+	timestamp := Now().Format("20060102-150405")
 
 	return fmt.Sprintf("xsha/%s/%s-%s", createdBy, cleanTitle, timestamp)
 }

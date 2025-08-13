@@ -321,7 +321,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 			updates["error_message"] = errorMsg
 		}
 
-		now := time.Now()
+		now := utils.Now()
 		updates["completed_at"] = &now
 
 		if err := s.execLogRepo.UpdateMetadata(execLog.ID, updates); err != nil {
@@ -365,7 +365,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		}
 	}
 
-	now := time.Now()
+	now := utils.Now()
 	startedUpdates := map[string]interface{}{
 		"started_at": &now,
 	}

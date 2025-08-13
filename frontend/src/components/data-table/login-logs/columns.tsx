@@ -2,6 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { LoginLog } from "@/types/admin-logs";
 import { CheckCircle, XCircle, User, Calendar, Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { formatToLocal } from "@/lib/timezone";
 
 export function useLoginLogColumns() {
   const { t } = useTranslation();
@@ -70,7 +71,7 @@ export function useLoginLogColumns() {
           <div className="flex items-center space-x-2">
             <Calendar className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">
-              {new Date(time).toLocaleString()}
+              {formatToLocal(time)}
             </span>
           </div>
         );

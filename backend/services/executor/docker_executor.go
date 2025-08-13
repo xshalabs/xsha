@@ -208,7 +208,7 @@ func (d *dockerExecutor) readPipe(pipe interface{}, execLogID uint, prefix strin
 	scanner := bufio.NewScanner(pipe.(interface{ Read([]byte) (int, error) }))
 	for scanner.Scan() {
 		line := scanner.Text()
-		logLine := fmt.Sprintf("[%s] %s: %s\n", time.Now().Format("15:04:05"), prefix, line)
+		logLine := fmt.Sprintf("[%s] %s: %s\n", utils.Now().Format("15:04:05"), prefix, line)
 		d.logAppender.AppendLog(execLogID, logLine)
 	}
 }
@@ -217,7 +217,7 @@ func (d *dockerExecutor) readPipeWithErrorCapture(pipe interface{}, execLogID ui
 	scanner := bufio.NewScanner(pipe.(interface{ Read([]byte) (int, error) }))
 	for scanner.Scan() {
 		line := scanner.Text()
-		logLine := fmt.Sprintf("[%s] %s: %s\n", time.Now().Format("15:04:05"), prefix, line)
+		logLine := fmt.Sprintf("[%s] %s: %s\n", utils.Now().Format("15:04:05"), prefix, line)
 		d.logAppender.AppendLog(execLogID, logLine)
 
 		if prefix == "STDERR" {

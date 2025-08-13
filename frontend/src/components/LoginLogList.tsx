@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import { formatDateToLocal } from "@/lib/utils";
+import { formatDateRangeForAPI } from "@/lib/timezone";
 import { useTranslation } from "react-i18next";
 import {
   Section,
@@ -101,11 +102,12 @@ export const LoginLogList: React.FC = () => {
                 startDate?: Date;
                 endDate?: Date;
               };
-              if (dateRange.startDate) {
-                apiParams.start_time = formatDateToLocal(dateRange.startDate);
+              const apiTimeParams = formatDateRangeForAPI(dateRange.startDate, dateRange.endDate);
+              if (apiTimeParams.start_time) {
+                apiParams.start_time = apiTimeParams.start_time;
               }
-              if (dateRange.endDate) {
-                apiParams.end_time = formatDateToLocal(dateRange.endDate);
+              if (apiTimeParams.end_time) {
+                apiParams.end_time = apiTimeParams.end_time;
               }
             }
           });

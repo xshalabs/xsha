@@ -30,7 +30,7 @@ func LoggerMiddleware() gin.HandlerFunc {
 
 func RequestLogMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		start := time.Now()
+		start := utils.Now()
 		path := c.Request.URL.Path
 		raw := c.Request.URL.RawQuery
 
@@ -55,7 +55,7 @@ func RequestLogMiddleware() gin.HandlerFunc {
 
 		c.Next()
 
-		end := time.Now()
+		end := utils.Now()
 		latency := end.Sub(start)
 		statusCode := c.Writer.Status()
 

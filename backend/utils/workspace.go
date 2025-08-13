@@ -36,7 +36,7 @@ func (w *WorkspaceManager) GetOrCreateTaskWorkspace(taskID uint, existingPath st
 		return "", fmt.Errorf("failed to create base directory: %v", err)
 	}
 
-	dirName := fmt.Sprintf("task-%d-%d", taskID, time.Now().Unix())
+	dirName := fmt.Sprintf("task-%d-%d", taskID, Now().Unix())
 	workspacePath := filepath.Join(w.baseDir, dirName)
 
 	if err := os.MkdirAll(workspacePath, 0777); err != nil {

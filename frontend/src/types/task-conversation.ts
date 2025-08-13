@@ -10,6 +10,7 @@ export interface TaskConversation {
   task_id: number;
   content: string;
   status: ConversationStatus;
+  execution_time?: string; // ISO 8601 date string
   commit_hash: string;
   created_by: string;
   created_at: string;
@@ -23,6 +24,7 @@ export interface TaskConversation {
 export interface CreateConversationRequest {
   task_id: number;
   content: string;
+  execution_time?: string; // ISO 8601 date string
 }
 
 export interface UpdateConversationRequest {
@@ -62,6 +64,7 @@ export interface LatestConversationResponse {
 
 export interface ConversationFormData {
   content: string;
+  execution_time?: Date; // Date object for form handling
 }
 
 // Git diff types for conversations

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"time"
 	"xsha-backend/database"
 
 	"gorm.io/gorm"
@@ -150,4 +151,42 @@ func (r *taskRepository) GetConversationCounts(taskIDs []uint) (map[uint]int64, 
 	}
 
 	return conversationCounts, nil
+}
+
+func (r *taskRepository) GetLatestExecutionTimes(taskIDs []uint) (map[uint]*time.Time, error) {
+	if len(taskIDs) == 0 {
+		return make(map[uint]*time.Time), nil
+	}
+
+	type ExecutionTimeResult struct {
+		TaskID        uint       `gorm:"column:task_id"`
+		ExecutionTime *time.Time `gorm:"column:execution_time"`
+	}
+
+	var results []ExecutionTimeResult
+	err := r.db.Table("task_conversations").
+		Select("task_id, execution_time").
+		Where("task_id IN ? AND deleted_at IS NULL AND execution_time IS NOT NULL", taskIDs).
+		Order("execution_time DESC").
+		Find(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	executionTimes := make(map[uint]*time.Time)
+	for _, taskID := range taskIDs {
+		executionTimes[taskID] = nil
+	}
+
+	// For each task, keep only the latest execution time
+	seenTasks := make(map[uint]bool)
+	for _, result := range results {
+		if !seenTasks[result.TaskID] {
+			executionTimes[result.TaskID] = result.ExecutionTime
+			seenTasks[result.TaskID] = true
+		}
+	}
+
+	return executionTimes, nil
 }

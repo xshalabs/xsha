@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, CheckCircle, XCircle, User, Activity, Calendar, Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { formatToLocal } from "@/lib/timezone";
 
 interface AdminOperationLogColumnsProps {
   onViewDetail: (id: number) => void;
@@ -136,7 +137,7 @@ export function useAdminOperationLogColumns({ onViewDetail }: AdminOperationLogC
           <div className="flex items-center space-x-2">
             <Calendar className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">
-              {new Date(time).toLocaleString()}
+              {formatToLocal(time)}
             </span>
           </div>
         );

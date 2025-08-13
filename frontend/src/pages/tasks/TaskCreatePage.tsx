@@ -20,6 +20,7 @@ import { logError } from "@/lib/errors";
 import { toast } from "sonner";
 import type { TaskFormData } from "@/types/task";
 import type { Project } from "@/types/project";
+import { toUTCString } from "@/lib/timezone";
 
 const TaskCreatePage: React.FC = () => {
   const { t } = useTranslation();
@@ -72,7 +73,12 @@ const TaskCreatePage: React.FC = () => {
       }
 
       if ("start_branch" in data && "project_id" in data) {
-        await apiService.tasks.create({ ...data, project_id: projectIdNum });
+        const createTaskData = {
+          ...data,
+          project_id: projectIdNum,
+          execution_time: data.execution_time ? toUTCString(data.execution_time) : undefined,
+        };
+        await apiService.tasks.create(createTaskData);
         toast.success(t("tasks.messages.createSuccess"));
       } else {
         throw new Error(t("errors.task_fields_required"));

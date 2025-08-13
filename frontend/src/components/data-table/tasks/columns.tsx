@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Task, TaskStatus } from "@/types/task";
+import { formatToLocal } from "@/lib/timezone";
 
 interface TaskColumnsProps {
   t: TFunction;
@@ -239,10 +240,30 @@ export const createTaskColumns = ({
         <DataTableColumnHeader column={column} title={t("tasks.table.created")} />
       ),
       cell: ({ row }) => {
-        const date = new Date(row.getValue("created_at"));
+        const dateString = row.getValue("created_at") as string;
         return (
           <div className="text-xs text-muted-foreground">
-            {date.toLocaleString()}
+            {formatToLocal(dateString)}
+          </div>
+        );
+      },
+      enableSorting: true,
+    },
+    {
+      accessorKey: "latest_execution_time",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("tasks.table.executionTime")} />
+      ),
+      cell: ({ row }) => {
+        const executionTime = row.getValue("latest_execution_time") as string | null;
+        if (!executionTime) {
+          return (
+            <span className="text-xs text-muted-foreground">-</span>
+          );
+        }
+        return (
+          <div className="text-xs text-muted-foreground">
+            {formatToLocal(executionTime)}
           </div>
         );
       },
