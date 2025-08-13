@@ -17,6 +17,7 @@ import type {
   Row,
   SortingState,
   VisibilityState,
+  Table as ReactTable,
 } from "@tanstack/react-table";
 
 // Extend the ColumnMeta interface to include custom className properties
@@ -37,8 +38,15 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Fragment } from "react";
 import type { DataTableActionBarProps } from "./data-table-action-bar";
-import type { DataTablePaginationProps } from "./data-table-pagination";
-import type { DataTableToolbarProps } from "./data-table-toolbar";
+
+// Generic type definitions for toolbar and pagination components
+export interface DataTableToolbarProps<TData> {
+  table: ReactTable<TData>;
+}
+
+export interface DataTablePaginationProps<TData> {
+  table: ReactTable<TData>;
+}
 
 export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -124,75 +132,77 @@ export function DataTable<TData, TValue>({
       {toolbarComponent
         ? React.createElement(toolbarComponent, { table })
         : null}
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    className={header.column.columnDef.meta?.headerClassName}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {loading ? (
-            // Show skeleton rows when loading
-            Array.from({ length: 5 }).map((_, index) => (
-              <TableRow key={`skeleton-${index}`}>
-                {columns.map((_, columnIndex) => (
-                  <TableCell key={`skeleton-cell-${index}-${columnIndex}`}>
-                    <Skeleton className="h-5 w-full" />
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <Fragment key={row.id}>
-                <TableRow
-                  data-state={
-                    (row.getIsSelected() || row.getIsExpanded()) && "selected"
-                  }
-                  onClick={() => onRowClick?.(row)}
-                  className="data-[state=selected]:bg-muted/50"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className={cell.column.columnDef.meta?.cellClassName}
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      className={header.column.columnDef.meta?.headerClassName}
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              // Show skeleton rows when loading
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={`skeleton-${index}`}>
+                  {columns.map((_, columnIndex) => (
+                    <TableCell key={`skeleton-cell-${index}-${columnIndex}`}>
+                      <Skeleton className="h-5 w-full" />
                     </TableCell>
                   ))}
                 </TableRow>
-                {row.getIsExpanded() && rowComponent}
-              </Fragment>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                {noResultsText || t("common.table.noResults")}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+              ))
+            ) : table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <Fragment key={row.id}>
+                  <TableRow
+                    data-state={
+                      (row.getIsSelected() || row.getIsExpanded()) && "selected"
+                    }
+                    onClick={() => onRowClick?.(row)}
+                    className="data-[state=selected]:bg-muted/50"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className={cell.column.columnDef.meta?.cellClassName}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {row.getIsExpanded() && rowComponent}
+                </Fragment>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  {noResultsText || t("common.table.noResults")}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
       {paginationComponent
         ? React.createElement(paginationComponent, { table })
         : null}

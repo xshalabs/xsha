@@ -93,6 +93,10 @@ export const createDevEnvironmentColumns = ({
   },
   {
     id: "actions",
+    meta: {
+      headerClassName: "sticky right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm",
+      cellClassName: "sticky right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm",
+    },
     cell: ({ row }) => {
       const environment = row.original;
 
