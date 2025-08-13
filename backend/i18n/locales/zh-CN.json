@@ -130,7 +130,6 @@
   "tasks.errors.git_diff_failed": "获取Git差异失败",
   "tasks.errors.git_diff_file_failed": "获取文件Git差异失败",
   "tasks.errors.not_found": "任务不存在",
-  "tasks.push_failed": "推送分支失败",
   "tasks.push_success": "分支推送成功",
   "system_config.update_success": "系统配置更新成功",
   "system_config.list_success": "获取配置列表成功",
