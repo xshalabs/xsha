@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ModeToggle } from "@/components/mode-toggle";
+import { ModeToggle } from "@/components/ModeToggle";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePageActions } from "@/contexts/PageActionsContext";
