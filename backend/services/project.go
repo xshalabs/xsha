@@ -36,7 +36,7 @@ func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository
 	}
 }
 
-func (s *projectService) CreateProject(name, description, repoURL, protocol string, credentialID *uint, createdBy string) (*database.Project, error) {
+func (s *projectService) CreateProject(name, description, systemPrompt, repoURL, protocol string, credentialID *uint, createdBy string) (*database.Project, error) {
 	if err := s.validateProjectData(name, repoURL, protocol); err != nil {
 		return nil, err
 	}
@@ -57,6 +57,7 @@ func (s *projectService) CreateProject(name, description, repoURL, protocol stri
 	project := &database.Project{
 		Name:         name,
 		Description:  description,
+		SystemPrompt: systemPrompt,
 		RepoURL:      repoURL,
 		Protocol:     protocolType,
 		CredentialID: credentialID,
@@ -120,6 +121,9 @@ func (s *projectService) UpdateProject(id uint, updates map[string]interface{}) 
 	}
 	if description, ok := updates["description"]; ok {
 		project.Description = description.(string)
+	}
+	if systemPrompt, ok := updates["system_prompt"]; ok {
+		project.SystemPrompt = systemPrompt.(string)
 	}
 	if repoURL, ok := updates["repo_url"]; ok {
 		project.RepoURL = repoURL.(string)

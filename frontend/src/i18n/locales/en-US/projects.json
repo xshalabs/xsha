@@ -8,6 +8,8 @@
   "createDescription": "Create a new project configuration",
   "editDescription": "Edit project configuration information",
   "name": "Project Name",
+  "systemPrompt": "System Prompt",
+  "systemPromptHelp": "Optional system prompt to append to AI conversations for this project",
   "repoUrl": "Repository URL",
   "credential": "Credential",
   "taskCount": "Tasks",
@@ -26,6 +28,7 @@
   "placeholders": {
     "name": "Enter project name",
     "description": "Enter project description (optional)",
+    "systemPrompt": "Enter system prompt for AI conversations (optional)",
     "repoUrl": "https://github.com/user/repo.git or git@github.com:user/repo.git",
     "selectCredential": "Select access credential (optional)"
   },

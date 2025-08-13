@@ -10,6 +10,7 @@ export interface Project {
   id: number;
   name: string;
   description: string;
+  system_prompt: string;
   repo_url: string;
   protocol: GitProtocolType;
   credential_id?: number;
@@ -27,6 +28,7 @@ export interface Project {
 export interface CreateProjectRequest {
   name: string;
   description?: string;
+  system_prompt?: string;
   repo_url: string;
   protocol: GitProtocolType;
   credential_id?: number;
@@ -35,6 +37,7 @@ export interface CreateProjectRequest {
 export interface UpdateProjectRequest {
   name?: string;
   description?: string;
+  system_prompt?: string;
   repo_url?: string;
   protocol?: GitProtocolType;
   credential_id?: number;
@@ -80,6 +83,7 @@ export interface ProjectListParams {
 export interface ProjectFormData {
   name: string;
   description: string;
+  system_prompt: string;
   repo_url: string;
   protocol: GitProtocolType;
   credential_id?: number;

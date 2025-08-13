@@ -70,8 +70,9 @@ type Project struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
-	Name        string `gorm:"not null" json:"name"`
-	Description string `gorm:"type:text" json:"description"`
+	Name         string `gorm:"not null" json:"name"`
+	Description  string `gorm:"type:text" json:"description"`
+	SystemPrompt string `gorm:"type:text" json:"system_prompt"`
 
 	RepoURL      string          `gorm:"not null" json:"repo_url"`
 	Protocol     GitProtocolType `gorm:"not null;index" json:"protocol"`

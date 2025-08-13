@@ -27,6 +27,7 @@ func NewProjectHandlers(projectService services.ProjectService) *ProjectHandlers
 type CreateProjectRequest struct {
 	Name         string `json:"name" binding:"required"`
 	Description  string `json:"description"`
+	SystemPrompt string `json:"system_prompt"`
 	RepoURL      string `json:"repo_url" binding:"required"`
 	Protocol     string `json:"protocol" binding:"required,oneof=https ssh"`
 	CredentialID *uint  `json:"credential_id"`
@@ -36,6 +37,7 @@ type CreateProjectRequest struct {
 type UpdateProjectRequest struct {
 	Name         string `json:"name" example:"Updated project name"`
 	Description  string `json:"description" example:"Updated project description"`
+	SystemPrompt string `json:"system_prompt" example:"Custom system prompt"`
 	RepoURL      string `json:"repo_url" example:"https://github.com/user/repo.git"`
 	CredentialID *uint  `json:"credential_id" example:"1"`
 }
@@ -72,7 +74,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 	}
 
 	project, err := h.projectService.CreateProject(
-		req.Name, req.Description, req.RepoURL, req.Protocol,
+		req.Name, req.Description, req.SystemPrompt, req.RepoURL, req.Protocol,
 		req.CredentialID, username.(string),
 	)
 	if err != nil {
@@ -248,6 +250,7 @@ func (h *ProjectHandlers) UpdateProject(c *gin.Context) {
 	}
 
 	updates["description"] = req.Description
+	updates["system_prompt"] = req.SystemPrompt
 
 	if req.RepoURL != "" {
 		updates["repo_url"] = req.RepoURL
