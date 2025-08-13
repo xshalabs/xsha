@@ -1,10 +1,6 @@
 {
   "title": "Task Management",
   "page_description": "Manage development tasks in projects, track task progress and status",
-  "empty": {
-    "title": "No tasks yet",
-    "description": "Create your first task to get started"
-  },
   "actions": {
     "create": "Create",
     "edit": "Edit",
@@ -18,7 +14,6 @@
     "done": "Done",
     "cancelled": "Cancelled"
   },
-
   "fields": {
     "title": "Task Title",
     "requirementDesc": "Requirement Description",
@@ -53,13 +48,10 @@
   },
   "filters": {
     "title": "Filters",
-    "project": "Project",
     "status": "Status",
-    "taskTitle": "Task Title",
     "titlePlaceholder": "Search by title...",
     "branch": "Branch",
-    "branchPlaceholder": "Filter by branch...",
-    "devEnvironment": "Environment"
+    "branchPlaceholder": "Filter by branch..."
   },
   "list": "Task List",
   "table": {
@@ -76,9 +68,6 @@
     "loadFailed": "Failed to load task",
     "createSuccess": "Task created successfully",
     "updateSuccess": "Task updated successfully",
-    "deleteSuccess": "Task deleted successfully",
-    "deleteFailed": "Failed to delete task",
-    "delete_confirm_title": "Delete Task",
     "batchUpdateFailed": "Batch update failed",
     "push_failed": "Failed to push branch"
   },
@@ -108,15 +97,11 @@
   },
   "batch": {
     "updateStatus": "Update Status",
-    "selectStatus": "Select Status",
     "delete": "Batch Delete",
-    "deleteConfirmTitle": "Confirm Batch Delete Tasks",
     "deleteConfirmDescription": "You are about to delete {{count}} tasks. This action cannot be undone, and related conversation records and execution logs will also be deleted.",
     "deleteSuccess": "Successfully deleted {{count}} tasks",
-    "deleteFailed": "Batch delete failed"
-  },
-  "metrics": {
-    "total": "Total Tasks"
+    "deleteFailed": "Batch delete failed",
+    "deleteConfirmTitle": "Delete Confirmation"
   },
   "errors": {
     "fetchBranchesFailed": "Failed to fetch repository branches",
