@@ -6,21 +6,8 @@
   "create_description": "创建新的开发环境",
   "edit_description": "修改开发环境配置信息",
   "invalid_id": "无效的环境ID",
-  "load_failed": "加载环境失败",
-  "fetch_failed": "获取环境列表失败",
-  "load_images_failed": "加载Docker镜像失败",
   "create_success": "环境创建成功",
-  "create_failed": "环境创建失败",
   "update_success": "环境更新成功",
-  "update_failed": "环境更新失败",
-  "delete_success": "环境删除成功",
-  "delete_failed": "环境删除失败",
-  "delete_confirm": "确定要删除这个环境吗？",
-  "delete_confirm_title": "删除环境",
-  "empty": {
-    "title": "暂无环境",
-    "description": "创建您的第一个开发环境开始使用"
-  },
   "table": {
     "name": "名称",
     "description": "描述",
@@ -28,29 +15,17 @@
     "memory": "内存",
     "env_vars": "环境变量",
     "created": "创建时间",
-    "type": "类型",
-    "docker_image": "Docker镜像",
-    "resources": "资源",
     "no_description": "无描述",
     "core": "核",
-    "cores": "核",
-    "actions": "操作"
+    "cores": "核"
   },
   "filters": {
-    "title": "筛选条件",
     "name": "环境名称",
     "name_placeholder": "请输入环境名称进行搜索",
-    "docker_image": "Docker镜像",
-    "docker_image_placeholder": "请输入Docker镜像名称进行搜索",
     "type": "环境类型"
   },
   "stats": {
-    "total": "环境总数",
-    "docker_environments": "Docker环境",
-    "total_cpu": "总CPU",
-    "total_memory": "总内存",
-    "cores": "核",
-    "memory": "内存"
+    "cores": "核"
   },
   "types": {
     "claude_code": {
@@ -75,10 +50,8 @@
     "docker_image": "Docker镜像",
     "docker_image_placeholder": "请选择Docker镜像",
     "docker_image_edit_disabled": "创建后不可修改Docker镜像",
-    "resources": "资源配置",
     "cpu_limit": "CPU限制",
-    "memory_limit": "内存限制",
-    "env_vars": "环境变量"
+    "memory_limit": "内存限制"
   },
   "validation": {
     "name_required": "环境名称不能为空",
@@ -93,8 +66,6 @@
   "configurationHelp": "环境配置将在容器创建或重启时应用。",
   "env_vars": {
     "title": "环境变量",
-    "add_new": "添加环境变量",
-    "current": "当前环境变量",
     "key": "变量名",
     "value": "变量值",
     "add": "添加",

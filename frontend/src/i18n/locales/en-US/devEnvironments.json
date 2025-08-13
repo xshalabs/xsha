@@ -6,21 +6,8 @@
   "create_description": "Create a new development environment",
   "edit_description": "Modify development environment configuration information",
   "invalid_id": "Invalid environment ID",
-  "load_failed": "Failed to load environment",
-  "fetch_failed": "Failed to fetch environments",
-  "load_images_failed": "Failed to load Docker images",
   "create_success": "Environment created successfully",
-  "create_failed": "Failed to create environment",
   "update_success": "Environment updated successfully",
-  "update_failed": "Failed to update environment",
-  "delete_success": "Environment deleted successfully",
-  "delete_failed": "Failed to delete environment",
-  "delete_confirm": "Are you sure you want to delete this environment?",
-  "delete_confirm_title": "Delete Environment",
-  "empty": {
-    "title": "No environments yet",
-    "description": "Create your first development environment to get started"
-  },
   "table": {
     "name": "Name",
     "description": "Description",
@@ -28,28 +15,16 @@
     "memory": "Memory",
     "env_vars": "Env Vars",
     "created": "Created",
-    "type": "Type",
-    "docker_image": "Docker Image",
-    "resources": "Resources",
     "no_description": "No description",
     "core": "core",
-    "cores": "cores",
-    "actions": "Actions"
+    "cores": "cores"
   },
   "filters": {
-    "title": "Filter Options",
     "name": "Environment Name",
-    "name_placeholder": "Search by environment name",
-    "docker_image": "Docker Image",
-    "docker_image_placeholder": "Search by Docker image name"
+    "name_placeholder": "Search by environment name"
   },
   "stats": {
-    "total": "Total Environments",
-    "docker_environments": "Docker Environments",
-    "total_cpu": "Total CPU",
-    "total_memory": "Total Memory",
-    "cores": "cores",
-    "memory": "Memory"
+    "cores": "cores"
   },
   "form": {
     "name": "Environment Name",
@@ -58,10 +33,8 @@
     "description_placeholder": "Enter environment description (optional)",
     "docker_image": "Docker Image",
     "docker_image_placeholder": "Select a Docker image",
-    "resources": "Resource Configuration",
     "cpu_limit": "CPU Limit",
-    "memory_limit": "Memory Limit",
-    "env_vars": "Environment Variables"
+    "memory_limit": "Memory Limit"
   },
   "validation": {
     "name_required": "Environment name is required",
@@ -76,8 +49,6 @@
   "configurationHelp": "Environment configurations are applied when containers are created or restarted.",
   "env_vars": {
     "title": "Environment Variables",
-    "add_new": "Add Environment Variable",
-    "current": "Current Environment Variables",
     "key": "Variable Name",
     "value": "Variable Value",
     "add": "Add",
