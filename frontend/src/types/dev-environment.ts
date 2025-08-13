@@ -6,6 +6,7 @@ export interface DevEnvironment {
   updated_at: string;
   name: string;
   description: string;
+  system_prompt: string;
   type: DevEnvironmentType;
   docker_image: string;
   cpu_limit: number;
@@ -22,6 +23,7 @@ export interface DevEnvironmentDisplay
 export interface CreateDevEnvironmentRequest {
   name: string;
   description?: string;
+  system_prompt?: string;
   type: DevEnvironmentType;
   docker_image: string;
   cpu_limit: number;
@@ -32,6 +34,7 @@ export interface CreateDevEnvironmentRequest {
 export interface UpdateDevEnvironmentRequest {
   name?: string;
   description?: string;
+  system_prompt?: string;
   cpu_limit?: number;
   memory_limit?: number;
   env_vars?: Record<string, string>;

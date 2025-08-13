@@ -70,8 +70,9 @@ type Project struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
-	Name        string `gorm:"not null" json:"name"`
-	Description string `gorm:"type:text" json:"description"`
+	Name         string `gorm:"not null" json:"name"`
+	Description  string `gorm:"type:text" json:"description"`
+	SystemPrompt string `gorm:"type:text" json:"system_prompt"`
 
 	RepoURL      string          `gorm:"not null" json:"repo_url"`
 	Protocol     GitProtocolType `gorm:"not null;index" json:"protocol"`
@@ -126,10 +127,11 @@ type DevEnvironment struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
-	Name        string `gorm:"not null" json:"name"`
-	Description string `gorm:"type:text" json:"description"`
-	Type        string `gorm:"not null;index;default:'claude-code'" json:"type"`
-	DockerImage string `gorm:"not null" json:"docker_image"`
+	Name         string `gorm:"not null" json:"name"`
+	Description  string `gorm:"type:text" json:"description"`
+	SystemPrompt string `gorm:"type:text" json:"system_prompt"`
+	Type         string `gorm:"not null;index;default:'claude-code'" json:"type"`
+	DockerImage  string `gorm:"not null" json:"docker_image"`
 
 	CPULimit    float64 `gorm:"default:1.0" json:"cpu_limit"`
 	MemoryLimit int64   `gorm:"default:1024" json:"memory_limit"`

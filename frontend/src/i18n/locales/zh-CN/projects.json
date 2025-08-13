@@ -8,6 +8,8 @@
   "editDescription": "编辑项目配置信息",
   "name": "项目名称",
   "description": "项目描述",
+  "systemPrompt": "系统提示词",
+  "systemPromptHelp": "可选的系统提示词，将附加到此项目的 AI 对话中",
   "repoUrl": "仓库地址",
   "credential": "访问凭据",
   "taskCount": "任务数量",
@@ -26,8 +28,8 @@
   "placeholders": {
     "name": "输入项目名称",
     "description": "输入项目描述（可选）",
+    "systemPrompt": "输入 AI 对话的系统提示词（可选）",
     "repoUrl": "https://github.com/user/repo.git 或 git@github.com:user/repo.git",
-
     "selectCredential": "选择访问凭据（可选）"
   },
   "validation": {

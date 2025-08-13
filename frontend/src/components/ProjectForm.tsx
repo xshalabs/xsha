@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -50,6 +51,7 @@ export function ProjectForm({ project, onSubmit }: ProjectFormProps) {
   const [formData, setFormData] = useState<ProjectFormData>({
     name: project?.name || "",
     description: project?.description || "",
+    system_prompt: project?.system_prompt || "",
     repo_url: project?.repo_url || "",
     protocol: project?.protocol || "https",
     credential_id: project?.credential_id,
@@ -280,6 +282,7 @@ export function ProjectForm({ project, onSubmit }: ProjectFormProps) {
         const updateData: UpdateProjectRequest = {
           name: formData.name,
           description: formData.description,
+          system_prompt: formData.system_prompt,
           repo_url: formData.repo_url,
           protocol: formData.protocol,
           credential_id: formData.credential_id,
@@ -294,6 +297,7 @@ export function ProjectForm({ project, onSubmit }: ProjectFormProps) {
         const createData: CreateProjectRequest = {
           name: formData.name,
           description: formData.description,
+          system_prompt: formData.system_prompt,
           repo_url: formData.repo_url,
           protocol: formData.protocol,
           credential_id: formData.credential_id,
@@ -370,6 +374,22 @@ export function ProjectForm({ project, onSubmit }: ProjectFormProps) {
               }
               placeholder={t("projects.placeholders.description")}
             />
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <Label htmlFor="system_prompt">{t("projects.systemPrompt")}</Label>
+            <Textarea
+              id="system_prompt"
+              value={formData.system_prompt}
+              onChange={(e) =>
+                handleInputChange("system_prompt", e.target.value)
+              }
+              placeholder={t("projects.placeholders.systemPrompt")}
+              rows={4}
+            />
+            <p className="text-sm text-gray-500">
+              {t("projects.systemPromptHelp")}
+            </p>
           </div>
         </FormCardContent>
         <FormCardSeparator />

@@ -31,6 +31,8 @@
     "name_placeholder": "Enter environment name",
     "description": "Environment Description",
     "description_placeholder": "Enter environment description (optional)",
+    "system_prompt": "System Prompt",
+    "system_prompt_placeholder": "Enter system prompt for the environment (optional)",
     "docker_image": "Docker Image",
     "docker_image_placeholder": "Select a Docker image",
     "cpu_limit": "CPU Limit",
