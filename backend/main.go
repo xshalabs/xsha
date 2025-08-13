@@ -48,9 +48,6 @@ func main() {
 	}
 	defer dbManager.Close()
 
-	// Initialize database (for backward compatibility)
-	database.InitDatabase()
-
 	// Initialize repositories
 	tokenRepo := repository.NewTokenBlacklistRepository(dbManager.GetDB())
 	loginLogRepo := repository.NewLoginLogRepository(dbManager.GetDB())
