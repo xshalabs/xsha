@@ -45,10 +45,6 @@
   "loginLogs": {
     "title": "登录日志",
     "description": "查看用户认证日志，包括成功和失败的登录尝试",
-    "overview": {
-      "title": "登录概览",
-      "description": "点击指标卡片可按状态筛选登录尝试"
-    },
     "columns": {
       "status": "状态",
       "username": "用户",

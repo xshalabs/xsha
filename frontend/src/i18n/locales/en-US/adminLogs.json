@@ -45,10 +45,6 @@
   "loginLogs": {
     "title": "Login Logs",
     "description": "View user authentication logs including successful and failed login attempts",
-    "overview": {
-      "title": "Login Overview",
-      "description": "Click on metrics to filter login attempts by status"
-    },
     "columns": {
       "status": "Status",
       "username": "User",
