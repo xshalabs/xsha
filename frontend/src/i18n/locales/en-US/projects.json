@@ -1,5 +1,4 @@
 {
-  "title": "Projects",
   "page_description": "Manage your project repositories",
   "description": "Description",
   "create": "Create",
@@ -16,16 +15,10 @@
   "protocolAutoDetected": "Auto-detected protocol",
   "messages": {
     "loadFailed": "Failed to load projects",
-    "noProjects": "No projects found",
-    "noMatchingProjects": "No projects match the current filter",
     "createSuccess": "Project created successfully",
     "createFailed": "Failed to create project",
     "updateSuccess": "Project updated successfully",
     "updateFailed": "Failed to update project",
-    "deleteConfirm": "Are you sure you want to delete this project?",
-    "deleteSuccess": "Project deleted successfully",
-    "deleteFailed": "Failed to delete project",
-    "clearFilter": "Clear Filter",
     "accessFailed": "Repository access validation failed",
     "fetchBranchesFailed": "Failed to fetch repository branches",
     "validateAccessFailed": "Failed to validate repository access"
@@ -34,7 +27,6 @@
     "name": "Enter project name",
     "description": "Enter project description (optional)",
     "repoUrl": "https://github.com/user/repo.git or git@github.com:user/repo.git",
-
     "selectCredential": "Select access credential (optional)"
   },
   "validation": {
@@ -47,16 +39,11 @@
     "accessValidated": "Repository access validation successful"
   },
   "filter": {
-    "title": "Filter Projects",
     "name_placeholder": "Search by project name"
   },
   "list": "Projects",
   "createAndCustomize": "Create and start customizing",
   "createHelpText": "Configure your project repository settings, add credentials, and start automating your development workflow.",
   "editAndUpdate": "Edit and update settings",
-  "editHelpText": "Modify your project configuration, update repository settings, and manage access credentials.",
-  "metrics": {
-    "total": "Total Projects",
-    "withCredentials": "With Credentials"
-  }
+  "editHelpText": "Modify your project configuration, update repository settings, and manage access credentials."
 } 

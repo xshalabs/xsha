@@ -1,5 +1,4 @@
 {
-  "title": "项目",
   "page_description": "管理您的项目仓库",
   "create": "创建",
   "edit": "编辑",
@@ -16,16 +15,10 @@
   "protocolAutoDetected": "自动检测协议",
   "messages": {
     "loadFailed": "加载项目失败",
-    "noProjects": "暂无项目",
-    "noMatchingProjects": "没有符合当前筛选条件的项目",
     "createSuccess": "项目创建成功",
     "createFailed": "创建项目失败",
     "updateSuccess": "项目更新成功",
     "updateFailed": "更新项目失败",
-    "deleteConfirm": "确定要删除这个项目吗？",
-    "deleteSuccess": "项目删除成功",
-    "deleteFailed": "删除项目失败",
-    "clearFilter": "清除筛选",
     "accessFailed": "仓库访问验证失败",
     "fetchBranchesFailed": "获取仓库分支失败",
     "validateAccessFailed": "验证仓库访问失败"
@@ -47,16 +40,11 @@
     "accessValidated": "仓库访问验证成功"
   },
   "filter": {
-    "title": "筛选项目",
     "name_placeholder": "按项目名称搜索"
   },
   "list": "项目列表",
   "createAndCustomize": "创建并开始自定义",
   "createHelpText": "配置您的项目仓库设置，添加访问凭据，开始自动化您的开发工作流程。",
   "editAndUpdate": "编辑并更新设置",
-  "editHelpText": "修改您的项目配置，更新仓库设置，管理访问凭据。",
-  "metrics": {
-    "total": "项目总数",
-    "withCredentials": "已配置凭据"
-  }
-} 
+  "editHelpText": "修改您的项目配置，更新仓库设置，管理访问凭据。"
+}
