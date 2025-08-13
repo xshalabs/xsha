@@ -17,7 +17,7 @@ import { CustomPagination } from "@/components/data-table/login-logs/custom-pagi
 import type { LoginLog } from "@/types/admin-logs";
 import type { ColumnFiltersState } from "@tanstack/react-table";
 
-export const LoginLogTab: React.FC = () => {
+export const LoginLogList: React.FC = () => {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [logs, setLogs] = useState<LoginLog[]>([]);
