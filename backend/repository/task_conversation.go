@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"time"
 	"xsha-backend/database"
+	"xsha-backend/utils"
 
 	"gorm.io/gorm"
 )
@@ -84,13 +86,41 @@ func (r *taskConversationRepository) ListByStatus(status database.ConversationSt
 
 func (r *taskConversationRepository) GetPendingConversationsWithDetails() ([]database.TaskConversation, error) {
 	var conversations []database.TaskConversation
+	now := time.Now()
+
+	// 先查询所有 pending 状态的对话数量，用于日志统计
+	var totalPendingCount int64
+	r.db.Model(&database.TaskConversation{}).
+		Where("status = ?", database.ConversationStatusPending).
+		Count(&totalPendingCount)
+
+	// 查询条件：状态为 pending，且执行时间为空或执行时间已到
 	err := r.db.Preload("Task").
 		Preload("Task.Project").
 		Preload("Task.Project.Credential").
 		Preload("Task.DevEnvironment").
-		Where("status = ?", database.ConversationStatusPending).
+		Where("status = ? AND (execution_time IS NULL OR execution_time <= ?)",
+			database.ConversationStatusPending, now).
 		Order("created_at ASC").
 		Find(&conversations).Error
+
+	if err == nil {
+		readyCount := len(conversations)
+		delayedCount := totalPendingCount - int64(readyCount)
+
+		if delayedCount > 0 {
+			utils.Info("Filtered conversations by execution time",
+				"total_pending", totalPendingCount,
+				"ready_to_execute", readyCount,
+				"delayed_by_execution_time", delayedCount,
+				"current_time", now.Format("2006-01-02 15:04:05"))
+		} else if readyCount > 0 {
+			utils.Info("Found conversations ready to execute",
+				"count", readyCount,
+				"current_time", now.Format("2006-01-02 15:04:05"))
+		}
+	}
+
 	return conversations, err
 }
 

@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { useTranslation } from "react-i18next";
 import { Save, Loader2, AlertCircle } from "lucide-react";
 import type { TaskFormData } from "@/types/task";
@@ -50,6 +51,7 @@ export function TaskFormCreate({
     project_id: defaultProjectId || 0,
     dev_environment_id: undefined,
     requirement_desc: "",
+    execution_time: undefined,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -197,7 +199,7 @@ export function TaskFormCreate({
 
   const handleChange = (
     field: keyof TaskFormData,
-    value: string | number | undefined
+    value: string | number | Date | undefined
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -295,6 +297,26 @@ export function TaskFormCreate({
             )}
             <p className="text-sm text-gray-500">
               {t("tasks.form.requirementDescHint")}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <Label htmlFor="execution_time">
+              {t("tasks.fields.executionTime")}
+            </Label>
+            <DateTimePicker
+              id="execution_time"
+              value={formData.execution_time}
+              onChange={(date) => handleChange("execution_time", date)}
+              placeholder={t("tasks.form.executionTimePlaceholder")}
+              label=""
+              className={errors.execution_time ? "border-red-500" : ""}
+            />
+            {errors.execution_time && (
+              <p className="text-sm text-red-500">{errors.execution_time}</p>
+            )}
+            <p className="text-sm text-gray-500">
+              {t("tasks.form.executionTimeHint")}
             </p>
           </div>
         </FormCardContent>

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 import {
   Dialog,
   DialogContent,
@@ -65,6 +66,7 @@ export function TaskConversation({
 }: TaskConversationProps) {
   const { t } = useTranslation();
   const [newMessage, setNewMessage] = useState("");
+  const [executionTime, setExecutionTime] = useState<Date | undefined>(undefined);
 
   const getStatusText = (status: ConversationStatus) => {
     const statusMap = {
@@ -141,8 +143,10 @@ export function TaskConversation({
     try {
       await onSendMessage({
         content: newMessage.trim(),
+        execution_time: executionTime,
       });
       setNewMessage("");
+      setExecutionTime(undefined);
     } catch (error) {
       console.error("Failed to send message:", error);
     } finally {
@@ -435,6 +439,21 @@ export function TaskConversation({
                   }
                 }}
               />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <label className="text-sm font-medium">
+                {t("taskConversations.executionTime")}:
+              </label>
+              <DateTimePicker
+                value={executionTime}
+                onChange={setExecutionTime}
+                placeholder={t("taskConversations.executionTimePlaceholder")}
+                label=""
+              />
+              <p className="text-xs text-muted-foreground">
+                {t("taskConversations.executionTimeHint")}
+              </p>
             </div>
 
             <div className="flex items-center justify-between">

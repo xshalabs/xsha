@@ -20,7 +20,8 @@
     "project": "Project",
     "startBranch": "Start Branch",
     "devEnvironment": "Development Environment",
-    "work_branch": "Work Branch"
+    "work_branch": "Work Branch",
+    "executionTime": "Execution Time"
   },
   "form": {
     "titlePlaceholder": "Enter task title",
@@ -38,7 +39,9 @@
     "editHelpTitle": "Task editing tips",
     "editHelpDescription": "You can update the task title and other basic information. For major changes to requirements, consider creating a new task conversation.",
     "createFooterInfo": "Make sure to provide clear requirements and select the correct development environment for optimal task execution.",
-    "editFooterInfo": "Changes will be saved immediately. You can view task conversations and execution logs from the task list."
+    "editFooterInfo": "Changes will be saved immediately. You can view task conversations and execution logs from the task list.",
+    "executionTimePlaceholder": "Select execution time (optional)",
+    "executionTimeHint": "If no execution time is set, the task will be executed immediately"
   },
   "validation": {
     "titleRequired": "Task title is required",
@@ -62,7 +65,8 @@
     "branch": "Branch",
     "workBranch": "Work Branch",
     "environment": "Environment",
-    "created": "Created"
+    "created": "Created",
+    "executionTime": "Execution Time"
   },
   "messages": {
     "loadFailed": "Failed to load task",

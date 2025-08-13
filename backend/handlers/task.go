@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 	"xsha-backend/database"
 	"xsha-backend/i18n"
 	"xsha-backend/middleware"
@@ -29,12 +30,13 @@ func NewTaskHandlers(taskService services.TaskService, conversationService servi
 
 // @Description Create task request
 type CreateTaskRequest struct {
-	Title            string `json:"title" binding:"required" example:"Fix user authentication bug"`
-	StartBranch      string `json:"start_branch" binding:"required" example:"main"`
-	ProjectID        uint   `json:"project_id" binding:"required" example:"1"`
-	DevEnvironmentID *uint  `json:"dev_environment_id" binding:"required" example:"1"`
-	RequirementDesc  string `json:"requirement_desc" binding:"required" example:"Fix the login validation issue"`
-	IncludeBranches  bool   `json:"include_branches" example:"true"`
+	Title            string     `json:"title" binding:"required" example:"Fix user authentication bug"`
+	StartBranch      string     `json:"start_branch" binding:"required" example:"main"`
+	ProjectID        uint       `json:"project_id" binding:"required" example:"1"`
+	DevEnvironmentID *uint      `json:"dev_environment_id" binding:"required" example:"1"`
+	RequirementDesc  string     `json:"requirement_desc" binding:"required" example:"Fix the login validation issue"`
+	IncludeBranches  bool       `json:"include_branches" example:"true"`
+	ExecutionTime    *time.Time `json:"execution_time" example:"2024-01-01T10:00:00Z"`
 }
 
 // @Description Create task response
@@ -86,10 +88,11 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 	}
 
 	if strings.TrimSpace(req.RequirementDesc) != "" {
-		_, err := h.conversationService.CreateConversation(
+		_, err := h.conversationService.CreateConversationWithExecutionTime(
 			task.ID,
 			req.RequirementDesc,
 			username.(string),
+			req.ExecutionTime,
 		)
 		if err != nil {
 			utils.Error("Failed to create conversation", "taskID", task.ID, "error", err)

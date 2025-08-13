@@ -249,6 +249,27 @@ export const createTaskColumns = ({
       enableSorting: true,
     },
     {
+      accessorKey: "latest_execution_time",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("tasks.table.executionTime")} />
+      ),
+      cell: ({ row }) => {
+        const executionTime = row.getValue("latest_execution_time") as string | null;
+        if (!executionTime) {
+          return (
+            <span className="text-xs text-muted-foreground">-</span>
+          );
+        }
+        const date = new Date(executionTime);
+        return (
+          <div className="text-xs text-muted-foreground">
+            {date.toLocaleString()}
+          </div>
+        );
+      },
+      enableSorting: true,
+    },
+    {
       id: "actions",
       header: t("common.actions"),
       meta: {

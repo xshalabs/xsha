@@ -71,6 +71,7 @@ type TaskRepository interface {
 
 	ListByProject(projectID uint) ([]database.Task, error)
 	GetConversationCounts(taskIDs []uint) (map[uint]int64, error)
+	GetLatestExecutionTimes(taskIDs []uint) (map[uint]*time.Time, error)
 }
 
 type TaskConversationRepository interface {

@@ -20,7 +20,8 @@
     "project": "项目",
     "startBranch": "起始分支",
     "devEnvironment": "开发环境",
-    "work_branch": "工作分支"
+    "work_branch": "工作分支",
+    "executionTime": "执行时间"
   },
   "form": {
     "titlePlaceholder": "输入任务标题",
@@ -38,7 +39,9 @@
     "editHelpTitle": "任务编辑提示",
     "editHelpDescription": "您可以更新任务标题和其他基本信息。如需对需求进行重大更改，建议创建新的任务对话。",
     "createFooterInfo": "请确保提供清晰的需求并选择正确的开发环境以获得最佳的任务执行效果。",
-    "editFooterInfo": "更改将立即保存。您可以从任务列表查看任务对话和执行日志。"
+    "editFooterInfo": "更改将立即保存。您可以从任务列表查看任务对话和执行日志。",
+    "executionTimePlaceholder": "选择执行时间（可选）",
+    "executionTimeHint": "如果不设置执行时间，任务将立即执行"
   },
   "validation": {
     "titleRequired": "请输入任务标题",
@@ -62,7 +65,8 @@
     "branch": "分支",
     "workBranch": "工作分支",
     "environment": "环境",
-    "created": "创建时间"
+    "created": "创建时间",
+    "executionTime": "执行时间"
   },
   "messages": {
     "loadFailed": "加载任务失败",

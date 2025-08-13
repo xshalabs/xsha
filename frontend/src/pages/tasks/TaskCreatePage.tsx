@@ -72,7 +72,12 @@ const TaskCreatePage: React.FC = () => {
       }
 
       if ("start_branch" in data && "project_id" in data) {
-        await apiService.tasks.create({ ...data, project_id: projectIdNum });
+        const createTaskData = {
+          ...data,
+          project_id: projectIdNum,
+          execution_time: data.execution_time?.toISOString(),
+        };
+        await apiService.tasks.create(createTaskData);
         toast.success(t("tasks.messages.createSuccess"));
       } else {
         throw new Error(t("errors.task_fields_required"));

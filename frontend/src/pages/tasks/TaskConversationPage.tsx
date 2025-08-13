@@ -169,6 +169,7 @@ const TaskConversationPage: React.FC = () => {
       await apiService.taskConversations.create({
         task_id: task.id,
         content: data.content,
+        execution_time: data.execution_time?.toISOString(),
       });
 
       await loadConversations(task.id);
