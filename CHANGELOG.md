@@ -2,6 +2,7 @@
 
 - Complete UI reconstruction
 - Refactored date timezone handling
+- Added scheduled task execution
 
 ## v0.1
 
