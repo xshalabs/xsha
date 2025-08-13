@@ -2,23 +2,6 @@
   "welcome": "Welcome",
   "title": "Overview",
   "description": "Your AI-powered Dev platform dashboard.",
-  "projectManagement": {
-    "title": "Project Management",
-    "description": "Manage your projects and credentials",
-    "content": "Create, edit and manage your project configurations."
-  },
-  "gitCredentials": {
-    "title": "Credentials",
-    "description": "Manage your credentials",
-    "content": "Add and configure credentials for your projects.",
-    "manage": "Manage Credentials"
-  },
-  "adminLogs": {
-    "title": "Audit Logs",
-    "description": "View system operation and login logs",
-    "content": "Monitor system activities, operation records and login status.",
-    "manage": "View Logs"
-  },
   "metrics": {
     "totalProjects": "Projects",
     "activeEnvironments": "Environments",

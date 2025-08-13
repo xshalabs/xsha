@@ -1,6 +1,6 @@
 import React from "react";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { LoginLogTab } from "@/components/LoginLogTab";
+import { LoginLogList } from "@/components/LoginLogList";
 import { SectionGroup } from "@/components/content/section";
 
 export const LoginLogsPage: React.FC = () => {
@@ -8,7 +8,7 @@ export const LoginLogsPage: React.FC = () => {
 
   return (
     <SectionGroup>
-      <LoginLogTab />
+      <LoginLogList />
     </SectionGroup>
   );
 };

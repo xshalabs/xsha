@@ -2,15 +2,15 @@
 
 /**
  * 检查前端国际化翻译中未使用的键
- * 扫描frontend/src目录下的所有.tsx和.ts文件，查找未使用的翻译键
+ * 新思路：逐个key搜索项目文件，检查是否被使用
  */
 
 class I18nChecker {
     private $frontendPath;
     private $i18nPath;
     private $srcPath;
-    private $usedKeys = [];
     private $allKeys = [];
+    private $unusedKeys = [];
     
     public function __construct($basePath = '.') {
         $this->frontendPath = rtrim($basePath, '/') . '/frontend';
@@ -36,11 +36,11 @@ class I18nChecker {
         // 1. 读取所有翻译键
         $this->loadAllTranslationKeys();
         
-        // 2. 扫描源码文件，查找使用的翻译键
-        $this->scanSourceFiles();
+        // 2. 逐个检查键是否被使用
+        $this->checkKeyUsage();
         
-        // 3. 找出未使用的键
-        $this->findUnusedKeys();
+        // 3. 输出结果
+        $this->outputResults();
     }
     
     /**
@@ -82,7 +82,7 @@ class I18nChecker {
                 continue;
             }
             
-            $this->extractKeys($data, $namespace);
+            $this->extractKeys($data, $namespace, $fileName);
         }
         
         echo "✅ 总共找到 " . count($this->allKeys) . " 个翻译键\n\n";
@@ -91,115 +91,93 @@ class I18nChecker {
     /**
      * 递归提取所有翻译键
      */
-    private function extractKeys($data, $prefix = '') {
+    private function extractKeys($data, $prefix = '', $fileName = '') {
         foreach ($data as $key => $value) {
             $fullKey = $prefix ? $prefix . '.' . $key : $key;
             
             if (is_array($value)) {
-                $this->extractKeys($value, $fullKey);
+                $this->extractKeys($value, $fullKey, $fileName);
             } else {
-                // 使用键来避免重复
-                $this->allKeys[$fullKey] = true;
+                // 存储键信息，包括所属文件
+                $this->allKeys[$fullKey] = [
+                    'fileName' => $fileName,
+                    'value' => $value
+                ];
             }
         }
     }
     
     /**
-     * 扫描源码文件
+     * 逐个检查键的使用情况
      */
-    private function scanSourceFiles() {
-        echo "🔍 扫描源码文件中的翻译键使用...\n";
+    private function checkKeyUsage() {
+        echo "🔍 逐个检查翻译键的使用情况...\n";
         
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->srcPath)
-        );
+        $totalKeys = count($this->allKeys);
+        $checkedKeys = 0;
         
-        $fileCount = 0;
-        foreach ($iterator as $file) {
-            if ($file->isFile() && preg_match('/\.(tsx?|jsx?)$/', $file->getFilename())) {
-                $this->scanFile($file->getPathname());
-                $fileCount++;
+        foreach ($this->allKeys as $key => $keyInfo) {
+            $checkedKeys++;
+            
+            // 显示进度
+            if ($checkedKeys % 50 == 0 || $checkedKeys == $totalKeys) {
+                $percentage = round(($checkedKeys / $totalKeys) * 100, 1);
+                echo "   进度: {$checkedKeys}/{$totalKeys} ({$percentage}%)\n";
+            }
+            
+            // 检查键是否在源码中被使用
+            if (!$this->isKeyUsedInSource($key)) {
+                $this->unusedKeys[$key] = $keyInfo;
             }
         }
         
-        echo "✅ 扫描了 {$fileCount} 个文件，找到 " . count($this->usedKeys) . " 个使用的翻译键\n\n";
+        echo "✅ 检查完成！\n\n";
     }
     
     /**
-     * 扫描单个文件
+     * 检查单个键是否在源码中被使用
      */
-    private function scanFile($filePath) {
-        $content = file_get_contents($filePath);
+    private function isKeyUsedInSource($key) {
+        // 使用 grep 命令在源码目录中搜索该键
+        // 转义特殊字符以避免 grep 正则表达式问题
+        $escapedKey = escapeshellarg($key);
+        $searchPath = escapeshellarg($this->srcPath);
         
-        // 移除单行和多行注释，避免误匹配注释中的内容
-        $content = preg_replace('/\/\*[\s\S]*?\*\//', '', $content);
-        $content = preg_replace('/\/\/.*$/', '', $content);
+        // 搜索包含该键的文件，忽略大小写，递归搜索
+        $command = "grep -r -i --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' {$escapedKey} {$searchPath} 2>/dev/null";
         
-        // 匹配 t("key") 或 t('key') 的模式，支持多行和空白字符
-        // 使用 DOTALL 修饰符让 . 匹配换行符
-        preg_match_all('/\bt\(\s*["\']([^"\']+)["\']\s*(?:,[\s\S]*?)?\)/s', $content, $matches);
+        // 执行命令并检查是否有输出
+        $output = shell_exec($command);
         
-        if (!empty($matches[1])) {
-            foreach ($matches[1] as $key) {
-                // 使用键来避免重复
-                $this->usedKeys[$key] = true;
-            }
-        }
+        return !empty(trim($output));
     }
     
     /**
-     * 查找未使用的键
+     * 输出检查结果
      */
-    private function findUnusedKeys() {
-        echo "🔎 分析未使用的翻译键...\n\n";
+    private function outputResults() {
+        echo "🔎 分析结果...\n\n";
         
-        // 获取所有键和已使用键的数组
-        $allKeysArray = array_keys($this->allKeys);
-        $usedKeysArray = array_keys($this->usedKeys);
-        
-        $unusedKeys = array_diff($allKeysArray, $usedKeysArray);
-        
-        if (empty($unusedKeys)) {
+        if (empty($this->unusedKeys)) {
             echo "🎉 太棒了！所有翻译键都被使用了！\n";
             return;
         }
         
-        // 命名空间到文件名的反向映射
-        $fileNameMapping = [
-            'adminLogs' => 'adminLogs',
-            'api' => 'api',
-            'auth' => 'auth',
-            'common' => 'common',
-            'dashboard' => 'dashboard',
-            'devEnvironments' => 'devEnvironments',
-            'errors' => 'errors',
-            'gitCredentials' => 'gitCredentials',
-            'gitDiff' => 'gitDiff',
-            'navigation' => 'navigation',
-            'projects' => 'projects',
-            'systemConfig' => 'systemConfig',
-            'taskConversations' => 'taskConversations',
-            'tasks' => 'tasks'
-        ];
-        
-        // 按模块分组显示未使用的键
+        // 按文件分组显示未使用的键
         $groupedUnused = [];
-        foreach ($unusedKeys as $key) {
-            $parts = explode('.', $key);
-            $namespace = $parts[0];
-            $fileName = $fileNameMapping[$namespace] ?? $namespace;
-            $remainingKey = implode('.', array_slice($parts, 1));
+        foreach ($this->unusedKeys as $key => $keyInfo) {
+            $fileName = $keyInfo['fileName'];
             
             if (!isset($groupedUnused[$fileName])) {
                 $groupedUnused[$fileName] = [];
             }
-            $groupedUnused[$fileName][] = $remainingKey;
+            $groupedUnused[$fileName][] = $key; // 保持完整的key名
         }
         
-        echo "❌ 发现 " . count($unusedKeys) . " 个未使用的翻译键：\n\n";
+        echo "❌ 发现 " . count($this->unusedKeys) . " 个未使用的翻译键：\n\n";
         
-        foreach ($groupedUnused as $module => $keys) {
-            echo "📁 {$module}.json (" . count($keys) . " 个未使用):\n";
+        foreach ($groupedUnused as $fileName => $keys) {
+            echo "📁 {$fileName}.json (" . count($keys) . " 个未使用):\n";
             foreach ($keys as $key) {
                 echo "   - {$key}\n";
             }
@@ -207,53 +185,25 @@ class I18nChecker {
         }
         
         // 统计信息
+        $totalKeys = count($this->allKeys);
+        $unusedCount = count($this->unusedKeys);
+        $usedCount = $totalKeys - $unusedCount;
+        
         echo "📊 统计信息:\n";
-        echo "   - 总翻译键数: " . count($this->allKeys) . "\n";
-        echo "   - 已使用键数: " . count($this->usedKeys) . "\n";
-        echo "   - 未使用键数: " . count($unusedKeys) . "\n";
-        echo "   - 使用率: " . round((count($this->usedKeys) / count($this->allKeys)) * 100, 2) . "%\n\n";
-        
-        // 验证数量
-        $total = count($this->allKeys);
-        $used = count($this->usedKeys);
-        $unused = count($unusedKeys);
-        
-        echo "🔍 数量验证:\n";
-        echo "   - 总键数: {$total}\n";
-        echo "   - 已使用: {$used}\n";
-        echo "   - 未使用: {$unused}\n";
-        echo "   - 验证: {$used} + {$unused} = " . ($used + $unused) . " (应该等于 {$total})\n";
-        
-        // 调试：检查是否有重复的已使用键
-        $allKeysArray = array_keys($this->allKeys);
-        $usedKeysArray = array_keys($this->usedKeys);
-        
-        // 检查已使用键中是否有不在总键列表中的
-        $invalidUsedKeys = array_diff($usedKeysArray, $allKeysArray);
-        if (!empty($invalidUsedKeys)) {
-            echo "⚠️  发现 " . count($invalidUsedKeys) . " 个无效的已使用键（不在翻译文件中）:\n";
-            foreach (array_slice($invalidUsedKeys, 0, 10) as $key) {
-                echo "   - {$key}\n";
-            }
-            if (count($invalidUsedKeys) > 10) {
-                echo "   - ... 还有 " . (count($invalidUsedKeys) - 10) . " 个\n";
-            }
-        }
-        
-        // 重新计算正确的统计
-        $validUsedKeys = array_intersect($usedKeysArray, $allKeysArray);
-        $actualUnused = array_diff($allKeysArray, $validUsedKeys);
-        
-        echo "\n📊 修正后的统计:\n";
-        echo "   - 总翻译键数: " . count($allKeysArray) . "\n";
-        echo "   - 有效使用键数: " . count($validUsedKeys) . "\n";
-        echo "   - 实际未使用键数: " . count($actualUnused) . "\n";
-        echo "   - 使用率: " . round((count($validUsedKeys) / count($allKeysArray)) * 100, 2) . "%\n\n";
+        echo "   - 总翻译键数: {$totalKeys}\n";
+        echo "   - 已使用键数: {$usedCount}\n";
+        echo "   - 未使用键数: {$unusedCount}\n";
+        echo "   - 使用率: " . round(($usedCount / $totalKeys) * 100, 2) . "%\n\n";
         
         // 生成清理建议
         echo "💡 清理建议:\n";
         echo "   可以考虑删除这些未使用的翻译键以减少文件大小\n";
-        echo "   删除前请确认这些键确实不会在动态生成的场景中使用\n";
+        echo "   删除前请确认这些键确实不会在动态生成的场景中使用\n\n";
+        
+        echo "🔧 使用方法说明:\n";
+        echo "   此脚本使用 grep 命令搜索源码中的翻译键使用情况\n";
+        echo "   搜索范围包括 .ts, .tsx, .js, .jsx 文件\n";
+        echo "   如果键在任何地方被引用（包括字符串、注释等），都会被认为是已使用\n";
     }
 }
 

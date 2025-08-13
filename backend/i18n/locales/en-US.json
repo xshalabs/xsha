@@ -52,15 +52,9 @@
   "git.test_connection_failed": "Git connection test failed",
   "git.reset_failed": "Git reset failed",
   "project.create_success": "Project created successfully",
-
   "project.update_success": "Project updated successfully",
-
   "project.delete_success": "Project deleted successfully",
-
   "project.not_found": "Project not found",
-
-
-
   "project.access_validation_success": "Repository access validation successful",
   "project.id_required": "Project ID is required",
   "project.delete_has_in_progress_tasks": "Cannot delete project with tasks in progress",
@@ -136,10 +130,8 @@
   "tasks.errors.git_diff_failed": "Failed to get Git diff",
   "tasks.errors.git_diff_file_failed": "Failed to get file Git diff",
   "tasks.errors.not_found": "Task not found",
-  "tasks.push_failed": "Failed to push branch",
   "tasks.push_success": "Branch pushed successfully",
   "system_config.update_success": "System configuration updated successfully",
-
   "system_config.list_success": "Configuration list retrieved successfully",
   "system_config.list_failed": "Failed to retrieve configuration list"
 }

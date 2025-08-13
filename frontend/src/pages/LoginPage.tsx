@@ -1,6 +1,6 @@
 import React from "react";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { LoginForm } from "@/components/login-form";
+import { LoginForm } from "@/components/LoginForm";
 import { GalleryVerticalEnd } from "lucide-react";
 
 export const LoginPage: React.FC = () => {

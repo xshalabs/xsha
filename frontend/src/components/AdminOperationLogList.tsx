@@ -31,7 +31,7 @@ import type {
 } from "@/types/admin-logs";
 import type { ColumnFiltersState } from "@tanstack/react-table";
 
-export const AdminOperationLogTab: React.FC = () => {
+export const AdminOperationLogList: React.FC = () => {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [logs, setLogs] = useState<AdminOperationLog[]>([]);

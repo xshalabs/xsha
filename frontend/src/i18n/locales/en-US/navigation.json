@@ -3,12 +3,8 @@
   "projects": "Projects",
   "gitCredentials": "Credentials",
   "environments": "Environments",
-  "adminLogs": "Audit Logs",
   "settings": "Settings", 
-  "profile": "Profile",
   "language": "Language",
-  "help": "Help",
-  "search": "Search",
   "groups": {
     "workspace": "Workspace",
     "logs": "Logs"
