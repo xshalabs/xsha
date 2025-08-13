@@ -60,7 +60,7 @@ type AdminOperationLogService interface {
 }
 
 type DevEnvironmentService interface {
-	CreateEnvironment(name, description, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, createdBy string) (*database.DevEnvironment, error)
+	CreateEnvironment(name, description, systemPrompt, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, createdBy string) (*database.DevEnvironment, error)
 	GetEnvironment(id uint) (*database.DevEnvironment, error)
 	ListEnvironments(name *string, dockerImage *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
 	UpdateEnvironment(id uint, updates map[string]interface{}) error

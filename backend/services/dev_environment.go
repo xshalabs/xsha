@@ -29,7 +29,7 @@ func NewDevEnvironmentService(repo repository.DevEnvironmentRepository, taskRepo
 	}
 }
 
-func (s *devEnvironmentService) CreateEnvironment(name, description, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, createdBy string) (*database.DevEnvironment, error) {
+func (s *devEnvironmentService) CreateEnvironment(name, description, systemPrompt, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, createdBy string) (*database.DevEnvironment, error) {
 	if err := s.validateEnvironmentData(name, envType, cpuLimit, memoryLimit); err != nil {
 		return nil, err
 	}
@@ -58,15 +58,16 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, envType, do
 	}
 
 	env := &database.DevEnvironment{
-		Name:        name,
-		Description: description,
-		Type:        envType,
-		DockerImage: dockerImage,
-		CPULimit:    cpuLimit,
-		MemoryLimit: memoryLimit,
-		EnvVars:     string(envVarsJSON),
-		SessionDir:  sessionDir,
-		CreatedBy:   createdBy,
+		Name:         name,
+		Description:  description,
+		SystemPrompt: systemPrompt,
+		Type:         envType,
+		DockerImage:  dockerImage,
+		CPULimit:     cpuLimit,
+		MemoryLimit:  memoryLimit,
+		EnvVars:      string(envVarsJSON),
+		SessionDir:   sessionDir,
+		CreatedBy:    createdBy,
 	}
 
 	if err := s.repo.Create(env); err != nil {
@@ -95,6 +96,9 @@ func (s *devEnvironmentService) UpdateEnvironment(id uint, updates map[string]in
 	}
 	if description, ok := updates["description"]; ok {
 		env.Description = description.(string)
+	}
+	if systemPrompt, ok := updates["system_prompt"]; ok {
+		env.SystemPrompt = systemPrompt.(string)
 	}
 	if cpuLimit, ok := updates["cpu_limit"]; ok {
 		env.CPULimit = cpuLimit.(float64)

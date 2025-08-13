@@ -65,6 +65,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    system_prompt: "",
     docker_image: "",
     cpu_limit: 1.0,
     memory_limit: 1024,
@@ -131,6 +132,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
       setFormData({
         name: environment.name,
         description: environment.description,
+        system_prompt: environment.system_prompt || "",
         docker_image: environment.docker_image,
         cpu_limit: environment.cpu_limit,
         memory_limit: environment.memory_limit,
@@ -140,6 +142,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
       setFormData({
         name: "",
         description: "",
+        system_prompt: "",
         docker_image: "",
         cpu_limit: 1.0,
         memory_limit: 1024,
@@ -253,6 +256,7 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
         const requestData: UpdateDevEnvironmentRequest = {
           name: formData.name,
           description: formData.description,
+          system_prompt: formData.system_prompt,
           cpu_limit: formData.cpu_limit,
           memory_limit: formData.memory_limit,
           env_vars: envVars,
@@ -340,6 +344,21 @@ const DevEnvironmentForm: React.FC<DevEnvironmentFormProps> = ({
               }
               placeholder={t("devEnvironments.form.description_placeholder")}
               rows={3}
+            />
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <Label htmlFor="system_prompt">
+              {t("devEnvironments.form.system_prompt")}
+            </Label>
+            <Textarea
+              id="system_prompt"
+              value={formData.system_prompt}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                handleFieldChange("system_prompt", e.target.value)
+              }
+              placeholder={t("devEnvironments.form.system_prompt_placeholder")}
+              rows={4}
             />
           </div>
 

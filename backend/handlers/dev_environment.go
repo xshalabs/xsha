@@ -22,22 +22,24 @@ func NewDevEnvironmentHandlers(devEnvService services.DevEnvironmentService) *De
 
 // @Description Create environment request
 type CreateEnvironmentRequest struct {
-	Name        string            `json:"name" binding:"required"`
-	Description string            `json:"description"`
-	Type        string            `json:"type" binding:"required"`
-	DockerImage string            `json:"docker_image" binding:"required"`
-	CPULimit    float64           `json:"cpu_limit" binding:"min=0.1,max=16"`
-	MemoryLimit int64             `json:"memory_limit" binding:"min=128,max=32768"`
-	EnvVars     map[string]string `json:"env_vars"`
+	Name         string            `json:"name" binding:"required"`
+	Description  string            `json:"description"`
+	SystemPrompt string            `json:"system_prompt"`
+	Type         string            `json:"type" binding:"required"`
+	DockerImage  string            `json:"docker_image" binding:"required"`
+	CPULimit     float64           `json:"cpu_limit" binding:"min=0.1,max=16"`
+	MemoryLimit  int64             `json:"memory_limit" binding:"min=128,max=32768"`
+	EnvVars      map[string]string `json:"env_vars"`
 }
 
 // @Description Update environment request
 type UpdateEnvironmentRequest struct {
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	CPULimit    float64           `json:"cpu_limit"`
-	MemoryLimit int64             `json:"memory_limit"`
-	EnvVars     map[string]string `json:"env_vars"`
+	Name         string            `json:"name"`
+	Description  string            `json:"description"`
+	SystemPrompt string            `json:"system_prompt"`
+	CPULimit     float64           `json:"cpu_limit"`
+	MemoryLimit  int64             `json:"memory_limit"`
+	EnvVars      map[string]string `json:"env_vars"`
 }
 
 // CreateEnvironment creates a development environment
@@ -75,7 +77,7 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 	}
 
 	env, err := h.devEnvService.CreateEnvironment(
-		req.Name, req.Description, req.Type, req.DockerImage,
+		req.Name, req.Description, req.SystemPrompt, req.Type, req.DockerImage,
 		req.CPULimit, req.MemoryLimit, req.EnvVars, username.(string),
 	)
 	if err != nil {
@@ -223,6 +225,8 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	}
 	// Always update description field, even if empty (user might want to clear it)
 	updates["description"] = req.Description
+	// Always update system_prompt field, even if empty (user might want to clear it)
+	updates["system_prompt"] = req.SystemPrompt
 	if req.CPULimit > 0 {
 		updates["cpu_limit"] = req.CPULimit
 	}

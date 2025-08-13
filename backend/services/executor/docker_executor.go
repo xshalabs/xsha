@@ -130,6 +130,11 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 			claudeCommand = append(claudeCommand, "--append-system-prompt", d.escapeShellArg(task.Project.SystemPrompt))
 		}
 
+		// Add system prompt if dev environment has one
+		if devEnv != nil && devEnv.SystemPrompt != "" {
+			claudeCommand = append(claudeCommand, "--append-system-prompt", d.escapeShellArg(devEnv.SystemPrompt))
+		}
+
 		claudeCommand = append(claudeCommand, d.escapeShellArg(content))
 
 		if isInContainer && devEnv.SessionDir != "" {

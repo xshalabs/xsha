@@ -46,6 +46,8 @@
     "name_placeholder": "请输入环境名称",
     "description": "环境描述",
     "description_placeholder": "请输入环境描述（可选）",
+    "system_prompt": "系统提示词",
+    "system_prompt_placeholder": "请输入环境的系统提示词（可选）",
     "type": "环境类型",
     "docker_image": "Docker镜像",
     "docker_image_placeholder": "请选择Docker镜像",
