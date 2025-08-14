@@ -115,7 +115,7 @@ func (r *taskRepository) Delete(id uint) error {
 
 func (r *taskRepository) ListByProject(projectID uint) ([]database.Task, error) {
 	var tasks []database.Task
-	err := r.db.Where("project_id = ?", projectID).
+	err := r.db.Preload("Project").Preload("DevEnvironment").Where("project_id = ?", projectID).
 		Order("created_at DESC").Find(&tasks).Error
 	return tasks, err
 }
