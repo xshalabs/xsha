@@ -210,7 +210,7 @@ function TaskDetailSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-[800px] sm:max-w-[800px] flex flex-col">
+      <SheetContent className="w-full sm:w-[800px] sm:max-w-[800px] flex flex-col">
         <SheetHeader>
           <SheetTitle className="text-lg font-semibold pr-8">
             {task.title}
@@ -733,7 +733,7 @@ export default function ProjectKanbanPage() {
           open={isCreateTaskSheetOpen}
           onOpenChange={setIsCreateTaskSheetOpen}
         >
-          <FormSheetContent className="w-[800px] sm:max-w-[800px]">
+          <FormSheetContent className="w-full sm:w-[800px] sm:max-w-[800px]">
             <FormSheetHeader>
               <FormSheetTitle>{t("tasks.actions.create")}</FormSheetTitle>
               <FormSheetDescription>
