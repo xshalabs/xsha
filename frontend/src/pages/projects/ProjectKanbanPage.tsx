@@ -1,30 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import {
-  DragOverlay,
-  DndContext,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  closestCorners,
-} from "@dnd-kit/core";
-import type {
-  DragEndEvent,
-  DragOverEvent,
-  DragStartEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  horizontalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import {
-  useSortable,
-  SortableContext as ItemSortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import {
   ArrowLeft,
   Plus,
@@ -34,8 +10,20 @@ import {
   User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  KanbanBoardProvider,
+  KanbanBoard,
+  KanbanBoardColumn,
+  KanbanBoardColumnHeader,
+  KanbanBoardColumnTitle,
+  KanbanColorCircle,
+  KanbanBoardColumnList,
+  KanbanBoardColumnListItem,
+  KanbanBoardCard,
+  KanbanBoardCardTitle,
+  KanbanBoardExtraMargin,
+} from "@/components/kanban";
 
 import {
   Dialog,
@@ -69,25 +57,34 @@ const KANBAN_COLUMNS = [
   { id: "cancelled", title: "Cancelled", status: "cancelled" as TaskStatus },
 ];
 
-const COLUMN_ORDER_KEY = "kanban-column-order";
-
 // Task Card Component
-function TaskCard({ task, onClick }: { task: Task; onClick?: () => void }) {
+function TaskCard({ 
+  task, 
+  onClick 
+}: { 
+  task: Task; 
+  onClick?: () => void; 
+}) {
   const handleClick = () => {
     onClick?.();
   };
 
   return (
-    <Card
-      className="cursor-pointer hover:shadow-md transition-shadow mb-3"
+    <KanbanBoardCard
+      data={{ id: task.id.toString() }}
       onClick={handleClick}
     >
-      <CardContent className="p-3">
-        <h4 className="text-sm font-medium line-clamp-2">
-          {task.title}
-        </h4>
-      </CardContent>
-    </Card>
+      <KanbanBoardCardTitle>
+        {task.title}
+      </KanbanBoardCardTitle>
+      {task.conversation_count > 0 && (
+        <div className="flex items-center justify-between mt-2">
+          <Badge variant="outline" className="text-xs">
+            {task.conversation_count} conversations
+          </Badge>
+        </div>
+      )}
+    </KanbanBoardCard>
   );
 }
 
@@ -169,142 +166,78 @@ function TaskDetailModal({
   );
 }
 
-// Draggable Task Card
-function DraggableTaskCard({ task, onTaskClick }: { task: Task; onTaskClick: (task: Task) => void }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: task.id,
-    data: {
-      type: "task",
-      task,
-    },
-  });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  if (isDragging) {
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className="opacity-50 bg-background border-2 border-dashed border-border rounded-lg h-32"
-      />
-    );
-  }
-
-  return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TaskCard task={task} onClick={() => onTaskClick(task)} />
-    </div>
-  );
-}
 
 // Kanban Column Component
 function KanbanColumn({
   title,
-  tasks,
-  onTaskClick,
-}: {
-  title: string;
-  tasks: Task[];
-  onTaskClick: (task: Task) => void;
-}) {
-  const { t } = useTranslation();
-  const taskIds = tasks.map((task) => task.id);
-
-  return (
-    <div
-      className="flex flex-col h-full min-w-80 bg-muted/20 rounded-lg border border-gray-200"
-    >
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold flex items-center space-x-2">
-            <span>{title}</span>
-            <Badge variant="secondary" className="text-xs">
-              {tasks.length}
-            </Badge>
-          </CardTitle>
-        </div>
-      </CardHeader>
-
-      <CardContent className="flex-1 pt-0 px-4 pb-4 overflow-y-auto">
-        <ItemSortableContext
-          items={taskIds}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="space-y-3">
-            {tasks.map((task) => (
-              <DraggableTaskCard key={task.id} task={task} onTaskClick={onTaskClick} />
-            ))}
-            {tasks.length === 0 && (
-              <div className="text-center text-muted-foreground text-sm py-8">
-                {t("tasks.no_tasks")}
-              </div>
-            )}
-          </div>
-        </ItemSortableContext>
-      </CardContent>
-    </div>
-  );
-}
-
-// Draggable Column
-function DraggableColumn({
-  title,
   status,
   tasks,
   onTaskClick,
+  onDropOverColumn,
 }: {
   title: string;
   status: TaskStatus;
   tasks: Task[];
   onTaskClick: (task: Task) => void;
+  onDropOverColumn: (dataTransferData: string) => void;
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: status,
-    data: {
-      type: "column",
-      status,
-    },
-  });
+  const { t } = useTranslation();
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+  const getColumnColor = (status: TaskStatus) => {
+    switch (status) {
+      case "todo":
+        return "gray";
+      case "in_progress":
+        return "blue";
+      case "done":
+        return "green";
+      case "cancelled":
+        return "red";
+      default:
+        return "gray";
+    }
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className={isDragging ? "opacity-50" : ""}
+    <KanbanBoardColumn 
+      columnId={status} 
+      onDropOverColumn={onDropOverColumn}
     >
-      <KanbanColumn
-        title={title}
-        tasks={tasks}
-        onTaskClick={onTaskClick}
-      />
-    </div>
+      <KanbanBoardColumnHeader>
+        <KanbanBoardColumnTitle columnId={status}>
+          <KanbanColorCircle color={getColumnColor(status)} />
+          <span>{title}</span>
+          <Badge variant="secondary" className="text-xs ml-2">
+            {tasks.length}
+          </Badge>
+        </KanbanBoardColumnTitle>
+      </KanbanBoardColumnHeader>
+
+      <KanbanBoardColumnList>
+        {tasks.map((task) => (
+          <KanbanBoardColumnListItem
+            key={task.id}
+            cardId={task.id.toString()}
+            onDropOverListItem={(dataTransferData, dropDirection) => {
+              // Handle task reordering within the same column
+              console.log("Drop over task:", dataTransferData, dropDirection);
+            }}
+          >
+            <TaskCard task={task} onClick={() => onTaskClick(task)} />
+          </KanbanBoardColumnListItem>
+        ))}
+        {tasks.length === 0 && (
+          <li className="text-center text-muted-foreground text-sm py-8">
+            {t("tasks.no_tasks")}
+          </li>
+        )}
+      </KanbanBoardColumnList>
+    </KanbanBoardColumn>
   );
 }
+
+
 
 export default function ProjectKanbanPage() {
   const { t } = useTranslation();
@@ -325,23 +258,8 @@ export default function ProjectKanbanPage() {
     cancelled: [],
   });
   const [loading, setLoading] = useState(true);
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Column order management
-  const [columnOrder, setColumnOrder] = useState<string[]>(() => {
-    const saved = localStorage.getItem(COLUMN_ORDER_KEY);
-    return saved ? JSON.parse(saved) : KANBAN_COLUMNS.map((col) => col.id);
-  });
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 3,
-      },
-    })
-  );
 
   usePageTitle(
     project ? `${project.name} - ${t("common.kanban")}` : t("common.kanban")
@@ -392,111 +310,56 @@ export default function ProjectKanbanPage() {
     loadData();
   }, [projectId]);
 
-  // Save column order to localStorage
-  const saveColumnOrder = useCallback((order: string[]) => {
-    setColumnOrder(order);
-    localStorage.setItem(COLUMN_ORDER_KEY, JSON.stringify(order));
-  }, []);
-
-  // Handle drag start
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    const { active } = event;
-
-    if (active.data.current?.type === "task") {
-      setActiveTask(active.data.current.task);
-    }
-  }, []);
-
-  // Handle drag end
-  const handleDragEnd = useCallback(
-    async (event: DragEndEvent) => {
-      const { active, over } = event;
-
-      setActiveTask(null);
-
-      if (!over) return;
-
-      const activeId = active.id;
-      const overId = over.id;
-
-      // Handle column reordering
-      if (
-        active.data.current?.type === "column" &&
-        over.data.current?.type === "column"
-      ) {
-        const oldIndex = columnOrder.indexOf(String(activeId));
-        const newIndex = columnOrder.indexOf(String(overId));
-
-        if (oldIndex !== newIndex) {
-          const newOrder = arrayMove(columnOrder, oldIndex, newIndex);
-          saveColumnOrder(newOrder);
+  // Handle task drop on column
+  const handleDropOverColumn = useCallback(
+    async (dataTransferData: string, targetStatus: TaskStatus) => {
+      try {
+        const draggedTaskData = JSON.parse(dataTransferData);
+        const taskId = parseInt(draggedTaskData.id);
+        
+        // Find the task in current state
+        const sourceTask = Object.values(tasks)
+          .flat()
+          .find((task) => task.id === taskId);
+        
+        if (!sourceTask || sourceTask.status === targetStatus) {
+          return;
         }
-        return;
-      }
 
-      // Handle task movement
-      if (active.data.current?.type === "task") {
-        const task = active.data.current.task as Task;
-        const targetStatus = over.data.current?.status || String(overId);
+        // Update task status via API
+        await apiService.tasks.batchUpdateStatus({
+          task_ids: [taskId],
+          status: targetStatus,
+        });
 
-        if (task.status !== targetStatus) {
-          try {
-            // Update task status via API
-            await apiService.tasks.batchUpdateStatus({
-              task_ids: [task.id],
-              status: targetStatus as TaskStatus,
-            });
+        // Update local state
+        setTasks((prev) => {
+          const newTasks = { ...prev };
 
-            // Update local state
-            setTasks((prev) => {
-              const newTasks = { ...prev };
+          // Remove task from old column
+          newTasks[sourceTask.status] = newTasks[sourceTask.status].filter(
+            (t) => t.id !== taskId
+          );
 
-              // Remove task from old column
-              newTasks[task.status] = newTasks[task.status].filter(
-                (t) => t.id !== task.id
-              );
+          // Add task to new column with updated status
+          const updatedTask = {
+            ...sourceTask,
+            status: targetStatus,
+          };
+          newTasks[targetStatus] = [
+            ...newTasks[targetStatus],
+            updatedTask,
+          ];
 
-              // Add task to new column with updated status
-              const updatedTask = {
-                ...task,
-                status: targetStatus as TaskStatus,
-              };
-              newTasks[targetStatus as TaskStatus] = [
-                ...newTasks[targetStatus as TaskStatus],
-                updatedTask,
-              ];
-
-              return newTasks;
-            });
-          } catch (error) {
-            logError(error as Error, "Failed to update task status");
-          }
-        }
+          return newTasks;
+        });
+      } catch (error) {
+        console.error("Failed to update task status:", error);
+        logError(error as Error, "Failed to update task status");
       }
     },
-    [columnOrder, saveColumnOrder]
+    [tasks]
   );
-
-  // Handle drag over (for better visual feedback)
-  const handleDragOver = useCallback((event: DragOverEvent) => {
-    const { active, over } = event;
-
-    if (!over) return;
-
-    // Only handle task over column
-    if (
-      active.data.current?.type === "task" &&
-      over.data.current?.type === "column"
-    ) {
-      // Could add visual feedback here if needed
-    }
-  }, []);
-
-  const orderedColumns = useMemo(() => {
-    return columnOrder.map(
-      (columnId) => KANBAN_COLUMNS.find((col) => col.id === columnId)!
-    );
-  }, [columnOrder]);
 
   const handleGoBack = () => {
     navigate(`/projects/${projectId}/tasks`);
@@ -629,34 +492,23 @@ export default function ProjectKanbanPage() {
 
       {/* Kanban Board */}
       <main className="p-6">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="flex space-x-6 h-[calc(100vh-8rem)] overflow-x-auto">
-            <SortableContext
-              items={columnOrder}
-              strategy={horizontalListSortingStrategy}
-            >
-              {orderedColumns.map((column) => (
-                <DraggableColumn
-                  key={column.id}
-                  title={t(`tasks.status.${column.status}`)}
-                  status={column.status}
-                  tasks={tasks[column.status] || []}
-                  onTaskClick={handleTaskClick}
-                />
-              ))}
-            </SortableContext>
-          </div>
-
-          <DragOverlay>
-            {activeTask && <TaskCard task={activeTask} />}
-          </DragOverlay>
-        </DndContext>
+        <KanbanBoardProvider>
+          <KanbanBoard className="h-[calc(100vh-8rem)]">
+            {KANBAN_COLUMNS.map((column) => (
+              <KanbanColumn
+                key={column.id}
+                title={t(`tasks.status.${column.status}`)}
+                status={column.status}
+                tasks={tasks[column.status] || []}
+                onTaskClick={handleTaskClick}
+                onDropOverColumn={(dataTransferData) => 
+                  handleDropOverColumn(dataTransferData, column.status)
+                }
+              />
+            ))}
+            <KanbanBoardExtraMargin />
+          </KanbanBoard>
+        </KanbanBoardProvider>
 
         {/* Task Detail Modal */}
         <TaskDetailModal

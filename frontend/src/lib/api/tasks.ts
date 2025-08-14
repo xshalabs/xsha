@@ -6,6 +6,7 @@ import type {
   TaskListResponse,
   TaskDetailResponse,
   TaskListParams,
+  Task,
 } from "@/types/task";
 
 export const tasksApi = {
