@@ -18,6 +18,7 @@
   "actions": "操作",
   "refresh": "刷新",
   "retry": "重试",
+  "notSet": "未设置",
   "yes": "是",
   "no": "否",
   "created": "创建时间",

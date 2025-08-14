@@ -31,6 +31,12 @@
     "work_branch": "工作分支",
     "executionTime": "执行时间"
   },
+  "startBranch": "起始分支",
+  "workBranch": "工作分支",
+  "environment": "开发环境",
+  "executionTime": "执行时间",
+  "createdBy": "创建者",
+  "createdAt": "创建时间",
   "form": {
     "titlePlaceholder": "输入任务标题",
     "requirementDescPlaceholder": "描述任务的具体需求和目标",

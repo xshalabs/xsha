@@ -31,6 +31,12 @@
     "work_branch": "Work Branch",
     "executionTime": "Execution Time"
   },
+  "startBranch": "Start Branch",
+  "workBranch": "Work Branch",
+  "environment": "Environment",
+  "executionTime": "Execution Time",
+  "createdBy": "Created By",
+  "createdAt": "Created At",
   "form": {
     "titlePlaceholder": "Enter task title",
     "requirementDescPlaceholder": "Describe the specific requirements and goals of the task",

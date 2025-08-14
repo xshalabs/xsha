@@ -63,6 +63,7 @@
   "no_result": "No execution result available",
   "actions": {
     "delete": "Delete",
+    "viewDetails": "View Details",
     "viewGitDiff": "Git Diff",
     "viewChanges": "View Changes"
   },

@@ -12,6 +12,9 @@ import {
   MessageSquare,
   FileText,
   Eye,
+  MoreHorizontal,
+  Clock,
+  Monitor,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,7 +50,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -56,6 +64,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
@@ -63,10 +73,9 @@ import type { Task, TaskStatus, TaskFormData } from "@/types/task";
 import type { Project } from "@/types/project";
 import type {
   TaskConversation as TaskConversationInterface,
-  ConversationFormData,
 } from "@/types/task-conversation";
 import { TaskFormCreateNew } from "@/components/TaskFormCreateNew";
-import { TaskConversation } from "@/components/TaskConversation";
+
 import { PushBranchDialog } from "@/components/PushBranchDialog";
 
 const KANBAN_COLUMNS = [
@@ -116,12 +125,12 @@ function TaskDetailSheet({
   const [conversations, setConversations] = useState<
     TaskConversationInterface[]
   >([]);
-  const [selectedConversationId, setSelectedConversationId] = useState<
-    number | null
-  >(null);
   const [conversationsLoading, setConversationsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("basic");
   const [isPushDialogOpen, setIsPushDialogOpen] = useState(false);
+  const [newMessage, setNewMessage] = useState("");
+  const [executionTime, setExecutionTime] = useState<Date | undefined>(undefined);
+  const [sending, setSending] = useState(false);
+  const [expandedConversations, setExpandedConversations] = useState<Set<number>>(new Set());
 
   const getStatusBadgeClass = (status: TaskStatus) => {
     switch (status) {
@@ -136,6 +145,59 @@ function TaskDetailSheet({
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const getConversationStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "running":
+        return "bg-blue-100 text-blue-800";
+      case "success":
+        return "bg-green-100 text-green-800";
+      case "failed":
+        return "bg-red-100 text-red-800";
+      case "cancelled":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString();
+  };
+
+  const shouldShowExpandButton = (content: string) => {
+    return content.split("\n").length > 3 || content.length > 150;
+  };
+
+  const toggleExpanded = (conversationId: number) => {
+    const newExpanded = new Set(expandedConversations);
+    if (newExpanded.has(conversationId)) {
+      newExpanded.delete(conversationId);
+    } else {
+      newExpanded.add(conversationId);
+    }
+    setExpandedConversations(newExpanded);
+  };
+
+  const isConversationExpanded = (conversationId: number) => {
+    return expandedConversations.has(conversationId);
+  };
+
+  const hasPendingOrRunningConversations = () => {
+    return conversations.some(
+      (conv) => conv.status === "pending" || conv.status === "running"
+    );
+  };
+
+  const isTaskCompleted = () => {
+    return task?.status === "done" || task?.status === "cancelled";
+  };
+
+  const canSendMessage = () => {
+    return !hasPendingOrRunningConversations() && !isTaskCompleted();
   };
 
   const loadConversations = useCallback(async () => {
@@ -155,31 +217,26 @@ function TaskDetailSheet({
     }
   }, [task]);
 
-  const handleSendMessage = async (data: ConversationFormData) => {
-    if (!task) return;
+  const handleSendMessage = async () => {
+    if (!task || !newMessage.trim() || !canSendMessage()) return;
 
+    setSending(true);
     try {
       await apiService.taskConversations.create({
         task_id: task.id,
-        content: data.content,
-        execution_time: data.execution_time?.toISOString(),
+        content: newMessage.trim(),
+        execution_time: executionTime?.toISOString(),
       });
 
-      // Refresh conversations list
+      // Clear form and refresh conversations list
+      setNewMessage("");
+      setExecutionTime(undefined);
       await loadConversations();
     } catch (error) {
       console.error("Failed to send message:", error);
       throw error;
-    }
-  };
-
-  const handleDeleteConversation = async (conversationId: number) => {
-    try {
-      await apiService.taskConversations.delete(conversationId);
-      await loadConversations();
-    } catch (error) {
-      console.error("Failed to delete conversation:", error);
-      throw error;
+    } finally {
+      setSending(false);
     }
   };
 
@@ -197,12 +254,12 @@ function TaskDetailSheet({
     navigate(`/tasks/${task.id}/git-diff`);
   };
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    if (value === "conversations" && conversations.length === 0 && task) {
+  // Load conversations when task changes
+  useEffect(() => {
+    if (task && conversations.length === 0) {
       loadConversations();
     }
-  };
+  }, [task, conversations.length, loadConversations]);
 
   // 在所有hooks调用后进行条件性返回
   if (!task) return null;
@@ -219,119 +276,300 @@ function TaskDetailSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={handleTabChange}
-          className="flex-1 flex flex-col p-4"
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="basic" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
+        <div className="flex-1 flex flex-col p-4 space-y-6 overflow-y-auto">
+          {/* 基础信息板块 */}
+          <div className="space-y-4">
+            <h3 className="font-medium text-foreground text-lg flex items-center gap-2">
+              <FileText className="h-5 w-5" />
               {t("tasks.tabs.basic")}
-            </TabsTrigger>
-            <TabsTrigger
-              value="conversations"
-              className="flex items-center gap-2"
-            >
-              <MessageSquare className="h-4 w-4" />
-              {t("tasks.tabs.conversations")}
-              {task.conversation_count > 0 && (
-                <Badge variant="outline" className="ml-1 text-xs">
-                  {task.conversation_count}
+            </h3>
+            
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium text-foreground">
+                  {t("tasks.status.label")}:
+                </span>
+                <Badge
+                  className={`ml-2 ${getStatusBadgeClass(task.status)}`}
+                >
+                  {t(`tasks.status.${task.status}`)}
                 </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
+              </div>
 
-          <TabsContent value="basic" className="flex-1 overflow-y-auto">
-            <div className="space-y-6 p-1">
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-foreground">
-                      {t("tasks.status.label")}:
-                    </span>
-                    <Badge
-                      className={`ml-2 ${getStatusBadgeClass(task.status)}`}
-                    >
-                      {t(`tasks.status.${task.status}`)}
-                    </Badge>
-                  </div>
+              <div className="flex items-center">
+                <GitBranch className="h-4 w-4 mr-1" />
+                <span className="font-medium text-foreground">
+                  {t("tasks.workBranch")}:
+                </span>
+                <span className="ml-2 font-mono text-xs">
+                  {task.work_branch}
+                </span>
+              </div>
 
-                  <div className="flex items-center">
-                    <GitBranch className="h-4 w-4 mr-1" />
-                    <span className="font-medium text-foreground">
-                      {t("tasks.workBranch")}:
-                    </span>
-                    <span className="ml-2 font-mono text-xs">
-                      {task.work_branch}
-                    </span>
-                  </div>
+              <div className="flex items-center">
+                <GitBranch className="h-4 w-4 mr-1" />
+                <span className="font-medium text-foreground">
+                  {t("tasks.startBranch")}:
+                </span>
+                <span className="ml-2 font-mono text-xs">
+                  {task.start_branch}
+                </span>
+              </div>
 
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-1" />
-                    <span className="font-medium text-foreground">
-                      {t("tasks.createdBy")}:
-                    </span>
-                    <span className="ml-2">{task.created_by}</span>
-                  </div>
+              <div className="flex items-center">
+                <Monitor className="h-4 w-4 mr-1" />
+                <span className="font-medium text-foreground">
+                  {t("tasks.environment")}:
+                </span>
+                <span className="ml-2">
+                  {task.dev_environment?.name || t("common.notSet")}
+                </span>
+              </div>
 
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    <span className="font-medium text-foreground">
-                      {t("tasks.createdAt")}:
-                    </span>
-                    <span className="ml-2">
-                      {new Date(task.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
+              <div className="flex items-center">
+                <Clock className="h-4 w-4 mr-1" />
+                <span className="font-medium text-foreground">
+                  {t("tasks.executionTime")}:
+                </span>
+                <span className="ml-2">
+                  {task.latest_execution_time 
+                    ? formatTime(task.latest_execution_time)
+                    : t("common.notSet")
+                  }
+                </span>
+              </div>
 
-                {/* Actions */}
-                <div className="border-t pt-4">
-                  <h3 className="font-medium text-foreground mb-3">
-                    {t("tasks.actions.title")}
-                  </h3>
-                  <div className="flex flex-wrap gap-3">
-                    <Button
-                      onClick={handlePushBranch}
-                      className="flex items-center gap-2"
-                      disabled={
-                        task.status === "done" || task.status === "cancelled"
-                      }
-                    >
-                      <GitBranch className="h-4 w-4" />
-                      {t("tasks.actions.pushBranch")}
-                    </Button>
+              <div className="flex items-center">
+                <User className="h-4 w-4 mr-1" />
+                <span className="font-medium text-foreground">
+                  {t("tasks.createdBy")}:
+                </span>
+                <span className="ml-2">{task.created_by}</span>
+              </div>
 
-                    <Button
-                      onClick={handleViewTaskGitDiff}
-                      variant="outline"
-                      className="flex items-center gap-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                      {t("tasks.actions.viewGitDiff")}
-                    </Button>
-                  </div>
-                </div>
+              <div className="flex items-center">
+                <Calendar className="h-4 w-4 mr-1" />
+                <span className="font-medium text-foreground">
+                  {t("tasks.createdAt")}:
+                </span>
+                <span className="ml-2">
+                  {new Date(task.created_at).toLocaleDateString()}
+                </span>
               </div>
             </div>
-          </TabsContent>
 
-          <TabsContent value="conversations" className="flex-1 overflow-hidden">
-            <TaskConversation
-              conversations={conversations}
-              selectedConversationId={selectedConversationId}
-              loading={conversationsLoading}
-              taskStatus={task.status}
-              onSendMessage={handleSendMessage}
-              onRefresh={loadConversations}
-              onSelectConversation={setSelectedConversationId}
-              onDeleteConversation={handleDeleteConversation}
-              onViewConversationGitDiff={handleViewConversationGitDiff}
-            />
-          </TabsContent>
-        </Tabs>
+            {/* Actions */}
+            <div className="border-t pt-4">
+              <h4 className="font-medium text-foreground mb-3">
+                {t("tasks.actions.title")}
+              </h4>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={handlePushBranch}
+                  className="flex items-center gap-2"
+                  disabled={
+                    task.status === "done" || task.status === "cancelled"
+                  }
+                >
+                  <GitBranch className="h-4 w-4" />
+                  {t("tasks.actions.pushBranch")}
+                </Button>
+
+                <Button
+                  onClick={handleViewTaskGitDiff}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Eye className="h-4 w-4" />
+                  {t("tasks.actions.viewGitDiff")}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* 对话信息板块 */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium text-foreground text-lg flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                {t("taskConversations.list.title")}
+                {task.conversation_count > 0 && (
+                  <Badge variant="outline" className="ml-1 text-xs">
+                    {task.conversation_count}
+                  </Badge>
+                )}
+              </h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadConversations}
+                disabled={conversationsLoading}
+                className="flex items-center space-x-2"
+              >
+                <MessageSquare className={`w-4 h-4 ${conversationsLoading ? "animate-spin" : ""}`} />
+                <span>{t("common.refresh")}</span>
+              </Button>
+            </div>
+
+            <div className="space-y-3 max-h-[400px] overflow-y-auto">
+              {conversations.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>{t("taskConversations.empty.title")}</p>
+                  <p className="text-sm">
+                    {t("taskConversations.empty.description")}
+                  </p>
+                </div>
+              ) : (
+                conversations.map((conversation) => (
+                  <div
+                    key={conversation.id}
+                    className="p-4 rounded-lg border border-border bg-card"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      {/* 左侧对话内容 */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <User className="w-4 h-4" />
+                          <span className="font-medium text-sm">
+                            {conversation.created_by}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatTime(conversation.created_at)}
+                          </span>
+                        </div>
+                        <div
+                          className={`text-sm whitespace-pre-wrap ${
+                            isConversationExpanded(conversation.id)
+                              ? ""
+                              : shouldShowExpandButton(conversation.content)
+                              ? "line-clamp-3"
+                              : ""
+                          }`}
+                        >
+                          {conversation.content}
+                        </div>
+                        {shouldShowExpandButton(conversation.content) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleExpanded(conversation.id)}
+                            className="mt-1 h-6 px-1 text-xs text-muted-foreground hover:bg-muted"
+                          >
+                            {isConversationExpanded(conversation.id) 
+                              ? t("common.showLess") 
+                              : t("common.showMore")
+                            }
+                          </Button>
+                        )}
+                      </div>
+
+                      {/* 右侧状态和菜单 */}
+                      <div className="flex items-center space-x-2 shrink-0">
+                        <Badge className={getConversationStatusColor(conversation.status)}>
+                          {t(`taskConversations.status.${conversation.status}`)}
+                        </Badge>
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => navigate(`/tasks/${task.id}/conversations/${conversation.id}`)}
+                            >
+                              <Eye className="mr-2 h-4 w-4" />
+                              {t("taskConversations.actions.viewDetails")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleViewConversationGitDiff(conversation.id)}
+                            >
+                              <FileText className="mr-2 h-4 w-4" />
+                              {t("taskConversations.actions.viewGitDiff")}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* 发送对话消息板块 */}
+          <div className="space-y-4 border-t pt-4">
+            <h3 className="font-medium text-foreground text-lg">
+              {t("taskConversations.newMessage")}
+            </h3>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {t("taskConversations.content")}:
+                </label>
+                <Textarea
+                  className="min-h-[120px] resize-none"
+                  placeholder={t("taskConversations.contentPlaceholder")}
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {t("taskConversations.executionTime")}:
+                </label>
+                <DateTimePicker
+                  value={executionTime}
+                  onChange={setExecutionTime}
+                  placeholder={t("taskConversations.executionTimePlaceholder")}
+                  label=""
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t("taskConversations.executionTimeHint")}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-muted-foreground">
+                  {t("taskConversations.shortcut")}
+                </div>
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!newMessage.trim() || sending || !canSendMessage()}
+                  className="flex items-center space-x-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>
+                    {sending ? t("common.sending") : t("common.send")}
+                  </span>
+                </Button>
+              </div>
+
+              {!canSendMessage() && (
+                <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                  {isTaskCompleted() 
+                    ? t("taskConversations.taskCompletedMessage")
+                    : t("taskConversations.hasPendingMessage")
+                  }
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
         {/* Push Branch Dialog */}
         <PushBranchDialog

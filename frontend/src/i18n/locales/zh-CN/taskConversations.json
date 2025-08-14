@@ -63,6 +63,7 @@
   "no_result": "暂无执行结果",
   "actions": {
     "delete": "删除",
+    "viewDetails": "查看详情",
     "viewGitDiff": "Git差异",
     "viewChanges": "查看变动"
   },
