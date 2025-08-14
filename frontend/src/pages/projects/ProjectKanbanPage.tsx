@@ -29,7 +29,6 @@ import {
   ArrowLeft,
   Plus,
   Settings,
-  MoreHorizontal,
   Calendar,
   GitBranch,
   User,
@@ -37,12 +36,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -71,42 +72,9 @@ const KANBAN_COLUMNS = [
 const COLUMN_ORDER_KEY = "kanban-column-order";
 
 // Task Card Component
-function TaskCard({ task }: { task: Task }) {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-
+function TaskCard({ task, onClick }: { task: Task; onClick?: () => void }) {
   const handleClick = () => {
-    navigate(`/projects/${task.project_id}/tasks/${task.id}/conversation`);
-  };
-
-  const getStatusBadgeVariant = (status: TaskStatus) => {
-    switch (status) {
-      case "todo":
-        return "secondary";
-      case "in_progress":
-        return "default";
-      case "done":
-        return "default";
-      case "cancelled":
-        return "destructive";
-      default:
-        return "secondary";
-    }
-  };
-
-  const getStatusBadgeClass = (status: TaskStatus) => {
-    switch (status) {
-      case "todo":
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
-      case "in_progress":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
-      case "done":
-        return "bg-green-100 text-green-800 hover:bg-green-200";
-      case "cancelled":
-        return "bg-red-100 text-red-800 hover:bg-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
-    }
+    onClick?.();
   };
 
   return (
@@ -114,55 +82,95 @@ function TaskCard({ task }: { task: Task }) {
       className="cursor-pointer hover:shadow-md transition-shadow mb-3"
       onClick={handleClick}
     >
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          <div className="flex items-start justify-between">
-            <h4 className="text-sm font-medium line-clamp-2 flex-1 mr-2">
-              {task.title}
-            </h4>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
-                  <MoreHorizontal className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>{t("common.edit")}</DropdownMenuItem>
-                <DropdownMenuItem>{t("common.delete")}</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <div className="flex items-center space-x-1">
-              <GitBranch className="h-3 w-3" />
-              <span className="truncate max-w-20">{task.work_branch}</span>
-            </div>
-            {task.conversation_count > 0 && (
-              <Badge variant="outline" className="text-xs">
-                {task.conversation_count}
-              </Badge>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-              <User className="h-3 w-3" />
-              <span>{task.created_by}</span>
-            </div>
-            <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-              <Calendar className="h-3 w-3" />
-              <span>{new Date(task.created_at).toLocaleDateString()}</span>
-            </div>
-          </div>
-        </div>
+      <CardContent className="p-3">
+        <h4 className="text-sm font-medium line-clamp-2">
+          {task.title}
+        </h4>
       </CardContent>
     </Card>
   );
 }
 
+// Task Detail Modal Component
+function TaskDetailModal({ 
+  task, 
+  isOpen, 
+  onClose 
+}: { 
+  task: Task | null; 
+  isOpen: boolean; 
+  onClose: () => void; 
+}) {
+  const { t } = useTranslation();
+
+  if (!task) return null;
+
+  const getStatusBadgeClass = (status: TaskStatus) => {
+    switch (status) {
+      case "todo":
+        return "bg-gray-100 text-gray-800";
+      case "in_progress":
+        return "bg-blue-100 text-blue-800";
+      case "done":
+        return "bg-green-100 text-green-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-semibold">
+            {task.title}
+          </DialogTitle>
+          <DialogDescription className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium text-foreground">{t("tasks.status.label")}:</span>
+                <Badge className={`ml-2 ${getStatusBadgeClass(task.status)}`}>
+                  {t(`tasks.status.${task.status}`)}
+                </Badge>
+              </div>
+
+              <div className="flex items-center">
+                <GitBranch className="h-4 w-4 mr-1" />
+                <span className="font-medium text-foreground">{t("tasks.workBranch")}:</span>
+                <span className="ml-2">{task.work_branch}</span>
+              </div>
+              <div className="flex items-center">
+                <User className="h-4 w-4 mr-1" />
+                <span className="font-medium text-foreground">{t("tasks.createdBy")}:</span>
+                <span className="ml-2">{task.created_by}</span>
+              </div>
+              <div className="flex items-center">
+                <Calendar className="h-4 w-4 mr-1" />
+                <span className="font-medium text-foreground">{t("tasks.createdAt")}:</span>
+                <span className="ml-2">{new Date(task.created_at).toLocaleDateString()}</span>
+              </div>
+              {task.conversation_count > 0 && (
+                <div>
+                  <span className="font-medium text-foreground">{t("tasks.conversations")}:</span>
+                  <Badge variant="outline" className="ml-2">
+                    {task.conversation_count}
+                  </Badge>
+                </div>
+              )}
+            </div>
+            
+
+          </DialogDescription>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // Draggable Task Card
-function DraggableTaskCard({ task }: { task: Task }) {
+function DraggableTaskCard({ task, onTaskClick }: { task: Task; onTaskClick: (task: Task) => void }) {
   const {
     attributes,
     listeners,
@@ -195,7 +203,7 @@ function DraggableTaskCard({ task }: { task: Task }) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TaskCard task={task} />
+      <TaskCard task={task} onClick={() => onTaskClick(task)} />
     </div>
   );
 }
@@ -203,38 +211,19 @@ function DraggableTaskCard({ task }: { task: Task }) {
 // Kanban Column Component
 function KanbanColumn({
   title,
-  status,
   tasks,
-  onAddTask,
+  onTaskClick,
 }: {
   title: string;
-  status: TaskStatus;
   tasks: Task[];
-  onAddTask: () => void;
+  onTaskClick: (task: Task) => void;
 }) {
   const { t } = useTranslation();
   const taskIds = tasks.map((task) => task.id);
 
-  const getColumnColor = (status: TaskStatus) => {
-    switch (status) {
-      case "todo":
-        return "border-l-gray-500";
-      case "in_progress":
-        return "border-l-blue-500";
-      case "done":
-        return "border-l-green-500";
-      case "cancelled":
-        return "border-l-red-500";
-      default:
-        return "border-l-gray-500";
-    }
-  };
-
   return (
     <div
-      className={`flex flex-col h-full min-w-80 border-l-4 ${getColumnColor(
-        status
-      )} bg-muted/20 rounded-lg`}
+      className="flex flex-col h-full min-w-80 bg-muted/20 rounded-lg border border-gray-200"
     >
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
@@ -244,14 +233,6 @@ function KanbanColumn({
               {tasks.length}
             </Badge>
           </CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={onAddTask}
-          >
-            <Plus className="h-3 w-3" />
-          </Button>
         </div>
       </CardHeader>
 
@@ -262,7 +243,7 @@ function KanbanColumn({
         >
           <div className="space-y-3">
             {tasks.map((task) => (
-              <DraggableTaskCard key={task.id} task={task} />
+              <DraggableTaskCard key={task.id} task={task} onTaskClick={onTaskClick} />
             ))}
             {tasks.length === 0 && (
               <div className="text-center text-muted-foreground text-sm py-8">
@@ -281,12 +262,12 @@ function DraggableColumn({
   title,
   status,
   tasks,
-  onAddTask,
+  onTaskClick,
 }: {
   title: string;
   status: TaskStatus;
   tasks: Task[];
-  onAddTask: () => void;
+  onTaskClick: (task: Task) => void;
 }) {
   const {
     attributes,
@@ -318,9 +299,8 @@ function DraggableColumn({
     >
       <KanbanColumn
         title={title}
-        status={status}
         tasks={tasks}
-        onAddTask={onAddTask}
+        onTaskClick={onTaskClick}
       />
     </div>
   );
@@ -345,8 +325,9 @@ export default function ProjectKanbanPage() {
     cancelled: [],
   });
   const [loading, setLoading] = useState(true);
-  const [activeId, setActiveId] = useState<string | number | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Column order management
   const [columnOrder, setColumnOrder] = useState<string[]>(() => {
@@ -420,7 +401,6 @@ export default function ProjectKanbanPage() {
   // Handle drag start
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
-    setActiveId(active.id);
 
     if (active.data.current?.type === "task") {
       setActiveTask(active.data.current.task);
@@ -432,7 +412,6 @@ export default function ProjectKanbanPage() {
     async (event: DragEndEvent) => {
       const { active, over } = event;
 
-      setActiveId(null);
       setActiveTask(null);
 
       if (!over) return;
@@ -533,6 +512,16 @@ export default function ProjectKanbanPage() {
 
   const handleProjectChange = (newProjectId: string) => {
     navigate(`/projects/${newProjectId}/kanban`);
+  };
+
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedTask(null);
   };
 
   if (loading) {
@@ -658,7 +647,7 @@ export default function ProjectKanbanPage() {
                   title={t(`tasks.status.${column.status}`)}
                   status={column.status}
                   tasks={tasks[column.status] || []}
-                  onAddTask={handleAddTask}
+                  onTaskClick={handleTaskClick}
                 />
               ))}
             </SortableContext>
@@ -668,6 +657,13 @@ export default function ProjectKanbanPage() {
             {activeTask && <TaskCard task={activeTask} />}
           </DragOverlay>
         </DndContext>
+
+        {/* Task Detail Modal */}
+        <TaskDetailModal
+          task={selectedTask}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
       </main>
     </div>
   );
