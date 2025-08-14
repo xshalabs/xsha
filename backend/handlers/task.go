@@ -655,3 +655,55 @@ func (h *TaskHandlers) PushTaskBranch(c *gin.Context) {
 		},
 	})
 }
+
+// @Description Get kanban tasks response
+type GetKanbanTasksResponse struct {
+	Todo       []database.Task `json:"todo"`
+	InProgress []database.Task `json:"in_progress"`
+	Done       []database.Task `json:"done"`
+	Cancelled  []database.Task `json:"cancelled"`
+}
+
+// GetKanbanTasks retrieves tasks grouped by status for kanban view
+// @Summary Get kanban tasks
+// @Description Get tasks grouped by status for a specific project to display in kanban view
+// @Tags Tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Project ID"
+// @Success 200 {object} object{message=string,data=GetKanbanTasksResponse} "Kanban tasks retrieved successfully"
+// @Failure 400 {object} object{error=string} "Invalid project ID"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 404 {object} object{error=string} "Project not found"
+// @Failure 500 {object} object{error=string} "Internal server error"
+// @Router /projects/{id}/kanban [get]
+func (h *TaskHandlers) GetKanbanTasks(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	projectIDStr := c.Param("id")
+	projectID, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	kanbanData, err := h.taskService.GetKanbanTasks(uint(projectID))
+	if err != nil {
+		helper := i18n.NewHelper(lang)
+		helper.ErrorResponseFromError(c, http.StatusNotFound, err)
+		return
+	}
+
+	response := GetKanbanTasksResponse{
+		Todo:       kanbanData[database.TaskStatusTodo],
+		InProgress: kanbanData[database.TaskStatusInProgress],
+		Done:       kanbanData[database.TaskStatusDone],
+		Cancelled:  kanbanData[database.TaskStatusCancelled],
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "task.kanban_get_success"),
+		"data":    response,
+	})
+}

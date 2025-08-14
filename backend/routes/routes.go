@@ -69,6 +69,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			projects.GET("/:id", projectHandlers.GetProject)
 			projects.PUT("/:id", projectHandlers.UpdateProject)
 			projects.DELETE("/:id", projectHandlers.DeleteProject)
+			projects.GET("/:id/kanban", taskHandlers.GetKanbanTasks)
 		}
 
 		tasks := api.Group("/tasks")

@@ -37,6 +37,8 @@
   "copy_failed": "Failed to copy",
   "showMore": "Show More",
   "showLess": "Show Less",
+  "kanban": "Kanban",
+  "backToProjects": "Back to Projects",
   "pageTitle": {
     "dashboard": "Dashboard",
     "login": "Login",

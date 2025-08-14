@@ -37,6 +37,8 @@
   "copy_failed": "复制失败",
   "showMore": "显示更多",
   "showLess": "收起",
+  "kanban": "看板",
+  "backToProjects": "返回项目",
   "pageTitle": {
     "dashboard": "仪表板",
     "login": "登录",

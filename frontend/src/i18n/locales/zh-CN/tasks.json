@@ -14,6 +14,8 @@
     "done": "已完成",
     "cancelled": "已取消"
   },
+  "addTask": "添加任务",
+  "no_tasks": "暂无任务",
   "fields": {
     "title": "任务标题",
     "requirementDesc": "需求描述",

@@ -259,6 +259,13 @@ const ProjectListPage: React.FC = () => {
     [navigate]
   );
 
+  const handleKanban = useCallback(
+    (project: Project) => {
+      navigate(`/projects/${project.id}/kanban`);
+    },
+    [navigate]
+  );
+
   const columns = useMemo(
     () =>
       createProjectColumns({
@@ -266,8 +273,9 @@ const ProjectListPage: React.FC = () => {
         onEdit: handleEdit,
         onDelete: handleDelete,
         onManageTasks: handleManageTasks,
+        onKanban: handleKanban,
       }),
-    [t, handleEdit, handleDelete, handleManageTasks]
+    [t, handleEdit, handleDelete, handleManageTasks, handleKanban]
   );
 
   return (

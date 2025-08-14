@@ -1,5 +1,6 @@
 {
   "pageNotFound": "页面未找到",
+  "projectNotFound": "项目未找到",
   "execution_log_load_failed": "加载执行日志失败",
   "execution_cancel_failed": "取消执行失败",
   "execution_retry_failed": "重试执行失败",

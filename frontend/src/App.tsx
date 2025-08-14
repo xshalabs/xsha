@@ -21,6 +21,7 @@ import { AuditStatsPage } from "@/pages/logs/AuditStatsPage";
 import ProjectListPage from "@/pages/projects/ProjectListPage";
 import ProjectCreatePage from "@/pages/projects/ProjectCreatePage";
 import ProjectEditPage from "@/pages/projects/ProjectEditPage";
+import ProjectKanbanPage from "@/pages/projects/ProjectKanbanPage";
 
 import EnvironmentListPage from "@/pages/environments/EnvironmentListPage";
 import EnvironmentCreatePage from "@/pages/environments/EnvironmentCreatePage";
@@ -104,6 +105,14 @@ function App() {
                   <Layout>
                     <ProjectEditPage />
                   </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects/:projectId/kanban"
+              element={
+                <ProtectedRoute>
+                  <ProjectKanbanPage />
                 </ProtectedRoute>
               }
             />

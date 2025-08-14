@@ -10,10 +10,12 @@
   },
   "status": {
     "todo": "To Do",
-    "in_progress": "In Progress",
+    "in_progress": "In Progress", 
     "done": "Done",
     "cancelled": "Cancelled"
   },
+  "addTask": "Add Task",
+  "no_tasks": "No tasks",
   "fields": {
     "title": "Task Title",
     "requirementDesc": "Requirement Description",
