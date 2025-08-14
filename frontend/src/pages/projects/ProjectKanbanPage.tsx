@@ -15,6 +15,7 @@ import {
   MoreHorizontal,
   Clock,
   Monitor,
+  Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -254,12 +255,20 @@ function TaskDetailSheet({
     navigate(`/tasks/${task.id}/git-diff`);
   };
 
-  // Load conversations when task changes
+  // Reset state and load conversations when task changes
   useEffect(() => {
-    if (task && conversations.length === 0) {
+    if (task) {
+      // Reset all conversation-related state when task changes
+      setConversations([]);
+      setNewMessage("");
+      setExecutionTime(undefined);
+      setSending(false);
+      setExpandedConversations(new Set());
+      
+      // Load conversations for the new task
       loadConversations();
     }
-  }, [task, conversations.length, loadConversations]);
+  }, [task?.id, loadConversations]); // Use task.id to ensure it triggers when task changes
 
   // 在所有hooks调用后进行条件性返回
   if (!task) return null;
@@ -322,7 +331,7 @@ function TaskDetailSheet({
                   {t("tasks.environment")}:
                 </span>
                 <span className="ml-2">
-                  {task.dev_environment?.name || t("common.notSet")}
+                  {task.dev_environment?.name || "-"}
                 </span>
               </div>
 
@@ -411,7 +420,7 @@ function TaskDetailSheet({
               </Button>
             </div>
 
-            <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            <div className="space-y-3">
               {conversations.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -505,7 +514,8 @@ function TaskDetailSheet({
 
           {/* 发送对话消息板块 */}
           <div className="space-y-4 border-t pt-4">
-            <h3 className="font-medium text-foreground text-lg">
+            <h3 className="font-medium text-foreground text-lg flex items-center gap-2">
+              <Send className="h-5 w-5" />
               {t("taskConversations.newMessage")}
             </h3>
             

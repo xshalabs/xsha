@@ -10,6 +10,7 @@
     "pushBranch": "推送分支"
   },
   "status": {
+    "label": "状态",
     "todo": "待办",
     "in_progress": "进行中",
     "done": "已完成",

@@ -10,6 +10,7 @@
     "pushBranch": "Push Branch"
   },
   "status": {
+    "label": "Status",
     "todo": "To Do",
     "in_progress": "In Progress", 
     "done": "Done",
