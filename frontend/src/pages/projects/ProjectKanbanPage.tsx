@@ -71,25 +71,14 @@ const KANBAN_COLUMNS = [
 ];
 
 // Task Card Component
-function TaskCard({ 
-  task, 
-  onClick 
-}: { 
-  task: Task; 
-  onClick?: () => void; 
-}) {
+function TaskCard({ task, onClick }: { task: Task; onClick?: () => void }) {
   const handleClick = () => {
     onClick?.();
   };
 
   return (
-    <KanbanBoardCard
-      data={{ id: task.id.toString() }}
-      onClick={handleClick}
-    >
-      <KanbanBoardCardTitle>
-        {task.title}
-      </KanbanBoardCardTitle>
+    <KanbanBoardCard data={{ id: task.id.toString() }} onClick={handleClick}>
+      <KanbanBoardCardTitle>{task.title}</KanbanBoardCardTitle>
       {task.conversation_count > 0 && (
         <div className="flex items-center justify-between mt-2">
           <Badge variant="outline" className="text-xs">
@@ -102,14 +91,14 @@ function TaskCard({
 }
 
 // Task Detail Modal Component
-function TaskDetailModal({ 
-  task, 
-  isOpen, 
-  onClose 
-}: { 
-  task: Task | null; 
-  isOpen: boolean; 
-  onClose: () => void; 
+function TaskDetailModal({
+  task,
+  isOpen,
+  onClose,
+}: {
+  task: Task | null;
+  isOpen: boolean;
+  onClose: () => void;
 }) {
   const { t } = useTranslation();
 
@@ -140,7 +129,9 @@ function TaskDetailModal({
           <DialogDescription className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="font-medium text-foreground">{t("tasks.status.label")}:</span>
+                <span className="font-medium text-foreground">
+                  {t("tasks.status.label")}:
+                </span>
                 <Badge className={`ml-2 ${getStatusBadgeClass(task.status)}`}>
                   {t(`tasks.status.${task.status}`)}
                 </Badge>
@@ -148,38 +139,44 @@ function TaskDetailModal({
 
               <div className="flex items-center">
                 <GitBranch className="h-4 w-4 mr-1" />
-                <span className="font-medium text-foreground">{t("tasks.workBranch")}:</span>
+                <span className="font-medium text-foreground">
+                  {t("tasks.workBranch")}:
+                </span>
                 <span className="ml-2">{task.work_branch}</span>
               </div>
               <div className="flex items-center">
                 <User className="h-4 w-4 mr-1" />
-                <span className="font-medium text-foreground">{t("tasks.createdBy")}:</span>
+                <span className="font-medium text-foreground">
+                  {t("tasks.createdBy")}:
+                </span>
                 <span className="ml-2">{task.created_by}</span>
               </div>
               <div className="flex items-center">
                 <Calendar className="h-4 w-4 mr-1" />
-                <span className="font-medium text-foreground">{t("tasks.createdAt")}:</span>
-                <span className="ml-2">{new Date(task.created_at).toLocaleDateString()}</span>
+                <span className="font-medium text-foreground">
+                  {t("tasks.createdAt")}:
+                </span>
+                <span className="ml-2">
+                  {new Date(task.created_at).toLocaleDateString()}
+                </span>
               </div>
               {task.conversation_count > 0 && (
                 <div>
-                  <span className="font-medium text-foreground">{t("tasks.conversations")}:</span>
+                  <span className="font-medium text-foreground">
+                    {t("tasks.conversations")}:
+                  </span>
                   <Badge variant="outline" className="ml-2">
                     {task.conversation_count}
                   </Badge>
                 </div>
               )}
             </div>
-            
-
           </DialogDescription>
         </DialogHeader>
       </DialogContent>
     </Dialog>
   );
 }
-
-
 
 // Kanban Column Component
 function KanbanColumn({
@@ -213,10 +210,7 @@ function KanbanColumn({
   };
 
   return (
-    <KanbanBoardColumn 
-      columnId={status} 
-      onDropOverColumn={onDropOverColumn}
-    >
+    <KanbanBoardColumn columnId={status} onDropOverColumn={onDropOverColumn}>
       <KanbanBoardColumnHeader>
         <KanbanBoardColumnTitle columnId={status}>
           <KanbanColorCircle color={getColumnColor(status)} />
@@ -249,8 +243,6 @@ function KanbanColumn({
     </KanbanBoardColumn>
   );
 }
-
-
 
 export default function ProjectKanbanPage() {
   const { t } = useTranslation();
@@ -331,12 +323,12 @@ export default function ProjectKanbanPage() {
       try {
         const draggedTaskData = JSON.parse(dataTransferData);
         const taskId = parseInt(draggedTaskData.id);
-        
+
         // Find the task in current state
         const sourceTask = Object.values(tasks)
           .flat()
           .find((task) => task.id === taskId);
-        
+
         if (!sourceTask || sourceTask.status === targetStatus) {
           return;
         }
@@ -361,10 +353,7 @@ export default function ProjectKanbanPage() {
             ...sourceTask,
             status: targetStatus,
           };
-          newTasks[targetStatus] = [
-            ...newTasks[targetStatus],
-            updatedTask,
-          ];
+          newTasks[targetStatus] = [...newTasks[targetStatus], updatedTask];
 
           return newTasks;
         });
@@ -407,7 +396,7 @@ export default function ProjectKanbanPage() {
 
     try {
       setIsCreatingTask(true);
-      
+
       // Convert TaskFormData to CreateTaskRequest
       const createRequest = {
         title: taskData.title,
@@ -416,18 +405,22 @@ export default function ProjectKanbanPage() {
         dev_environment_id: taskData.dev_environment_id,
         requirement_desc: taskData.requirement_desc,
         include_branches: taskData.include_branches,
-        execution_time: taskData.execution_time ? taskData.execution_time.toISOString() : undefined,
+        execution_time: taskData.execution_time
+          ? taskData.execution_time.toISOString()
+          : undefined,
       };
 
       const response = await apiService.tasks.create(createRequest);
-      
+
       // Refresh kanban data
-      const kanbanResponse = await apiService.tasks.getKanbanTasks(parseInt(projectId));
+      const kanbanResponse = await apiService.tasks.getKanbanTasks(
+        parseInt(projectId)
+      );
       setTasks(kanbanResponse.data);
-      
+
       // Close the sheet
       setIsCreateTaskSheetOpen(false);
-      
+
       // Show success message (you might want to add toast notification here)
       console.log("Task created successfully:", response.data);
     } catch (error) {
@@ -514,7 +507,7 @@ export default function ProjectKanbanPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <Separator orientation="vertical" className="mr-2 h-4" />
-          
+
           <Select value={projectId} onValueChange={handleProjectChange}>
             <SelectTrigger className="min-w-48 border-none shadow-none text-sm font-semibold bg-transparent">
               <SelectValue />
@@ -527,9 +520,8 @@ export default function ProjectKanbanPage() {
               ))}
             </SelectContent>
           </Select>
-          <span className="text-sm text-muted-foreground">- {t("common.kanban")}</span>
         </div>
-        
+
         <div className="ml-auto px-3">
           <div className="flex items-center gap-2">
             <Button onClick={handleAddTask} size="sm">
@@ -560,7 +552,7 @@ export default function ProjectKanbanPage() {
                 status={column.status}
                 tasks={tasks[column.status] || []}
                 onTaskClick={handleTaskClick}
-                onDropOverColumn={(dataTransferData) => 
+                onDropOverColumn={(dataTransferData) =>
                   handleDropOverColumn(dataTransferData, column.status)
                 }
               />
@@ -577,7 +569,10 @@ export default function ProjectKanbanPage() {
         />
 
         {/* Create Task Sheet */}
-        <FormSheet open={isCreateTaskSheetOpen} onOpenChange={setIsCreateTaskSheetOpen}>
+        <FormSheet
+          open={isCreateTaskSheetOpen}
+          onOpenChange={setIsCreateTaskSheetOpen}
+        >
           <FormSheetContent className="w-[800px] sm:max-w-[800px]">
             <FormSheetHeader>
               <FormSheetTitle>{t("tasks.actions.create")}</FormSheetTitle>
@@ -601,8 +596,8 @@ export default function ProjectKanbanPage() {
               </FormCard>
             </FormCardGroup>
             <FormSheetFooter>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 form="task-create-sheet-form"
                 disabled={isCreatingTask}
               >
