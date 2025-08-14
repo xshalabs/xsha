@@ -9,6 +9,9 @@ import {
   GitBranch,
   User,
   Save,
+  MessageSquare,
+  FileText,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,12 +41,18 @@ import {
 } from "@/components/kanban";
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -57,7 +66,13 @@ import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import type { Task, TaskStatus, TaskFormData } from "@/types/task";
 import type { Project } from "@/types/project";
+import type {
+  TaskConversation as TaskConversationInterface,
+  ConversationFormData,
+} from "@/types/task-conversation";
 import { TaskFormCreateNew } from "@/components/TaskFormCreateNew";
+import { TaskConversation } from "@/components/TaskConversation";
+import { PushBranchDialog } from "@/components/PushBranchDialog";
 
 const KANBAN_COLUMNS = [
   { id: "todo", title: "Todo", status: "todo" as TaskStatus },
@@ -90,8 +105,8 @@ function TaskCard({ task, onClick }: { task: Task; onClick?: () => void }) {
   );
 }
 
-// Task Detail Modal Component
-function TaskDetailModal({
+// Task Detail Sheet Component
+function TaskDetailSheet({
   task,
   isOpen,
   onClose,
@@ -101,8 +116,13 @@ function TaskDetailModal({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
-
-  if (!task) return null;
+  const navigate = useNavigate();
+  
+  const [conversations, setConversations] = useState<TaskConversationInterface[]>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
+  const [conversationsLoading, setConversationsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("basic");
+  const [isPushDialogOpen, setIsPushDialogOpen] = useState(false);
 
   const getStatusBadgeClass = (status: TaskStatus) => {
     switch (status) {
@@ -119,62 +139,202 @@ function TaskDetailModal({
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">
-            {task.title}
-          </DialogTitle>
-          <DialogDescription className="space-y-4 mt-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="font-medium text-foreground">
-                  {t("tasks.status.label")}:
-                </span>
-                <Badge className={`ml-2 ${getStatusBadgeClass(task.status)}`}>
-                  {t(`tasks.status.${task.status}`)}
-                </Badge>
-              </div>
+  const loadConversations = useCallback(async () => {
+    if (!task) return;
+    
+    setConversationsLoading(true);
+    try {
+      const response = await apiService.taskConversations.list({
+        task_id: task.id,
+      });
+      setConversations(response.data.conversations);
+    } catch (error) {
+      console.error("Failed to load conversations:", error);
+      logError(error as Error, "Failed to load conversations");
+    } finally {
+      setConversationsLoading(false);
+    }
+  }, [task]);
 
-              <div className="flex items-center">
-                <GitBranch className="h-4 w-4 mr-1" />
-                <span className="font-medium text-foreground">
-                  {t("tasks.workBranch")}:
-                </span>
-                <span className="ml-2">{task.work_branch}</span>
-              </div>
-              <div className="flex items-center">
-                <User className="h-4 w-4 mr-1" />
-                <span className="font-medium text-foreground">
-                  {t("tasks.createdBy")}:
-                </span>
-                <span className="ml-2">{task.created_by}</span>
-              </div>
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 mr-1" />
-                <span className="font-medium text-foreground">
-                  {t("tasks.createdAt")}:
-                </span>
-                <span className="ml-2">
-                  {new Date(task.created_at).toLocaleDateString()}
-                </span>
-              </div>
+  const handleSendMessage = async (data: ConversationFormData) => {
+    if (!task) return;
+
+    try {
+      await apiService.taskConversations.create({
+        task_id: task.id,
+        content: data.content,
+        execution_time: data.execution_time?.toISOString(),
+      });
+      
+      // Refresh conversations list
+      await loadConversations();
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      throw error;
+    }
+  };
+
+  const handleDeleteConversation = async (conversationId: number) => {
+    try {
+      await apiService.taskConversations.delete(conversationId);
+      await loadConversations();
+    } catch (error) {
+      console.error("Failed to delete conversation:", error);
+      throw error;
+    }
+  };
+
+  const handleViewConversationGitDiff = (conversationId: number) => {
+    if (!task) return;
+    navigate(`/tasks/${task.id}/conversations/${conversationId}/git-diff`);
+  };
+
+  const handlePushBranch = () => {
+    setIsPushDialogOpen(true);
+  };
+
+  const handleViewTaskGitDiff = () => {
+    if (!task) return;
+    navigate(`/tasks/${task.id}/git-diff`);
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    if (value === "conversations" && conversations.length === 0 && task) {
+      loadConversations();
+    }
+  };
+
+  // 在所有hooks调用后进行条件性返回
+  if (!task) return null;
+
+  return (
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent className="w-[800px] sm:max-w-[800px] flex flex-col">
+        <SheetHeader>
+          <SheetTitle className="text-lg font-semibold pr-8">
+            {task.title}
+          </SheetTitle>
+          <SheetDescription>
+            {t("tasks.details")}
+          </SheetDescription>
+        </SheetHeader>
+
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="basic" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              {t("tasks.tabs.basic")}
+            </TabsTrigger>
+            <TabsTrigger value="conversations" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              {t("tasks.tabs.conversations")} 
               {task.conversation_count > 0 && (
-                <div>
-                  <span className="font-medium text-foreground">
-                    {t("tasks.conversations")}:
-                  </span>
-                  <Badge variant="outline" className="ml-2">
-                    {task.conversation_count}
-                  </Badge>
-                </div>
+                <Badge variant="outline" className="ml-1 text-xs">
+                  {task.conversation_count}
+                </Badge>
               )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="basic" className="flex-1 overflow-y-auto">
+            <div className="space-y-6 p-1">
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium text-foreground">
+                      {t("tasks.status.label")}:
+                    </span>
+                    <Badge className={`ml-2 ${getStatusBadgeClass(task.status)}`}>
+                      {t(`tasks.status.${task.status}`)}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center">
+                    <GitBranch className="h-4 w-4 mr-1" />
+                    <span className="font-medium text-foreground">
+                      {t("tasks.workBranch")}:
+                    </span>
+                    <span className="ml-2 font-mono text-xs">{task.work_branch}</span>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <User className="h-4 w-4 mr-1" />
+                    <span className="font-medium text-foreground">
+                      {t("tasks.createdBy")}:
+                    </span>
+                    <span className="ml-2">{task.created_by}</span>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    <span className="font-medium text-foreground">
+                      {t("tasks.createdAt")}:
+                    </span>
+                    <span className="ml-2">
+                      {new Date(task.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="border-t pt-4">
+                  <h3 className="font-medium text-foreground mb-3">
+                    {t("tasks.actions.title")}
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      onClick={handlePushBranch}
+                      className="flex items-center gap-2"
+                      disabled={task.status === "done" || task.status === "cancelled"}
+                    >
+                      <GitBranch className="h-4 w-4" />
+                      {t("tasks.actions.pushBranch")}
+                    </Button>
+                    
+                    <Button
+                      onClick={handleViewTaskGitDiff}
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      {t("tasks.actions.viewGitDiff")}
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
-          </DialogDescription>
-        </DialogHeader>
-      </DialogContent>
-    </Dialog>
+          </TabsContent>
+
+          <TabsContent value="conversations" className="flex-1 overflow-hidden">
+            <div className="h-full">
+              <TaskConversation
+                conversations={conversations}
+                selectedConversationId={selectedConversationId}
+                loading={conversationsLoading}
+                taskStatus={task.status}
+                onSendMessage={handleSendMessage}
+                onRefresh={loadConversations}
+                onSelectConversation={setSelectedConversationId}
+                onDeleteConversation={handleDeleteConversation}
+                onViewConversationGitDiff={handleViewConversationGitDiff}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Push Branch Dialog */}
+        <PushBranchDialog
+          open={isPushDialogOpen}
+          onOpenChange={setIsPushDialogOpen}
+          task={task}
+          onSuccess={() => {
+            // Could refresh task data here if needed
+          }}
+        />
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -264,7 +424,7 @@ export default function ProjectKanbanPage() {
   });
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isCreateTaskSheetOpen, setIsCreateTaskSheetOpen] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
 
@@ -383,11 +543,11 @@ export default function ProjectKanbanPage() {
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
-    setIsModalOpen(true);
+    setIsSheetOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleCloseSheet = () => {
+    setIsSheetOpen(false);
     setSelectedTask(null);
   };
 
@@ -561,11 +721,11 @@ export default function ProjectKanbanPage() {
           </KanbanBoard>
         </KanbanBoardProvider>
 
-        {/* Task Detail Modal */}
-        <TaskDetailModal
+        {/* Task Detail Sheet */}
+        <TaskDetailSheet
           task={selectedTask}
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
+          isOpen={isSheetOpen}
+          onClose={handleCloseSheet}
         />
 
         {/* Create Task Sheet */}

@@ -2,6 +2,7 @@
   "title": "任务管理",
   "page_description": "在项目中管理开发任务，跟踪任务进度和状态",
   "actions": {
+    "title": "操作",
     "create": "创建",
     "edit": "编辑",
     "viewConversation": "对话",
@@ -16,6 +17,11 @@
   },
   "addTask": "添加任务",
   "no_tasks": "暂无任务",
+  "details": "任务详情",
+  "tabs": {
+    "basic": "基础信息",
+    "conversations": "对话"
+  },
   "fields": {
     "title": "任务标题",
     "requirementDesc": "需求描述",
