@@ -211,11 +211,11 @@ function TaskDetailSheet({
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-full sm:w-[800px] sm:max-w-[800px] flex flex-col">
-        <SheetHeader>
-          <SheetTitle className="text-lg font-semibold pr-8">
+        <SheetHeader className="border-b sticky top-0 bg-background">
+          <SheetTitle className="text-foreground font-semibold">
             {task.title}
           </SheetTitle>
-          <SheetDescription>
+          <SheetDescription className="text-muted-foreground text-sm">
             {t("tasks.details")}
           </SheetDescription>
         </SheetHeader>
