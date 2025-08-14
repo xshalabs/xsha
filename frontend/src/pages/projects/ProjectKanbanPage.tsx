@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   FormSheet,
   FormSheetContent,
@@ -502,38 +503,40 @@ export default function ProjectKanbanPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex h-16 items-center px-6">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleGoBack}
-              className="h-8 w-8"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-
-            <Select value={projectId} onValueChange={handleProjectChange}>
-              <SelectTrigger className="min-w-48 border-none shadow-none text-lg font-semibold bg-transparent">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {projects.map((proj) => (
-                  <SelectItem key={proj.id} value={proj.id.toString()}>
-                    {proj.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="ml-auto flex items-center space-x-4">
+      <header className="flex sticky top-0 bg-background h-14 shrink-0 items-center gap-2 border-b px-2 z-10">
+        <div className="flex flex-1 items-center gap-2 px-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleGoBack}
+            className="h-8 w-8 -ml-1"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          
+          <Select value={projectId} onValueChange={handleProjectChange}>
+            <SelectTrigger className="min-w-48 border-none shadow-none text-sm font-semibold bg-transparent">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {projects.map((proj) => (
+                <SelectItem key={proj.id} value={proj.id.toString()}>
+                  {proj.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-sm text-muted-foreground">- {t("common.kanban")}</span>
+        </div>
+        
+        <div className="ml-auto px-3">
+          <div className="flex items-center gap-2">
             <Button onClick={handleAddTask} size="sm">
               <Plus className="h-4 w-4 mr-2" />
               {t("tasks.addTask")}
             </Button>
-
+            <Separator orientation="vertical" className="h-4" />
             <Button
               variant="outline"
               size="icon"
