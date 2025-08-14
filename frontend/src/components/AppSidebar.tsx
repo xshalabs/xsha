@@ -5,7 +5,6 @@ import {
   Folder,
   Key,
   Container,
-  Settings,
   Cog,
   Shield,
   TrendingUp,
@@ -15,6 +14,7 @@ import {
 import { NavMain } from "@/components/NavMain";
 import { NavSecondary } from "@/components/NavSecondary";
 import { NavUser } from "@/components/NavUser";
+import { Logo } from "@/components/Logo";
 import {
   Sidebar,
   SidebarContent,
@@ -92,11 +92,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="/" className="flex items-center gap-2">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Settings className="size-4" />
-                </div>
+                <Logo className="h-8 w-auto" />
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">XSHA</span>
                   <span className="truncate text-xs">AI Dev Platform</span>
                 </div>
               </a>
