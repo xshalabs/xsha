@@ -20,7 +20,7 @@ import type {
   ConversationFormData,
   ConversationStatus,
 } from "@/types/task-conversation";
-import { toUTCString, formatToLocal } from "@/lib/timezone";
+import { toUTCString } from "@/lib/timezone";
 
 const TaskConversationPage: React.FC = () => {
   const { t } = useTranslation();

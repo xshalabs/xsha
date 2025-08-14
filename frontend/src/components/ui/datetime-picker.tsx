@@ -14,7 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { formatToLocal, getUserTimezone } from "@/lib/timezone"
+import { getUserTimezone } from "@/lib/timezone"
 
 interface DateTimePickerProps {
   value?: Date
