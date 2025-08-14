@@ -31,6 +31,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { PushBranchDialog } from "@/components/PushBranchDialog";
+import { TaskGitDiffModal } from "./TaskGitDiffModal";
+import { ConversationGitDiffModal } from "./ConversationGitDiffModal";
 import { useTaskConversations } from "@/hooks/useTaskConversations";
 import type { Task, TaskStatus } from "@/types/task";
 
@@ -48,6 +50,9 @@ export function TaskDetailSheet({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isPushDialogOpen, setIsPushDialogOpen] = useState(false);
+  const [isTaskGitDiffModalOpen, setIsTaskGitDiffModalOpen] = useState(false);
+  const [isConversationGitDiffModalOpen, setIsConversationGitDiffModalOpen] = useState(false);
+  const [selectedConversation, setSelectedConversation] = useState<any>(null);
 
   const {
     conversations,
@@ -105,7 +110,11 @@ export function TaskDetailSheet({
 
   const handleViewConversationGitDiff = (conversationId: number) => {
     if (!task) return;
-    navigate(`/tasks/${task.id}/conversations/${conversationId}/git-diff`);
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (conversation) {
+      setSelectedConversation(conversation);
+      setIsConversationGitDiffModalOpen(true);
+    }
   };
 
   const handlePushBranch = () => {
@@ -114,12 +123,13 @@ export function TaskDetailSheet({
 
   const handleViewTaskGitDiff = () => {
     if (!task) return;
-    navigate(`/tasks/${task.id}/git-diff`);
+    setIsTaskGitDiffModalOpen(true);
   };
 
   if (!task) return null;
 
   return (
+    <>
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-full sm:w-[800px] sm:max-w-[800px] flex flex-col">
         <SheetHeader className="border-b sticky top-0 bg-background">
@@ -438,5 +448,22 @@ export function TaskDetailSheet({
         />
       </SheetContent>
     </Sheet>
+
+    {/* Git Diff Modals */}
+    <TaskGitDiffModal
+      isOpen={isTaskGitDiffModalOpen}
+      onClose={() => setIsTaskGitDiffModalOpen(false)}
+      task={task}
+    />
+
+    <ConversationGitDiffModal
+      isOpen={isConversationGitDiffModalOpen}
+      onClose={() => {
+        setIsConversationGitDiffModalOpen(false);
+        setSelectedConversation(null);
+      }}
+      conversation={selectedConversation}
+    />
+    </>
   );
 }
