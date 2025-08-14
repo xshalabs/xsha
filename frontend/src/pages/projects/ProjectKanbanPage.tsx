@@ -47,12 +47,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -117,9 +112,13 @@ function TaskDetailSheet({
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  
-  const [conversations, setConversations] = useState<TaskConversationInterface[]>([]);
-  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
+
+  const [conversations, setConversations] = useState<
+    TaskConversationInterface[]
+  >([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<
+    number | null
+  >(null);
   const [conversationsLoading, setConversationsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
   const [isPushDialogOpen, setIsPushDialogOpen] = useState(false);
@@ -141,7 +140,7 @@ function TaskDetailSheet({
 
   const loadConversations = useCallback(async () => {
     if (!task) return;
-    
+
     setConversationsLoading(true);
     try {
       const response = await apiService.taskConversations.list({
@@ -165,7 +164,7 @@ function TaskDetailSheet({
         content: data.content,
         execution_time: data.execution_time?.toISOString(),
       });
-      
+
       // Refresh conversations list
       await loadConversations();
     } catch (error) {
@@ -220,15 +219,22 @@ function TaskDetailSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col">
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="flex-1 flex flex-col p-4"
+        >
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="basic" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               {t("tasks.tabs.basic")}
             </TabsTrigger>
-            <TabsTrigger value="conversations" className="flex items-center gap-2">
+            <TabsTrigger
+              value="conversations"
+              className="flex items-center gap-2"
+            >
               <MessageSquare className="h-4 w-4" />
-              {t("tasks.tabs.conversations")} 
+              {t("tasks.tabs.conversations")}
               {task.conversation_count > 0 && (
                 <Badge variant="outline" className="ml-1 text-xs">
                   {task.conversation_count}
@@ -239,14 +245,15 @@ function TaskDetailSheet({
 
           <TabsContent value="basic" className="flex-1 overflow-y-auto">
             <div className="space-y-6 p-1">
-              {/* Basic Information */}
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="font-medium text-foreground">
                       {t("tasks.status.label")}:
                     </span>
-                    <Badge className={`ml-2 ${getStatusBadgeClass(task.status)}`}>
+                    <Badge
+                      className={`ml-2 ${getStatusBadgeClass(task.status)}`}
+                    >
                       {t(`tasks.status.${task.status}`)}
                     </Badge>
                   </div>
@@ -256,9 +263,11 @@ function TaskDetailSheet({
                     <span className="font-medium text-foreground">
                       {t("tasks.workBranch")}:
                     </span>
-                    <span className="ml-2 font-mono text-xs">{task.work_branch}</span>
+                    <span className="ml-2 font-mono text-xs">
+                      {task.work_branch}
+                    </span>
                   </div>
-                  
+
                   <div className="flex items-center">
                     <User className="h-4 w-4 mr-1" />
                     <span className="font-medium text-foreground">
@@ -266,7 +275,7 @@ function TaskDetailSheet({
                     </span>
                     <span className="ml-2">{task.created_by}</span>
                   </div>
-                  
+
                   <div className="flex items-center">
                     <Calendar className="h-4 w-4 mr-1" />
                     <span className="font-medium text-foreground">
@@ -287,12 +296,14 @@ function TaskDetailSheet({
                     <Button
                       onClick={handlePushBranch}
                       className="flex items-center gap-2"
-                      disabled={task.status === "done" || task.status === "cancelled"}
+                      disabled={
+                        task.status === "done" || task.status === "cancelled"
+                      }
                     >
                       <GitBranch className="h-4 w-4" />
                       {t("tasks.actions.pushBranch")}
                     </Button>
-                    
+
                     <Button
                       onClick={handleViewTaskGitDiff}
                       variant="outline"
@@ -308,19 +319,17 @@ function TaskDetailSheet({
           </TabsContent>
 
           <TabsContent value="conversations" className="flex-1 overflow-hidden">
-            <div className="h-full">
-              <TaskConversation
-                conversations={conversations}
-                selectedConversationId={selectedConversationId}
-                loading={conversationsLoading}
-                taskStatus={task.status}
-                onSendMessage={handleSendMessage}
-                onRefresh={loadConversations}
-                onSelectConversation={setSelectedConversationId}
-                onDeleteConversation={handleDeleteConversation}
-                onViewConversationGitDiff={handleViewConversationGitDiff}
-              />
-            </div>
+            <TaskConversation
+              conversations={conversations}
+              selectedConversationId={selectedConversationId}
+              loading={conversationsLoading}
+              taskStatus={task.status}
+              onSendMessage={handleSendMessage}
+              onRefresh={loadConversations}
+              onSelectConversation={setSelectedConversationId}
+              onDeleteConversation={handleDeleteConversation}
+              onViewConversationGitDiff={handleViewConversationGitDiff}
+            />
           </TabsContent>
         </Tabs>
 
