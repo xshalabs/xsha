@@ -22,10 +22,10 @@ import {
   FormCardContent,
   FormCardDescription,
   FormCardFooter,
-  FormCardGroup,
   FormCardHeader,
   FormCardTitle,
 } from "@/components/forms/form-card";
+import { FormCardGroup } from "@/components/forms/form-sheet";
 import type { SystemConfig, ConfigUpdateItem } from "@/types/system-config";
 
 export default function SettingsPage() {

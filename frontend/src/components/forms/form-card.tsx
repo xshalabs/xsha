@@ -8,8 +8,10 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+
 import { cva, type VariantProps } from "class-variance-authority";
 
+// py-0
 const formCardVariants = cva(
   "group relative w-full overflow-hidden py-0 shadow-none gap-4",
   {
@@ -18,12 +20,14 @@ const formCardVariants = cva(
         default: "",
         destructive: "border-destructive",
       },
-    },
-    defaultVariants: {
-      variant: "default",
+      defaultVariants: {
+        variant: "default",
+      },
     },
   },
 );
+
+// NOTE: Add a formcardprovider to share the variant prop
 
 export function FormCard({
   children,
@@ -100,9 +104,9 @@ const formCardFooterVariants = cva(
         default: "",
         destructive: "border-destructive bg-destructive/5",
       },
-    },
-    defaultVariants: {
-      variant: "default",
+      defaultVariants: {
+        variant: "default",
+      },
     },
   },
 );
@@ -132,22 +136,6 @@ export function FormCardFooterInfo({
     <div
       data-slot="card-footer-info"
       className={cn("text-sm text-muted-foreground", className)}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-}
-
-export function FormCardGroup({
-  children,
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-group"
-      className={cn("flex flex-col gap-4", className)}
       {...props}
     >
       {children}

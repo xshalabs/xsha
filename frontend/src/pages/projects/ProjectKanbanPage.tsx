@@ -8,9 +8,20 @@ import {
   Calendar,
   GitBranch,
   User,
+  Save,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  FormSheet,
+  FormSheetContent,
+  FormSheetHeader,
+  FormSheetTitle,
+  FormSheetDescription,
+  FormSheetFooter,
+  FormCardGroup,
+} from "@/components/forms/form-sheet";
+import { FormCard, FormCardContent } from "@/components/forms/form-card";
 import {
   KanbanBoardProvider,
   KanbanBoard,
@@ -43,8 +54,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
-import type { Task, TaskStatus } from "@/types/task";
+import type { Task, TaskStatus, TaskFormData } from "@/types/task";
 import type { Project } from "@/types/project";
+import { TaskFormCreateNew } from "@/components/TaskFormCreateNew";
 
 const KANBAN_COLUMNS = [
   { id: "todo", title: "Todo", status: "todo" as TaskStatus },
@@ -260,6 +272,8 @@ export default function ProjectKanbanPage() {
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateTaskSheetOpen, setIsCreateTaskSheetOpen] = useState(false);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
 
   usePageTitle(
     project ? `${project.name} - ${t("common.kanban")}` : t("common.kanban")
@@ -366,7 +380,7 @@ export default function ProjectKanbanPage() {
   };
 
   const handleAddTask = () => {
-    navigate(`/projects/${projectId}/tasks/create`);
+    setIsCreateTaskSheetOpen(true);
   };
 
   const handleProjectSettings = () => {
@@ -385,6 +399,48 @@ export default function ProjectKanbanPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedTask(null);
+  };
+
+  const handleCreateTask = async (taskData: TaskFormData) => {
+    if (!projectId) return;
+
+    try {
+      setIsCreatingTask(true);
+      
+      // Convert TaskFormData to CreateTaskRequest
+      const createRequest = {
+        title: taskData.title,
+        start_branch: taskData.start_branch,
+        project_id: taskData.project_id,
+        dev_environment_id: taskData.dev_environment_id,
+        requirement_desc: taskData.requirement_desc,
+        include_branches: taskData.include_branches,
+        execution_time: taskData.execution_time ? taskData.execution_time.toISOString() : undefined,
+      };
+
+      const response = await apiService.tasks.create(createRequest);
+      
+      // Refresh kanban data
+      const kanbanResponse = await apiService.tasks.getKanbanTasks(parseInt(projectId));
+      setTasks(kanbanResponse.data);
+      
+      // Close the sheet
+      setIsCreateTaskSheetOpen(false);
+      
+      // Show success message (you might want to add toast notification here)
+      console.log("Task created successfully:", response.data);
+    } catch (error) {
+      console.error("Failed to create task:", error);
+      logError(error as Error, "Failed to create task");
+      // Error will be handled by the TaskFormCreate component
+      throw error;
+    } finally {
+      setIsCreatingTask(false);
+    }
+  };
+
+  const handleCloseCreateTaskSheet = () => {
+    setIsCreateTaskSheetOpen(false);
   };
 
   if (loading) {
@@ -516,6 +572,45 @@ export default function ProjectKanbanPage() {
           isOpen={isModalOpen}
           onClose={handleCloseModal}
         />
+
+        {/* Create Task Sheet */}
+        <FormSheet open={isCreateTaskSheetOpen} onOpenChange={setIsCreateTaskSheetOpen}>
+          <FormSheetContent className="w-[800px] sm:max-w-[800px]">
+            <FormSheetHeader>
+              <FormSheetTitle>{t("tasks.actions.create")}</FormSheetTitle>
+              <FormSheetDescription>
+                {t("tasks.form.createDescription")}
+              </FormSheetDescription>
+            </FormSheetHeader>
+            <FormCardGroup className="overflow-y-auto">
+              <FormCard className="border-none overflow-auto">
+                <FormCardContent>
+                  {project && (
+                    <TaskFormCreateNew
+                      defaultProjectId={project.id}
+                      currentProject={project}
+                      onSubmit={handleCreateTask}
+                      onCancel={handleCloseCreateTaskSheet}
+                      formId="task-create-sheet-form"
+                    />
+                  )}
+                </FormCardContent>
+              </FormCard>
+            </FormCardGroup>
+            <FormSheetFooter>
+              <Button 
+                type="submit" 
+                form="task-create-sheet-form"
+                disabled={isCreatingTask}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {isCreatingTask
+                  ? t("common.saving")
+                  : t("tasks.actions.create")}
+              </Button>
+            </FormSheetFooter>
+          </FormSheetContent>
+        </FormSheet>
       </main>
     </div>
   );
