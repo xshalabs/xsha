@@ -1,8 +1,14 @@
-# 🚀 XSha - Cursor Background 开源替代 | Cluade Code 远程|并发解决方案 🌟
+<p align="center">
+    <img src="assets/logo.png" width="400"/>
+<p>
+
+<p align="center">
+    <img src="assets/preview_20250814.png" width="800"/>
+<p>
+
+# 🚀 XSha - Cursor Background 开源替代
 
 XSha 是一款将项目管理、Git、基于 AI 驱动的需求开发结合的软件系统。现基于 Claude Code 实现了通过任务对话即可完成项目任务开发，可同时多个任务并发执行，每个任务拥有独立的工作空间。通过 Docker 容器分配每个任务的执行环境从而保证了安全性。基于 ENV 环境变量的配置，可以轻松简答的接入 Kimi2、GLM 4.5、Qwen Coder 等更有性价比的大模型。 ✨
-
-<p style="text-align:center"><img src="assets/preview.png" alt="XSha"/></p>
 
 ## 🔥 核心特性
 
