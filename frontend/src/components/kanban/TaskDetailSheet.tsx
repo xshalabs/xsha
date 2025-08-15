@@ -25,6 +25,7 @@ import { ConversationDetailModal } from "@/components/ConversationDetailModal";
 import { ConversationLogModal } from "./ConversationLogModal";
 import { useTaskConversations } from "@/hooks/useTaskConversations";
 import { taskExecutionLogsApi } from "@/lib/api/task-execution-logs";
+import { taskConversationsApi } from "@/lib/api/task-conversations";
 import { tasksApi } from "@/lib/api/tasks";
 import {
   TaskBasicInfo,
@@ -60,6 +61,8 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
   const [retrying, setRetrying] = useState(false);
   const [cancelConversationId, setCancelConversationId] = useState<number | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [deleteConversationId, setDeleteConversationId] = useState<number | null>(null);
+  const [deletingConversation, setDeletingConversation] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -189,6 +192,32 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     setCancelConversationId(null);
   }, []);
 
+  const handleDeleteConversation = useCallback((conversationId: number) => {
+    setDeleteConversationId(conversationId);
+  }, []);
+
+  const handleConfirmDeleteConversation = useCallback(async () => {
+    if (!deleteConversationId) return;
+    
+    setDeletingConversation(true);
+    try {
+      await taskConversationsApi.delete(deleteConversationId);
+      toast.success(t("taskConversations.delete.deleteSuccess"));
+      // Refresh conversations to show updated list
+      await loadConversations();
+    } catch (error) {
+      console.error("Failed to delete conversation:", error);
+      toast.error(t("taskConversations.delete.deleteFailed"));
+    } finally {
+      setDeletingConversation(false);
+      setDeleteConversationId(null);
+    }
+  }, [deleteConversationId, t, loadConversations]);
+
+  const handleCancelDeleteConversation = useCallback(() => {
+    setDeleteConversationId(null);
+  }, []);
+
   const handleDeleteTask = useCallback(() => {
     setIsDeleteDialogOpen(true);
   }, []);
@@ -260,6 +289,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
               conversations={conversations}
               conversationsLoading={conversationsLoading}
               conversationCount={task.conversation_count}
+              task={task}
               taskId={task.id}
               onLoadConversations={loadConversations}
               onViewConversationGitDiff={handleViewConversationGitDiff}
@@ -267,6 +297,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
               onViewConversationLogs={handleViewConversationLogs}
               onRetryConversation={handleRetryConversation}
               onCancelConversation={handleCancelConversation}
+              onDeleteConversation={handleDeleteConversation}
               toggleExpanded={toggleExpanded}
               isConversationExpanded={isConversationExpanded}
               shouldShowExpandButton={shouldShowExpandButton}
@@ -336,7 +367,11 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
             <AlertDialogCancel disabled={retrying}>
               {t("common.cancel")}
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmRetry} disabled={retrying}>
+            <AlertDialogAction 
+              onClick={handleConfirmRetry} 
+              disabled={retrying}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600 text-white"
+            >
               {retrying ? t("common.processing") : t("common.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -360,9 +395,34 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
             <AlertDialogAction 
               onClick={handleConfirmCancel} 
               disabled={cancelling}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600 text-white"
             >
               {cancelling ? t("common.processing") : t("common.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteConversationId !== null} onOpenChange={handleCancelDeleteConversation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("taskConversations.delete.confirmTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("taskConversations.delete.confirmDescription")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingConversation}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDeleteConversation} 
+              disabled={deletingConversation}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600 text-white"
+            >
+              {deletingConversation ? t("common.processing") : t("common.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

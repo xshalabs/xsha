@@ -9,6 +9,7 @@ interface ConversationListProps {
   conversations: any[];
   conversationsLoading: boolean;
   conversationCount: number;
+  task: any;
   taskId: number;
   onLoadConversations: () => void;
   onViewConversationGitDiff: (conversationId: number) => void;
@@ -16,6 +17,7 @@ interface ConversationListProps {
   onViewConversationLogs: (conversationId: number) => void;
   onRetryConversation: (conversationId: number) => void;
   onCancelConversation: (conversationId: number) => void;
+  onDeleteConversation: (conversationId: number) => void;
   toggleExpanded: (id: number) => void;
   isConversationExpanded: (id: number) => boolean;
   shouldShowExpandButton: (content: string) => boolean;
@@ -26,6 +28,7 @@ export const ConversationList = memo<ConversationListProps>(
     conversations,
     conversationsLoading,
     conversationCount,
+    task,
     taskId,
     onLoadConversations,
     onViewConversationGitDiff,
@@ -33,6 +36,7 @@ export const ConversationList = memo<ConversationListProps>(
     onViewConversationLogs,
     onRetryConversation,
     onCancelConversation,
+    onDeleteConversation,
     toggleExpanded,
     isConversationExpanded,
     shouldShowExpandButton,
@@ -89,21 +93,24 @@ export const ConversationList = memo<ConversationListProps>(
               </p>
             </div>
           ) : (
-            conversations.map((conversation) => (
+            conversations.map((conversation, index) => (
               <ConversationItem
                 key={conversation.id}
                 conversation={conversation}
+                task={task}
                 taskId={taskId}
                 isExpanded={isConversationExpanded(conversation.id)}
                 shouldShowExpandButton={shouldShowExpandButton(
                   conversation.content
                 )}
+                isLatest={index === conversations.length - 1}
                 onToggleExpanded={toggleExpanded}
                 onViewDetails={handleViewDetails}
                 onViewGitDiff={onViewConversationGitDiff}
                 onViewLogs={onViewConversationLogs}
                 onRetry={onRetryConversation}
                 onCancel={onCancelConversation}
+                onDelete={onDeleteConversation}
               />
             ))
           )}

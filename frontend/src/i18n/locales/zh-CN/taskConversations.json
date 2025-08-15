@@ -66,7 +66,7 @@
     "viewDetails": "查看详情",
     "viewGitDiff": "Git差异",
     "viewChanges": "查看变动",
-    "viewLogs": "查看日志",
+    "logs": "日志",
     "cancel": "取消",
     "retry": "重试"
   },
@@ -152,5 +152,11 @@
       "on": "自动滚动 开",
       "off": "自动滚动 关"
     }
+  },
+  "delete": {
+    "confirmTitle": "删除对话",
+    "confirmDescription": "确定要删除此对话吗？此操作无法撤销，将会将git仓库重置到上一次提交。",
+    "deleteSuccess": "对话删除成功",
+    "deleteFailed": "对话删除失败"
   }
 } 

@@ -1,12 +1,13 @@
 import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { User, MoreHorizontal, Eye, FileText, Terminal, RotateCcw, X } from "lucide-react";
+import { User, MoreHorizontal, Eye, FileText, Terminal, RotateCcw, X, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getConversationStatusColor, formatTime } from "./utils";
@@ -14,28 +15,34 @@ import { getConversationStatusColor, formatTime } from "./utils";
 interface ConversationItemProps {
   conversation: any;
   taskId: number;
+  task: any;
   isExpanded: boolean;
   shouldShowExpandButton: boolean;
+  isLatest?: boolean;
   onToggleExpanded: (id: number) => void;
   onViewDetails: (taskId: number, conversationId: number) => void;
   onViewGitDiff: (conversationId: number) => void;
   onViewLogs: (conversationId: number) => void;
   onRetry: (conversationId: number) => void;
   onCancel: (conversationId: number) => void;
+  onDelete: (conversationId: number) => void;
 }
 
 export const ConversationItem = memo<ConversationItemProps>(
   ({
     conversation,
     taskId,
+    task,
     isExpanded,
     shouldShowExpandButton,
+    isLatest = false,
     onToggleExpanded,
     onViewDetails,
     onViewGitDiff,
     onViewLogs,
     onRetry,
     onCancel,
+    onDelete,
   }) => {
     const { t } = useTranslation();
 
@@ -63,8 +70,15 @@ export const ConversationItem = memo<ConversationItemProps>(
       onCancel(conversation.id);
     }, [conversation.id, onCancel]);
 
+    const handleDelete = useCallback(() => {
+      onDelete(conversation.id);
+    }, [conversation.id, onDelete]);
+
     // Check if git diff should be disabled (when commit_hash is empty)
     const isGitDiffDisabled = !conversation.commit_hash;
+    
+    // Check if view details should be disabled (pending or running conversations)
+    const isViewDetailsDisabled = conversation.status === 'pending' || conversation.status === 'running';
     
     // Check if view logs should be disabled (pending conversations have no execution logs yet)
     const isViewLogsDisabled = conversation.status === 'pending';
@@ -74,6 +88,10 @@ export const ConversationItem = memo<ConversationItemProps>(
     
     // Check if cancel should be enabled (only for running conversations)
     const isCancelEnabled = conversation.status === 'running';
+    
+    // Check if delete should be enabled (only for latest conversation, not running, and task not pending/in progress)
+    const isDeleteEnabled = isLatest && conversation.status !== 'running' && 
+                           task.status !== 'pending' && task.status !== 'in_progress';
 
     return (
       <div className="p-4 rounded-md border border-border bg-card">
@@ -130,17 +148,13 @@ export const ConversationItem = memo<ConversationItemProps>(
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleViewDetails}>
+                <DropdownMenuItem 
+                  onClick={isViewDetailsDisabled ? undefined : handleViewDetails}
+                  disabled={isViewDetailsDisabled}
+                  className={isViewDetailsDisabled ? "opacity-50 cursor-not-allowed" : ""}
+                >
                   <Eye className="mr-2 h-4 w-4" />
                   {t("taskConversations.actions.viewDetails")}
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={handleViewGitDiff}
-                  disabled={isGitDiffDisabled}
-                  className={isGitDiffDisabled ? "opacity-50 cursor-not-allowed" : ""}
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  {t("taskConversations.actions.viewGitDiff")}
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={handleViewLogs}
@@ -148,26 +162,31 @@ export const ConversationItem = memo<ConversationItemProps>(
                   className={isViewLogsDisabled ? "opacity-50 cursor-not-allowed" : ""}
                 >
                   <Terminal className="mr-2 h-4 w-4" />
-                  {t("taskConversations.actions.viewLogs")}
+                  {t("taskConversations.actions.logs")}
                 </DropdownMenuItem>
-                {isCancelEnabled && (
-                  <DropdownMenuItem 
-                    onClick={handleCancel}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                  >
-                    <X className="mr-2 h-4 w-4" />
-                    {t("taskConversations.actions.cancel")}
-                  </DropdownMenuItem>
-                )}
                 {isRetryEnabled && (
-                  <DropdownMenuItem 
-                    onClick={handleRetry}
-                    className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-950"
-                  >
+                  <DropdownMenuItem onClick={handleRetry}>
                     <RotateCcw className="mr-2 h-4 w-4" />
                     {t("taskConversations.actions.retry")}
                   </DropdownMenuItem>
                 )}
+                {isCancelEnabled && (
+                  <DropdownMenuItem onClick={handleCancel}>
+                    <X className="mr-2 h-4 w-4" />
+                    {t("taskConversations.actions.cancel")}
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={isDeleteEnabled ? handleDelete : undefined}
+                  disabled={!isDeleteEnabled}
+                  className={isDeleteEnabled 
+                    ? "text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950" 
+                    : "opacity-50 cursor-not-allowed"}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {t("taskConversations.actions.delete")}
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
