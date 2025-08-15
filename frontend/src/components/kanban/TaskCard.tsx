@@ -37,8 +37,8 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center space-x-2">
             <Tooltip>
-              <TooltipTrigger>
-                <div className="flex items-center">
+              <TooltipTrigger asChild>
+                <div className="flex items-center cursor-pointer">
                   <AlarmClock className="h-3 w-3 text-orange-500" />
                 </div>
               </TooltipTrigger>
