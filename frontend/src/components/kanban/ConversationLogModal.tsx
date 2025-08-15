@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react";
+import { memo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -29,38 +29,22 @@ export const ConversationLogModal = memo<ConversationLogModalProps>(({
     logs,
     connectionStatus,
     isStreaming,
-    isConnected,
-    hasAuthError,
-    startStreaming,
-    stopStreaming,
-    refreshStream,
   } = useLogStreaming({ conversationId, isOpen });
 
   const { autoScroll, toggleAutoScroll } = useAutoScroll(true);
   
   const { downloadLogs } = useLogDownload(logs, conversationId);
 
-  // Event handlers with better separation
-  const handleManualStart = useCallback(() => {
-    console.log('Manual start/retry button clicked');
-    startStreaming();
-  }, [startStreaming]);
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full h-[80vh] flex flex-col">
+      <DialogContent className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-6xl lg:max-w-7xl xl:max-w-8xl h-[80vh] flex flex-col">
         <LogHeader conversationId={conversationId} />
         
         <LogControls
-          connectionStatus={connectionStatus}
-          isStreaming={isStreaming}
-          hasAuthError={hasAuthError}
-          conversationId={conversationId}
           logs={logs}
           autoScroll={autoScroll}
-          onStart={handleManualStart}
-          onStop={stopStreaming}
-          onRefresh={refreshStream}
           onDownload={downloadLogs}
           onToggleAutoScroll={toggleAutoScroll}
         />
@@ -69,11 +53,11 @@ export const ConversationLogModal = memo<ConversationLogModalProps>(({
           logs={logs}
           isStreaming={isStreaming}
           autoScroll={autoScroll}
+          connectionStatus={connectionStatus}
         />
 
         <LogStatus
           logs={logs}
-          isConnected={isConnected}
           isStreaming={isStreaming}
         />
       </DialogContent>

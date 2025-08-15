@@ -2,18 +2,20 @@ import { memo, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Terminal } from 'lucide-react';
-import { LogMessage } from '@/hooks/useLogStreaming';
+import type { LogMessage, ConnectionStatus } from '@/hooks/useLogStreaming';
 
 interface LogContentProps {
   logs: LogMessage[];
   isStreaming: boolean;
   autoScroll: boolean;
+  connectionStatus: ConnectionStatus;
 }
 
 export const LogContent = memo<LogContentProps>(({
   logs,
   isStreaming,
   autoScroll,
+  connectionStatus,
 }) => {
   const { t } = useTranslation();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -24,6 +26,36 @@ export const LogContent = memo<LogContentProps>(({
       bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [autoScroll]);
+
+  const getConnectionStatusColor = () => {
+    switch (connectionStatus) {
+      case 'connected':
+        return 'bg-green-500';
+      case 'connecting':
+        return 'bg-yellow-500';
+      case 'unauthorized':
+        return 'bg-orange-500';
+      case 'error':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  const getConnectionStatusText = () => {
+    switch (connectionStatus) {
+      case 'connected':
+        return t('taskConversations.logs.status.connected');
+      case 'connecting':
+        return t('taskConversations.logs.status.connecting');
+      case 'unauthorized':
+        return t('taskConversations.logs.status.unauthorized');
+      case 'error':
+        return t('taskConversations.logs.status.error');
+      default:
+        return t('taskConversations.logs.status.disconnected');
+    }
+  };
 
   // Auto-scroll when new logs arrive
   useEffect(() => {
@@ -49,7 +81,7 @@ export const LogContent = memo<LogContentProps>(({
   }
 
   return (
-    <ScrollArea ref={scrollAreaRef} className="flex-1 border rounded-lg bg-background">
+    <ScrollArea ref={scrollAreaRef} className="flex-1 border rounded-lg bg-background relative">
       <div className="p-4">
         <div className="space-y-1 font-mono text-xs">
           {logs.map((log, index) => (
@@ -64,6 +96,14 @@ export const LogContent = memo<LogContentProps>(({
           ))}
           <div ref={bottomRef} />
         </div>
+      </div>
+      
+      {/* 连接状态显示在左下角 */}
+      <div className="absolute bottom-2 left-2 flex items-center gap-2 bg-background/90 backdrop-blur-sm border rounded-md px-2 py-1 shadow-sm">
+        <div className={`w-2 h-2 rounded-full ${getConnectionStatusColor()}`} />
+        <span className="text-xs text-muted-foreground">
+          {getConnectionStatusText()}
+        </span>
       </div>
     </ScrollArea>
   );
