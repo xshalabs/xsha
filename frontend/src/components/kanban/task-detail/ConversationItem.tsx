@@ -66,6 +66,9 @@ export const ConversationItem = memo<ConversationItemProps>(
     // Check if git diff should be disabled (when commit_hash is empty)
     const isGitDiffDisabled = !conversation.commit_hash;
     
+    // Check if view logs should be disabled (pending conversations have no execution logs yet)
+    const isViewLogsDisabled = conversation.status === 'pending';
+    
     // Check if retry should be enabled (only for failed or cancelled conversations)
     const isRetryEnabled = conversation.status === 'failed' || conversation.status === 'cancelled';
     
@@ -139,7 +142,11 @@ export const ConversationItem = memo<ConversationItemProps>(
                   <FileText className="mr-2 h-4 w-4" />
                   {t("taskConversations.actions.viewGitDiff")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleViewLogs}>
+                <DropdownMenuItem 
+                  onClick={handleViewLogs}
+                  disabled={isViewLogsDisabled}
+                  className={isViewLogsDisabled ? "opacity-50 cursor-not-allowed" : ""}
+                >
                   <Terminal className="mr-2 h-4 w-4" />
                   {t("taskConversations.actions.viewLogs")}
                 </DropdownMenuItem>
