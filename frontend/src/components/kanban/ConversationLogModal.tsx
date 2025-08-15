@@ -39,7 +39,7 @@ export const ConversationLogModal = memo<ConversationLogModalProps>(({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-6xl lg:max-w-7xl xl:max-w-8xl h-[80vh] flex flex-col">
+      <DialogContent className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-6xl lg:max-w-7xl xl:max-w-8xl h-[85vh] flex flex-col overflow-hidden">
         <LogHeader conversationId={conversationId} />
         
         <LogControls
@@ -49,12 +49,14 @@ export const ConversationLogModal = memo<ConversationLogModalProps>(({
           onToggleAutoScroll={toggleAutoScroll}
         />
 
-        <LogContent
-          logs={logs}
-          isStreaming={isStreaming}
-          autoScroll={autoScroll}
-          connectionStatus={connectionStatus}
-        />
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <LogContent
+            logs={logs}
+            isStreaming={isStreaming}
+            autoScroll={autoScroll}
+            connectionStatus={connectionStatus}
+          />
+        </div>
 
         <LogStatus
           logs={logs}

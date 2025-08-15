@@ -64,39 +64,43 @@ export const LogContent = memo<LogContentProps>(({
 
   if (logs.length === 0) {
     return (
-      <ScrollArea ref={scrollAreaRef} className="flex-1 border rounded-lg bg-background">
-        <div className="p-4">
-          <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
-            <Terminal className="w-12 h-12 mb-4 opacity-50" />
-            <p className="text-sm">
-              {isStreaming 
-                ? t('taskConversations.logs.waiting') 
-                : t('taskConversations.logs.noLogs')
-              }
-            </p>
+      <div className="h-full border rounded-lg bg-background overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-4">
+            <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+              <Terminal className="w-12 h-12 mb-4 opacity-50" />
+              <p className="text-sm">
+                {isStreaming 
+                  ? t('taskConversations.logs.waiting') 
+                  : t('taskConversations.logs.noLogs')
+                }
+              </p>
+            </div>
           </div>
-        </div>
-      </ScrollArea>
+        </ScrollArea>
+      </div>
     );
   }
 
   return (
-    <ScrollArea ref={scrollAreaRef} className="flex-1 border rounded-lg bg-background relative">
-      <div className="p-4">
-        <div className="space-y-1 font-mono text-xs">
-          {logs.map((log, index) => (
-            <div key={index} className="flex gap-2 hover:bg-muted/30 px-2 py-1 rounded">
-              <span className="text-muted-foreground whitespace-nowrap">
-                {new Date(log.timestamp * 1000).toLocaleTimeString()}
-              </span>
-              <span className="text-foreground whitespace-pre-wrap break-all">
-                {log.line}
-              </span>
-            </div>
-          ))}
-          <div ref={bottomRef} />
+    <div className="h-full border rounded-lg bg-background overflow-hidden relative">
+      <ScrollArea ref={scrollAreaRef} className="h-full">
+        <div className="p-4">
+          <div className="space-y-1 font-mono text-xs">
+            {logs.map((log, index) => (
+              <div key={index} className="flex gap-2 hover:bg-muted/30 px-2 py-1 rounded">
+                <span className="text-muted-foreground whitespace-nowrap">
+                  {new Date(log.timestamp * 1000).toLocaleTimeString()}
+                </span>
+                <span className="text-foreground whitespace-pre-wrap break-all">
+                  {log.line}
+                </span>
+              </div>
+            ))}
+            <div ref={bottomRef} />
+          </div>
         </div>
-      </div>
+      </ScrollArea>
       
       {/* 连接状态显示在左下角 */}
       <div className="absolute bottom-2 left-2 flex items-center gap-2 bg-background/90 backdrop-blur-sm border rounded-md px-2 py-1 shadow-sm">
@@ -105,7 +109,7 @@ export const LogContent = memo<LogContentProps>(({
           {getConnectionStatusText()}
         </span>
       </div>
-    </ScrollArea>
+    </div>
   );
 });
 
