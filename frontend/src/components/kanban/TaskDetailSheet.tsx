@@ -116,7 +116,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
             </SheetDescription>
           </SheetHeader>
 
-          <div className="flex-1 flex flex-col p-4 space-y-6 overflow-y-auto">
+          <div className="flex-1 flex flex-col px-4 space-y-6 overflow-y-auto">
             {/* 基础信息板块 */}
             <TaskBasicInfo task={task} />
 

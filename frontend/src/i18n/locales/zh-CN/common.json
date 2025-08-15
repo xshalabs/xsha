@@ -36,6 +36,7 @@
   "copy": "复制",
   "copied_to_clipboard": "已复制到剪切板",
   "copy_failed": "复制失败",
+  "copy_not_supported": "此浏览器不支持复制功能",
   "showMore": "显示更多",
   "showLess": "收起",
   "kanban": "看板",

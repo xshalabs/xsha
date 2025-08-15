@@ -36,6 +36,7 @@
   "copy": "Copy",
   "copied_to_clipboard": "Copied to clipboard",
   "copy_failed": "Failed to copy",
+  "copy_not_supported": "Copy is not supported in this browser",
   "showMore": "Show More",
   "showLess": "Show Less",
   "kanban": "Kanban",
