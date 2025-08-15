@@ -460,7 +460,7 @@ export type KanbanBoardColumnProps = {
 };
 
 export const kanbanBoardColumnClassNames =
-  'w-64 flex-shrink-0 rounded-lg border flex flex-col border-border bg-sidebar py-2 max-h-full';
+  'w-64 flex-shrink-0 rounded-md border flex flex-col border-border bg-sidebar py-2 max-h-full';
 
 export function KanbanBoardColumn({
   className,
@@ -710,7 +710,7 @@ export type KanbanBoardCardProps<T extends { id: string } = { id: string }> = {
 };
 
 const kanbanBoardCardClassNames =
-  'rounded-lg border border-border bg-background p-3 text-start text-foreground';
+  'rounded-md border border-border bg-background p-3 text-start text-foreground';
 
 export function KanbanBoardCard({
   className,
