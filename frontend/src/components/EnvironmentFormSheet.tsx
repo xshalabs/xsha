@@ -75,9 +75,8 @@ export function EnvironmentFormSheet({
     memory_limit: environment?.memory_limit || 1024,
   });
 
-  const [envVars, setEnvVars] = useState<Record<string, string>>(
-    environment?.env_vars_map || {}
-  );
+  // Use indexed structure to avoid React key issues when editing env var keys
+  const [envVarsWithIndex, setEnvVarsWithIndex] = useState<Array<{id: string, key: string, value: string}>>([]);
   const [newEnvKey, setNewEnvKey] = useState("");
   const [newEnvValue, setNewEnvValue] = useState("");
 
@@ -140,7 +139,15 @@ export function EnvironmentFormSheet({
         cpu_limit: environment.cpu_limit,
         memory_limit: environment.memory_limit,
       });
-      setEnvVars(environment.env_vars_map || {});
+      // Convert env_vars_map to indexed structure
+      const envVarsArray = Object.entries(environment.env_vars_map || {}).map(([key, value], index) => ({
+        id: `env-${index}-${Date.now()}`, // Unique ID for React key
+        key,
+        value
+      }));
+      setEnvVarsWithIndex(envVarsArray);
+    } else {
+      setEnvVarsWithIndex([]);
     }
     setErrors({});
     setNewEnvKey("");
@@ -204,32 +211,45 @@ export function EnvironmentFormSheet({
       return;
     }
 
-    if (envVars[newEnvKey]) {
+    // Check if key already exists
+    if (envVarsWithIndex.some(item => item.key === newEnvKey)) {
       toast.error(t("devEnvironments.env_vars.key_exists"));
       return;
     }
 
-    setEnvVars((prev) => ({
+    setEnvVarsWithIndex((prev) => [
       ...prev,
-      [newEnvKey]: newEnvValue,
-    }));
+      {
+        id: `env-new-${Date.now()}-${Math.random()}`, // Unique ID
+        key: newEnvKey,
+        value: newEnvValue,
+      }
+    ]);
     setNewEnvKey("");
     setNewEnvValue("");
   };
 
-  const removeEnvVar = (key: string) => {
-    setEnvVars((prev) => {
-      const newVars = { ...prev };
-      delete newVars[key];
-      return newVars;
-    });
+  const removeEnvVar = (id: string) => {
+    setEnvVarsWithIndex((prev) => prev.filter(item => item.id !== id));
   };
 
-  const updateEnvVar = (key: string, value: string) => {
-    setEnvVars((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+  const updateEnvVar = (id: string, field: 'key' | 'value', newValue: string) => {
+    // Check for duplicate keys when updating key
+    if (field === 'key' && newValue) {
+      const existingItem = envVarsWithIndex.find(item => item.id === id);
+      if (existingItem && envVarsWithIndex.some(item => item.id !== id && item.key === newValue)) {
+        toast.error(t("devEnvironments.env_vars.key_exists"));
+        return;
+      }
+    }
+
+    setEnvVarsWithIndex((prev) =>
+      prev.map(item =>
+        item.id === id
+          ? { ...item, [field]: newValue }
+          : item
+      )
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -242,6 +262,14 @@ export function EnvironmentFormSheet({
     try {
       setLoading(true);
       setError(null);
+
+      // Convert indexed environment variables back to object
+      const envVars: Record<string, string> = {};
+      envVarsWithIndex.forEach(({ key, value }) => {
+        if (key.trim()) {
+          envVars[key] = value;
+        }
+      });
 
       let result: DevEnvironmentDisplay;
 
@@ -502,45 +530,30 @@ export function EnvironmentFormSheet({
             </Label>
           </div>
           <div className="space-y-3">
-            {Object.keys(envVars).length === 0 && (
+            {envVarsWithIndex.length === 0 && (
               <p className="text-sm text-muted-foreground">
                 {t("devEnvironments.env_vars.empty_message")}
               </p>
             )}
-            {Object.entries(envVars).map(([key, value]) => (
-              <div key={key} className="grid gap-2 grid-cols-5">
+            {envVarsWithIndex.map(({ id, key, value }) => (
+              <div key={id} className="grid gap-2 grid-cols-5">
                 <Input
                   placeholder={t("devEnvironments.env_vars.key")}
                   className="col-span-2"
                   value={key}
-                  onChange={(e) => {
-                    const newKey = e.target.value;
-                    if (newKey !== key) {
-                      // Check if new key already exists
-                      if (newKey && envVars[newKey]) {
-                        toast.error(t("devEnvironments.env_vars.key_exists"));
-                        return;
-                      }
-                      const newVars = { ...envVars };
-                      delete newVars[key];
-                      if (newKey) {
-                        newVars[newKey] = value;
-                      }
-                      setEnvVars(newVars);
-                    }
-                  }}
+                  onChange={(e) => updateEnvVar(id, 'key', e.target.value)}
                 />
                 <Input
                   placeholder={t("devEnvironments.env_vars.value")}
                   className="col-span-2"
                   value={value}
-                  onChange={(e) => updateEnvVar(key, e.target.value)}
+                  onChange={(e) => updateEnvVar(id, 'value', e.target.value)}
                 />
                 <Button
                   type="button"
                   size="icon"
                   variant="ghost"
-                  onClick={() => removeEnvVar(key)}
+                  onClick={() => removeEnvVar(id)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
