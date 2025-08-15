@@ -67,6 +67,7 @@
     "viewGitDiff": "Git Diff",
     "viewChanges": "View Changes",
     "viewLogs": "View Logs",
+    "cancel": "Cancel",
     "retry": "Retry"
   },
   "result": {

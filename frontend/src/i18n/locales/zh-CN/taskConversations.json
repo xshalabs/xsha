@@ -67,6 +67,7 @@
     "viewGitDiff": "Git差异",
     "viewChanges": "查看变动",
     "viewLogs": "查看日志",
+    "cancel": "取消",
     "retry": "重试"
   },
   "result": {

@@ -55,6 +55,8 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
   const [selectedLogConversationId, setSelectedLogConversationId] = useState<number | null>(null);
   const [retryConversationId, setRetryConversationId] = useState<number | null>(null);
   const [retrying, setRetrying] = useState(false);
+  const [cancelConversationId, setCancelConversationId] = useState<number | null>(null);
+  const [cancelling, setCancelling] = useState(false);
 
   const {
     conversations,
@@ -156,6 +158,32 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     setRetryConversationId(null);
   }, []);
 
+  const handleCancelConversation = useCallback((conversationId: number) => {
+    setCancelConversationId(conversationId);
+  }, []);
+
+  const handleConfirmCancel = useCallback(async () => {
+    if (!cancelConversationId) return;
+    
+    setCancelling(true);
+    try {
+      await taskExecutionLogsApi.cancelExecution(cancelConversationId);
+      toast.success(t("taskConversations.execution.actions.cancel") + " " + t("common.success"));
+      // Refresh conversations to show updated status
+      await loadConversations();
+    } catch (error) {
+      console.error("Failed to cancel conversation:", error);
+      toast.error(t("common.cancel") + " " + t("common.failed"));
+    } finally {
+      setCancelling(false);
+      setCancelConversationId(null);
+    }
+  }, [cancelConversationId, t, loadConversations]);
+
+  const handleCancelCancel = useCallback(() => {
+    setCancelConversationId(null);
+  }, []);
+
   // Memoized computed values
   const canSend = useMemo(() => canSendMessage(), [canSendMessage]);
   const taskCompleted = useMemo(() => isTaskCompleted(), [isTaskCompleted]);
@@ -204,6 +232,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
               onViewConversationDetails={handleViewConversationDetails}
               onViewConversationLogs={handleViewConversationLogs}
               onRetryConversation={handleRetryConversation}
+              onCancelConversation={handleCancelConversation}
               toggleExpanded={toggleExpanded}
               isConversationExpanded={isConversationExpanded}
               shouldShowExpandButton={shouldShowExpandButton}
@@ -275,6 +304,31 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmRetry} disabled={retrying}>
               {retrying ? t("common.processing") : t("common.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={cancelConversationId !== null} onOpenChange={handleCancelCancel}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("taskConversations.execution.cancel_confirm_title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("taskConversations.execution.cancel_confirm")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelling}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmCancel} 
+              disabled={cancelling}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {cancelling ? t("common.processing") : t("common.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
