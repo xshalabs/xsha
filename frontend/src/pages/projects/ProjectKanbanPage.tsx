@@ -1,12 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import {
-  ArrowLeft,
-  Plus,
-  Settings,
-  Save,
-} from "lucide-react";
+import { Plus, Settings, Save, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -24,13 +19,6 @@ import {
   KanbanBoard,
   KanbanBoardExtraMargin,
 } from "@/components/kanban";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { logError } from "@/lib/errors";
@@ -40,6 +28,12 @@ import { useKanbanData } from "@/hooks/useKanbanData";
 import { KanbanColumn } from "@/components/kanban/KanbanColumn";
 import { TaskDetailSheet } from "@/components/kanban/TaskDetailSheet";
 import { apiService } from "@/lib/api/index";
+import {
+  AppHeader,
+  AppHeaderContent,
+  AppHeaderActions,
+  NavBreadcrumb,
+} from "@/components/nav";
 
 import type { TaskStatus } from "@/types/task";
 
@@ -78,9 +72,7 @@ export default function ProjectKanbanPage() {
     project ? `${project.name} - ${t("common.kanban")}` : t("common.kanban")
   );
 
-  const handleGoBack = () => {
-    navigate(`/projects/${projectId}/tasks`);
-  };
+
 
   const handleAddTask = () => {
     setIsCreateTaskSheetOpen(true);
@@ -93,6 +85,26 @@ export default function ProjectKanbanPage() {
   const handleProjectChange = (newProjectId: string) => {
     navigate(`/projects/${newProjectId}/kanban`);
   };
+
+  const breadcrumbItems = [
+    {
+      type: "link" as const,
+      label: t("navigation.projects"),
+      href: "/projects",
+    },
+    project
+      ? {
+          type: "select" as const,
+          value: projectId || "",
+          items: projects.map((proj) => ({
+            value: proj.id.toString(),
+            label: proj.name,
+            icon: FolderOpen,
+          })),
+          onValueChange: handleProjectChange,
+        }
+      : { type: "page" as const, label: t("common.loading") },
+  ].filter(Boolean);
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
@@ -150,18 +162,17 @@ export default function ProjectKanbanPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="border-b">
-          <div className="flex h-16 items-center px-6">
+        <AppHeader>
+          <AppHeaderContent>
+            <Skeleton className="h-6 w-48" />
+          </AppHeaderContent>
+          <AppHeaderActions>
             <div className="flex items-center space-x-4">
-              <Skeleton className="h-8 w-8" />
-              <Skeleton className="h-6 w-48" />
-            </div>
-            <div className="ml-auto flex items-center space-x-4">
               <Skeleton className="h-8 w-24" />
               <Skeleton className="h-8 w-8" />
             </div>
-          </div>
-        </div>
+          </AppHeaderActions>
+        </AppHeader>
         <div className="p-6">
           <div className="flex space-x-6 h-[calc(100vh-8rem)]">
             {[1, 2, 3, 4].map((i) => (
@@ -206,33 +217,11 @@ export default function ProjectKanbanPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="flex sticky top-0 bg-background h-14 shrink-0 items-center gap-2 border-b px-2 z-10">
-        <div className="flex flex-1 items-center gap-2 px-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleGoBack}
-            className="h-8 w-8 -ml-1"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <Separator orientation="vertical" className="mr-2 h-4" />
-
-          <Select value={projectId} onValueChange={handleProjectChange}>
-            <SelectTrigger className="min-w-48 border-none shadow-none text-sm font-semibold bg-transparent">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {projects.map((proj) => (
-                <SelectItem key={proj.id} value={proj.id.toString()}>
-                  {proj.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="ml-auto px-3">
+      <AppHeader>
+        <AppHeaderContent>
+          <NavBreadcrumb items={breadcrumbItems} />
+        </AppHeaderContent>
+        <AppHeaderActions>
           <div className="flex items-center gap-2">
             <Button onClick={handleAddTask} size="sm">
               <Plus className="h-4 w-4 mr-2" />
@@ -248,8 +237,8 @@ export default function ProjectKanbanPage() {
               <Settings className="h-4 w-4" />
             </Button>
           </div>
-        </div>
-      </header>
+        </AppHeaderActions>
+      </AppHeader>
 
       {/* Kanban Board */}
       <main className="p-6">
