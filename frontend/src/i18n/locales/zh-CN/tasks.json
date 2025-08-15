@@ -128,5 +128,12 @@
   },
   "create": "创建",
   "edit": "编辑",
-  "conversation": "任务对话"
+  "conversation": "任务对话",
+  "scheduledExecution": "计划执行时间",
+  "timeRelative": {
+    "soon": "即将执行",
+    "minutesLater": "{{minutes}}分钟后",
+    "hoursLater": "{{hours}}小时后",
+    "daysLater": "{{days}}天后"
+  }
 }

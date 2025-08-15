@@ -129,5 +129,12 @@
   },
   "create": "Create",
   "edit": "Edit",
-  "conversation": "Task Conversations"
+  "conversation": "Task Conversations",
+  "scheduledExecution": "Scheduled execution time",
+  "timeRelative": {
+    "soon": "soon",
+    "minutesLater": "in {{minutes}} minutes",
+    "hoursLater": "in {{hours}} hours",
+    "daysLater": "in {{days}} days"
+  }
 }

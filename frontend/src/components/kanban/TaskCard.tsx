@@ -8,6 +8,8 @@ import {
   KanbanBoardCard,
   KanbanBoardCardTitle,
 } from "@/components/kanban";
+import { formatFutureExecutionTime } from "@/lib/timezone";
+import { useTranslation } from "react-i18next";
 import type { Task } from "@/types/task";
 
 interface TaskCardProps {
@@ -16,6 +18,8 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, onClick }: TaskCardProps) {
+  const { t, i18n } = useTranslation();
+  
   const handleClick = () => {
     onClick?.();
   };
@@ -43,9 +47,12 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Scheduled execution time</p>
+                <p>{t("tasks.scheduledExecution")}</p>
               </TooltipContent>
             </Tooltip>
+            <span className="text-xs text-muted-foreground">
+              {formatFutureExecutionTime(task.latest_execution_time!, t, i18n.language)}
+            </span>
           </div>
         </div>
       )}
