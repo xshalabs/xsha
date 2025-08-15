@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { User, Settings, Activity, DollarSign, BarChart3 } from "lucide-react";
+import { User, Settings, Activity, BarChart3, ChevronDown, ChevronUp } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +30,7 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [details, setDetails] = useState<any>(null);
+  const [isContentExpanded, setIsContentExpanded] = useState(false);
 
   useEffect(() => {
     if (isOpen && conversationId) {
@@ -52,7 +54,48 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
 
   const handleClose = () => {
     setDetails(null);
+    setIsContentExpanded(false);
     onClose();
+  };
+
+  // 解析Usage Statistics获取token信息
+  const parseUsageStats = useMemo(() => {
+    if (!details?.result?.usage) return null;
+    
+    try {
+      const usage = JSON.parse(details.result.usage);
+      return {
+        inputTokens: usage.input_tokens || 0,
+        outputTokens: usage.output_tokens || 0,
+      };
+    } catch (error) {
+      return null;
+    }
+  }, [details?.result?.usage]);
+
+  // 格式化token数量为人类友好显示
+  const formatTokens = (count: number): string => {
+    if (count >= 1000000) {
+      return `${(count / 1000000).toFixed(1)}M`;
+    } else if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}K`;
+    }
+    return count.toString();
+  };
+
+  // 检查Content是否需要展开功能
+  const shouldShowExpandButton = (content: string): boolean => {
+    const lines = content.split('\n');
+    return lines.length > 3;
+  };
+
+  // 获取显示的Content内容
+  const getDisplayContent = (content: string): string => {
+    if (!shouldShowExpandButton(content) || isContentExpanded) {
+      return content;
+    }
+    const lines = content.split('\n');
+    return lines.slice(0, 3).join('\n');
   };
 
   const renderConversationInfo = () => {
@@ -119,8 +162,28 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
               {t("taskConversations.details.content")}:
             </span>
             <div className="mt-2 p-3 bg-muted rounded-md text-sm whitespace-pre-wrap break-words w-full min-w-0 overflow-hidden">
-              {conversation.content}
+              {getDisplayContent(conversation.content)}
             </div>
+            {shouldShowExpandButton(conversation.content) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsContentExpanded(!isContentExpanded)}
+                className="mt-2 h-8 px-2 text-xs text-muted-foreground hover:bg-muted"
+              >
+                {isContentExpanded ? (
+                  <>
+                    <ChevronUp className="h-3 w-3 mr-1" />
+                    {t("common.showLess")}
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-3 w-3 mr-1" />
+                    {t("common.showMore")}
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -160,24 +223,9 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-w-0">
               <span className="text-sm text-muted-foreground min-w-0">
-                {t("taskConversations.details.apiDuration")}:
-              </span>
-              <span className="text-sm font-medium">{(result.duration_api_ms / 1000).toFixed(2)}s</span>
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-w-0">
-              <span className="text-sm text-muted-foreground min-w-0">
                 {t("taskConversations.details.numTurns")}:
               </span>
               <span className="text-sm font-medium">{result.num_turns}</span>
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-w-0">
-              <span className="text-sm text-muted-foreground flex items-center gap-1 min-w-0">
-                <DollarSign className="h-3 w-3" />
-                {t("taskConversations.details.totalCost")}:
-              </span>
-              <span className="text-sm font-medium">${result.total_cost_usd.toFixed(4)}</span>
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-w-0">
@@ -186,6 +234,24 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
               </span>
               <span className="text-xs font-mono break-all">{result.session_id.substring(0, 8)}...</span>
             </div>
+
+            {parseUsageStats && (
+              <>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-w-0">
+                  <span className="text-sm text-muted-foreground min-w-0">
+                    {t("taskConversations.details.inputTokens")}:
+                  </span>
+                  <span className="text-sm font-medium">{formatTokens(parseUsageStats.inputTokens)}</span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-w-0">
+                  <span className="text-sm text-muted-foreground min-w-0">
+                    {t("taskConversations.details.outputTokens")}:
+                  </span>
+                  <span className="text-sm font-medium">{formatTokens(parseUsageStats.outputTokens)}</span>
+                </div>
+              </>
+            )}
           </div>
 
           <Separator />
@@ -198,20 +264,6 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
               {result.result}
             </div>
           </div>
-
-          {result.usage && (
-            <>
-              <Separator />
-              <div className="w-full min-w-0">
-                <span className="text-sm text-muted-foreground">
-                  {t("taskConversations.details.usage")}:
-                </span>
-                <div className="mt-2 p-3 bg-muted rounded-md text-sm whitespace-pre-wrap break-words w-full min-w-0 overflow-hidden">
-                  {result.usage}
-                </div>
-              </div>
-            </>
-          )}
         </CardContent>
       </Card>
     );

@@ -112,6 +112,8 @@
     "sessionId": "Session ID",
     "result": "Result",
     "usage": "Usage Statistics",
+    "inputTokens": "Input Tokens",
+    "outputTokens": "Output Tokens",
     "noResult": "No Execution Result",
     "noResultDescription": "This conversation has not been executed or execution failed"
   }
