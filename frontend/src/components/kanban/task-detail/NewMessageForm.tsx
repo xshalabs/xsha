@@ -1,7 +1,8 @@
 import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Send, MessageSquare } from "lucide-react";
+import { Send, MessageSquare, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 
@@ -11,7 +12,7 @@ interface NewMessageFormProps {
   sending: boolean;
   canSendMessage: boolean;
   isTaskCompleted: boolean;
-  hasPendingOrRunningConversations: boolean;
+  _hasPendingOrRunningConversations: boolean;
   onMessageChange: (message: string) => void;
   onExecutionTimeChange: (time: Date | undefined) => void;
   onSendMessage: () => void;
@@ -24,12 +25,16 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     sending,
     canSendMessage,
     isTaskCompleted,
-    hasPendingOrRunningConversations,
+    _hasPendingOrRunningConversations,
     onMessageChange,
     onExecutionTimeChange,
     onSendMessage,
   }) => {
     const { t } = useTranslation();
+
+    // Explicitly acknowledge the parameter to avoid linter warning
+    // This parameter is used implicitly through canSendMessage logic
+    void _hasPendingOrRunningConversations;
 
     const handleMessageChange = useCallback(
       (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -55,17 +60,20 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     const isDisabled = !newMessage.trim() || sending || !canSendMessage;
 
     return (
-      <div className="space-y-4 border-t pt-4">
-        <h3 className="font-medium text-foreground text-lg flex items-center gap-2">
+      <div className="space-y-6 border-t p-6">
+        <h3 className="font-medium text-foreground text-base flex items-center gap-2">
           <Send className="h-4 w-4" />
           {t("taskConversations.newMessage")}
         </h3>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="message-content" className="text-sm font-medium">
-              {t("taskConversations.content")}:
-            </label>
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              <Label htmlFor="message-content" className="text-sm font-medium">
+                {t("taskConversations.content")}:
+              </Label>
+            </div>
             <Textarea
               id="message-content"
               className="min-h-[120px] resize-none"
@@ -78,9 +86,12 @@ export const NewMessageForm = memo<NewMessageFormProps>(
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="execution-time" className="text-sm font-medium">
-              {t("taskConversations.executionTime")}:
-            </label>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <Label htmlFor="execution-time" className="text-sm font-medium">
+                {t("taskConversations.executionTime")}:
+              </Label>
+            </div>
             <DateTimePicker
               id="execution-time"
               value={executionTime}

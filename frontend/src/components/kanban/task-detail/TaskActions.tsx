@@ -1,6 +1,6 @@
 import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { GitBranch, Eye } from "lucide-react";
+import { GitBranch, Eye, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Task } from "@/types/task";
 
@@ -26,8 +26,9 @@ export const TaskActions = memo<TaskActionsProps>(
       task.status === "done" || task.status === "cancelled";
 
     return (
-      <div className="border-t pt-4">
-        <h4 className="font-medium text-foreground mb-3">
+      <div className="border-y py-6 space-y-6 px-6">
+        <h4 className="font-medium text-base text-foreground flex items-center gap-2">
+          <Zap className="h-4 w-4" />
           {t("tasks.actions.title")}
         </h4>
         <div className="flex flex-wrap gap-3">
@@ -35,6 +36,7 @@ export const TaskActions = memo<TaskActionsProps>(
             onClick={handlePushBranch}
             className="flex items-center gap-2"
             disabled={isPushDisabled}
+            variant="outline"
             aria-label={t("tasks.actions.pushBranch")}
           >
             <GitBranch className="h-4 w-4" />

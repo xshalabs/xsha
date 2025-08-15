@@ -1,7 +1,7 @@
 import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, RefreshCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConversationItem } from "./ConversationItem";
@@ -45,9 +45,9 @@ export const ConversationList = memo<ConversationListProps>(
     }, [onLoadConversations]);
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-6 px-6">
         <div className="flex items-center justify-between">
-          <h3 className="font-medium text-foreground text-lg flex items-center gap-2">
+          <h3 className="font-medium text-foreground text-base flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             {t("taskConversations.list.title")}
             {conversationCount > 0 && (
@@ -64,7 +64,7 @@ export const ConversationList = memo<ConversationListProps>(
             className="flex items-center space-x-2"
             aria-label={t("common.refresh")}
           >
-            <MessageSquare
+            <RefreshCcw
               className={`w-4 h-4 ${
                 conversationsLoading ? "animate-spin" : ""
               }`}

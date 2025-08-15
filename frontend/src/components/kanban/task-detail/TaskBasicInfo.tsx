@@ -26,28 +26,27 @@ export const TaskBasicInfo = memo<TaskBasicInfoProps>(({ task }) => {
       await navigator.clipboard.writeText(text);
       toast.success(t("common.copied_to_clipboard"));
     } catch (err) {
-      console.error('Failed to copy text: ', err);
+      console.error("Failed to copy text: ", err);
       toast.error(t("common.copy_failed"));
-      
-      // 后备方案：使用document.execCommand (兼容性更好)
+
       try {
-        const textarea = document.createElement('textarea');
+        const textarea = document.createElement("textarea");
         textarea.value = text;
         document.body.appendChild(textarea);
         textarea.select();
-        document.execCommand('copy');
+        document.execCommand("copy");
         document.body.removeChild(textarea);
         toast.success(t("common.copied_to_clipboard"));
       } catch (fallbackErr) {
-        console.error('Fallback copy also failed:', fallbackErr);
+        console.error("Fallback copy also failed:", fallbackErr);
         toast.error(t("common.copy_not_supported"));
       }
     }
   };
 
   return (
-    <div className="space-y-4">
-      <h3 className="font-medium text-foreground text-lg flex items-center gap-2">
+    <div className="space-y-6 px-6">
+      <h3 className="font-medium text-foreground text-base flex items-center gap-2">
         <FileText className="h-4 w-4" />
         {t("tasks.tabs.basic")}
       </h3>
@@ -55,7 +54,7 @@ export const TaskBasicInfo = memo<TaskBasicInfoProps>(({ task }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 text-sm">
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0">
           <span className="font-medium text-foreground flex items-center gap-1 text-sm">
-            <Activity className="h-4 w-4" />
+            <Activity className="h-3 w-3" />
             {t("tasks.status.label")}:
           </span>
           <Badge
@@ -67,7 +66,7 @@ export const TaskBasicInfo = memo<TaskBasicInfoProps>(({ task }) => {
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0 min-w-0 sm:col-span-2 lg:col-span-1">
           <span className="font-medium text-foreground flex items-center gap-1 flex-shrink-0 text-sm">
-            <GitBranch className="h-4 w-4" />
+            <GitBranch className="h-3 w-3" />
             {t("tasks.workBranch")}:
           </span>
           <div className="flex items-center gap-2 sm:ml-2 min-w-0 flex-1">
@@ -89,7 +88,7 @@ export const TaskBasicInfo = memo<TaskBasicInfoProps>(({ task }) => {
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0 min-w-0">
           <span className="font-medium text-foreground flex items-center gap-1 flex-shrink-0 text-sm">
-            <GitBranch className="h-4 w-4" />
+            <GitBranch className="h-3 w-3" />
             {t("tasks.startBranch")}:
           </span>
           <span
@@ -102,7 +101,7 @@ export const TaskBasicInfo = memo<TaskBasicInfoProps>(({ task }) => {
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0 min-w-0">
           <span className="font-medium text-foreground flex items-center gap-1 flex-shrink-0 text-sm">
-            <Monitor className="h-4 w-4" />
+            <Monitor className="h-3 w-3" />
             {t("tasks.environment")}:
           </span>
           <span
@@ -115,7 +114,7 @@ export const TaskBasicInfo = memo<TaskBasicInfoProps>(({ task }) => {
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0 min-w-0">
           <span className="font-medium text-foreground flex items-center gap-1 flex-shrink-0 text-sm">
-            <User className="h-4 w-4" />
+            <User className="h-3 w-3" />
             {t("tasks.createdBy")}:
           </span>
           <span className="sm:ml-2 truncate" title={task.created_by}>
@@ -125,7 +124,7 @@ export const TaskBasicInfo = memo<TaskBasicInfoProps>(({ task }) => {
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0 min-w-0">
           <span className="font-medium text-foreground flex items-center gap-1 flex-shrink-0 text-sm">
-            <Calendar className="h-4 w-4" />
+            <Calendar className="h-3 w-3" />
             {t("tasks.createdAt")}:
           </span>
           <span
