@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { User, Settings, Activity, BarChart3, ChevronDown, ChevronUp } from "lucide-react";
+import { User, Settings, Activity, BarChart3, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,9 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
   const [loading, setLoading] = useState(false);
   const [details, setDetails] = useState<any>(null);
   const [isContentExpanded, setIsContentExpanded] = useState(false);
+  const [isResultExpanded, setIsResultExpanded] = useState(false);
+  const [copiedContent, setCopiedContent] = useState(false);
+  const [copiedResult, setCopiedResult] = useState(false);
 
   useEffect(() => {
     if (isOpen && conversationId) {
@@ -55,7 +58,26 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
   const handleClose = () => {
     setDetails(null);
     setIsContentExpanded(false);
+    setIsResultExpanded(false);
+    setCopiedContent(false);
+    setCopiedResult(false);
     onClose();
+  };
+
+  // 复制功能
+  const handleCopy = async (text: string, type: 'content' | 'result') => {
+    try {
+      await navigator.clipboard.writeText(text);
+      if (type === 'content') {
+        setCopiedContent(true);
+        setTimeout(() => setCopiedContent(false), 2000);
+      } else {
+        setCopiedResult(true);
+        setTimeout(() => setCopiedResult(false), 2000);
+      }
+    } catch (error) {
+      console.error('Failed to copy text:', error);
+    }
   };
 
   // 解析Usage Statistics获取token信息
@@ -83,19 +105,24 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
     return count.toString();
   };
 
-  // 检查Content是否需要展开功能
+  // 检查内容是否需要展开功能
   const shouldShowExpandButton = (content: string): boolean => {
     const lines = content.split('\n');
     return lines.length > 3;
   };
 
-  // 获取显示的Content内容
-  const getDisplayContent = (content: string): string => {
-    if (!shouldShowExpandButton(content) || isContentExpanded) {
+  // 获取显示的内容（支持content和result）
+  const getDisplayContent = (content: string, isExpanded: boolean): string => {
+    if (!shouldShowExpandButton(content) || isExpanded) {
       return content;
     }
     const lines = content.split('\n');
     return lines.slice(0, 3).join('\n');
+  };
+
+  // 检查是否需要显示省略号
+  const shouldShowEllipsis = (content: string, isExpanded: boolean): boolean => {
+    return shouldShowExpandButton(content) && !isExpanded;
   };
 
   const renderConversationInfo = () => {
@@ -158,32 +185,52 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
           <Separator />
 
           <div className="w-full min-w-0">
-            <span className="text-sm text-muted-foreground">
-              {t("taskConversations.details.content")}:
-            </span>
-            <div className="mt-2 p-3 bg-muted rounded-md text-sm whitespace-pre-wrap break-words w-full min-w-0 overflow-hidden">
-              {getDisplayContent(conversation.content)}
-            </div>
-            {shouldShowExpandButton(conversation.content) && (
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">
+                {t("taskConversations.details.content")}:
+              </span>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsContentExpanded(!isContentExpanded)}
-                className="mt-2 h-8 px-2 text-xs text-muted-foreground hover:bg-muted"
+                onClick={() => handleCopy(conversation.content, 'content')}
+                className="h-6 w-6 p-0 text-muted-foreground hover:bg-muted"
+                title={t("common.copy")}
               >
-                {isContentExpanded ? (
-                  <>
-                    <ChevronUp className="h-3 w-3 mr-1" />
-                    {t("common.showLess")}
-                  </>
+                {copiedContent ? (
+                  <Check className="h-3 w-3 text-green-600" />
                 ) : (
-                  <>
-                    <ChevronDown className="h-3 w-3 mr-1" />
-                    {t("common.showMore")}
-                  </>
+                  <Copy className="h-3 w-3" />
                 )}
               </Button>
-            )}
+            </div>
+            <div className="relative">
+              <div className="p-3 bg-muted rounded-md text-sm whitespace-pre-wrap break-words w-full min-w-0 overflow-hidden">
+                {getDisplayContent(conversation.content, isContentExpanded)}
+                {shouldShowEllipsis(conversation.content, isContentExpanded) && (
+                  <span className="text-muted-foreground">...</span>
+                )}
+              </div>
+              {shouldShowExpandButton(conversation.content) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsContentExpanded(!isContentExpanded)}
+                  className="mt-2 h-8 px-2 text-xs text-muted-foreground hover:bg-muted"
+                >
+                  {isContentExpanded ? (
+                    <>
+                      <ChevronUp className="h-3 w-3 mr-1" />
+                      {t("common.showLess")}
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-3 w-3 mr-1" />
+                      {t("common.showMore")}
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -257,11 +304,53 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
           <Separator />
 
           <div className="w-full min-w-0">
-            <span className="text-sm text-muted-foreground">
-              {t("taskConversations.details.result")}:
-            </span>
-            <div className="mt-2 p-3 bg-muted rounded-md text-sm whitespace-pre-wrap break-words w-full min-w-0 overflow-hidden max-h-60 overflow-y-auto">
-              {result.result}
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">
+                {t("taskConversations.details.result")}:
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleCopy(result.result, 'result')}
+                className="h-6 w-6 p-0 text-muted-foreground hover:bg-muted"
+                title={t("common.copy")}
+              >
+                {copiedResult ? (
+                  <Check className="h-3 w-3 text-green-600" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
+              </Button>
+            </div>
+            <div className="relative">
+              <div className={`p-3 bg-muted rounded-md text-sm whitespace-pre-wrap break-words w-full min-w-0 overflow-hidden ${
+                isResultExpanded ? '' : 'max-h-60 overflow-y-auto'
+              }`}>
+                {getDisplayContent(result.result, isResultExpanded)}
+                {shouldShowEllipsis(result.result, isResultExpanded) && (
+                  <span className="text-muted-foreground">...</span>
+                )}
+              </div>
+              {shouldShowExpandButton(result.result) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsResultExpanded(!isResultExpanded)}
+                  className="mt-2 h-8 px-2 text-xs text-muted-foreground hover:bg-muted"
+                >
+                  {isResultExpanded ? (
+                    <>
+                      <ChevronUp className="h-3 w-3 mr-1" />
+                      {t("common.showLess")}
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-3 w-3 mr-1" />
+                      {t("common.showMore")}
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
