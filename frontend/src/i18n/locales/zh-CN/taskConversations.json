@@ -65,7 +65,8 @@
     "delete": "删除",
     "viewDetails": "查看详情",
     "viewGitDiff": "Git差异",
-    "viewChanges": "查看变动"
+    "viewChanges": "查看变动",
+    "viewLogs": "查看日志"
   },
   "result": {
     "content": "结果内容",
@@ -116,5 +117,38 @@
     "outputTokens": "输出令牌",
     "noResult": "暂无执行结果",
     "noResultDescription": "该对话尚未执行或执行失败"
+  },
+  "logs": {
+    "title": "执行日志",
+    "description": "对话的实时执行日志",
+    "start": "开始",
+    "stop": "停止",
+    "retry": "重试",
+    "download": "下载",
+    "connected": "已连接到日志流",
+    "finished": "日志流已结束",
+    "error": "日志流错误",
+    "connectionError": "连接错误",
+    "authError": "认证失败，请检查登录状态",
+    "authRequired": "需要认证，请先登录",
+    "noLogsToDownload": "没有可下载的日志",
+    "downloaded": "日志下载成功",
+    "waiting": "等待日志中...",
+    "noLogs": "无可用日志。点击开始以启动流传输。",
+    "totalLines": "{{count}} 行",
+    "realTime": "实时",
+    "offline": "离线",
+    "streaming": "流传输中...",
+    "status": {
+      "connected": "已连接",
+      "connecting": "连接中",
+      "disconnected": "已断开",
+      "unauthorized": "未授权",
+      "error": "错误"
+    },
+    "autoScroll": {
+      "on": "自动滚动 开",
+      "off": "自动滚动 关"
+    }
   }
 } 

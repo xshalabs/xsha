@@ -11,6 +11,7 @@ import { PushBranchDialog } from "@/components/PushBranchDialog";
 import { TaskGitDiffModal } from "./TaskGitDiffModal";
 import { ConversationGitDiffModal } from "./ConversationGitDiffModal";
 import { ConversationDetailModal } from "@/components/ConversationDetailModal";
+import { ConversationLogModal } from "./ConversationLogModal";
 import { useTaskConversations } from "@/hooks/useTaskConversations";
 import {
   TaskBasicInfo,
@@ -36,8 +37,10 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
   const [isTaskGitDiffModalOpen, setIsTaskGitDiffModalOpen] = useState(false);
   const [isConversationGitDiffModalOpen, setIsConversationGitDiffModalOpen] = useState(false);
   const [isConversationDetailModalOpen, setIsConversationDetailModalOpen] = useState(false);
+  const [isConversationLogModalOpen, setIsConversationLogModalOpen] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
+  const [selectedLogConversationId, setSelectedLogConversationId] = useState<number | null>(null);
 
   const {
     conversations,
@@ -66,6 +69,11 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
       setIsConversationGitDiffModalOpen(true);
     }
   }, [task, conversations]);
+
+  const handleViewConversationLogs = useCallback((conversationId: number) => {
+    setSelectedLogConversationId(conversationId);
+    setIsConversationLogModalOpen(true);
+  }, []);
 
   const handlePushBranch = useCallback(() => {
     setIsPushDialogOpen(true);
@@ -101,6 +109,11 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
   const handleCloseConversationDetails = useCallback(() => {
     setIsConversationDetailModalOpen(false);
     setSelectedConversationId(null);
+  }, []);
+
+  const handleCloseConversationLogs = useCallback(() => {
+    setIsConversationLogModalOpen(false);
+    setSelectedLogConversationId(null);
   }, []);
 
   // Memoized computed values
@@ -149,6 +162,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
               onLoadConversations={loadConversations}
               onViewConversationGitDiff={handleViewConversationGitDiff}
               onViewConversationDetails={handleViewConversationDetails}
+              onViewConversationLogs={handleViewConversationLogs}
               toggleExpanded={toggleExpanded}
               isConversationExpanded={isConversationExpanded}
               shouldShowExpandButton={shouldShowExpandButton}
@@ -196,6 +210,12 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
         conversationId={selectedConversationId}
         isOpen={isConversationDetailModalOpen}
         onClose={handleCloseConversationDetails}
+      />
+
+      <ConversationLogModal
+        conversationId={selectedLogConversationId}
+        isOpen={isConversationLogModalOpen}
+        onClose={handleCloseConversationLogs}
       />
     </>
   );

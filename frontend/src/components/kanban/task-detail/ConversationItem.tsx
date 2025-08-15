@@ -1,6 +1,6 @@
 import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { User, MoreHorizontal, Eye, FileText } from "lucide-react";
+import { User, MoreHorizontal, Eye, FileText, Terminal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ interface ConversationItemProps {
   onToggleExpanded: (id: number) => void;
   onViewDetails: (taskId: number, conversationId: number) => void;
   onViewGitDiff: (conversationId: number) => void;
+  onViewLogs: (conversationId: number) => void;
 }
 
 export const ConversationItem = memo<ConversationItemProps>(
@@ -30,6 +31,7 @@ export const ConversationItem = memo<ConversationItemProps>(
     onToggleExpanded,
     onViewDetails,
     onViewGitDiff,
+    onViewLogs,
   }) => {
     const { t } = useTranslation();
 
@@ -44,6 +46,10 @@ export const ConversationItem = memo<ConversationItemProps>(
     const handleViewGitDiff = useCallback(() => {
       onViewGitDiff(conversation.id);
     }, [conversation.id, onViewGitDiff]);
+
+    const handleViewLogs = useCallback(() => {
+      onViewLogs(conversation.id);
+    }, [conversation.id, onViewLogs]);
 
     // Check if git diff should be disabled (when commit_hash is empty)
     const isGitDiffDisabled = !conversation.commit_hash;
@@ -114,6 +120,10 @@ export const ConversationItem = memo<ConversationItemProps>(
                 >
                   <FileText className="mr-2 h-4 w-4" />
                   {t("taskConversations.actions.viewGitDiff")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleViewLogs}>
+                  <Terminal className="mr-2 h-4 w-4" />
+                  {t("taskConversations.actions.viewLogs")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

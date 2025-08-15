@@ -97,6 +97,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			conversations.DELETE("/:id", taskConvHandlers.DeleteConversation)
 			conversations.GET("/:id/git-diff", taskConvHandlers.GetConversationGitDiff)
 			conversations.GET("/:id/git-diff/file", taskConvHandlers.GetConversationGitDiffFile)
+			conversations.GET("/:id/logs/stream", taskConvHandlers.StreamConversationLogs)
 		}
 
 		results := api.Group("/conversation-results")
