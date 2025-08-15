@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Plus, Settings, Save, FolderOpen } from "lucide-react";
+import { Plus, Save, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   FormSheet,
   FormSheetContent,
@@ -78,9 +77,7 @@ export default function ProjectKanbanPage() {
     setIsCreateTaskSheetOpen(true);
   };
 
-  const handleProjectSettings = () => {
-    navigate(`/projects/${projectId}/edit`);
-  };
+
 
   const handleProjectChange = (newProjectId: string) => {
     navigate(`/projects/${newProjectId}/kanban`);
@@ -226,15 +223,6 @@ export default function ProjectKanbanPage() {
             <Button onClick={handleAddTask} size="sm">
               <Plus className="h-4 w-4 mr-2" />
               {t("tasks.addTask")}
-            </Button>
-            <Separator orientation="vertical" className="h-4" />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleProjectSettings}
-              className="h-8 w-8"
-            >
-              <Settings className="h-4 w-4" />
             </Button>
           </div>
         </AppHeaderActions>
