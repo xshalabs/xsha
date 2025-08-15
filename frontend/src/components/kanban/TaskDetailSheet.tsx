@@ -1,5 +1,6 @@
 import { useState, useCallback, memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import {
   Sheet,
   SheetContent,
@@ -7,12 +8,23 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { PushBranchDialog } from "@/components/PushBranchDialog";
 import { TaskGitDiffModal } from "./TaskGitDiffModal";
 import { ConversationGitDiffModal } from "./ConversationGitDiffModal";
 import { ConversationDetailModal } from "@/components/ConversationDetailModal";
 import { ConversationLogModal } from "./ConversationLogModal";
 import { useTaskConversations } from "@/hooks/useTaskConversations";
+import { taskExecutionLogsApi } from "@/lib/api/task-execution-logs";
 import {
   TaskBasicInfo,
   TaskActions,
@@ -41,6 +53,8 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
   const [selectedLogConversationId, setSelectedLogConversationId] = useState<number | null>(null);
+  const [retryConversationId, setRetryConversationId] = useState<number | null>(null);
+  const [retrying, setRetrying] = useState(false);
 
   const {
     conversations,
@@ -116,6 +130,32 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     setSelectedLogConversationId(null);
   }, []);
 
+  const handleRetryConversation = useCallback((conversationId: number) => {
+    setRetryConversationId(conversationId);
+  }, []);
+
+  const handleConfirmRetry = useCallback(async () => {
+    if (!retryConversationId) return;
+    
+    setRetrying(true);
+    try {
+      await taskExecutionLogsApi.retryExecution(retryConversationId);
+      toast.success(t("taskConversations.execution.actions.retry") + " " + t("common.success"));
+      // Refresh conversations to show updated status
+      await loadConversations();
+    } catch (error) {
+      console.error("Failed to retry conversation:", error);
+      toast.error(t("common.retry") + " " + t("common.failed"));
+    } finally {
+      setRetrying(false);
+      setRetryConversationId(null);
+    }
+  }, [retryConversationId, t, loadConversations]);
+
+  const handleCancelRetry = useCallback(() => {
+    setRetryConversationId(null);
+  }, []);
+
   // Memoized computed values
   const canSend = useMemo(() => canSendMessage(), [canSendMessage]);
   const taskCompleted = useMemo(() => isTaskCompleted(), [isTaskCompleted]);
@@ -163,6 +203,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
               onViewConversationGitDiff={handleViewConversationGitDiff}
               onViewConversationDetails={handleViewConversationDetails}
               onViewConversationLogs={handleViewConversationLogs}
+              onRetryConversation={handleRetryConversation}
               toggleExpanded={toggleExpanded}
               isConversationExpanded={isConversationExpanded}
               shouldShowExpandButton={shouldShowExpandButton}
@@ -217,6 +258,27 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
         isOpen={isConversationLogModalOpen}
         onClose={handleCloseConversationLogs}
       />
+
+      <AlertDialog open={retryConversationId !== null} onOpenChange={handleCancelRetry}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("taskConversations.execution.retry_confirm_title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("taskConversations.execution.retry_confirm")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={retrying}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRetry} disabled={retrying}>
+              {retrying ? t("common.processing") : t("common.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 });

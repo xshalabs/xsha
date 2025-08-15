@@ -66,7 +66,8 @@
     "viewDetails": "查看详情",
     "viewGitDiff": "Git差异",
     "viewChanges": "查看变动",
-    "viewLogs": "查看日志"
+    "viewLogs": "查看日志",
+    "retry": "重试"
   },
   "result": {
     "content": "结果内容",

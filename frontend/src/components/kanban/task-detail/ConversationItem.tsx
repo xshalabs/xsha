@@ -1,6 +1,6 @@
 import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { User, MoreHorizontal, Eye, FileText, Terminal } from "lucide-react";
+import { User, MoreHorizontal, Eye, FileText, Terminal, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,7 @@ interface ConversationItemProps {
   onViewDetails: (taskId: number, conversationId: number) => void;
   onViewGitDiff: (conversationId: number) => void;
   onViewLogs: (conversationId: number) => void;
+  onRetry: (conversationId: number) => void;
 }
 
 export const ConversationItem = memo<ConversationItemProps>(
@@ -32,6 +33,7 @@ export const ConversationItem = memo<ConversationItemProps>(
     onViewDetails,
     onViewGitDiff,
     onViewLogs,
+    onRetry,
   }) => {
     const { t } = useTranslation();
 
@@ -51,8 +53,15 @@ export const ConversationItem = memo<ConversationItemProps>(
       onViewLogs(conversation.id);
     }, [conversation.id, onViewLogs]);
 
+    const handleRetry = useCallback(() => {
+      onRetry(conversation.id);
+    }, [conversation.id, onRetry]);
+
     // Check if git diff should be disabled (when commit_hash is empty)
     const isGitDiffDisabled = !conversation.commit_hash;
+    
+    // Check if retry should be enabled (only for failed or cancelled conversations)
+    const isRetryEnabled = conversation.status === 'failed' || conversation.status === 'cancelled';
 
     return (
       <div className="p-4 rounded-md border border-border bg-card">
@@ -125,6 +134,15 @@ export const ConversationItem = memo<ConversationItemProps>(
                   <Terminal className="mr-2 h-4 w-4" />
                   {t("taskConversations.actions.viewLogs")}
                 </DropdownMenuItem>
+                {isRetryEnabled && (
+                  <DropdownMenuItem 
+                    onClick={handleRetry}
+                    className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-950"
+                  >
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    {t("taskConversations.actions.retry")}
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

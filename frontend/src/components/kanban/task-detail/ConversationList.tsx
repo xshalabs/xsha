@@ -14,6 +14,7 @@ interface ConversationListProps {
   onViewConversationGitDiff: (conversationId: number) => void;
   onViewConversationDetails: (conversationId: number) => void;
   onViewConversationLogs: (conversationId: number) => void;
+  onRetryConversation: (conversationId: number) => void;
   toggleExpanded: (id: number) => void;
   isConversationExpanded: (id: number) => boolean;
   shouldShowExpandButton: (content: string) => boolean;
@@ -29,6 +30,7 @@ export const ConversationList = memo<ConversationListProps>(
     onViewConversationGitDiff,
     onViewConversationDetails,
     onViewConversationLogs,
+    onRetryConversation,
     toggleExpanded,
     isConversationExpanded,
     shouldShowExpandButton,
@@ -98,6 +100,7 @@ export const ConversationList = memo<ConversationListProps>(
                 onViewDetails={handleViewDetails}
                 onViewGitDiff={onViewConversationGitDiff}
                 onViewLogs={onViewConversationLogs}
+                onRetry={onRetryConversation}
               />
             ))
           )}
