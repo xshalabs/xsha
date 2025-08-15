@@ -4,7 +4,6 @@ import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import type {
   GitCredential,
-  GitCredentialType,
   GitCredentialFormData,
 } from "@/types/credentials";
 import { GitCredentialType as CredentialTypes } from "@/types/credentials";

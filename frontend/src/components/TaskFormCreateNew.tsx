@@ -15,13 +15,11 @@ import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
-  Save, 
   Loader2, 
   AlertCircle, 
   RefreshCw,
   Calendar,
   GitBranch,
-  Settings,
   FileText,
   Zap
 } from "lucide-react";
@@ -35,7 +33,6 @@ interface TaskFormCreateNewProps {
   defaultProjectId?: number;
   currentProject?: Project;
   onSubmit: (data: TaskFormData) => Promise<void>;
-  onCancel?: () => void;
   formId?: string;
 }
 
@@ -43,7 +40,6 @@ export function TaskFormCreateNew({
   defaultProjectId,
   currentProject,
   onSubmit,
-  onCancel,
   formId = "new-task-create-form",
 }: TaskFormCreateNewProps) {
   const { t } = useTranslation();

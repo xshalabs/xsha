@@ -17,8 +17,7 @@ import {
   Minus,
   GitBranch,
   GitCommit,
-  ChevronDown,
-  ChevronRight,
+
   Loader2,
   AlertCircle,
   FolderOpen,
@@ -63,7 +62,7 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
   const [diffSummary, setDiffSummary] = useState<GitDiffSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set());
+
   const [fileContents, setFileContents] = useState<Map<string, string>>(
     new Map()
   );
@@ -123,16 +122,7 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
     }
   };
 
-  const toggleFileExpanded = (filePath: string) => {
-    const newExpanded = new Set(expandedFiles);
-    if (expandedFiles.has(filePath)) {
-      newExpanded.delete(filePath);
-    } else {
-      newExpanded.add(filePath);
-      loadFileContent(filePath);
-    }
-    setExpandedFiles(newExpanded);
-  };
+
 
   const handleFileSelect = (filePath: string) => {
     setSelectedFile(filePath);
@@ -146,7 +136,7 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
     if (isOpen && task) {
       setDiffSummary(null);
       setError(null);
-      setExpandedFiles(new Set());
+
       setFileContents(new Map());
       setLoadingFiles(new Set());
       setSelectedFile(null);

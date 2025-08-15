@@ -152,9 +152,7 @@ export default function ProjectKanbanPage() {
     }
   };
 
-  const handleCloseCreateTaskSheet = () => {
-    setIsCreateTaskSheetOpen(false);
-  };
+
 
   if (loading) {
     return (
@@ -275,7 +273,6 @@ export default function ProjectKanbanPage() {
                       defaultProjectId={project.id}
                       currentProject={project}
                       onSubmit={handleCreateTask}
-                      onCancel={handleCloseCreateTaskSheet}
                       formId="task-create-sheet-form"
                     />
                   )}

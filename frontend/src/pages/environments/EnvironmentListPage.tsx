@@ -6,7 +6,7 @@ import React, {
   useRef,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { Button } from "@/components/ui/button";
@@ -48,7 +48,6 @@ import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 
 const EnvironmentListPage: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { setItems } = useBreadcrumb();
   const { setActions } = usePageActions();

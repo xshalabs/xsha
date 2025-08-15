@@ -88,8 +88,8 @@ export function useKanbanData(projectId: string | undefined) {
           const newTasks = { ...prev };
 
           // Remove task from old column
-          newTasks[sourceTask.status] = newTasks[sourceTask.status].filter(
-            (t) => t.id !== taskId
+          newTasks[sourceTask.status as TaskStatus] = newTasks[sourceTask.status as TaskStatus].filter(
+            (t: Task) => t.id !== taskId
           );
 
           // Add task to new column with updated status
