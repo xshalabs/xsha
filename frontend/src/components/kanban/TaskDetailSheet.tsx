@@ -25,6 +25,7 @@ import { ConversationDetailModal } from "@/components/ConversationDetailModal";
 import { ConversationLogModal } from "./ConversationLogModal";
 import { useTaskConversations } from "@/hooks/useTaskConversations";
 import { taskExecutionLogsApi } from "@/lib/api/task-execution-logs";
+import { tasksApi } from "@/lib/api/tasks";
 import {
   TaskBasicInfo,
   TaskActions,
@@ -37,12 +38,14 @@ interface TaskDetailSheetProps {
   task: Task | null;
   isOpen: boolean;
   onClose: () => void;
+  onTaskDeleted?: () => void;
 }
 
 export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
   task,
   isOpen,
   onClose,
+  onTaskDeleted,
 }) => {
   const { t } = useTranslation();
   const [isPushDialogOpen, setIsPushDialogOpen] = useState(false);
@@ -57,6 +60,8 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
   const [retrying, setRetrying] = useState(false);
   const [cancelConversationId, setCancelConversationId] = useState<number | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const {
     conversations,
@@ -184,6 +189,34 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     setCancelConversationId(null);
   }, []);
 
+  const handleDeleteTask = useCallback(() => {
+    setIsDeleteDialogOpen(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!task) return;
+    
+    setDeleting(true);
+    try {
+      await tasksApi.delete(task.id);
+      toast.success(t("tasks.delete.deleteSuccess"));
+      // Close the sheet first
+      onClose();
+      // Then notify parent about task deletion
+      onTaskDeleted?.();
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+      toast.error(t("tasks.delete.deleteFailed"));
+    } finally {
+      setDeleting(false);
+      setIsDeleteDialogOpen(false);
+    }
+  }, [task, t, onClose, onTaskDeleted]);
+
+  const handleCancelDelete = useCallback(() => {
+    setIsDeleteDialogOpen(false);
+  }, []);
+
   // Memoized computed values
   const canSend = useMemo(() => canSendMessage(), [canSendMessage]);
   const taskCompleted = useMemo(() => isTaskCompleted(), [isTaskCompleted]);
@@ -219,6 +252,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
               task={task}
               onPushBranch={handlePushBranch}
               onViewGitDiff={handleViewTaskGitDiff}
+              onDelete={handleDeleteTask}
             />
 
             {/* 对话信息板块 */}
@@ -329,6 +363,31 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
             >
               {cancelling ? t("common.processing") : t("common.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={handleCancelDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("tasks.delete.confirmTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("tasks.delete.confirmDescription")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete} 
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600 text-white"
+            >
+              {deleting ? t("common.processing") : t("common.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

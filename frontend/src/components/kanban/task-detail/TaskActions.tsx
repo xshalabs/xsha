@@ -1,6 +1,6 @@
 import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { GitBranch, Eye, Zap } from "lucide-react";
+import { GitBranch, Eye, Zap, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Task } from "@/types/task";
 
@@ -8,10 +8,11 @@ interface TaskActionsProps {
   task: Task;
   onPushBranch: () => void;
   onViewGitDiff: () => void;
+  onDelete: () => void;
 }
 
 export const TaskActions = memo<TaskActionsProps>(
-  ({ task, onPushBranch, onViewGitDiff }) => {
+  ({ task, onPushBranch, onViewGitDiff, onDelete }) => {
     const { t } = useTranslation();
 
     const handlePushBranch = useCallback(() => {
@@ -21,6 +22,10 @@ export const TaskActions = memo<TaskActionsProps>(
     const handleViewGitDiff = useCallback(() => {
       onViewGitDiff();
     }, [onViewGitDiff]);
+
+    const handleDelete = useCallback(() => {
+      onDelete();
+    }, [onDelete]);
 
     const isPushDisabled =
       task.status === "done" || task.status === "cancelled";
@@ -51,6 +56,16 @@ export const TaskActions = memo<TaskActionsProps>(
           >
             <Eye className="h-4 w-4" />
             {t("tasks.actions.viewGitDiff")}
+          </Button>
+
+          <Button
+            onClick={handleDelete}
+            variant="destructive"
+            className="flex items-center gap-2"
+            aria-label={t("tasks.actions.delete")}
+          >
+            <Trash2 className="h-4 w-4" />
+            {t("tasks.actions.delete")}
           </Button>
         </div>
       </div>

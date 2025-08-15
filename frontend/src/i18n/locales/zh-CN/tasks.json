@@ -7,7 +7,8 @@
     "edit": "编辑",
     "viewConversation": "对话",
     "viewGitDiff": "Git差异",
-    "pushBranch": "推送分支"
+    "pushBranch": "推送分支",
+    "delete": "删除任务"
   },
   "status": {
     "label": "状态",
@@ -120,6 +121,12 @@
     "deleteConfirmDescription": "您即将删除 {{count}} 个任务。此操作不可撤销，相关的对话记录和执行日志也将被删除。",
     "deleteSuccess": "成功删除 {{count}} 个任务",
     "deleteFailed": "批量删除失败"
+  },
+  "delete": {
+    "confirmTitle": "删除任务",
+    "confirmDescription": "确定要删除此任务吗？此操作不可撤销，相关的对话记录和执行日志也将被删除。",
+    "deleteSuccess": "任务删除成功",
+    "deleteFailed": "删除任务失败"
   },
   "errors": {
     "fetchBranchesFailed": "获取仓库分支失败",

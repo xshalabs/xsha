@@ -113,6 +113,11 @@ export default function ProjectKanbanPage() {
     setSelectedTask(null);
   };
 
+  const handleTaskDeleted = () => {
+    // Refresh kanban data after task deletion
+    refreshKanbanData();
+  };
+
   const handleCreateTask = async (taskData: TaskFormData) => {
     if (!projectId) return;
 
@@ -251,6 +256,7 @@ export default function ProjectKanbanPage() {
           task={selectedTask}
           isOpen={isSheetOpen}
           onClose={handleCloseSheet}
+          onTaskDeleted={handleTaskDeleted}
         />
 
         {/* Create Task Sheet */}
