@@ -45,6 +45,7 @@
   "filter": {
     "name_placeholder": "按项目名称搜索"
   },
+  "noCredentialsAvailable": "没有可用的凭据",
   "list": "项目列表",
   "createAndCustomize": "创建并开始自定义",
   "createHelpText": "配置您的项目仓库设置，添加访问凭据，开始自动化您的开发工作流程。",

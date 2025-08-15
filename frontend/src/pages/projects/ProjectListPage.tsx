@@ -10,9 +10,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
+import { toast } from "sonner";
 
 import { DataTable } from "@/components/ui/data-table/data-table";
-import { Plus } from "lucide-react";
+import { Plus, Save } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
@@ -23,6 +24,17 @@ import {
   SectionHeader,
   SectionTitle,
 } from "@/components/content/section";
+import {
+  FormSheet,
+  FormSheetContent,
+  FormSheetHeader,
+  FormSheetTitle,
+  FormSheetDescription,
+  FormSheetFooter,
+  FormCardGroup,
+} from "@/components/forms/form-sheet";
+import { FormCard, FormCardContent } from "@/components/forms/form-card";
+import { ProjectFormSheet } from "@/components/ProjectFormSheet";
 
 import { createProjectColumns } from "@/components/data-table/projects/columns";
 import { ProjectDataTableToolbar } from "@/components/data-table/projects/data-table-toolbar";
@@ -45,6 +57,12 @@ const ProjectListPage: React.FC = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const { setActions } = usePageActions();
   const { setItems } = useBreadcrumb();
+
+  // Sheet state management
+  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add request deduplication
   const lastRequestRef = useRef<string>("");
@@ -151,6 +169,18 @@ const ProjectListPage: React.FC = () => {
   // Initialize from URL on component mount (only once)
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // Check for action parameter to auto-open create sheet
+  useEffect(() => {
+    const actionParam = searchParams.get("action");
+    if (actionParam === "create") {
+      setIsCreateSheetOpen(true);
+      // Remove action parameter from URL to keep it clean
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete("action");
+      setSearchParams(newSearchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   useEffect(() => {
     // Get URL params directly to avoid dependency issues
     const nameParam = searchParams.get("name");
@@ -212,7 +242,7 @@ const ProjectListPage: React.FC = () => {
   // Set page actions (Create button in header) and clear breadcrumb
   useEffect(() => {
     const handleCreateNew = () => {
-      navigate("/projects/create");
+      setIsCreateSheetOpen(true);
     };
 
     setActions(
@@ -230,13 +260,14 @@ const ProjectListPage: React.FC = () => {
       setActions(null);
       setItems([]);
     };
-  }, [navigate, setActions, setItems, t]);
+  }, [setActions, setItems, t]);
 
   const handleEdit = useCallback(
     (project: Project) => {
-      navigate(`/projects/${project.id}/edit`);
+      setEditingProject(project);
+      setIsEditSheetOpen(true);
     },
-    [navigate]
+    []
   );
 
   const handleDelete = useCallback(
@@ -265,6 +296,55 @@ const ProjectListPage: React.FC = () => {
     },
     [navigate]
   );
+
+  // Sheet handlers
+  const handleCreateProject = async (project: Project) => {
+    try {
+      setIsSubmitting(true);
+      // Refresh the project list
+      await loadProjectsData(currentPage, columnFilters, sorting);
+      // Close the sheet
+      setIsCreateSheetOpen(false);
+      // Show success message
+      toast.success(t("projects.messages.createSuccess"));
+      console.log("Project created successfully:", project);
+    } catch (error) {
+      console.error("Failed to create project:", error);
+      logError(error as Error, "Failed to create project");
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateProject = async (project: Project) => {
+    try {
+      setIsSubmitting(true);
+      // Refresh the project list
+      await loadProjectsData(currentPage, columnFilters, sorting);
+      // Close the sheet
+      setIsEditSheetOpen(false);
+      setEditingProject(null);
+      // Show success message
+      toast.success(t("projects.messages.updateSuccess"));
+      console.log("Project updated successfully:", project);
+    } catch (error) {
+      console.error("Failed to update project:", error);
+      logError(error as Error, "Failed to update project");
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCloseCreateSheet = () => {
+    setIsCreateSheetOpen(false);
+  };
+
+  const handleCloseEditSheet = () => {
+    setIsEditSheetOpen(false);
+    setEditingProject(null);
+  };
 
   const columns = useMemo(
     () =>
@@ -310,6 +390,87 @@ const ProjectListPage: React.FC = () => {
           </div>
         </Section>
       </SectionGroup>
+
+      {/* Create Project Sheet */}
+      <FormSheet
+        open={isCreateSheetOpen}
+        onOpenChange={setIsCreateSheetOpen}
+      >
+        <FormSheetContent className="w-full sm:w-[600px] sm:max-w-[600px]">
+          <FormSheetHeader>
+            <FormSheetTitle>{t("projects.create")}</FormSheetTitle>
+            <FormSheetDescription>
+              {t("projects.createDescription")}
+            </FormSheetDescription>
+          </FormSheetHeader>
+          <FormCardGroup className="overflow-y-auto">
+            <FormCard className="border-none overflow-auto">
+              <FormCardContent>
+                <ProjectFormSheet
+                  onSubmit={handleCreateProject}
+                  onCancel={handleCloseCreateSheet}
+                  formId="project-create-sheet-form"
+                />
+              </FormCardContent>
+            </FormCard>
+          </FormCardGroup>
+          <FormSheetFooter>
+            <Button
+              type="submit"
+              form="project-create-sheet-form"
+              disabled={isSubmitting}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSubmitting
+                ? t("common.saving")
+                : t("projects.create")}
+            </Button>
+          </FormSheetFooter>
+        </FormSheetContent>
+      </FormSheet>
+
+      {/* Edit Project Sheet */}
+      <FormSheet
+        open={isEditSheetOpen}
+        onOpenChange={setIsEditSheetOpen}
+      >
+        <FormSheetContent className="w-full sm:w-[600px] sm:max-w-[600px]">
+          <FormSheetHeader>
+            <FormSheetTitle>
+              {t("projects.edit")} - {editingProject?.name || ""}
+            </FormSheetTitle>
+            <FormSheetDescription>
+              {t("projects.editDescription")}
+            </FormSheetDescription>
+          </FormSheetHeader>
+          <FormCardGroup className="overflow-y-auto">
+            <FormCard className="border-none overflow-auto">
+              <FormCardContent>
+                {editingProject && (
+                  <ProjectFormSheet
+                    project={editingProject}
+                    onSubmit={handleUpdateProject}
+                    onCancel={handleCloseEditSheet}
+                    formId="project-edit-sheet-form"
+                  />
+                )}
+              </FormCardContent>
+            </FormCard>
+          </FormCardGroup>
+          <FormSheetFooter>
+            <Button
+              type="submit"
+              form="project-edit-sheet-form"
+              disabled={isSubmitting}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSubmitting
+                ? t("common.saving")
+                : t("common.save")}
+            </Button>
+          </FormSheetFooter>
+        </FormSheetContent>
+      </FormSheet>
     </div>
   );
 };

@@ -120,7 +120,7 @@ export const DashboardPage: React.FC = () => {
       title: t("dashboard.quickActions.newProject"),
       description: t("dashboard.quickActions.newProjectDesc"),
       icon: Folder,
-      action: () => navigate("/projects/create"),
+      action: () => navigate("/projects?action=create"),
     },
     {
       title: t("dashboard.quickActions.newEnvironment"),

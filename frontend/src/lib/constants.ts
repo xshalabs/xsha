@@ -25,8 +25,6 @@ export const ROUTES = {
   dashboard: "/dashboard",
 
   projects: "/projects",
-  projectCreate: "/projects/create",
-  projectEdit: (id: number) => `/projects/${id}/edit`,
 
   devEnvironments: "/environments",
   devEnvironmentCreate: "/environments/create",

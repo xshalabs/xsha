@@ -19,8 +19,6 @@ import { LoginLogsPage } from "@/pages/logs/LoginLogsPage";
 import { AuditStatsPage } from "@/pages/logs/AuditStatsPage";
 
 import ProjectListPage from "@/pages/projects/ProjectListPage";
-import ProjectCreatePage from "@/pages/projects/ProjectCreatePage";
-import ProjectEditPage from "@/pages/projects/ProjectEditPage";
 import ProjectKanbanPage from "@/pages/projects/ProjectKanbanPage";
 
 import EnvironmentListPage from "@/pages/environments/EnvironmentListPage";
@@ -84,26 +82,6 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <ProjectListPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/create"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <ProjectCreatePage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/:id/edit"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <ProjectEditPage />
                   </Layout>
                 </ProtectedRoute>
               }
