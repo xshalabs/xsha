@@ -10,6 +10,7 @@
   "noChanges": "暂无变动",
   "binary": "二进制",
   "binaryFileNote": "二进制文件无法显示差异内容",
+  "selectFile": "选择一个文件来查看变动内容",
   "status": {
     "added": "新增",
     "modified": "修改",

@@ -10,6 +10,7 @@
   "noChanges": "No Changes",
   "binary": "Binary",
   "binaryFileNote": "Binary file differences cannot be displayed",
+  "selectFile": "Select a file to view changes",
   "status": {
     "added": "Added",
     "modified": "Modified",

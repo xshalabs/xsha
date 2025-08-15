@@ -7,10 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   File,
   FileText,
@@ -22,6 +21,7 @@ import {
   ChevronRight,
   Loader2,
   AlertCircle,
+  FolderOpen,
 } from "lucide-react";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
@@ -68,6 +68,7 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
     new Map()
   );
   const [loadingFiles, setLoadingFiles] = useState<Set<string>>(new Set());
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
   const loadDiffSummary = async () => {
     if (!task) return;
@@ -133,6 +134,13 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
     setExpandedFiles(newExpanded);
   };
 
+  const handleFileSelect = (filePath: string) => {
+    setSelectedFile(filePath);
+    if (!fileContents.has(filePath)) {
+      loadFileContent(filePath);
+    }
+  };
+
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen && task) {
@@ -141,6 +149,7 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
       setExpandedFiles(new Set());
       setFileContents(new Map());
       setLoadingFiles(new Set());
+      setSelectedFile(null);
       loadDiffSummary();
     }
   }, [isOpen, task]);
@@ -262,131 +271,206 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
               <p className="text-muted-foreground">{t("gitDiff.noData")}</p>
             </div>
           ) : (
-            <Tabs defaultValue="summary" className="w-full h-full flex flex-col">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="summary">{t("gitDiff.summary")}</TabsTrigger>
-                <TabsTrigger value="files">{t("gitDiff.fileChanges")}</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="summary" className="flex-1 space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {diffSummary.total_files || 0}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {t("gitDiff.filesChanged")}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-green-600">
-                        +{diffSummary.total_additions || 0}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {t("gitDiff.additions")}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-red-600">
-                        -{diffSummary.total_deletions || 0}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {t("gitDiff.deletions")}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-gray-600">
-                        {diffSummary.commits_ahead || 0}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {t("gitDiff.commitsAhead")}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="files" className="flex-1 overflow-auto space-y-2">
-                {safeFiles.length > 0 ? (
-                  safeFiles.map((file) => (
-                    <Card key={file.path} className="border">
-                      <CardContent className="p-0">
-                        <div
-                          className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
-                          onClick={() => toggleFileExpanded(file.path)}
-                        >
-                          <div className="flex items-center gap-3">
-                            {expandedFiles.has(file.path) ? (
-                              <ChevronDown className="w-4 h-4" />
-                            ) : (
-                              <ChevronRight className="w-4 h-4" />
-                            )}
-                            <File className="w-4 h-4 text-gray-500" />
-                            <span className="font-medium">{file.path}</span>
-                            <Badge
-                              variant="outline"
-                              className={`text-xs ${getStatusColor(file.status)}`}
-                            >
-                              {getStatusIcon(file.status)}
-                              <span className="ml-1">
-                                {getStatusText(file.status)}
-                              </span>
-                            </Badge>
-                            {file.is_binary && (
-                              <Badge variant="outline" className="text-xs">
-                                {t("gitDiff.binary")}
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            {!file.is_binary && (
-                              <>
-                                <span className="text-green-600">
-                                  +{file.additions}
-                                </span>
-                                <span className="text-red-600">
-                                  -{file.deletions}
-                                </span>
-                              </>
-                            )}
-                          </div>
+            <div className="space-y-6 h-full flex flex-col">
+              {/* Summary section - 优先显示在最上方 */}
+              <Card className="flex-shrink-0">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <GitBranch className="w-5 h-5" />
+                    {t("gitDiff.summary")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Card>
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {diffSummary.total_files || 0}
                         </div>
-
-                        {expandedFiles.has(file.path) && (
-                          <div className="border-t p-4">
-                            {loadingFiles.has(file.path) ? (
-                              <div className="flex items-center justify-center py-8">
-                                <Loader2 className="w-6 h-6 animate-spin" />
-                                <span className="ml-2">
-                                  {t("common.loading")}
-                                </span>
-                              </div>
-                            ) : file.is_binary ? (
-                              <div className="text-center py-8 text-muted-foreground">
-                                {t("gitDiff.binaryFileNote")}
-                              </div>
-                            ) : (
-                              renderDiffContent(fileContents.get(file.path) || "")
-                            )}
-                          </div>
-                        )}
+                        <div className="text-sm text-muted-foreground">
+                          {t("gitDiff.filesChanged")}
+                        </div>
                       </CardContent>
                     </Card>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    {t("gitDiff.noChanges")}
+                    <Card>
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-green-600">
+                          +{diffSummary.total_additions || 0}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {t("gitDiff.additions")}
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-red-600">
+                          -{diffSummary.total_deletions || 0}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {t("gitDiff.deletions")}
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-gray-600">
+                          {diffSummary.commits_ahead || 0}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {t("gitDiff.commitsAhead")}
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                )}
-              </TabsContent>
-            </Tabs>
+                </CardContent>
+              </Card>
+
+              {/* File Changes section - 左侧文件树 + 右侧内容 */}
+              <Card className="flex-1 overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FolderOpen className="w-5 h-5" />
+                    {t("gitDiff.fileChanges")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 h-full">
+                  {safeFiles.length > 0 ? (
+                    <div className="flex flex-col md:flex-row h-full">
+                      {/* 左侧文件树 */}
+                      <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r bg-muted/20 overflow-y-auto max-h-48 md:max-h-none">
+                        <div className="p-2 md:p-4">
+                          <div className="space-y-1">
+                            {safeFiles.map((file) => (
+                              <div
+                                key={file.path}
+                                className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-muted/50 text-sm transition-colors ${
+                                  selectedFile === file.path 
+                                    ? 'bg-muted border-l-2 md:border-l-2 border-l-primary' 
+                                    : ''
+                                }`}
+                                onClick={() => handleFileSelect(file.path)}
+                              >
+                                <File className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                                <span className="font-medium truncate flex-1" title={file.path}>
+                                  <span className="hidden sm:inline">{file.path}</span>
+                                  <span className="sm:hidden">{file.path.split('/').pop() || file.path}</span>
+                                </span>
+                                <div className="flex items-center gap-1 text-xs flex-shrink-0">
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-xs px-1 py-0 ${getStatusColor(file.status)}`}
+                                  >
+                                    {getStatusIcon(file.status)}
+                                  </Badge>
+                                  {!file.is_binary && (
+                                    <div className="hidden sm:flex items-center gap-1">
+                                      <span className="text-green-600">
+                                        +{file.additions}
+                                      </span>
+                                      <span className="text-red-600">
+                                        -{file.deletions}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* 右侧变化内容 */}
+                      <div className="flex-1 overflow-y-auto">
+                        {selectedFile ? (
+                          <div className="h-full">
+                            {/* 文件头部信息 */}
+                            <div className="border-b p-2 md:p-4 bg-background sticky top-0 z-10">
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                                  <File className="w-4 h-4 md:w-5 md:h-5 text-gray-500 flex-shrink-0" />
+                                  <span className="font-medium text-sm md:text-base truncate" title={selectedFile}>
+                                    {selectedFile}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  {(() => {
+                                    const file = safeFiles.find(f => f.path === selectedFile);
+                                    return file ? (
+                                      <>
+                                        <Badge
+                                          variant="outline"
+                                          className={`text-xs ${getStatusColor(file.status)}`}
+                                        >
+                                          {getStatusIcon(file.status)}
+                                          <span className="ml-1">
+                                            {getStatusText(file.status)}
+                                          </span>
+                                        </Badge>
+                                        {file.is_binary && (
+                                          <Badge variant="outline" className="text-xs">
+                                            {t("gitDiff.binary")}
+                                          </Badge>
+                                        )}
+                                        {!file.is_binary && (
+                                          <div className="flex items-center gap-1 text-xs sm:hidden">
+                                            <span className="text-green-600">
+                                              +{file.additions}
+                                            </span>
+                                            <span className="text-red-600">
+                                              -{file.deletions}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </>
+                                    ) : null;
+                                  })()}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* 文件内容 */}
+                            <div className="p-2 md:p-4">
+                              {loadingFiles.has(selectedFile) ? (
+                                <div className="flex items-center justify-center py-12">
+                                  <div className="text-center">
+                                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                                    <span className="text-muted-foreground">
+                                      {t("common.loading")}
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : (() => {
+                                const file = safeFiles.find(f => f.path === selectedFile);
+                                return file?.is_binary ? (
+                                  <div className="text-center py-12 text-muted-foreground">
+                                    <File className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                                    <p>{t("gitDiff.binaryFileNote")}</p>
+                                  </div>
+                                ) : (
+                                  renderDiffContent(fileContents.get(selectedFile) || "")
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-muted-foreground">
+                            <div className="text-center">
+                              <File className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                              <p>{t("gitDiff.selectFile")}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-32 text-muted-foreground">
+                      {t("gitDiff.noChanges")}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           )}
         </div>
       </DialogContent>
