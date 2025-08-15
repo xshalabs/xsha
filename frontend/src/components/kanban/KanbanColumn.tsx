@@ -63,6 +63,9 @@ export function KanbanColumn({
             onDropOverListItem={(dataTransferData, dropDirection) => {
               // Handle task reordering within the same column
               console.log("Drop over task:", dataTransferData, dropDirection);
+              // For now, treat dropping over a task the same as dropping over the column
+              // This ensures cross-column drops work when dropping over existing tasks
+              onDropOverColumn(dataTransferData);
             }}
           >
             <TaskCard task={task} onClick={() => onTaskClick(task)} />

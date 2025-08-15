@@ -638,7 +638,8 @@ export function KanbanBoardColumnListItem({
       onDragOver={event => {
         if (event.dataTransfer.types.includes(DATA_TRANSFER_TYPES.CARD)) {
           event.preventDefault();
-          event.stopPropagation();
+          // Don't stop propagation here - allow the event to bubble to the column
+          // event.stopPropagation();
           const rect = event.currentTarget.getBoundingClientRect();
           const midpoint = (rect.top + rect.bottom) / 2;
           setDropDirection(event.clientY <= midpoint ? 'top' : 'bottom');
