@@ -108,6 +108,41 @@ func (h *TaskConversationHandlers) GetConversation(c *gin.Context) {
 	})
 }
 
+// GetConversationDetails retrieves a conversation with its result details
+// @Summary Get conversation details
+// @Description Get a conversation with its associated result information
+// @Tags Task Conversations
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Conversation ID"
+// @Success 200 {object} object{message=string,data=object} "Conversation details retrieved successfully"
+// @Failure 400 {object} object{error=string} "Invalid conversation ID"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 404 {object} object{error=string} "Conversation not found"
+// @Router /conversations/{id}/details [get]
+func (h *TaskConversationHandlers) GetConversationDetails(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	details, err := h.conversationService.GetConversationWithResult(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.not_found")})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "taskConversation.get_success"),
+		"data":    details,
+	})
+}
+
 // ListConversations lists conversations for a task
 // @Summary List task conversations
 // @Description Get paginated list of conversations for a specific task

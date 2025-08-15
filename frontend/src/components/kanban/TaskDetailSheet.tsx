@@ -10,6 +10,7 @@ import {
 import { PushBranchDialog } from "@/components/PushBranchDialog";
 import { TaskGitDiffModal } from "./TaskGitDiffModal";
 import { ConversationGitDiffModal } from "./ConversationGitDiffModal";
+import { ConversationDetailModal } from "@/components/ConversationDetailModal";
 import { useTaskConversations } from "@/hooks/useTaskConversations";
 import {
   TaskBasicInfo,
@@ -34,7 +35,9 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
   const [isPushDialogOpen, setIsPushDialogOpen] = useState(false);
   const [isTaskGitDiffModalOpen, setIsTaskGitDiffModalOpen] = useState(false);
   const [isConversationGitDiffModalOpen, setIsConversationGitDiffModalOpen] = useState(false);
+  const [isConversationDetailModalOpen, setIsConversationDetailModalOpen] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
+  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
 
   const {
     conversations,
@@ -90,6 +93,16 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     setSelectedConversation(null);
   }, []);
 
+  const handleViewConversationDetails = useCallback((conversationId: number) => {
+    setSelectedConversationId(conversationId);
+    setIsConversationDetailModalOpen(true);
+  }, []);
+
+  const handleCloseConversationDetails = useCallback(() => {
+    setIsConversationDetailModalOpen(false);
+    setSelectedConversationId(null);
+  }, []);
+
   // Memoized computed values
   const canSend = useMemo(() => canSendMessage(), [canSendMessage]);
   const taskCompleted = useMemo(() => isTaskCompleted(), [isTaskCompleted]);
@@ -135,6 +148,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
               taskId={task.id}
               onLoadConversations={loadConversations}
               onViewConversationGitDiff={handleViewConversationGitDiff}
+              onViewConversationDetails={handleViewConversationDetails}
               toggleExpanded={toggleExpanded}
               isConversationExpanded={isConversationExpanded}
               shouldShowExpandButton={shouldShowExpandButton}
@@ -176,6 +190,12 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
         isOpen={isConversationGitDiffModalOpen}
         onClose={handleCloseConversationGitDiff}
         conversation={selectedConversation}
+      />
+
+      <ConversationDetailModal
+        conversationId={selectedConversationId}
+        isOpen={isConversationDetailModalOpen}
+        onClose={handleCloseConversationDetails}
       />
     </>
   );

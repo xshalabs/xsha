@@ -40,6 +40,10 @@ export const taskConversationsApi = {
     return request<ConversationDetailResponse>(`/conversations/${id}`);
   },
 
+  getDetails: async (id: number): Promise<any> => {
+    return request<any>(`/conversations/${id}/details`);
+  },
+
   update: async (
     id: number,
     data: UpdateConversationRequest

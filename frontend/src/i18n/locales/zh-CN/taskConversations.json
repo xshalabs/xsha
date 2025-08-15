@@ -92,5 +92,27 @@
       "title": "没有可用的提交哈希",
       "description": "由于提交哈希不可用，无法显示Git变动"
     }
+  },
+  "details": {
+    "title": "对话详情",
+    "description": "查看对话信息和执行结果",
+    "conversationInfo": "对话信息",
+    "executionResult": "执行结果",
+    "status": "状态",
+    "createdBy": "创建者",
+    "createdAt": "创建时间",
+    "executionTime": "执行时间",
+    "commitHash": "提交哈希",
+    "content": "对话内容",
+    "resultType": "结果类型",
+    "duration": "执行时长",
+    "apiDuration": "API时长",
+    "numTurns": "对话轮数",
+    "totalCost": "总成本",
+    "sessionId": "会话ID",
+    "result": "执行结果",
+    "usage": "使用统计",
+    "noResult": "暂无执行结果",
+    "noResultDescription": "该对话尚未执行或执行失败"
   }
 } 

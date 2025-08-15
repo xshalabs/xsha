@@ -93,6 +93,7 @@ type TaskConversationService interface {
 	CreateConversation(taskID uint, content, createdBy string) (*database.TaskConversation, error)
 	CreateConversationWithExecutionTime(taskID uint, content, createdBy string, executionTime *time.Time) (*database.TaskConversation, error)
 	GetConversation(id uint) (*database.TaskConversation, error)
+	GetConversationWithResult(id uint) (map[string]interface{}, error)
 	ListConversations(taskID uint, page, pageSize int) ([]database.TaskConversation, int64, error)
 	UpdateConversation(id uint, updates map[string]interface{}) error
 	DeleteConversation(id uint) error

@@ -1,6 +1,5 @@
 import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import { MessageSquare, RefreshCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ interface ConversationListProps {
   taskId: number;
   onLoadConversations: () => void;
   onViewConversationGitDiff: (conversationId: number) => void;
+  onViewConversationDetails: (conversationId: number) => void;
   toggleExpanded: (id: number) => void;
   isConversationExpanded: (id: number) => boolean;
   shouldShowExpandButton: (content: string) => boolean;
@@ -26,18 +26,18 @@ export const ConversationList = memo<ConversationListProps>(
     taskId,
     onLoadConversations,
     onViewConversationGitDiff,
+    onViewConversationDetails,
     toggleExpanded,
     isConversationExpanded,
     shouldShowExpandButton,
   }) => {
     const { t } = useTranslation();
-    const navigate = useNavigate();
 
     const handleViewDetails = useCallback(
-      (taskId: number, conversationId: number) => {
-        navigate(`/tasks/${taskId}/conversations/${conversationId}`);
+      (_taskId: number, conversationId: number) => {
+        onViewConversationDetails(conversationId);
       },
-      [navigate]
+      [onViewConversationDetails]
     );
 
     const handleLoadConversations = useCallback(() => {

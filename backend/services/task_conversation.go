@@ -106,6 +106,20 @@ func (s *taskConversationService) GetConversation(id uint) (*database.TaskConver
 	return s.repo.GetByID(id)
 }
 
+func (s *taskConversationService) GetConversationWithResult(id uint) (map[string]interface{}, error) {
+	conversation, result, err := s.repo.GetWithResult(id)
+	if err != nil {
+		return nil, err
+	}
+
+	response := map[string]interface{}{
+		"conversation": conversation,
+		"result":       result,
+	}
+
+	return response, nil
+}
+
 func (s *taskConversationService) ListConversations(taskID uint, page, pageSize int) ([]database.TaskConversation, int64, error) {
 	if page < 1 {
 		page = 1

@@ -92,5 +92,27 @@
       "title": "No commit hash available",
       "description": "Unable to display git changes because commit hash is not available"
     }
+  },
+  "details": {
+    "title": "Conversation Details",
+    "description": "View conversation information and execution results",
+    "conversationInfo": "Conversation Information",
+    "executionResult": "Execution Result",
+    "status": "Status",
+    "createdBy": "Created By",
+    "createdAt": "Created At",
+    "executionTime": "Execution Time",
+    "commitHash": "Commit Hash",
+    "content": "Content",
+    "resultType": "Result Type",
+    "duration": "Duration",
+    "apiDuration": "API Duration",
+    "numTurns": "Number of Turns",
+    "totalCost": "Total Cost",
+    "sessionId": "Session ID",
+    "result": "Result",
+    "usage": "Usage Statistics",
+    "noResult": "No Execution Result",
+    "noResultDescription": "This conversation has not been executed or execution failed"
   }
 } 
