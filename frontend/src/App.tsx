@@ -22,12 +22,8 @@ import ProjectListPage from "@/pages/projects/ProjectListPage";
 import ProjectKanbanPage from "@/pages/projects/ProjectKanbanPage";
 
 import EnvironmentListPage from "@/pages/environments/EnvironmentListPage";
-import EnvironmentCreatePage from "@/pages/environments/EnvironmentCreatePage";
-import EnvironmentEditPage from "@/pages/environments/EnvironmentEditPage";
 
 import CredentialListPage from "@/pages/credentials/CredentialListPage";
-import CredentialCreatePage from "@/pages/credentials/CredentialCreatePage";
-import CredentialEditPage from "@/pages/credentials/CredentialEditPage";
 
 import TaskListPage from "@/pages/tasks/TaskListPage";
 import TaskCreatePage from "@/pages/tasks/TaskCreatePage";
@@ -105,26 +101,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/environments/create"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <EnvironmentCreatePage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/environments/:id/edit"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <EnvironmentEditPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+
 
             <Route
               path="/credentials"
@@ -136,26 +113,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/credentials/create"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <CredentialCreatePage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/credentials/:id/edit"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <CredentialEditPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+
 
             <Route
               path="/projects/:projectId/tasks"

@@ -126,13 +126,13 @@ export const DashboardPage: React.FC = () => {
       title: t("dashboard.quickActions.newEnvironment"),
       description: t("dashboard.quickActions.newEnvironmentDesc"),
       icon: Container,
-      action: () => navigate("/environments/create"),
+      action: () => navigate("/environments?action=create"),
     },
     {
       title: t("dashboard.quickActions.addCredential"),
       description: t("dashboard.quickActions.addCredentialDesc"),
       icon: Key,
-      action: () => navigate("/credentials/create"),
+      action: () => navigate("/credentials?action=create"),
     },
   ];
 

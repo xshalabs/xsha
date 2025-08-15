@@ -66,6 +66,7 @@
   "editAndUpdate": "编辑并更新配置",
   "editHelpText": "修改环境设置，调整资源限制和管理环境变量。",
   "configurationHelp": "环境配置将在容器创建或重启时应用。",
+  "noImagesAvailable": "没有可用的Docker镜像",
   "env_vars": {
     "title": "环境变量",
     "key": "变量名",

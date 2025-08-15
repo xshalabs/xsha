@@ -27,12 +27,8 @@ export const ROUTES = {
   projects: "/projects",
 
   devEnvironments: "/environments",
-  devEnvironmentCreate: "/environments/create",
-  devEnvironmentEdit: (id: number) => `/environments/${id}/edit`,
 
   gitCredentials: "/credentials",
-  gitCredentialCreate: "/credentials/create",
-  gitCredentialEdit: (id: number) => `/credentials/${id}/edit`,
 
   projectTasks: (projectId: number) => `/projects/${projectId}/tasks`,
   taskCreate: (projectId: number) => `/projects/${projectId}/tasks/create`,
