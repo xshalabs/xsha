@@ -45,6 +45,9 @@ export const ConversationItem = memo<ConversationItemProps>(
       onViewGitDiff(conversation.id);
     }, [conversation.id, onViewGitDiff]);
 
+    // Check if git diff should be disabled (when commit_hash is empty)
+    const isGitDiffDisabled = !conversation.commit_hash;
+
     return (
       <div className="p-4 rounded-md border border-border bg-card">
         <div className="flex items-start justify-between gap-4">
@@ -104,7 +107,11 @@ export const ConversationItem = memo<ConversationItemProps>(
                   <Eye className="mr-2 h-4 w-4" />
                   {t("taskConversations.actions.viewDetails")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleViewGitDiff}>
+                <DropdownMenuItem 
+                  onClick={handleViewGitDiff}
+                  disabled={isGitDiffDisabled}
+                  className={isGitDiffDisabled ? "opacity-50 cursor-not-allowed" : ""}
+                >
                   <FileText className="mr-2 h-4 w-4" />
                   {t("taskConversations.actions.viewGitDiff")}
                 </DropdownMenuItem>
