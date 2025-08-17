@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { tokenManager } from '@/lib/api/token';
 
@@ -81,12 +80,10 @@ export const useLogStreaming = ({
         }
         setIsConnected(true);
         setConnectionStatus('connected');
-        toast.success(t('taskConversations.logs.connected'));
       } catch (error) {
         console.error('Error parsing connected event:', error);
         setIsConnected(true);
         setConnectionStatus('connected');
-        toast.success(t('taskConversations.logs.connected'));
       }
     });
 
@@ -117,14 +114,12 @@ export const useLogStreaming = ({
         console.log('Conversation', currentConversationRef.current, 'finished successfully');
         setIsStreaming(false);
         setConnectionStatus('disconnected');
-        toast.info(t('taskConversations.logs.finished'));
       } catch (error) {
         console.error('Error parsing finished event:', error);
         isFinishedRef.current = true;
         closeConnection();
         setIsStreaming(false);
         setConnectionStatus('disconnected');
-        toast.info(t('taskConversations.logs.finished'));
       }
     });
 
@@ -136,11 +131,9 @@ export const useLogStreaming = ({
           errorMessage = data.message || errorMessage;
         }
         setConnectionStatus('error');
-        toast.error(errorMessage);
       } catch (error) {
         console.error('Error parsing error event:', error);
         setConnectionStatus('error');
-        toast.error(t('taskConversations.logs.error'));
       }
     });
 
@@ -158,11 +151,9 @@ export const useLogStreaming = ({
       if (eventSource.readyState === EventSource.CLOSED) {
         setConnectionStatus('unauthorized');
         setHasAuthError(true);
-        toast.error(t('taskConversations.logs.authError'));
         closeConnection();
       } else {
         setConnectionStatus('error');
-        toast.error(t('taskConversations.logs.connectionError'));
       }
     };
   }, [t, closeConnection]);
@@ -188,7 +179,6 @@ export const useLogStreaming = ({
     if (!token) {
       setConnectionStatus('unauthorized');
       setHasAuthError(true);
-      toast.error(t('taskConversations.logs.authRequired'));
       return;
     }
 

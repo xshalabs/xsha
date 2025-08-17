@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
-import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { LogMessage } from './useLogStreaming';
+import type { LogMessage } from './useLogStreaming';
 
 export interface UseLogDownloadReturn {
   downloadLogs: () => void;
@@ -15,7 +14,6 @@ export const useLogDownload = (
 
   const downloadLogs = useCallback(() => {
     if (logs.length === 0) {
-      toast.warning(t('taskConversations.logs.noLogsToDownload'));
       return;
     }
 
@@ -29,7 +27,6 @@ export const useLogDownload = (
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success(t('taskConversations.logs.downloaded'));
   }, [logs, conversationId, t]);
 
   return { downloadLogs };
