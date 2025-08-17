@@ -88,6 +88,7 @@
     "loadFailed": "Failed to load task",
     "createSuccess": "Task created successfully",
     "updateSuccess": "Task updated successfully",
+    "updateFailed": "Failed to update task",
     "batchUpdateFailed": "Batch update failed",
     "push_failed": "Failed to push branch"
   },

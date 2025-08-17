@@ -88,6 +88,7 @@
     "loadFailed": "加载任务失败",
     "createSuccess": "任务创建成功",
     "updateSuccess": "任务更新成功",
+    "updateFailed": "任务更新失败",
     "batchUpdateFailed": "批量更新失败",
     "push_failed": "分支推送失败"
   },

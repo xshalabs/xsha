@@ -1,6 +1,7 @@
-import { useState, useCallback, memo, useMemo } from "react";
+import { useState, useCallback, memo, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { Edit3, Check, X } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -18,6 +19,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { PushBranchDialog } from "@/components/PushBranchDialog";
 import { TaskGitDiffModal } from "./TaskGitDiffModal";
 import { ConversationGitDiffModal } from "./ConversationGitDiffModal";
@@ -65,6 +68,10 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
   const [deletingConversation, setDeletingConversation] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [updatingTitle, setUpdatingTitle] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const {
     conversations,
@@ -246,6 +253,64 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     setIsDeleteDialogOpen(false);
   }, []);
 
+  const handleStartEditTitle = useCallback(() => {
+    if (!task) return;
+    setEditingTitle(task.title);
+    setIsEditingTitle(true);
+    // Focus the input after state update
+    setTimeout(() => {
+      titleInputRef.current?.focus();
+      titleInputRef.current?.select();
+    }, 0);
+  }, [task]);
+
+  const handleCancelEditTitle = useCallback(() => {
+    setIsEditingTitle(false);
+    setEditingTitle("");
+  }, []);
+
+  const handleSaveTitle = useCallback(async () => {
+    if (!task) return;
+    
+    const trimmedTitle = editingTitle.trim();
+    if (!trimmedTitle) {
+      toast.error(t("tasks.validation.titleRequired"));
+      return;
+    }
+    
+    if (trimmedTitle === task.title) {
+      handleCancelEditTitle();
+      return;
+    }
+    
+    setUpdatingTitle(true);
+    try {
+      await tasksApi.update(task.id, { title: trimmedTitle });
+      toast.success(t("tasks.messages.updateSuccess"));
+      
+      // Update local task data
+      task.title = trimmedTitle;
+      
+      setIsEditingTitle(false);
+      setEditingTitle("");
+    } catch (error) {
+      console.error("Failed to update task title:", error);
+      toast.error(t("tasks.messages.updateFailed"));
+    } finally {
+      setUpdatingTitle(false);
+    }
+  }, [task, editingTitle, t, handleCancelEditTitle]);
+
+  const handleTitleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSaveTitle();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      handleCancelEditTitle();
+    }
+  }, [handleSaveTitle, handleCancelEditTitle]);
+
   // Memoized computed values
   const canSend = useMemo(() => canSendMessage(), [canSendMessage]);
   const taskCompleted = useMemo(() => isTaskCompleted(), [isTaskCompleted]);
@@ -257,13 +322,60 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     <>
       <Sheet open={isOpen} onOpenChange={handleCloseSheet}>
         <SheetContent 
-          className="w-full sm:w-[800px] sm:max-w-[800px] flex flex-col"
+          className="w-full sm:w-[800px] sm:max-w-[800px] flex flex-col focus:outline-none focus-visible:outline-none [&[data-state=open]]:focus:outline-none [&[data-state=open]]:focus-visible:outline-none"
           aria-describedby="task-detail-description"
+          style={{ outline: "none" }}
         >
           <SheetHeader className="border-b sticky top-0 bg-background z-10">
-            <SheetTitle className="text-foreground font-semibold">
-              {task.title}
-            </SheetTitle>
+            <div className="w-full">
+              {isEditingTitle ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    ref={titleInputRef}
+                    value={editingTitle}
+                    onChange={(e) => setEditingTitle(e.target.value)}
+                    onKeyDown={handleTitleKeyDown}
+                    disabled={updatingTitle}
+                    className="flex-1 text-lg font-semibold"
+                    placeholder={t("tasks.fields.title")}
+                  />
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSaveTitle}
+                      disabled={updatingTitle}
+                      className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950"
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCancelEditTitle}
+                      disabled={updatingTitle}
+                      className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <SheetTitle className="text-foreground font-semibold">
+                    {task.title}
+                  </SheetTitle>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleStartEditTitle}
+                    className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-800 shrink-0"
+                  >
+                    <Edit3 className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+            </div>
             <SheetDescription 
               id="task-detail-description"
               className="text-muted-foreground text-sm"
