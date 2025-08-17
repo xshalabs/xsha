@@ -1,8 +1,7 @@
 import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { MessageSquare, RefreshCcw } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ConversationItem } from "./ConversationItem";
 import { StatusDot, type ConversationStatus } from "./StatusDot";
 
@@ -51,10 +50,6 @@ export const ConversationList = memo<ConversationListProps>(
       [onViewConversationDetails]
     );
 
-    const handleLoadConversations = useCallback(() => {
-      onLoadConversations();
-    }, [onLoadConversations]);
-
     return (
       <div className="space-y-6 px-6">
         <div className="flex items-center justify-between">
@@ -67,21 +62,6 @@ export const ConversationList = memo<ConversationListProps>(
               </Badge>
             )}
           </h3>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLoadConversations}
-            disabled={conversationsLoading}
-            className="flex items-center space-x-2"
-            aria-label={t("common.refresh")}
-          >
-            <RefreshCcw
-              className={`w-4 h-4 ${
-                conversationsLoading ? "animate-spin" : ""
-              }`}
-            />
-            <span>{t("common.refresh")}</span>
-          </Button>
         </div>
 
         <div className="space-y-3">

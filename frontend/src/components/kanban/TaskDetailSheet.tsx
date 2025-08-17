@@ -1,4 +1,4 @@
-import { useState, useCallback, memo, useMemo, useRef } from "react";
+import { useState, useCallback, memo, useMemo, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Edit3, Check, X } from "lucide-react";
@@ -90,6 +90,20 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     isTaskCompleted,
     hasPendingOrRunningConversations,
   } = useTaskConversations(task);
+
+  // Auto-refresh conversations every second when sheet is open
+  useEffect(() => {
+    if (!isOpen || !task) return;
+    
+    const interval = setInterval(() => {
+      // Only refresh if not currently sending a message
+      if (!sending) {
+        loadConversations();
+      }
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [isOpen, task, sending, loadConversations]);
 
   // Memoized event handlers
   const handleViewConversationGitDiff = useCallback((conversationId: number) => {
