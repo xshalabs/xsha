@@ -2,7 +2,6 @@ import { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { User, MoreHorizontal, Eye, FileText, Terminal, RotateCcw, X, Trash2, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,7 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getConversationStatusColor, formatTime } from "./utils";
+import { StatusDot, type ConversationStatus } from "./StatusDot";
+import { formatTime } from "./utils";
 
 interface ConversationItemProps {
   conversation: any;
@@ -161,10 +161,8 @@ export const ConversationItem = memo<ConversationItemProps>(
             )}
           </div>
 
-          <div className="flex items-center space-x-2 shrink-0">
-            <Badge className={getConversationStatusColor(conversation.status)}>
-              {t(`taskConversations.status.${conversation.status}`)}
-            </Badge>
+          <div className="flex items-center space-x-3 shrink-0">
+            <StatusDot status={conversation.status as ConversationStatus} />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

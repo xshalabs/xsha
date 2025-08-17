@@ -4,6 +4,7 @@ import { MessageSquare, RefreshCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConversationItem } from "./ConversationItem";
+import { StatusDot, type ConversationStatus } from "./StatusDot";
 
 interface ConversationListProps {
   conversations: any[];
@@ -93,26 +94,67 @@ export const ConversationList = memo<ConversationListProps>(
               </p>
             </div>
           ) : (
-            conversations.map((conversation, index) => (
-              <ConversationItem
-                key={conversation.id}
-                conversation={conversation}
-                task={task}
-                taskId={taskId}
-                isExpanded={isConversationExpanded(conversation.id)}
-                shouldShowExpandButton={shouldShowExpandButton(
-                  conversation.content
-                )}
-                isLatest={index === conversations.length - 1}
-                onToggleExpanded={toggleExpanded}
-                onViewDetails={handleViewDetails}
-                onViewGitDiff={onViewConversationGitDiff}
-                onViewLogs={onViewConversationLogs}
-                onRetry={onRetryConversation}
-                onCancel={onCancelConversation}
-                onDelete={onDeleteConversation}
-              />
-            ))
+            <>
+              {conversations.map((conversation, index) => (
+                <ConversationItem
+                  key={conversation.id}
+                  conversation={conversation}
+                  task={task}
+                  taskId={taskId}
+                  isExpanded={isConversationExpanded(conversation.id)}
+                  shouldShowExpandButton={shouldShowExpandButton(
+                    conversation.content
+                  )}
+                  isLatest={index === conversations.length - 1}
+                  onToggleExpanded={toggleExpanded}
+                  onViewDetails={handleViewDetails}
+                  onViewGitDiff={onViewConversationGitDiff}
+                  onViewLogs={onViewConversationLogs}
+                  onRetry={onRetryConversation}
+                  onCancel={onCancelConversation}
+                  onDelete={onDeleteConversation}
+                />
+              ))}
+              
+              {/* Status Legend */}
+              <div className="mt-6 pt-4 border-t border-border">
+                <div className="text-xs text-muted-foreground mb-3 font-medium">
+                  {t("taskConversations.statusLegend")}:
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-x-4 gap-y-2 text-xs">
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <StatusDot status="pending" />
+                    <span className="text-muted-foreground truncate">
+                      {t("taskConversations.status.pending")}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <StatusDot status="running" />
+                    <span className="text-muted-foreground truncate">
+                      {t("taskConversations.status.running")}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <StatusDot status="success" />
+                    <span className="text-muted-foreground truncate">
+                      {t("taskConversations.status.success")}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <StatusDot status="failed" />
+                    <span className="text-muted-foreground truncate">
+                      {t("taskConversations.status.failed")}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <StatusDot status="cancelled" />
+                    <span className="text-muted-foreground truncate">
+                      {t("taskConversations.status.cancelled")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>

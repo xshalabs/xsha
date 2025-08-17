@@ -415,18 +415,20 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
               shouldShowExpandButton={shouldShowExpandButton}
             />
 
-            {/* 发送对话消息板块 */}
-            <NewMessageForm
-              newMessage={newMessage}
-              executionTime={executionTime}
-              sending={sending}
-              canSendMessage={canSend}
-              isTaskCompleted={taskCompleted}
-              _hasPendingOrRunningConversations={hasPendingConversations}
-              onMessageChange={setNewMessage}
-              onExecutionTimeChange={setExecutionTime}
-              onSendMessage={handleSendMessage}
-            />
+            {/* 发送对话消息板块 - 仅在任务未完成时显示 */}
+            {task.status !== "done" && (
+              <NewMessageForm
+                newMessage={newMessage}
+                executionTime={executionTime}
+                sending={sending}
+                canSendMessage={canSend}
+                isTaskCompleted={taskCompleted}
+                _hasPendingOrRunningConversations={hasPendingConversations}
+                onMessageChange={setNewMessage}
+                onExecutionTimeChange={setExecutionTime}
+                onSendMessage={handleSendMessage}
+              />
+            )}
           </div>
         </SheetContent>
       </Sheet>

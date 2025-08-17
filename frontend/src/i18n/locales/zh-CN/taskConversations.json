@@ -22,6 +22,7 @@
     "failed": "失败",
     "cancelled": "已取消"
   },
+  "statusLegend": "状态说明",
   "empty": {
     "title": "暂无对话",
     "description": "开始您的第一个对话"

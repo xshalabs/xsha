@@ -22,6 +22,7 @@
     "failed": "Failed",
     "cancelled": "Cancelled"
   },
+  "statusLegend": "Status Legend",
   "empty": {
     "title": "No conversations yet",
     "description": "Start your first conversation"
