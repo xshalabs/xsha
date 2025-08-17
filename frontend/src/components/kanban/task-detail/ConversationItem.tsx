@@ -1,6 +1,7 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { User, MoreHorizontal, Eye, FileText, Terminal, RotateCcw, X, Trash2 } from "lucide-react";
+import { User, MoreHorizontal, Eye, FileText, Terminal, RotateCcw, X, Trash2, Copy, Check } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,6 +46,20 @@ export const ConversationItem = memo<ConversationItemProps>(
     onDelete,
   }) => {
     const { t } = useTranslation();
+    const [copied, setCopied] = useState(false);
+
+    const handleCopyContent = useCallback(async () => {
+      try {
+        await navigator.clipboard.writeText(conversation.content);
+        toast.success(t("common.copied_to_clipboard"));
+        setCopied(true);
+        // Reset the copied state after 2 seconds
+        setTimeout(() => setCopied(false), 2000);
+      } catch (error) {
+        console.error("Failed to copy:", error);
+        toast.error(t("common.copy_failed"));
+      }
+    }, [conversation.content, t]);
 
     const handleToggleExpanded = useCallback(() => {
       onToggleExpanded(conversation.id);
@@ -109,12 +124,27 @@ export const ConversationItem = memo<ConversationItemProps>(
                 {formatTime(conversation.created_at)}
               </time>
             </div>
-            <div
-              className={`text-sm whitespace-pre-wrap ${
-                isExpanded ? "" : shouldShowExpandButton ? "line-clamp-3" : ""
-              }`}
-            >
-              {conversation.content}
+            <div className="relative group">
+              <div
+                className={`text-sm whitespace-pre-wrap pr-8 ${
+                  isExpanded ? "" : shouldShowExpandButton ? "line-clamp-3" : ""
+                }`}
+              >
+                {conversation.content}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCopyContent}
+                className="absolute top-0 right-0 h-6 w-6 p-0 text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                title={t("common.copy")}
+              >
+                {copied ? (
+                  <Check className="h-3 w-3 text-green-600" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
+              </Button>
             </div>
             {shouldShowExpandButton && (
               <Button
@@ -163,6 +193,14 @@ export const ConversationItem = memo<ConversationItemProps>(
                 >
                   <Terminal className="mr-2 h-4 w-4" />
                   {t("taskConversations.actions.logs")}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={isGitDiffDisabled ? undefined : handleViewGitDiff}
+                  disabled={isGitDiffDisabled}
+                  className={isGitDiffDisabled ? "opacity-50 cursor-not-allowed" : ""}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  {t("taskConversations.actions.viewGitDiff")}
                 </DropdownMenuItem>
                 {isRetryEnabled && (
                   <DropdownMenuItem onClick={handleRetry}>
