@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Plus, Save, FolderOpen } from "lucide-react";
+import { Plus, Save, FolderOpen, ArrowLeft } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/Logo";
+import { ProjectSwitcher } from "@/components/ProjectSwitcher";
 import {
   FormSheet,
   FormSheetContent,
@@ -31,8 +34,8 @@ import {
   AppHeader,
   AppHeaderContent,
   AppHeaderActions,
-  NavBreadcrumb,
 } from "@/components/nav";
+
 
 import type { TaskStatus } from "@/types/task";
 
@@ -51,6 +54,7 @@ export default function ProjectKanbanPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { projectId } = useParams<{ projectId: string }>();
+  const isMobile = useIsMobile();
 
   // Use custom hooks for data management
   const {
@@ -83,25 +87,7 @@ export default function ProjectKanbanPage() {
     navigate(`/projects/${newProjectId}/kanban`);
   };
 
-  const breadcrumbItems = [
-    {
-      type: "link" as const,
-      label: t("navigation.projects"),
-      href: "/projects",
-    },
-    project
-      ? {
-          type: "select" as const,
-          value: projectId || "",
-          items: projects.map((proj) => ({
-            value: proj.id.toString(),
-            label: proj.name,
-            icon: FolderOpen,
-          })),
-          onValueChange: handleProjectChange,
-        }
-      : { type: "page" as const, label: t("common.loading") },
-  ].filter(Boolean);
+
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
@@ -164,12 +150,17 @@ export default function ProjectKanbanPage() {
       <div className="min-h-screen bg-background">
         <AppHeader>
           <AppHeaderContent>
-            <Skeleton className="h-6 w-48" />
+            <div className={`flex items-center ${isMobile ? "gap-2" : "gap-4"}`}>
+              {/* Logo */}
+              <Logo className={`${isMobile ? "h-6 w-auto" : "h-8 w-auto"} flex-shrink-0`} />
+              {/* Project Switcher Skeleton */}
+              <Skeleton className={`h-10 ${isMobile ? "w-44" : "w-64"}`} />
+            </div>
           </AppHeaderContent>
           <AppHeaderActions>
-            <div className="flex items-center space-x-4">
-              <Skeleton className="h-8 w-24" />
-              <Skeleton className="h-8 w-8" />
+            <div className={`flex items-center ${isMobile ? "gap-1" : "gap-2"}`}>
+              <Skeleton className={`h-8 ${isMobile ? "w-8" : "w-24"}`} />
+              <Skeleton className={`h-8 ${isMobile ? "w-16" : "w-24"}`} />
             </div>
           </AppHeaderActions>
         </AppHeader>
@@ -219,13 +210,38 @@ export default function ProjectKanbanPage() {
       {/* Header */}
       <AppHeader>
         <AppHeaderContent>
-          <NavBreadcrumb items={breadcrumbItems} />
+          <div className={`flex items-center ${isMobile ? "gap-2" : "gap-4"}`}>
+            {/* Logo */}
+            <Logo className={`${isMobile ? "h-6 w-auto" : "h-8 w-auto"} flex-shrink-0`} />
+            
+            {/* Project Switcher */}
+            {project && (
+              <ProjectSwitcher
+                projects={projects}
+                currentProject={project}
+                onProjectChange={handleProjectChange}
+              />
+            )}
+          </div>
         </AppHeaderContent>
         <AppHeaderActions>
-          <div className="flex items-center gap-2">
-            <Button onClick={handleAddTask} size="sm">
+          <div className={`flex items-center ${isMobile ? "gap-1" : "gap-2"}`}>
+            <Button 
+              variant="ghost" 
+              size={isMobile ? "sm" : "sm"}
+              onClick={() => navigate("/projects")}
+              className={`flex items-center ${isMobile ? "gap-1 px-2" : "gap-2"}`}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {!isMobile && t("navigation.projects")}
+            </Button>
+            <Button 
+              onClick={handleAddTask} 
+              size="sm"
+              className={isMobile ? "px-2" : ""}
+            >
               <Plus className="h-4 w-4 mr-2" />
-              {t("tasks.addTask")}
+{isMobile ? t("common.create") : t("tasks.addTask")}
             </Button>
           </div>
         </AppHeaderActions>
