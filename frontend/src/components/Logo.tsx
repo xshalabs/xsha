@@ -15,10 +15,20 @@ export const Logo: React.FC<LogoProps> = ({
   alt = "XSHA" 
 }) => {
   const { theme } = useTheme();
-  const { state } = useSidebar();
+  
+  // Try to get sidebar state, but handle gracefully if not in a SidebarProvider context
+  let sidebarState: "expanded" | "collapsed" | null = null;
+  try {
+    const { state } = useSidebar();
+    sidebarState = state;
+  } catch (error) {
+    // useSidebar hook is not available (e.g., on login page), that's fine
+    sidebarState = null;
+  }
 
   // 当侧边栏收缩时使用 logo.png，否则根据主题使用相应的logo
-  const logoSrc = state === "collapsed" 
+  // If no sidebar context, default to theme-based logo
+  const logoSrc = sidebarState === "collapsed" 
     ? logoImage 
     : (theme === 'dark' ? xshaDarkLogo : xshaLightLogo);
 
