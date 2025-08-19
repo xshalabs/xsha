@@ -79,6 +79,8 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     setNewMessage,
     executionTime,
     setExecutionTime,
+    model,
+    setModel,
     sending,
     loadConversations,
     handleSendMessage,
@@ -429,14 +431,17 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
             {/* 发送对话消息板块 - 仅在任务未完成时显示 */}
             {task.status !== "done" && (
               <NewMessageForm
+                task={task}
                 newMessage={newMessage}
                 executionTime={executionTime}
+                model={model}
                 sending={sending}
                 canSendMessage={canSend}
                 isTaskCompleted={taskCompleted}
                 _hasPendingOrRunningConversations={hasPendingConversations}
                 onMessageChange={setNewMessage}
                 onExecutionTimeChange={setExecutionTime}
+                onModelChange={setModel}
                 onSendMessage={handleSendMessage}
               />
             )}

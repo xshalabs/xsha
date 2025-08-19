@@ -11,6 +11,7 @@ export function useTaskConversations(task: Task | null) {
   const [conversationsLoading, setConversationsLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [executionTime, setExecutionTime] = useState<Date | undefined>(undefined);
+  const [model, setModel] = useState("default");
   const [sending, setSending] = useState(false);
   const [expandedConversations, setExpandedConversations] = useState<Set<number>>(new Set());
 
@@ -36,15 +37,23 @@ export function useTaskConversations(task: Task | null) {
 
     setSending(true);
     try {
+      // Prepare env_params based on task environment
+      let envParams = "{}";
+      if (task.dev_environment?.type === "claude-code" && model !== "default") {
+        envParams = JSON.stringify({ model });
+      }
+
       await apiService.taskConversations.create({
         task_id: task.id,
         content: newMessage.trim(),
         execution_time: executionTime?.toISOString(),
+        env_params: envParams,
       });
 
       // Clear form and refresh conversations list
       setNewMessage("");
       setExecutionTime(undefined);
+      setModel("default");
       await loadConversations();
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -92,6 +101,7 @@ export function useTaskConversations(task: Task | null) {
       setConversations([]);
       setNewMessage("");
       setExecutionTime(undefined);
+      setModel("default");
       setSending(false);
       setExpandedConversations(new Set());
       loadConversations();
@@ -105,6 +115,8 @@ export function useTaskConversations(task: Task | null) {
     setNewMessage,
     executionTime,
     setExecutionTime,
+    model,
+    setModel,
     sending,
     expandedConversations,
     loadConversations,

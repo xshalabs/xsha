@@ -12,6 +12,7 @@ export interface TaskConversation {
   status: ConversationStatus;
   execution_time?: string; // ISO 8601 date string
   commit_hash: string;
+  env_params: string; // JSON string containing environment parameters
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -25,6 +26,7 @@ export interface CreateConversationRequest {
   task_id: number;
   content: string;
   execution_time?: string; // ISO 8601 date string
+  env_params?: string; // JSON string containing environment parameters
 }
 
 export interface UpdateConversationRequest {
@@ -65,6 +67,7 @@ export interface LatestConversationResponse {
 export interface ConversationFormData {
   content: string;
   execution_time?: Date; // Date object for form handling
+  model?: string; // Model selection for claude-code environments
 }
 
 // Git diff types for conversations
@@ -105,4 +108,17 @@ export interface GitDiffSummary {
   files: GitDiffFile[];
   commits_behind: number;
   commits_ahead: number;
+}
+
+// Claude model options for claude-code environments
+export type ClaudeModel = "default" | "sonnet" | "opus";
+
+export interface ClaudeModelOption {
+  value: ClaudeModel;
+  label: string;
+}
+
+// Environment parameters interface
+export interface EnvironmentParams {
+  model?: ClaudeModel;
 }

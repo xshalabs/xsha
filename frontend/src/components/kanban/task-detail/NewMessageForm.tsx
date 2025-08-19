@@ -1,33 +1,47 @@
 import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Send, MessageSquare, Clock } from "lucide-react";
+import { Send, MessageSquare, Clock, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { Task } from "@/types/task";
 
 interface NewMessageFormProps {
+  task: Task;
   newMessage: string;
   executionTime: Date | undefined;
+  model: string;
   sending: boolean;
   canSendMessage: boolean;
   isTaskCompleted: boolean;
   _hasPendingOrRunningConversations: boolean;
   onMessageChange: (message: string) => void;
   onExecutionTimeChange: (time: Date | undefined) => void;
+  onModelChange: (model: string) => void;
   onSendMessage: () => void;
 }
 
 export const NewMessageForm = memo<NewMessageFormProps>(
   ({
+    task,
     newMessage,
     executionTime,
+    model,
     sending,
     canSendMessage,
     isTaskCompleted,
     _hasPendingOrRunningConversations,
     onMessageChange,
     onExecutionTimeChange,
+    onModelChange,
     onSendMessage,
   }) => {
     const { t } = useTranslation();
@@ -107,6 +121,56 @@ export const NewMessageForm = memo<NewMessageFormProps>(
               {t("taskConversations.executionTimeHint")}
             </p>
           </div>
+
+          {/* Model Selection - Only show for claude-code environments */}
+          {task.dev_environment?.type === "claude-code" && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="model" className="text-sm font-medium">
+                  {t("taskConversations.model")}:
+                </Label>
+              </div>
+              <Select
+                value={model}
+                onValueChange={onModelChange}
+                disabled={sending}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("taskConversations.selectModel")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-medium">{t("taskConversations.model.default")}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        {t("taskConversations.model.defaultDescription")}
+                      </span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="sonnet">
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-medium">{t("taskConversations.model.sonnet")}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        Sonnet
+                      </span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="opus">
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-medium">{t("taskConversations.model.opus")}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        Opus
+                      </span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {t("taskConversations.modelHint")}
+              </p>
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <div

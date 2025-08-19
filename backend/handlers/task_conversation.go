@@ -32,6 +32,7 @@ type CreateConversationRequest struct {
 	TaskID        uint       `json:"task_id" binding:"required" example:"1"`
 	Content       string     `json:"content" binding:"required" example:"Please implement the user authentication feature"`
 	ExecutionTime *time.Time `json:"execution_time" example:"2024-01-01T10:00:00Z"`
+	EnvParams     string     `json:"env_params" example:"{\"model\":\"sonnet\"}"`
 }
 
 // @Description Update conversation request
@@ -66,7 +67,7 @@ func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 		return
 	}
 
-	conversation, err := h.conversationService.CreateConversationWithExecutionTime(req.TaskID, req.Content, username.(string), req.ExecutionTime)
+	conversation, err := h.conversationService.CreateConversationWithExecutionTime(req.TaskID, req.Content, username.(string), req.ExecutionTime, req.EnvParams)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return

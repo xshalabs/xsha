@@ -100,7 +100,7 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	}
 
 	imageName := devEnv.DockerImage
-	aiCommand := d.buildAICommand(devEnv.Type, conv.Content, isInContainer, conv.Task, devEnv)
+	aiCommand := d.buildAICommand(devEnv.Type, conv.Content, isInContainer, conv.Task, devEnv, conv)
 
 	cmd = append(cmd, imageName)
 	cmd = append(cmd, aiCommand...)
@@ -108,7 +108,7 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	return strings.Join(cmd, " ")
 }
 
-func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer bool, task *database.Task, devEnv *database.DevEnvironment) []string {
+func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer bool, task *database.Task, devEnv *database.DevEnvironment, conv *database.TaskConversation) []string {
 	var baseCommand []string
 
 	switch envType {
@@ -123,6 +123,18 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 
 		if task.SessionID != "" {
 			claudeCommand = append(claudeCommand, "-r", task.SessionID)
+		}
+
+		// Parse env_params to check for model parameter
+		if conv != nil && conv.EnvParams != "" && conv.EnvParams != "{}" {
+			var envParams map[string]interface{}
+			if err := json.Unmarshal([]byte(conv.EnvParams), &envParams); err == nil {
+				if model, exists := envParams["model"]; exists {
+					if modelStr, ok := model.(string); ok && modelStr != "default" {
+						claudeCommand = append(claudeCommand, "--model", modelStr)
+					}
+				}
+			}
 		}
 
 		// Add system prompt if project has one

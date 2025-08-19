@@ -37,6 +37,7 @@ type CreateTaskRequest struct {
 	RequirementDesc  string     `json:"requirement_desc" binding:"required" example:"Fix the login validation issue"`
 	IncludeBranches  bool       `json:"include_branches" example:"true"`
 	ExecutionTime    *time.Time `json:"execution_time" example:"2024-01-01T10:00:00Z"`
+	EnvParams        string     `json:"env_params" example:"{\"model\":\"sonnet\"}"`
 }
 
 // @Description Create task response
@@ -93,6 +94,7 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 			req.RequirementDesc,
 			username.(string),
 			req.ExecutionTime,
+			req.EnvParams,
 		)
 		if err != nil {
 			utils.Error("Failed to create conversation", "taskID", task.ID, "error", err)

@@ -28,6 +28,7 @@
     "title": "任务标题",
     "requirementDesc": "需求描述",
     "project": "项目",
+    "model": "模型",
     "startBranch": "起始分支",
     "devEnvironment": "开发环境",
     "work_branch": "工作分支",
@@ -57,7 +58,9 @@
     "createFooterInfo": "请确保提供清晰的需求并选择正确的开发环境以获得最佳的任务执行效果。",
     "editFooterInfo": "更改将立即保存。您可以从任务列表查看任务对话和执行日志。",
     "executionTimePlaceholder": "选择执行时间（可选）",
-    "executionTimeHint": "如果不设置执行时间，任务将立即执行"
+    "executionTimeHint": "如果不设置执行时间，任务将立即执行",
+    "selectModel": "选择模型",
+    "modelHint": "仅对Claude Code环境可用，选择要使用的模型版本"
   },
   "validation": {
     "titleRequired": "请输入任务标题",
@@ -143,5 +146,11 @@
     "minutesLater": "{{minutes}}分钟后",
     "hoursLater": "{{hours}}小时后",
     "daysLater": "{{days}}天后"
+  },
+  "model": {
+    "default": "默认",
+    "defaultDescription": "使用默认模型",
+    "sonnet": "Sonnet",
+    "opus": "Opus"
   }
 }

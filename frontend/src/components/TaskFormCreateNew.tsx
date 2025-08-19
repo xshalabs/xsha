@@ -53,6 +53,7 @@ export function TaskFormCreateNew({
     requirement_desc: "",
     execution_time: undefined,
     include_branches: true,
+    model: "default",
   });
 
   // UI state
@@ -386,6 +387,56 @@ export function TaskFormCreateNew({
               {t("tasks.form.devEnvironmentHint")}
             </p>
           </div>
+
+          {/* Model Selection - Only show for claude-code environments */}
+          {formData.dev_environment_id && devEnvironments.find(env => env.id === formData.dev_environment_id)?.type === "claude-code" && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="model" className="text-sm font-medium">
+                  {t("tasks.fields.model")}
+                </Label>
+              </div>
+              <Select
+                value={formData.model || "default"}
+                onValueChange={(value) => handleChange("model", value)}
+                disabled={submitting}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("tasks.form.selectModel")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-medium">{t("tasks.model.default")}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        {t("tasks.model.defaultDescription")}
+                      </span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="sonnet">
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-medium">{t("tasks.model.sonnet")}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        Sonnet
+                      </span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="opus">
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-medium">{t("tasks.model.opus")}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        Opus
+                      </span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {t("tasks.form.modelHint")}
+              </p>
+            </div>
+          )}
 
           {/* Start Branch */}
           <div className="space-y-2">
