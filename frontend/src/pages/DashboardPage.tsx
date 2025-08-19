@@ -137,7 +137,7 @@ export const DashboardPage: React.FC = () => {
   ];
 
   const handleTaskClick = (task: RecentTask) => {
-    navigate(ROUTES.taskConversation(task.project_id, task.id));
+    navigate(`/projects/${task.project_id}/kanban?taskId=${task.id}`);
   };
 
   return (

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Plus, Save, FolderOpen, ArrowLeft } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -54,6 +54,7 @@ export default function ProjectKanbanPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { projectId } = useParams<{ projectId: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
 
   // Use custom hooks for data management
@@ -74,6 +75,28 @@ export default function ProjectKanbanPage() {
   usePageTitle(
     project ? `${project.name} - ${t("common.kanban")}` : t("common.kanban")
   );
+
+  // Handle taskId from URL parameters
+  useEffect(() => {
+    const taskIdParam = searchParams.get('taskId');
+    if (taskIdParam && !loading && tasks) {
+      const taskId = parseInt(taskIdParam, 10);
+      if (!isNaN(taskId)) {
+        // Find the task in all columns
+        const allTasks = Object.values(tasks).flat();
+        const targetTask = allTasks.find(task => task.id === taskId);
+        
+        if (targetTask) {
+          setSelectedTask(targetTask);
+          setIsSheetOpen(true);
+          // Remove taskId from URL to clean up
+          const newSearchParams = new URLSearchParams(searchParams);
+          newSearchParams.delete('taskId');
+          setSearchParams(newSearchParams, { replace: true });
+        }
+      }
+    }
+  }, [loading, tasks, searchParams, setSearchParams]);
 
 
 
