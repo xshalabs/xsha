@@ -1,6 +1,4 @@
-import * as React from "react";
 import { Building2, ChevronsUpDown, FolderOpen } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 import {
   DropdownMenu,
@@ -17,16 +15,13 @@ interface ProjectSwitcherProps {
   projects: Project[];
   currentProject: Project;
   onProjectChange: (projectId: string) => void;
-  className?: string;
 }
 
 export function ProjectSwitcher({
   projects,
   currentProject,
   onProjectChange,
-  className,
 }: ProjectSwitcherProps) {
-  const navigate = useNavigate();
   const isMobile = useIsMobile();
 
   const handleProjectSelect = (project: Project) => {

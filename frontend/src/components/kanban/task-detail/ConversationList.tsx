@@ -3,15 +3,13 @@ import { useTranslation } from "react-i18next";
 import { MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ConversationItem } from "./ConversationItem";
-import { StatusDot, type ConversationStatus } from "./StatusDot";
+import { StatusDot } from "./StatusDot";
 
 interface ConversationListProps {
   conversations: any[];
-  conversationsLoading: boolean;
   conversationCount: number;
   task: any;
   taskId: number;
-  onLoadConversations: () => void;
   onViewConversationGitDiff: (conversationId: number) => void;
   onViewConversationDetails: (conversationId: number) => void;
   onViewConversationLogs: (conversationId: number) => void;
@@ -26,11 +24,9 @@ interface ConversationListProps {
 export const ConversationList = memo<ConversationListProps>(
   ({
     conversations,
-    conversationsLoading,
     conversationCount,
     task,
     taskId,
-    onLoadConversations,
     onViewConversationGitDiff,
     onViewConversationDetails,
     onViewConversationLogs,

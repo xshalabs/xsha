@@ -75,7 +75,6 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
 
   const {
     conversations,
-    conversationsLoading,
     newMessage,
     setNewMessage,
     executionTime,
@@ -413,11 +412,9 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
             {/* 对话信息板块 */}
             <ConversationList
               conversations={conversations}
-              conversationsLoading={conversationsLoading}
               conversationCount={task.conversation_count}
               task={task}
               taskId={task.id}
-              onLoadConversations={loadConversations}
               onViewConversationGitDiff={handleViewConversationGitDiff}
               onViewConversationDetails={handleViewConversationDetails}
               onViewConversationLogs={handleViewConversationLogs}
