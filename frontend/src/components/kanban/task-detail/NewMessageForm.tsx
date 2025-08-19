@@ -128,7 +128,7 @@ export const NewMessageForm = memo<NewMessageFormProps>(
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4 text-muted-foreground" />
                 <Label htmlFor="model" className="text-sm font-medium">
-                  {t("taskConversations.model")}:
+                  {t("tasks.fields.model")}:
                 </Label>
               </div>
               <Select

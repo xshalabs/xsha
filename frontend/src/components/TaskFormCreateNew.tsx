@@ -32,7 +32,7 @@ import { projectsApi } from "@/lib/api/projects";
 interface TaskFormCreateNewProps {
   defaultProjectId?: number;
   currentProject?: Project;
-  onSubmit: (data: TaskFormData) => Promise<void>;
+  onSubmit: (data: TaskFormData, selectedEnvironment?: DevEnvironment) => Promise<void>;
   formId?: string;
 }
 
@@ -199,7 +199,12 @@ export function TaskFormCreateNew({
 
     setSubmitting(true);
     try {
-      await onSubmit({ ...formData, include_branches: true });
+      // Find the selected environment from loaded environments
+      const selectedEnvironment = formData.dev_environment_id 
+        ? devEnvironments.find(env => env.id === formData.dev_environment_id)
+        : undefined;
+      
+      await onSubmit({ ...formData, include_branches: true }, selectedEnvironment);
     } catch (error) {
       console.error("Failed to submit task:", error);
     } finally {

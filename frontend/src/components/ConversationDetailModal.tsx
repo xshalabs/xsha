@@ -198,7 +198,7 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
           {parseEnvParams?.model && (
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-w-0">
               <span className="text-sm text-muted-foreground min-w-0">
-                {t("taskConversations.details.model")}:
+                {t("tasks.fields.model")}:
               </span>
               <Badge variant="outline" className="self-start sm:self-auto">
                 {parseEnvParams.model}
