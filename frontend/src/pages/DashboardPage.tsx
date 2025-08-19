@@ -100,7 +100,7 @@ export const DashboardPage: React.FC = () => {
     {
       title: t("dashboard.metrics.recentTasks"),
       value: stats.recent_tasks.toString(),
-      href: "/tasks",
+      href: "",
       variant: "default" as const,
       icon: Activity,
       clickable: false,
@@ -108,7 +108,7 @@ export const DashboardPage: React.FC = () => {
     {
       title: t("dashboard.metrics.taskConversations"),
       value: stats.task_conversations.toString(),
-      href: "/tasks",
+      href: "",
       variant: "default" as const,
       icon: MessageCircle,
       clickable: false,

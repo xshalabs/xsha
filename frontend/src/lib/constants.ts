@@ -25,8 +25,6 @@ export const ROUTES = {
   projects: "/projects",
   devEnvironments: "/environments",
   gitCredentials: "/credentials",
-  taskConversation: (projectId: number, taskId: number) =>
-    `/projects/${projectId}/tasks/${taskId}/conversation`,
   systemConfigs: "/settings",
   settings: "/settings",
   profile: "/profile",
