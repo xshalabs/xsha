@@ -13,26 +13,14 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { LoginPage } from "@/pages/LoginPage";
 import { DashboardPage } from "@/pages/DashboardPage";
-
 import { OperationLogsPage } from "@/pages/logs/OperationLogsPage";
 import { LoginLogsPage } from "@/pages/logs/LoginLogsPage";
 import { AuditStatsPage } from "@/pages/logs/AuditStatsPage";
-
 import ProjectListPage from "@/pages/projects/ProjectListPage";
 import ProjectKanbanPage from "@/pages/projects/ProjectKanbanPage";
-
 import EnvironmentListPage from "@/pages/environments/EnvironmentListPage";
-
 import CredentialListPage from "@/pages/credentials/CredentialListPage";
-
-import TaskListPage from "@/pages/tasks/TaskListPage";
-import TaskCreatePage from "@/pages/tasks/TaskCreatePage";
-import TaskEditPage from "@/pages/tasks/TaskEditPage";
-import TaskConversationPage from "@/pages/tasks/TaskConversationPage";
-import TaskConversationGitDiffPage from "@/pages/tasks/TaskConversationGitDiffPage";
-
 import SettingsPage from "@/pages/settings/Settings";
-import TaskGitDiffPage from "@/pages/tasks/TaskGitDiffPage";
 
 import "./App.css";
 
@@ -102,7 +90,6 @@ function App() {
               }
             />
 
-
             <Route
               path="/credentials"
               element={
@@ -113,71 +100,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
-
-            <Route
-              path="/projects/:projectId/tasks"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <TaskListPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/:projectId/tasks/create"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <TaskCreatePage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/:projectId/tasks/:taskId/edit"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <TaskEditPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/:projectId/tasks/:taskId/conversation"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <TaskConversationPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/:projectId/tasks/:taskId/conversation/git-diff/:conversationId"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <TaskConversationGitDiffPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/:projectId/tasks/:taskId/git-diff"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <TaskGitDiffPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-
-
-
             <Route
               path="/logs/operation-logs"
               element={
