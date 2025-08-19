@@ -283,12 +283,7 @@ const ProjectListPage: React.FC = () => {
     [loadProjectsData, currentPage, columnFilters, sorting]
   );
 
-  const handleManageTasks = useCallback(
-    (project: Project) => {
-      navigate(`/projects/${project.id}/tasks`);
-    },
-    [navigate]
-  );
+
 
   const handleKanban = useCallback(
     (project: Project) => {
@@ -352,10 +347,9 @@ const ProjectListPage: React.FC = () => {
         t,
         onEdit: handleEdit,
         onDelete: handleDelete,
-        onManageTasks: handleManageTasks,
         onKanban: handleKanban,
       }),
-    [t, handleEdit, handleDelete, handleManageTasks, handleKanban]
+    [t, handleEdit, handleDelete, handleKanban]
   );
 
   return (

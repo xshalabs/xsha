@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Edit, FolderOpen, Copy, Columns } from "lucide-react";
+import { Edit, Copy, Columns } from "lucide-react";
 import type { TFunction } from "i18next";
 import { QuickActions } from "@/components/ui/quick-actions";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,6 @@ interface ProjectColumnsProps {
   t: TFunction;
   onEdit: (project: Project) => void;
   onDelete: (id: number) => void;
-  onManageTasks: (project: Project) => void;
   onKanban: (project: Project) => void;
 }
 
@@ -22,7 +21,6 @@ export const createProjectColumns = ({
   t,
   onEdit,
   onDelete,
-  onManageTasks,
   onKanban,
 }: ProjectColumnsProps): ColumnDef<Project>[] => [
   {
@@ -140,12 +138,6 @@ export const createProjectColumns = ({
       const project = row.original;
 
       const actions = [
-        {
-          id: "manage-tasks",
-          label: t("projects.tasksManagement"),
-          icon: FolderOpen,
-          onClick: () => onManageTasks(project),
-        },
         {
           id: "kanban",
           label: t("projects.kanban"),
