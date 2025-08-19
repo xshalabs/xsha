@@ -1,193 +1,215 @@
 ---
-globs: frontend/src/**/*.tsx,frontend/src/**/*.ts
+globs: frontend/**/*.{ts,tsx,js,jsx}
 ---
-# Frontend Development Patterns for XSHA
 
-## Technology Stack
-- **Framework**: React 19 with TypeScript
-- **Build Tool**: Vite for fast development and building
-- **UI Library**: shadcn/ui components with Radix UI primitives
-- **Styling**: Tailwind CSS for utility-first styling
-- **Routing**: React Router DOM v7
-- **State Management**: React Context for authentication, local state for components
-- **Internationalization**: react-i18next for multi-language support
+# React/TypeScript Frontend Patterns
 
-## Project Structure Patterns
+Follow these patterns when working with the XSHA frontend.
 
-### Component Organization
-- **UI Components**: [frontend/src/components/ui/](mdc:frontend/src/components/ui/) - shadcn/ui components
-- **Business Components**: [frontend/src/components/](mdc:frontend/src/components/) - Domain-specific components
-- **Pages**: [frontend/src/pages/](mdc:frontend/src/pages/) - Route-based page components
-- **Layouts**: Use consistent layout patterns with [frontend/src/components/Layout.tsx](mdc:frontend/src/components/Layout.tsx)
+## Component Organization
 
-### File Naming Conventions
-- Use PascalCase for component files: `TaskList.tsx`, `ProjectForm.tsx`
-- Use camelCase for utility files: `usePageTitle.ts`, `api/index.ts`
-- Page components end with `Page`: `TaskListPage.tsx`, `ProjectCreatePage.tsx`
+### 1. Component Structure
+- UI components in [components/ui/](mdc:frontend/src/components/ui/) (shadcn/ui)
+- Feature components in [components/](mdc:frontend/src/components/)
+- Page components in [pages/](mdc:frontend/src/pages/)
+- Layout components in [components/layouts/](mdc:frontend/src/components/layouts/)
 
-## Component Patterns
+### 2. Component Patterns
 
-### Page Component Structure
 ```tsx
-import { useTranslation } from 'react-i18next';
-import { usePageTitle } from '@/hooks/usePageTitle';
+// Use TypeScript for all components
+interface ComponentProps {
+  title: string;
+  onAction?: () => void;
+}
 
-export default function TaskListPage() {
-  const { t } = useTranslation();
-  usePageTitle(t('tasks.list.title'));
-  
-  // Component logic
-  
+export function Component({ title, onAction }: ComponentProps) {
   return (
-    <div className="container mx-auto p-6">
-      {/* Page content */}
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold">{title}</h2>
+      {onAction && (
+        <Button onClick={onAction}>Action</Button>
+      )}
     </div>
   );
 }
 ```
 
-### Form Component Pattern
-- Use shadcn/ui form components
-- Implement proper validation with zod schemas
-- Include loading states and error handling
-- Follow the pattern in [frontend/src/components/TaskFormCreate.tsx](mdc:frontend/src/components/TaskFormCreate.tsx)
+## State Management
 
-### List Component Pattern
-- Implement pagination
-- Include search/filter functionality
-- Use shadcn/ui Table components
-- Handle loading and empty states
+### 1. React Hooks
+- Use custom hooks in [hooks/](mdc:frontend/src/hooks/)
+- Group related state and logic
+- Example: [hooks/useTaskConversations.ts](mdc:frontend/src/hooks/useTaskConversations.ts)
 
-## API Integration Patterns
+### 2. Context for Global State
+- Authentication: [contexts/AuthContext.tsx](mdc:frontend/src/contexts/AuthContext.tsx)
+- Navigation: [contexts/BreadcrumbContext.tsx](mdc:frontend/src/contexts/BreadcrumbContext.tsx)
 
-### API Client Structure
-- Centralized API functions in [frontend/src/lib/api/](mdc:frontend/src/lib/api/)
-- Type-safe API calls with TypeScript interfaces
-- Consistent error handling pattern
-- Authentication headers automatically included
+## API Integration
 
-### API Call Pattern
+### 1. API Client
+- Centralized API client in [lib/api/](mdc:frontend/src/lib/api/)
+- Type-safe request/response handling
+- Consistent error handling
+
 ```tsx
-import { useState, useEffect } from 'react';
-import { getTasks } from '@/lib/api/tasks';
-import { Task } from '@/types/task';
+// Example API function
+export async function getTasks(): Promise<Task[]> {
+  const response = await apiClient.get<Task[]>('/tasks');
+  return response.data;
+}
+```
 
-export default function TaskList() {
+### 2. Data Fetching Patterns
+```tsx
+function TaskList() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   useEffect(() => {
-    const fetchTasks = async () => {
+    async function fetchTasks() {
       try {
-        setLoading(true);
-        const response = await getTasks();
-        setTasks(response.data);
+        const data = await getTasks();
+        setTasks(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        setError('Failed to fetch tasks');
       } finally {
         setLoading(false);
       }
-    };
+    }
     
     fetchTasks();
   }, []);
+
+  if (loading) return <Skeleton />;
+  if (error) return <Alert variant="destructive">{error}</Alert>;
   
-  // Render logic
+  return <TaskTable tasks={tasks} />;
 }
 ```
 
-## Type Definition Patterns
+## Form Handling
 
-### API Response Types
-- Define interfaces in [frontend/src/types/](mdc:frontend/src/types/)
-- Match backend model structures
-- Include optional fields appropriately
-- Use union types for status enums
+### 1. Form Components
+- Use components from [components/forms/](mdc:frontend/src/components/forms/)
+- Consistent validation and error handling
+- Example: [components/forms/BasicFormFields.tsx](mdc:frontend/src/components/forms/BasicFormFields.tsx)
 
-```typescript
-export interface Task {
-  id: number;
-  title: string;
-  description?: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  created_at: string;
-  updated_at: string;
-  user_id: number;
-}
-
-export interface TaskCreateRequest {
-  title: string;
-  description?: string;
-  project_id: number;
-}
-```
-
-## Styling Patterns
-
-### Tailwind CSS Usage
-- Use utility classes for consistent spacing and styling
-- Follow responsive design patterns: `md:flex lg:grid-cols-3`
-- Use semantic color classes: `bg-primary text-primary-foreground`
-- Prefer Tailwind classes over custom CSS
-
-### Component Styling
-- Use shadcn/ui components for consistent design
-- Apply proper hover and focus states
-- Implement dark mode support with next-themes
-- Use proper contrast ratios for accessibility
-
-## State Management Patterns
-
-### Authentication Context
-- Use [frontend/src/contexts/AuthContext.tsx](mdc:frontend/src/contexts/AuthContext.tsx) for user state
-- Provide login, logout, and user info throughout the app
-- Handle token refresh automatically
-
-### Local Component State
-- Use `useState` for simple component state
-- Use `useEffect` for side effects and API calls
-- Consider `useReducer` for complex state logic
-
-## Internationalization Patterns
-
-### i18n Setup
-- Configuration in [frontend/src/i18n/index.ts](mdc:frontend/src/i18n/index.ts)
-- Translation files in [frontend/src/i18n/locales/](mdc:frontend/src/i18n/locales/)
-- Support for English (en-US) and Chinese (zh-CN)
-
-### Usage Pattern
+### 2. Form Patterns
 ```tsx
-import { useTranslation } from 'react-i18next';
+interface FormData {
+  name: string;
+  description: string;
+}
 
-export default function Component() {
-  const { t } = useTranslation();
-  
+function ProjectForm() {
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    description: ''
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await createProject(formData);
+      // Handle success
+    } catch (error) {
+      // Handle error
+    }
+  };
+
   return (
-    <div>
-      <h1>{t('common.title')}</h1>
-      <p>{t('component.description')}</p>
-    </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <Input
+        value={formData.name}
+        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+        placeholder="Project name"
+      />
+      <Button type="submit">Create Project</Button>
+    </form>
   );
 }
 ```
 
-## Error Handling Patterns
+## Styling
 
-### API Error Handling
-- Standardized error responses from backend
-- Display user-friendly error messages
-- Use toast notifications for feedback
-- Handle authentication errors with redirect
+### 1. TailwindCSS
+- Use utility classes for styling
+- Follow consistent spacing (space-y-4, space-x-2, etc.)
+- Use design system values
 
-### Form Validation
-- Use zod schemas for validation
-- Display field-level error messages
-- Provide real-time validation feedback
-- Handle server-side validation errors
+### 2. Component Variants
+```tsx
+import { cn } from "@/lib/utils";
 
-## Performance Optimization
-- Use React.memo for expensive components
-- Implement proper loading states
-- Lazy load routes and components
-- Optimize images and assets with Vite
+interface ButtonProps {
+  variant?: 'default' | 'destructive' | 'outline';
+  size?: 'sm' | 'md' | 'lg';
+}
+
+function Button({ variant = 'default', size = 'md', className, ...props }: ButtonProps) {
+  return (
+    <button
+      className={cn(
+        "inline-flex items-center justify-center rounded-md font-medium",
+        {
+          'bg-primary text-primary-foreground': variant === 'default',
+          'bg-destructive text-destructive-foreground': variant === 'destructive',
+        },
+        className
+      )}
+      {...props}
+    />
+  );
+}
+```
+
+## Type Safety
+
+### 1. TypeScript Types
+- Define types in [types/](mdc:frontend/src/types/)
+- Match backend model structures
+- Use proper TypeScript conventions
+
+### 2. API Response Types
+```tsx
+interface ApiResponse<T> {
+  data: T;
+  message?: string;
+  error?: string;
+}
+
+interface Task {
+  id: number;
+  title: string;
+  status: 'todo' | 'in_progress' | 'done' | 'cancelled';
+  created_at: string;
+  updated_at: string;
+}
+```
+
+## Internationalization
+
+- Use react-i18next for translations
+- Translation files in [i18n/locales/](mdc:frontend/src/i18n/locales/)
+- Always use translation keys, never hardcoded text
+
+```tsx
+import { useTranslation } from 'react-i18next';
+
+function TaskCard() {
+  const { t } = useTranslation('tasks');
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t('title')}</CardTitle>
+      </CardHeader>
+    </Card>
+  );
+}
+```
+
+Always prioritize type safety, accessibility, and consistent patterns.

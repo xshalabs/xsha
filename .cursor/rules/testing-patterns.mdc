@@ -1,464 +1,528 @@
 ---
-description: Testing conventions and patterns for XSHA application
+description: "Testing patterns and best practices for Go and TypeScript"
 ---
-# Testing Patterns and Conventions
 
-## Testing Strategy Overview
+# Testing Patterns
 
-### Testing Pyramid
-- **Unit Tests**: Service layer business logic, utility functions
-- **Integration Tests**: Database operations, API endpoints  
-- **End-to-End Tests**: Complete user workflows
+Comprehensive testing guidelines for both backend (Go) and frontend (TypeScript/React) components.
 
-### Test Organization
-```
-backend/
-├── handlers/
-│   ├── auth_test.go
-│   └── task_test.go
-├── services/
-│   ├── auth_test.go
-│   └── task_test.go
-├── repository/
-│   ├── task_test.go
-│   └── project_test.go
-└── utils/
-    └── crypto_test.go
+## Go Backend Testing
 
-frontend/
-├── src/
-│   ├── components/
-│   │   ├── TaskList.test.tsx
-│   │   └── ProjectForm.test.tsx
-│   ├── lib/
-│   │   ├── api/
-│   │   │   └── tasks.test.ts
-│   │   └── utils.test.ts
-│   └── hooks/
-│       └── usePageTitle.test.ts
-```
-
-## Backend Testing Patterns
-
-### Unit Test Structure
+### Test File Organization
 ```go
+// project_service_test.go
 package services
 
 import (
     "testing"
     "github.com/stretchr/testify/assert"
     "github.com/stretchr/testify/mock"
+    "xsha-backend/database"
+    "xsha-backend/repository/mocks"
 )
+```
 
-func TestTaskService_CreateTask(t *testing.T) {
+### Test Structure Patterns
+```go
+func TestProjectService_CreateProject(t *testing.T) {
+    // Arrange
+    mockRepo := mocks.NewMockProjectRepository(t)
+    service := NewProjectService(mockRepo, nil, nil)
+    
+    req := CreateProjectRequest{
+        Name:        "test-project",
+        Description: "Test description",
+        RepoURL:     "https://github.com/test/repo",
+        CreatedBy:   "testuser",
+    }
+    
+    expectedProject := &database.Project{
+        ID:          1,
+        Name:        req.Name,
+        Description: req.Description,
+        RepoURL:     req.RepoURL,
+        CreatedBy:   req.CreatedBy,
+    }
+    
+    // Act & Assert
+    mockRepo.EXPECT().
+        Create(mock.MatchedBy(func(p *database.Project) bool {
+            return p.Name == req.Name && p.RepoURL == req.RepoURL
+        })).
+        Return(nil).
+        Once()
+    
+    result, err := service.CreateProject(req)
+    
+    // Assert
+    assert.NoError(t, err)
+    assert.NotNil(t, result)
+    assert.Equal(t, req.Name, result.Name)
+}
+```
+
+### Table-Driven Tests
+```go
+func TestProjectService_ValidateProject(t *testing.T) {
     tests := []struct {
-        name    string
-        setup   func(*MockTaskRepository)
-        input   CreateTaskRequest
-        want    *Task
-        wantErr bool
+        name          string
+        project       *database.Project
+        expectedValid bool
+        expectedError string
     }{
         {
-            name: "successful creation",
-            setup: func(repo *MockTaskRepository) {
-                repo.On("Create", mock.AnythingOfType("*models.Task")).Return(nil)
+            name: "valid project",
+            project: &database.Project{
+                Name:    "valid-name",
+                RepoURL: "https://github.com/user/repo",
             },
-            input: CreateTaskRequest{
-                Title: "Test Task",
-                ProjectID: 1,
-            },
-            want: &Task{Title: "Test Task"},
-            wantErr: false,
+            expectedValid: true,
+            expectedError: "",
         },
         {
-            name: "validation error",
-            setup: func(repo *MockTaskRepository) {},
-            input: CreateTaskRequest{}, // Missing title
-            want: nil,
-            wantErr: true,
+            name: "missing name",
+            project: &database.Project{
+                RepoURL: "https://github.com/user/repo",
+            },
+            expectedValid: false,
+            expectedError: "name is required",
+        },
+        {
+            name: "invalid URL",
+            project: &database.Project{
+                Name:    "test",
+                RepoURL: "invalid-url",
+            },
+            expectedValid: false,
+            expectedError: "invalid repository URL",
         },
     }
     
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
-            mockRepo := new(MockTaskRepository)
-            tt.setup(mockRepo)
+            valid, err := validateProject(tt.project)
             
-            service := NewTaskService(mockRepo, nil)
-            got, err := service.CreateTask(1, tt.input)
-            
-            if tt.wantErr {
+            assert.Equal(t, tt.expectedValid, valid)
+            if tt.expectedError != "" {
                 assert.Error(t, err)
-                assert.Nil(t, got)
+                assert.Contains(t, err.Error(), tt.expectedError)
             } else {
                 assert.NoError(t, err)
-                assert.Equal(t, tt.want.Title, got.Title)
             }
-            
-            mockRepo.AssertExpectations(t)
         })
     }
 }
 ```
 
-### Repository Testing with Test Database
+### Mock Patterns
 ```go
-func TestTaskRepository_Create(t *testing.T) {
-    db := setupTestDB(t)
-    defer cleanupTestDB(t, db)
-    
-    repo := NewTaskRepository(db)
-    
-    task := &models.Task{
-        Title: "Test Task",
-        UserID: 1,
-    }
-    
-    err := repo.Create(task)
-    assert.NoError(t, err)
-    assert.NotZero(t, task.ID)
-    
-    // Verify task was saved
-    saved, err := repo.GetByID(task.ID)
-    assert.NoError(t, err)
-    assert.Equal(t, task.Title, saved.Title)
+// Using testify/mock
+type MockProjectRepository struct {
+    mock.Mock
 }
 
-func setupTestDB(t *testing.T) *gorm.DB {
-    db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-    require.NoError(t, err)
+func (m *MockProjectRepository) Create(project *database.Project) error {
+    args := m.Called(project)
+    return args.Error(0)
+}
+
+func (m *MockProjectRepository) GetByID(id uint) (*database.Project, error) {
+    args := m.Called(id)
+    return args.Get(0).(*database.Project), args.Error(1)
+}
+
+// Test with mock
+func TestProjectService_GetProject_NotFound(t *testing.T) {
+    mockRepo := &MockProjectRepository{}
+    service := NewProjectService(mockRepo, nil, nil)
     
-    err = db.AutoMigrate(&models.Task{}, &models.User{}, &models.Project{})
-    require.NoError(t, err)
+    mockRepo.On("GetByID", uint(999)).Return((*database.Project)(nil), gorm.ErrRecordNotFound)
     
-    return db
+    result, err := service.GetProject(999)
+    
+    assert.Error(t, err)
+    assert.Nil(t, result)
+    mockRepo.AssertExpectations(t)
 }
 ```
 
 ### HTTP Handler Testing
 ```go
-func TestAuthHandlers_LoginHandler(t *testing.T) {
+func TestProjectHandlers_CreateProject(t *testing.T) {
+    // Setup
     gin.SetMode(gin.TestMode)
+    mockService := &MockProjectService{}
+    handler := NewProjectHandlers(mockService)
     
-    tests := []struct {
-        name           string
-        requestBody    interface{}
-        setupMocks     func(*MockAuthService)
-        expectedStatus int
-        expectedBody   string
-    }{
-        {
-            name: "successful login",
-            requestBody: map[string]string{
-                "username": "testuser",
-                "password": "testpass",
-            },
-            setupMocks: func(auth *MockAuthService) {
-                auth.On("Login", "testuser", "testpass").Return("token123", nil)
-            },
-            expectedStatus: 200,
-            expectedBody:   `{"token":"token123"}`,
-        },
-        {
-            name:           "invalid request",
-            requestBody:    map[string]string{},
-            setupMocks:     func(*MockAuthService) {},
-            expectedStatus: 400,
-        },
+    // Test data
+    reqBody := CreateProjectRequest{
+        Name:    "test-project",
+        RepoURL: "https://github.com/test/repo",
     }
     
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            mockAuth := new(MockAuthService)
-            tt.setupMocks(mockAuth)
-            
-            handlers := NewAuthHandlers(mockAuth, nil)
-            
-            router := gin.New()
-            router.POST("/login", handlers.LoginHandler)
-            
-            body, _ := json.Marshal(tt.requestBody)
-            req := httptest.NewRequest("POST", "/login", strings.NewReader(string(body)))
-            req.Header.Set("Content-Type", "application/json")
-            
-            w := httptest.NewRecorder()
-            router.ServeHTTP(w, req)
-            
-            assert.Equal(t, tt.expectedStatus, w.Code)
-            if tt.expectedBody != "" {
-                assert.JSONEq(t, tt.expectedBody, w.Body.String())
-            }
-            
-            mockAuth.AssertExpectations(t)
-        })
+    expectedProject := &database.Project{
+        ID:      1,
+        Name:    reqBody.Name,
+        RepoURL: reqBody.RepoURL,
     }
+    
+    // Setup mock
+    mockService.On("CreateProject", reqBody).Return(expectedProject, nil)
+    
+    // Create request
+    jsonData, _ := json.Marshal(reqBody)
+    req := httptest.NewRequest("POST", "/projects", bytes.NewBuffer(jsonData))
+    req.Header.Set("Content-Type", "application/json")
+    
+    // Create response recorder
+    w := httptest.NewRecorder()
+    c, _ := gin.CreateTestContext(w)
+    c.Request = req
+    
+    // Execute
+    handler.CreateProject(c)
+    
+    // Assert
+    assert.Equal(t, http.StatusCreated, w.Code)
+    
+    var response map[string]interface{}
+    err := json.Unmarshal(w.Body.Bytes(), &response)
+    assert.NoError(t, err)
+    assert.NotNil(t, response["data"])
+    
+    mockService.AssertExpectations(t)
 }
 ```
 
-## Frontend Testing Patterns
+### Integration Testing
+```go
+func TestProjectIntegration(t *testing.T) {
+    // Setup test database
+    db := setupTestDB(t)
+    defer db.Migrator().DropTable(&database.Project{})
+    
+    // Setup dependencies
+    repo := repository.NewProjectRepository(db)
+    service := services.NewProjectService(repo, nil, nil)
+    
+    // Test create
+    req := CreateProjectRequest{
+        Name:      "integration-test",
+        RepoURL:   "https://github.com/test/repo",
+        CreatedBy: "testuser",
+    }
+    
+    project, err := service.CreateProject(req)
+    assert.NoError(t, err)
+    assert.NotZero(t, project.ID)
+    
+    // Test retrieve
+    retrieved, err := service.GetProject(project.ID)
+    assert.NoError(t, err)
+    assert.Equal(t, project.Name, retrieved.Name)
+}
 
-### Component Testing with React Testing Library
+func setupTestDB(t *testing.T) *gorm.DB {
+    db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+    assert.NoError(t, err)
+    
+    err = db.AutoMigrate(&database.Project{})
+    assert.NoError(t, err)
+    
+    return db
+}
+```
+
+## Frontend Testing
+
+### Component Testing Setup
 ```tsx
+// components/__tests__/ProjectForm.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
-import TaskForm from './TaskForm';
-import * as tasksApi from '@/lib/api/tasks';
+import { ProjectForm } from '../ProjectForm';
+import * as api from '../../lib/api/projects';
 
-// Mock API calls
-vi.mock('@/lib/api/tasks');
+// Mock API
+vi.mock('../../lib/api/projects');
+const mockCreateProject = vi.mocked(api.createProject);
 
-describe('TaskForm', () => {
+// Mock i18n
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+```
+
+### Component Unit Tests
+```tsx
+describe('ProjectForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   test('renders form fields correctly', () => {
-    render(<TaskForm />);
+    render(<ProjectForm onSuccess={vi.fn()} />);
     
-    expect(screen.getByLabelText(/title/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/project name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/description/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/repository url/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /create/i })).toBeInTheDocument();
+  });
+
+  test('validates required fields', async () => {
+    render(<ProjectForm onSuccess={vi.fn()} />);
+    
+    const submitButton = screen.getByRole('button', { name: /create/i });
+    fireEvent.click(submitButton);
+    
+    await waitFor(() => {
+      expect(screen.getByText(/name is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/repository url is required/i)).toBeInTheDocument();
+    });
   });
 
   test('submits form with valid data', async () => {
-    const mockCreateTask = vi.mocked(tasksApi.createTask);
-    mockCreateTask.mockResolvedValue({ id: 1, title: 'Test Task' });
-
-    render(<TaskForm onSuccess={vi.fn()} />);
+    const mockOnSuccess = vi.fn();
+    const mockProject = { id: 1, name: 'Test Project', repo_url: 'https://github.com/test/repo' };
     
-    fireEvent.change(screen.getByLabelText(/title/i), {
-      target: { value: 'Test Task' }
+    mockCreateProject.mockResolvedValueOnce(mockProject);
+    
+    render(<ProjectForm onSuccess={mockOnSuccess} />);
+    
+    // Fill form
+    fireEvent.change(screen.getByLabelText(/project name/i), {
+      target: { value: 'Test Project' },
+    });
+    fireEvent.change(screen.getByLabelText(/repository url/i), {
+      target: { value: 'https://github.com/test/repo' },
     });
     
-    fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+    // Submit
+    fireEvent.click(screen.getByRole('button', { name: /create/i }));
     
     await waitFor(() => {
-      expect(mockCreateTask).toHaveBeenCalledWith({
-        title: 'Test Task',
-        description: ''
+      expect(mockCreateProject).toHaveBeenCalledWith({
+        name: 'Test Project',
+        repo_url: 'https://github.com/test/repo',
+        description: '',
       });
+      expect(mockOnSuccess).toHaveBeenCalledWith(mockProject);
     });
   });
 
-  test('displays error message on submission failure', async () => {
-    const mockCreateTask = vi.mocked(tasksApi.createTask);
-    mockCreateTask.mockRejectedValue(new Error('Creation failed'));
-
-    render(<TaskForm />);
+  test('handles API errors', async () => {
+    const mockError = new Error('Failed to create project');
+    mockCreateProject.mockRejectedValueOnce(mockError);
     
-    fireEvent.change(screen.getByLabelText(/title/i), {
-      target: { value: 'Test Task' }
+    render(<ProjectForm onSuccess={vi.fn()} />);
+    
+    // Fill and submit form
+    fireEvent.change(screen.getByLabelText(/project name/i), {
+      target: { value: 'Test Project' },
     });
-    
-    fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+    fireEvent.change(screen.getByLabelText(/repository url/i), {
+      target: { value: 'https://github.com/test/repo' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create/i }));
     
     await waitFor(() => {
-      expect(screen.getByText(/creation failed/i)).toBeInTheDocument();
+      expect(screen.getByText(/failed to create project/i)).toBeInTheDocument();
     });
-  });
-});
-```
-
-### API Client Testing
-```typescript
-import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { getTasks, createTask } from './tasks';
-
-// Mock fetch
-global.fetch = vi.fn();
-
-describe('tasks API', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    (fetch as jest.MockedFunction<typeof fetch>).mockClear();
-  });
-
-  test('getTasks returns task list', async () => {
-    const mockTasks = [
-      { id: 1, title: 'Task 1' },
-      { id: 2, title: 'Task 2' }
-    ];
-
-    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
-      ok: true,
-      json: async () => ({ data: mockTasks })
-    } as Response);
-
-    const result = await getTasks();
-
-    expect(fetch).toHaveBeenCalledWith('/api/v1/tasks', {
-      headers: {
-        'Authorization': 'Bearer null',
-        'Content-Type': 'application/json'
-      }
-    });
-    expect(result.data).toEqual(mockTasks);
-  });
-
-  test('createTask handles API errors', async () => {
-    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
-      ok: false,
-      status: 400,
-      json: async () => ({ error: 'Validation failed' })
-    } as Response);
-
-    await expect(createTask({ title: '' })).rejects.toThrow('Validation failed');
   });
 });
 ```
 
 ### Hook Testing
 ```tsx
-import { renderHook, act } from '@testing-library/react';
-import { usePageTitle } from './usePageTitle';
-
-describe('usePageTitle', () => {
-  test('sets document title', () => {
-    const originalTitle = document.title;
-    
-    renderHook(() => usePageTitle('Test Page'));
-    
-    expect(document.title).toBe('Test Page | XSHA');
-    
-    // Cleanup
-    document.title = originalTitle;
-  });
-
-  test('updates title when value changes', () => {
-    const { rerender } = renderHook(
-      ({ title }) => usePageTitle(title),
-      { initialProps: { title: 'Initial' } }
-    );
-    
-    expect(document.title).toBe('Initial | XSHA');
-    
-    rerender({ title: 'Updated' });
-    expect(document.title).toBe('Updated | XSHA');
-  });
-});
-```
-
-## Test Configuration
-
-### Backend Test Setup
-```go
-// main_test.go
-func TestMain(m *testing.M) {
-    // Setup test environment
-    os.Setenv("ENVIRONMENT", "test")
-    os.Setenv("DB_TYPE", "sqlite")
-    os.Setenv("DB_PATH", ":memory:")
-    
-    code := m.Run()
-    
-    // Cleanup
-    os.Exit(code)
-}
-```
-
-### Frontend Test Setup (Vite + Vitest)
-```typescript
-// vitest.config.ts
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
-
-export default defineConfig({
-  plugins: [react()],
-  test: {
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
-    globals: true,
-  },
-});
-```
-
-```typescript
-// src/test/setup.ts
-import '@testing-library/jest-dom';
+// hooks/__tests__/useTaskConversations.test.ts
+import { renderHook, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
+import { useTaskConversations } from '../useTaskConversations';
+import * as api from '../../lib/api/task-conversations';
 
-// Mock react-i18next
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: { changeLanguage: vi.fn() }
-  })
-}));
+vi.mock('../../lib/api/task-conversations');
+const mockGetConversations = vi.mocked(api.getConversations);
+
+describe('useTaskConversations', () => {
+  test('fetches conversations on mount', async () => {
+    const mockConversations = [
+      { id: 1, content: 'Test conversation', status: 'pending' },
+    ];
+    
+    mockGetConversations.mockResolvedValueOnce(mockConversations);
+    
+    const { result } = renderHook(() => useTaskConversations(1));
+    
+    expect(result.current.loading).toBe(true);
+    
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.conversations).toEqual(mockConversations);
+      expect(result.current.error).toBeNull();
+    });
+  });
+
+  test('handles fetch errors', async () => {
+    const mockError = new Error('Network error');
+    mockGetConversations.mockRejectedValueOnce(mockError);
+    
+    const { result } = renderHook(() => useTaskConversations(1));
+    
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.conversations).toEqual([]);
+      expect(result.current.error).toBe('Network error');
+    });
+  });
+});
 ```
 
-## Mock Patterns
+### Integration Testing with React Testing Library
+```tsx
+// pages/__tests__/ProjectListPage.test.tsx
+import { render, screen, waitFor } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import { vi } from 'vitest';
+import { ProjectListPage } from '../ProjectListPage';
+import { AuthContext } from '../../contexts/AuthContext';
 
-### Backend Interface Mocks
-```go
-type MockTaskRepository struct {
-    mock.Mock
-}
+const renderWithProviders = (component: React.ReactElement) => {
+  const mockAuthValue = {
+    isAuthenticated: true,
+    username: 'testuser',
+    login: vi.fn(),
+    logout: vi.fn(),
+    loading: false,
+  };
 
-func (m *MockTaskRepository) Create(task *models.Task) error {
-    args := m.Called(task)
-    return args.Error(0)
-}
-
-func (m *MockTaskRepository) GetByID(id uint) (*models.Task, error) {
-    args := m.Called(id)
-    return args.Get(0).(*models.Task), args.Error(1)
-}
-```
-
-### Frontend API Mocks
-```typescript
-// __mocks__/api.ts
-export const mockCreateTask = vi.fn();
-export const mockGetTasks = vi.fn();
-
-export default {
-  createTask: mockCreateTask,
-  getTasks: mockGetTasks,
+  return render(
+    <BrowserRouter>
+      <AuthContext.Provider value={mockAuthValue}>
+        {component}
+      </AuthContext.Provider>
+    </BrowserRouter>
+  );
 };
+
+describe('ProjectListPage', () => {
+  test('displays loading state initially', () => {
+    renderWithProviders(<ProjectListPage />);
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+  });
+
+  test('displays projects after loading', async () => {
+    const mockProjects = [
+      { id: 1, name: 'Project 1', description: 'Description 1' },
+      { id: 2, name: 'Project 2', description: 'Description 2' },
+    ];
+
+    vi.mocked(api.getProjects).mockResolvedValueOnce(mockProjects);
+
+    renderWithProviders(<ProjectListPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Project 1')).toBeInTheDocument();
+      expect(screen.getByText('Project 2')).toBeInTheDocument();
+    });
+  });
+});
 ```
 
-## CI/CD Testing Pipeline
+### E2E Testing Patterns
+```tsx
+// e2e/project-management.spec.ts
+import { test, expect } from '@playwright/test';
 
-### GitHub Actions Example
-```yaml
-name: Test
-on: [push, pull_request]
+test.describe('Project Management', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login
+    await page.goto('/login');
+    await page.fill('[name=username]', 'admin');
+    await page.fill('[name=password]', 'password');
+    await page.click('button[type=submit]');
+    await expect(page).toHaveURL('/dashboard');
+  });
 
-jobs:
-  backend-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: 1.23.1
-      - run: |
-          cd backend
-          go test -v -race -coverprofile=coverage.out ./...
-          go tool cover -html=coverage.out -o coverage.html
+  test('creates a new project', async ({ page }) => {
+    // Navigate to projects
+    await page.click('text=Projects');
+    await expect(page).toHaveURL('/projects');
 
-  frontend-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20
-      - run: |
-          cd frontend
-          npm install -g pnpm
-          pnpm install
-          pnpm run test
-          pnpm run test:coverage
+    // Create new project
+    await page.click('text=Create Project');
+    await page.fill('[name=name]', 'E2E Test Project');
+    await page.fill('[name=description]', 'Created by E2E test');
+    await page.fill('[name=repo_url]', 'https://github.com/test/repo');
+    await page.click('button[type=submit]');
+
+    // Verify project created
+    await expect(page.locator('text=E2E Test Project')).toBeVisible();
+    await expect(page.locator('text=Project created successfully')).toBeVisible();
+  });
+
+  test('validates project form', async ({ page }) => {
+    await page.goto('/projects');
+    await page.click('text=Create Project');
+    
+    // Submit empty form
+    await page.click('button[type=submit]');
+    
+    // Check validation errors
+    await expect(page.locator('text=Project name is required')).toBeVisible();
+    await expect(page.locator('text=Repository URL is required')).toBeVisible();
+  });
+});
 ```
 
-## Coverage Goals
-- **Backend**: Aim for 80%+ coverage on service layer
-- **Frontend**: Focus on component behavior and API integration
-- **Critical Paths**: 100% coverage for authentication and payment flows
+## Testing Best Practices
 
-## Test Data Management
-- Use factories/builders for test data creation
-- Keep test data isolated between tests
-- Use realistic but minimal data sets
-- Implement proper cleanup between tests
+### Test Naming Conventions
+```go
+// Go tests
+func TestServiceName_MethodName_Scenario(t *testing.T) { }
+func TestProjectService_CreateProject_Success(t *testing.T) { }
+func TestProjectService_CreateProject_ValidationError(t *testing.T) { }
+
+// TypeScript tests
+describe('ComponentName', () => {
+  test('should do something when condition', () => { });
+  test('should handle error when API fails', () => { });
+});
+```
+
+### Test Organization
+```
+backend/
+  services/
+    project_service.go
+    project_service_test.go
+  handlers/
+    project_handler.go
+    project_handler_test.go
+
+frontend/src/
+  components/
+    ProjectForm.tsx
+    __tests__/
+      ProjectForm.test.tsx
+  hooks/
+    useProjects.ts
+    __tests__/
+      useProjects.test.ts
+```
+
+### Coverage Goals
+- Aim for 80%+ code coverage
+- Focus on critical business logic
+- Test error paths and edge cases
+- Prioritize integration tests for complex flows
+
+### Mock Strategy
+- Mock external dependencies (APIs, databases)
+- Use real implementations for unit logic
+- Keep mocks simple and focused
+- Verify mock interactions
+
+Always write tests that are maintainable, readable, and provide confidence in your code.

@@ -1,77 +1,217 @@
 ---
-globs: backend/middleware/auth.go,backend/services/auth.go,backend/handlers/auth.go,frontend/src/contexts/AuthContext.tsx
+description: "Authentication and authorization patterns"
 ---
-# Authentication System Architecture
 
-## Backend Authentication (JWT)
+# Authentication System
 
-### JWT Token Management
-- Tokens are generated in [backend/services/auth.go](mdc:backend/services/auth.go)
-- Token validation handled by [backend/middleware/auth.go](mdc:backend/middleware/auth.go)
-- Token blacklist for logout functionality in [backend/repository/token_blacklist.go](mdc:backend/repository/token_blacklist.go)
+XSHA uses JWT-based authentication with comprehensive security features.
 
-### Authentication Flow
-1. User submits credentials to `/api/v1/auth/login`
-2. AuthService validates credentials
-3. JWT token generated with expiration
-4. Token returned to client
-5. Client includes token in Authorization header for subsequent requests
-6. Middleware validates token on each protected route
+## JWT Token System
 
-### Rate Limiting
-- Login endpoint has rate limiting middleware
-- Prevents brute force attacks
-- Configured per IP address
+### Token Generation
+- Tokens generated in [services/auth.go](mdc:backend/services/auth.go)
+- Include user claims and expiration
+- Signed with secret from configuration
 
-### User Session Management
-- Login logs tracked in [backend/repository/login_log.go](mdc:backend/repository/login_log.go)
-- Admin operation logs for audit trail
-- Token blacklist for secure logout
+```go
+type Claims struct {
+    Username string `json:"username"`
+    jwt.RegisteredClaims
+}
+
+func (s *AuthService) GenerateToken(username string) (string, error) {
+    expirationTime := time.Now().Add(24 * time.Hour)
+    claims := &Claims{
+        Username: username,
+        RegisteredClaims: jwt.RegisteredClaims{
+            ExpiresAt: jwt.NewNumericDate(expirationTime),
+        },
+    }
+    
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    return token.SignedString(s.jwtSecret)
+}
+```
+
+### Token Validation
+- Middleware validates tokens for protected routes
+- Blacklist support for logout functionality
+- Token stored in [database/models.go](mdc:backend/database/models.go) TokenBlacklist
+
+## Authentication Flow
+
+### 1. Login Process
+```go
+// POST /api/v1/auth/login
+{
+    "username": "admin",
+    "password": "password"
+}
+
+// Response
+{
+    "data": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        "user": {
+            "username": "admin"
+        }
+    }
+}
+```
+
+### 2. Protected Requests
+```http
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### 3. Logout Process
+```go
+// POST /api/v1/auth/logout
+// Adds token to blacklist
+{
+    "message": "Logged out successfully"
+}
+```
+
+## Middleware Authentication
+
+### Auth Middleware
+- Located in [middleware/auth.go](mdc:backend/middleware/auth.go)
+- Validates JWT tokens
+- Checks token blacklist
+- Sets user context
+
+```go
+func AuthMiddlewareWithService(authService services.AuthService, cfg *config.Config) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        authHeader := c.GetHeader("Authorization")
+        if authHeader == "" {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
+            c.Abort()
+            return
+        }
+
+        tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+        claims, err := authService.ValidateToken(tokenString)
+        if err != nil {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+            c.Abort()
+            return
+        }
+
+        c.Set("username", claims.Username)
+        c.Next()
+    }
+}
+```
 
 ## Frontend Authentication
 
-### AuthContext Pattern
-- React context in [frontend/src/contexts/AuthContext.tsx](mdc:frontend/src/contexts/AuthContext.tsx)
-- Provides authentication state throughout the app
-- Handles token storage and automatic refresh
+### Auth Context
+- React context in [contexts/AuthContext.tsx](mdc:frontend/src/contexts/AuthContext.tsx)
+- Manages authentication state
+- Provides login/logout functions
+
+```tsx
+interface AuthContextType {
+  isAuthenticated: boolean;
+  username: string | null;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => void;
+  loading: boolean;
+}
+```
 
 ### Protected Routes
-- Use `ProtectedRoute` component for authenticated pages
+- [components/ProtectedRoute.tsx](mdc:frontend/src/components/ProtectedRoute.tsx)
 - Redirects to login if not authenticated
-- Preserves intended destination for post-login redirect
+- Preserves intended destination
+
+```tsx
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) return <div>Loading...</div>;
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+}
+```
 
 ### Token Storage
-- Store JWT tokens securely (localStorage/sessionStorage)
-- Include token in all API requests
-- Handle token expiration gracefully
+- Stored in localStorage
+- Automatically included in API requests
+- Cleared on logout
 
-## Security Patterns
+## Security Features
 
-### Middleware Stack
-Authentication middleware validates:
-1. Token presence in Authorization header
-2. Token format (`Bearer <token>`)
-3. Token signature and expiration
-4. Token not in blacklist
+### Rate Limiting
+- Login endpoint has special rate limiting
+- Prevents brute force attacks
+- Configurable limits
 
-### Error Handling
-- Return standardized 401 responses for authentication failures
-- Use i18n for error messages
-- Log authentication attempts for monitoring
+### Token Blacklisting
+- Tokens added to blacklist on logout
+- Database table: TokenBlacklist
+- Cleanup of expired tokens
 
-### Admin Operations
-- Special logging for admin operations
-- Operation logs include user, action, and timestamp
-- Helps with audit trails and compliance
+### Password Security
+- Passwords are hashed before storage
+- Use bcrypt or similar secure hashing
+- Never store plain text passwords
 
-## Implementation Guidelines
+## Login Logging
 
-### Adding New Protected Endpoints
-1. Add route to protected group in [backend/routes/routes.go](mdc:backend/routes/routes.go)
-2. Authentication middleware automatically applied
-3. Access user info via `c.Get("user_id")` in handlers
+### Login Attempts
+- All login attempts logged in LoginLog table
+- Tracks success/failure, IP, user agent
+- Used for security monitoring
 
-### Frontend API Integration
-- Use established API client patterns from [frontend/src/lib/api/](mdc:frontend/src/lib/api/)
-- Include authentication headers automatically
-- Handle 401 responses by redirecting to login
+```go
+type LoginLog struct {
+    Username  string    `json:"username"`
+    Success   bool      `json:"success"`
+    IP        string    `json:"ip"`
+    UserAgent string    `json:"user_agent"`
+    Reason    string    `json:"reason"`
+    LoginTime time.Time `json:"login_time"`
+}
+```
+
+### Admin Dashboard
+- Login logs viewable in admin interface
+- Security analytics and monitoring
+- Failed login attempt tracking
+
+## API Security
+
+### CORS Configuration
+- Configure allowed origins
+- Set appropriate headers
+- Handle preflight requests
+
+### Security Headers
+- Content-Type validation
+- CSRF protection where needed
+- Secure cookie settings
+
+## Configuration
+
+### Environment Variables
+```env
+JWT_SECRET=your-secret-key
+TOKEN_EXPIRATION_HOURS=24
+MAX_LOGIN_ATTEMPTS=5
+RATE_LIMIT_WINDOW=60
+```
+
+### Default Configuration
+- Secure defaults in [config/config.go](mdc:backend/config/config.go)
+- Override with environment variables
+- Validation of security settings
+
+Always follow these authentication patterns to maintain security across the application.
