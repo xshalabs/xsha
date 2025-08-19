@@ -100,7 +100,7 @@ export const DashboardPage: React.FC = () => {
     {
       title: t("dashboard.metrics.recentTasks"),
       value: stats.recent_tasks.toString(),
-      href: "/tasks",
+      href: "",
       variant: "default" as const,
       icon: Activity,
       clickable: false,
@@ -108,7 +108,7 @@ export const DashboardPage: React.FC = () => {
     {
       title: t("dashboard.metrics.taskConversations"),
       value: stats.task_conversations.toString(),
-      href: "/tasks",
+      href: "",
       variant: "default" as const,
       icon: MessageCircle,
       clickable: false,
@@ -120,24 +120,24 @@ export const DashboardPage: React.FC = () => {
       title: t("dashboard.quickActions.newProject"),
       description: t("dashboard.quickActions.newProjectDesc"),
       icon: Folder,
-      action: () => navigate("/projects/create"),
+      action: () => navigate("/projects?action=create"),
     },
     {
       title: t("dashboard.quickActions.newEnvironment"),
       description: t("dashboard.quickActions.newEnvironmentDesc"),
       icon: Container,
-      action: () => navigate("/environments/create"),
+      action: () => navigate("/environments?action=create"),
     },
     {
       title: t("dashboard.quickActions.addCredential"),
       description: t("dashboard.quickActions.addCredentialDesc"),
       icon: Key,
-      action: () => navigate("/credentials/create"),
+      action: () => navigate("/credentials?action=create"),
     },
   ];
 
   const handleTaskClick = (task: RecentTask) => {
-    navigate(ROUTES.taskConversation(task.project_id, task.id));
+    navigate(`/projects/${task.project_id}/kanban?taskId=${task.id}`);
   };
 
   return (

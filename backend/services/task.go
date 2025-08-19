@@ -455,6 +455,68 @@ func (s *taskService) PushTaskBranch(id uint, forcePush bool) (string, error) {
 	return output, nil
 }
 
+func (s *taskService) GetKanbanTasks(projectID uint) (map[database.TaskStatus][]database.Task, error) {
+	// Validate project exists
+	_, err := s.projectRepo.GetByID(projectID)
+	if err != nil {
+		return nil, appErrors.ErrProjectNotFound
+	}
+
+	// Get all tasks for the project
+	tasks, err := s.repo.ListByProject(projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get additional task metadata
+	if len(tasks) > 0 {
+		taskIDs := make([]uint, len(tasks))
+		for i, task := range tasks {
+			taskIDs[i] = task.ID
+		}
+
+		// Get conversation counts
+		conversationCounts, err := s.repo.GetConversationCounts(taskIDs)
+		if err != nil {
+			utils.Error("Failed to get conversation counts", "error", err)
+		} else {
+			for i := range tasks {
+				if count, exists := conversationCounts[tasks[i].ID]; exists {
+					tasks[i].ConversationCount = count
+				}
+			}
+		}
+
+		// Get latest execution times
+		latestTimes, err := s.repo.GetLatestExecutionTimes(taskIDs)
+		if err != nil {
+			utils.Error("Failed to get latest execution times", "error", err)
+		} else {
+			for i := range tasks {
+				if execTime, exists := latestTimes[tasks[i].ID]; exists {
+					tasks[i].LatestExecutionTime = execTime
+				}
+			}
+		}
+	}
+
+	// Group tasks by status
+	kanbanData := make(map[database.TaskStatus][]database.Task)
+
+	// Initialize all status groups to ensure they exist even if empty
+	kanbanData[database.TaskStatusTodo] = []database.Task{}
+	kanbanData[database.TaskStatusInProgress] = []database.Task{}
+	kanbanData[database.TaskStatusDone] = []database.Task{}
+	kanbanData[database.TaskStatusCancelled] = []database.Task{}
+
+	// Group tasks by their status
+	for _, task := range tasks {
+		kanbanData[task.Status] = append(kanbanData[task.Status], task)
+	}
+
+	return kanbanData, nil
+}
+
 func (s *taskService) getGitProxyConfig() (*utils.GitProxyConfig, error) {
 	return s.systemConfigService.GetGitProxyConfig()
 }

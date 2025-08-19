@@ -2,17 +2,27 @@
   "title": "Task Management",
   "page_description": "Manage development tasks in projects, track task progress and status",
   "actions": {
+    "title": "Actions",
     "create": "Create",
     "edit": "Edit",
     "viewConversation": "Conversation",
     "viewGitDiff": "Git Diff",
-    "pushBranch": "Push Branch"
+    "pushBranch": "Push Branch",
+    "delete": "Delete Task"
   },
   "status": {
+    "label": "Status",
     "todo": "To Do",
-    "in_progress": "In Progress",
+    "in_progress": "In Progress", 
     "done": "Done",
     "cancelled": "Cancelled"
+  },
+  "addTask": "Add Task",
+  "no_tasks": "No tasks",
+  "details": "Task Details",
+  "tabs": {
+    "basic": "Basic Info",
+    "conversations": "Conversations"
   },
   "fields": {
     "title": "Task Title",
@@ -23,6 +33,12 @@
     "work_branch": "Work Branch",
     "executionTime": "Execution Time"
   },
+  "startBranch": "Start Branch",
+  "workBranch": "Work Branch",
+  "environment": "Environment",
+  "executionTime": "Execution Time",
+  "createdBy": "Created By",
+  "createdAt": "Created At",
   "form": {
     "titlePlaceholder": "Enter task title",
     "requirementDescPlaceholder": "Describe the specific requirements and goals of the task",
@@ -72,6 +88,7 @@
     "loadFailed": "Failed to load task",
     "createSuccess": "Task created successfully",
     "updateSuccess": "Task updated successfully",
+    "updateFailed": "Failed to update task",
     "batchUpdateFailed": "Batch update failed",
     "push_failed": "Failed to push branch"
   },
@@ -107,6 +124,12 @@
     "deleteFailed": "Batch delete failed",
     "deleteConfirmTitle": "Delete Confirmation"
   },
+  "delete": {
+    "confirmTitle": "Delete Task",
+    "confirmDescription": "Are you sure you want to delete this task? This action cannot be undone, and all related conversation records and execution logs will also be deleted.",
+    "deleteSuccess": "Task deleted successfully",
+    "deleteFailed": "Failed to delete task"
+  },
   "errors": {
     "fetchBranchesFailed": "Failed to fetch repository branches",
     "fetchBranchesFailedTitle": "Failed to fetch branches",
@@ -114,5 +137,12 @@
   },
   "create": "Create",
   "edit": "Edit",
-  "conversation": "Task Conversations"
+  "conversation": "Task Conversations",
+  "scheduledExecution": "Scheduled execution time",
+  "timeRelative": {
+    "soon": "soon",
+    "minutesLater": "in {{minutes}} minutes",
+    "hoursLater": "in {{hours}} hours",
+    "daysLater": "in {{days}} days"
+  }
 }

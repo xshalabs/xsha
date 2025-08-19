@@ -13,31 +13,14 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { LoginPage } from "@/pages/LoginPage";
 import { DashboardPage } from "@/pages/DashboardPage";
-
 import { OperationLogsPage } from "@/pages/logs/OperationLogsPage";
 import { LoginLogsPage } from "@/pages/logs/LoginLogsPage";
 import { AuditStatsPage } from "@/pages/logs/AuditStatsPage";
-
 import ProjectListPage from "@/pages/projects/ProjectListPage";
-import ProjectCreatePage from "@/pages/projects/ProjectCreatePage";
-import ProjectEditPage from "@/pages/projects/ProjectEditPage";
-
+import ProjectKanbanPage from "@/pages/projects/ProjectKanbanPage";
 import EnvironmentListPage from "@/pages/environments/EnvironmentListPage";
-import EnvironmentCreatePage from "@/pages/environments/EnvironmentCreatePage";
-import EnvironmentEditPage from "@/pages/environments/EnvironmentEditPage";
-
 import CredentialListPage from "@/pages/credentials/CredentialListPage";
-import CredentialCreatePage from "@/pages/credentials/CredentialCreatePage";
-import CredentialEditPage from "@/pages/credentials/CredentialEditPage";
-
-import TaskListPage from "@/pages/tasks/TaskListPage";
-import TaskCreatePage from "@/pages/tasks/TaskCreatePage";
-import TaskEditPage from "@/pages/tasks/TaskEditPage";
-import TaskConversationPage from "@/pages/tasks/TaskConversationPage";
-import TaskConversationGitDiffPage from "@/pages/tasks/TaskConversationGitDiffPage";
-
 import SettingsPage from "@/pages/settings/Settings";
-import TaskGitDiffPage from "@/pages/tasks/TaskGitDiffPage";
 
 import "./App.css";
 
@@ -88,22 +71,10 @@ function App() {
               }
             />
             <Route
-              path="/projects/create"
+              path="/projects/:projectId/kanban"
               element={
                 <ProtectedRoute>
-                  <Layout>
-                    <ProjectCreatePage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/:id/edit"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <ProjectEditPage />
-                  </Layout>
+                  <ProjectKanbanPage />
                 </ProtectedRoute>
               }
             />
@@ -114,26 +85,6 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <EnvironmentListPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/environments/create"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <EnvironmentCreatePage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/environments/:id/edit"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <EnvironmentEditPage />
                   </Layout>
                 </ProtectedRoute>
               }
@@ -149,90 +100,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/credentials/create"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <CredentialCreatePage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/credentials/:id/edit"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <CredentialEditPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/projects/:projectId/tasks"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <TaskListPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/:projectId/tasks/create"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <TaskCreatePage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/:projectId/tasks/:taskId/edit"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <TaskEditPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/:projectId/tasks/:taskId/conversation"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <TaskConversationPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/:projectId/tasks/:taskId/conversation/git-diff/:conversationId"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <TaskConversationGitDiffPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/:projectId/tasks/:taskId/git-diff"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <TaskGitDiffPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-
-
-
             <Route
               path="/logs/operation-logs"
               element={

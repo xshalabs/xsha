@@ -84,7 +84,17 @@ func main() {
 	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, workspaceManager, cfg, gitCredService, systemConfigService)
 	taskConvResultService := services.NewTaskConversationResultService(taskConvResultRepo, taskConvRepo, taskRepo, projectRepo)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, taskService)
-	aiTaskExecutor := executor.NewAITaskExecutorService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, gitCredService, taskConvResultService, taskService, systemConfigService, cfg)
+
+	// Create shared execution manager
+	maxConcurrency := 5
+	if cfg.MaxConcurrentTasks > 0 {
+		maxConcurrency = cfg.MaxConcurrentTasks
+	}
+	executionManager := executor.NewExecutionManager(maxConcurrency)
+
+	// Initialize services with shared execution manager
+	aiTaskExecutor := executor.NewAITaskExecutorServiceWithManager(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, gitCredService, taskConvResultService, taskService, systemConfigService, cfg, executionManager)
+	logStreamingService := executor.NewLogStreamingService(taskConvRepo, execLogRepo, executionManager)
 
 	// Initialize scheduler
 	taskProcessor := scheduler.NewTaskProcessor(aiTaskExecutor)
@@ -97,7 +107,7 @@ func main() {
 	projectHandlers := handlers.NewProjectHandlers(projectService)
 	devEnvHandlers := handlers.NewDevEnvironmentHandlers(devEnvService)
 	taskHandlers := handlers.NewTaskHandlers(taskService, taskConvService, projectService)
-	taskConvHandlers := handlers.NewTaskConversationHandlers(taskConvService)
+	taskConvHandlers := handlers.NewTaskConversationHandlers(taskConvService, logStreamingService)
 	taskConvResultHandlers := handlers.NewTaskConversationResultHandlers(taskConvResultService)
 	taskExecLogHandlers := handlers.NewTaskExecutionLogHandlers(aiTaskExecutor)
 	systemConfigHandlers := handlers.NewSystemConfigHandlers(systemConfigService)

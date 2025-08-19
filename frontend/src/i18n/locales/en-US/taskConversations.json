@@ -1,6 +1,6 @@
 {
   "list": {
-    "title": "Task Conversations"
+    "title": "Conversations"
   },
   "newMessage": "New Message",
   "content": "Content",
@@ -22,6 +22,7 @@
     "failed": "Failed",
     "cancelled": "Cancelled"
   },
+  "statusLegend": "Status Legend",
   "empty": {
     "title": "No conversations yet",
     "description": "Start your first conversation"
@@ -63,8 +64,12 @@
   "no_result": "No execution result available",
   "actions": {
     "delete": "Delete",
+    "viewDetails": "Details",
     "viewGitDiff": "Git Diff",
-    "viewChanges": "View Changes"
+    "viewChanges": "View Changes",
+    "logs": "Logs",
+    "cancel": "Cancel",
+    "retry": "Retry"
   },
   "result": {
     "content": "Result Content",
@@ -91,5 +96,68 @@
       "title": "No commit hash available",
       "description": "Unable to display git changes because commit hash is not available"
     }
+  },
+  "details": {
+    "title": "Conversation Details",
+    "description": "View conversation information and execution results",
+    "conversationInfo": "Conversation Information",
+    "executionResult": "Execution Result",
+    "status": "Status",
+    "createdBy": "Created By",
+    "createdAt": "Created At",
+    "executionTime": "Execution Time",
+    "commitHash": "Commit Hash",
+    "content": "Content",
+    "resultType": "Result Type",
+    "duration": "Duration",
+    "apiDuration": "API Duration",
+    "numTurns": "Number of Turns",
+    "totalCost": "Total Cost",
+    "sessionId": "Session ID",
+    "result": "Result",
+    "usage": "Usage Statistics",
+    "inputTokens": "Input Tokens",
+    "outputTokens": "Output Tokens",
+    "noResult": "No Execution Result",
+    "noResultDescription": "This conversation has not been executed or execution failed"
+  },
+  "logs": {
+    "title": "Execution Logs",
+    "description": "Real-time execution logs for conversation",
+    "start": "Start",
+    "stop": "Stop",
+    "retry": "Retry",
+    "download": "Download",
+    "connected": "Connected to log stream",
+    "finished": "Log streaming finished",
+    "error": "Log streaming error",
+    "connectionError": "Connection error occurred",
+    "authError": "Authentication failed. Please check your login status.",
+    "authRequired": "Authentication required. Please log in first.",
+    "noLogsToDownload": "No logs available to download",
+    "downloaded": "Logs downloaded successfully",
+    "waiting": "Waiting for logs...",
+    "noLogs": "No logs available. Click Start to begin streaming.",
+    "totalLines": "{{count}} lines",
+    "realTime": "Real-time",
+    "offline": "Offline",
+    "streaming": "Streaming...",
+    "status": {
+      "connected": "Connected",
+      "connecting": "Connecting",
+      "disconnected": "Disconnected",
+      "unauthorized": "Unauthorized",
+      "error": "Error"
+    },
+    "autoScroll": {
+      "on": "Auto-scroll ON",
+      "off": "Auto-scroll OFF"
+    }
+  },
+  "delete": {
+    "confirmTitle": "Delete Conversation",
+    "confirmDescription": "Are you sure you want to delete this conversation? This action cannot be undone and will reset the git repository to the previous commit.",
+    "deleteSuccess": "Conversation deleted successfully",
+    "deleteFailed": "Failed to delete conversation"
   }
 } 

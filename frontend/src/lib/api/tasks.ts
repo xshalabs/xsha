@@ -6,6 +6,7 @@ import type {
   TaskListResponse,
   TaskDetailResponse,
   TaskListParams,
+  Task,
 } from "@/types/task";
 
 export const tasksApi = {
@@ -122,6 +123,10 @@ export const tasksApi = {
       body: JSON.stringify({ force_push: forcePush }),
     });
   },
+
+  getKanbanTasks: async (projectId: number): Promise<KanbanTasksResponse> => {
+    return request<KanbanTasksResponse>(`/projects/${projectId}/kanban`);
+  },
 };
 
 export interface GitDiffFile {
@@ -159,5 +164,15 @@ export interface TaskGitDiffFileResponse {
   data: {
     file_path: string;
     diff_content: string;
+  };
+}
+
+export interface KanbanTasksResponse {
+  message: string;
+  data: {
+    todo: Task[];
+    in_progress: Task[];
+    done: Task[];
+    cancelled: Task[];
   };
 }

@@ -6,12 +6,12 @@ import React, {
   useRef,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { Button } from "@/components/ui/button";
-
+import { toast } from "sonner";
 
 import {
   Section,
@@ -20,6 +20,17 @@ import {
   SectionTitle,
   SectionDescription,
 } from "@/components/content/section";
+import {
+  FormSheet,
+  FormSheetContent,
+  FormSheetHeader,
+  FormSheetTitle,
+  FormSheetDescription,
+  FormSheetFooter,
+  FormCardGroup,
+} from "@/components/forms/form-sheet";
+import { FormCard, FormCardContent } from "@/components/forms/form-card";
+import { CredentialFormSheet } from "@/components/CredentialFormSheet";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTablePaginationServer } from "@/components/ui/data-table/data-table-pagination-server";
 import { createGitCredentialColumns } from "@/components/data-table/credentials/columns";
@@ -31,12 +42,11 @@ import type {
   GitCredential,
   GitCredentialListParams,
 } from "@/types/credentials";
-import { Plus } from "lucide-react";
+import { Plus, Save } from "lucide-react";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 
 const CredentialListPage: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { setItems } = useBreadcrumb();
   const { setActions } = usePageActions();
@@ -49,6 +59,12 @@ const CredentialListPage: React.FC = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
 
+  // Sheet state management
+  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [editingCredential, setEditingCredential] = useState<GitCredential | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Add request deduplication
   const lastRequestRef = useRef<string>("");
   const isRequestInProgress = useRef(false);
@@ -57,10 +73,22 @@ const CredentialListPage: React.FC = () => {
 
   usePageTitle(t("common.pageTitle.gitCredentials"));
 
+  // Check for action parameter to auto-open create sheet
+  useEffect(() => {
+    const actionParam = searchParams.get("action");
+    if (actionParam === "create") {
+      setIsCreateSheetOpen(true);
+      // Remove action parameter from URL to keep it clean
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete("action");
+      setSearchParams(newSearchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   // Set page actions (Create button in header) and clear breadcrumb
   useEffect(() => {
     const handleCreateNew = () => {
-      navigate("/credentials/create");
+      setIsCreateSheetOpen(true);
     };
 
     setActions(
@@ -78,7 +106,7 @@ const CredentialListPage: React.FC = () => {
       setActions(null);
       setItems([]);
     };
-  }, [navigate, setActions, setItems, t]);
+  }, [setActions, setItems, t]);
 
   const loadCredentialsData = useCallback(
     async (page: number, filters: ColumnFiltersState, updateUrl = true) => {
@@ -214,9 +242,10 @@ const CredentialListPage: React.FC = () => {
 
   const handleEdit = useCallback(
     (credential: GitCredential) => {
-      navigate(`/credentials/${credential.id}/edit`);
+      setEditingCredential(credential);
+      setIsEditSheetOpen(true);
     },
-    [navigate]
+    []
   );
 
   const handleDelete = useCallback(
@@ -235,6 +264,54 @@ const CredentialListPage: React.FC = () => {
 
 
 
+  // Sheet handlers
+  const handleCreateCredential = async (credential: GitCredential) => {
+    try {
+      setIsSubmitting(true);
+      // Refresh the credential list
+      await loadCredentialsData(currentPage, columnFilters);
+      // Close the sheet
+      setIsCreateSheetOpen(false);
+      // Show success message
+      toast.success(t("gitCredentials.messages.createSuccess"));
+      console.log("Credential created successfully:", credential);
+    } catch (error) {
+      console.error("Failed to create credential:", error);
+      logError(error as Error, "Failed to create credential");
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateCredential = async (credential: GitCredential) => {
+    try {
+      setIsSubmitting(true);
+      // Refresh the credential list
+      await loadCredentialsData(currentPage, columnFilters);
+      // Close the sheet
+      setIsEditSheetOpen(false);
+      setEditingCredential(null);
+      // Show success message
+      toast.success(t("gitCredentials.messages.updateSuccess"));
+      console.log("Credential updated successfully:", credential);
+    } catch (error) {
+      console.error("Failed to update credential:", error);
+      logError(error as Error, "Failed to update credential");
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCloseCreateSheet = () => {
+    setIsCreateSheetOpen(false);
+  };
+
+  const handleCloseEditSheet = () => {
+    setIsEditSheetOpen(false);
+    setEditingCredential(null);
+  };
 
   const columns = useMemo(
     () =>
@@ -249,7 +326,7 @@ const CredentialListPage: React.FC = () => {
 
 
   return (
-    <>
+    <div>
       <SectionGroup>
         <Section>
           <SectionHeader>
@@ -261,8 +338,6 @@ const CredentialListPage: React.FC = () => {
               )}
             </SectionDescription>
           </SectionHeader>
-
-
         </Section>
 
         <Section>
@@ -286,7 +361,88 @@ const CredentialListPage: React.FC = () => {
           </div>
         </Section>
       </SectionGroup>
-    </>
+
+      {/* Create Credential Sheet */}
+      <FormSheet
+        open={isCreateSheetOpen}
+        onOpenChange={setIsCreateSheetOpen}
+      >
+        <FormSheetContent className="w-full sm:w-[600px] sm:max-w-[600px]">
+          <FormSheetHeader>
+            <FormSheetTitle>{t("gitCredentials.create")}</FormSheetTitle>
+            <FormSheetDescription>
+              {t("gitCredentials.createDescription")}
+            </FormSheetDescription>
+          </FormSheetHeader>
+          <FormCardGroup className="overflow-y-auto">
+            <FormCard className="border-none overflow-auto">
+              <FormCardContent>
+                <CredentialFormSheet
+                  onSubmit={handleCreateCredential}
+                  onCancel={handleCloseCreateSheet}
+                  formId="credential-create-sheet-form"
+                />
+              </FormCardContent>
+            </FormCard>
+          </FormCardGroup>
+          <FormSheetFooter>
+            <Button
+              type="submit"
+              form="credential-create-sheet-form"
+              disabled={isSubmitting}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSubmitting
+                ? t("common.saving")
+                : t("gitCredentials.create")}
+            </Button>
+          </FormSheetFooter>
+        </FormSheetContent>
+      </FormSheet>
+
+      {/* Edit Credential Sheet */}
+      <FormSheet
+        open={isEditSheetOpen}
+        onOpenChange={setIsEditSheetOpen}
+      >
+        <FormSheetContent className="w-full sm:w-[600px] sm:max-w-[600px]">
+          <FormSheetHeader>
+            <FormSheetTitle>
+              {t("gitCredentials.edit")} - {editingCredential?.name || ""}
+            </FormSheetTitle>
+            <FormSheetDescription>
+              {t("gitCredentials.editDescription")}
+            </FormSheetDescription>
+          </FormSheetHeader>
+          <FormCardGroup className="overflow-y-auto">
+            <FormCard className="border-none overflow-auto">
+              <FormCardContent>
+                {editingCredential && (
+                  <CredentialFormSheet
+                    credential={editingCredential}
+                    onSubmit={handleUpdateCredential}
+                    onCancel={handleCloseEditSheet}
+                    formId="credential-edit-sheet-form"
+                  />
+                )}
+              </FormCardContent>
+            </FormCard>
+          </FormCardGroup>
+          <FormSheetFooter>
+            <Button
+              type="submit"
+              form="credential-edit-sheet-form"
+              disabled={isSubmitting}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSubmitting
+                ? t("common.saving")
+                : t("common.save")}
+            </Button>
+          </FormSheetFooter>
+        </FormSheetContent>
+      </FormSheet>
+    </div>
   );
 };
 

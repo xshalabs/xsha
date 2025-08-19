@@ -32,6 +32,31 @@ func (r *taskConversationRepository) GetByID(id uint) (*database.TaskConversatio
 	return &conversation, nil
 }
 
+func (r *taskConversationRepository) GetWithResult(id uint) (*database.TaskConversation, *database.TaskConversationResult, error) {
+	var conversation database.TaskConversation
+	err := r.db.Preload("Task").
+		Preload("Task.Project").
+		Preload("Task.Project.Credential").
+		Preload("Task.DevEnvironment").
+		Where("id = ?", id).First(&conversation).Error
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Get conversation result if exists
+	var result database.TaskConversationResult
+	err = r.db.Where("conversation_id = ?", id).First(&result).Error
+	if err != nil {
+		// If no result found, return conversation with nil result
+		if err == gorm.ErrRecordNotFound {
+			return &conversation, nil, nil
+		}
+		return nil, nil, err
+	}
+
+	return &conversation, &result, nil
+}
+
 func (r *taskConversationRepository) List(taskID uint, page, pageSize int) ([]database.TaskConversation, int64, error) {
 	var conversations []database.TaskConversation
 	var total int64

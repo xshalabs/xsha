@@ -69,6 +69,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			projects.GET("/:id", projectHandlers.GetProject)
 			projects.PUT("/:id", projectHandlers.UpdateProject)
 			projects.DELETE("/:id", projectHandlers.DeleteProject)
+			projects.GET("/:id/kanban", taskHandlers.GetKanbanTasks)
 		}
 
 		tasks := api.Group("/tasks")
@@ -91,10 +92,12 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			conversations.GET("", taskConvHandlers.ListConversations)
 			conversations.GET("/latest", taskConvHandlers.GetLatestConversation)
 			conversations.GET("/:id", taskConvHandlers.GetConversation)
+			conversations.GET("/:id/details", taskConvHandlers.GetConversationDetails)
 			conversations.PUT("/:id", taskConvHandlers.UpdateConversation)
 			conversations.DELETE("/:id", taskConvHandlers.DeleteConversation)
 			conversations.GET("/:id/git-diff", taskConvHandlers.GetConversationGitDiff)
 			conversations.GET("/:id/git-diff/file", taskConvHandlers.GetConversationGitDiffFile)
+			conversations.GET("/:id/logs/stream", taskConvHandlers.StreamConversationLogs)
 		}
 
 		results := api.Group("/conversation-results")

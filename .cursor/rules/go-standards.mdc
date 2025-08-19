@@ -1,68 +1,412 @@
 ---
-globs: *.go
+globs: backend/**/*.go
 ---
-# Go Coding Standards for XSHA
 
-## Package Organization
-- Follow the established package structure in [backend/](mdc:backend/)
-- Each layer has its own package: handlers, services, repository, middleware
-- Import paths use the module name: `xsha-backend/handlers`, `xsha-backend/services`
+# Go Coding Standards
+
+Follow these Go coding standards for the XSHA backend codebase.
+
+## Code Organization
+
+### Package Structure
+```go
+// Package declaration with clear purpose
+package handlers
+
+// Standard library imports first
+import (
+    "context"
+    "fmt"
+    "net/http"
+    "time"
+)
+
+// Third-party imports second
+import (
+    "github.com/gin-gonic/gin"
+    "gorm.io/gorm"
+)
+
+// Local imports last
+import (
+    "xsha-backend/database"
+    "xsha-backend/services"
+    "xsha-backend/utils"
+)
+```
+
+### File Naming
+- Use snake_case for file names: `auth_handler.go`, `project_service.go`
+- Group related functionality in same file
+- Keep files focused and reasonably sized (< 500 lines)
 
 ## Naming Conventions
-- Use CamelCase for exported functions and types
-- Use camelCase for private functions and variables
-- Struct names should be descriptive: `AuthHandlers`, `TaskService`, `ProjectRepository`
-- Interface names should end with appropriate suffix: `AuthService`, `TaskRepository`
+
+### Variables and Functions
+```go
+// Use camelCase for private members
+var configFile string
+var maxRetries int
+
+func parseConfig() error { /* */ }
+func validateInput(data string) bool { /* */ }
+
+// Use PascalCase for exported members
+var DefaultTimeout time.Duration
+
+func CreateProject(req CreateProjectRequest) (*Project, error) { /* */ }
+func ValidateToken(token string) (*Claims, error) { /* */ }
+```
+
+### Types and Interfaces
+```go
+// Struct names should be descriptive
+type ProjectService struct {
+    repo   ProjectRepository
+    gitSvc GitCredentialService
+}
+
+// Interface names should end with -er when possible
+type ProjectRepository interface {
+    Create(project *database.Project) error
+    GetByID(id uint) (*database.Project, error)
+    Update(project *database.Project) error
+    Delete(id uint) error
+}
+
+// Use clear, descriptive names for custom types
+type TaskStatus string
+type ConversationStatus string
+```
+
+### Constants
+```go
+// Group related constants
+const (
+    DefaultTimeout       = 30 * time.Second
+    MaxRetries          = 3
+    DefaultPageSize     = 20
+    MaxPageSize         = 100
+)
+
+// Use typed constants for enums
+type TaskStatus string
+
+const (
+    TaskStatusTodo       TaskStatus = "todo"
+    TaskStatusInProgress TaskStatus = "in_progress"
+    TaskStatusDone       TaskStatus = "done"
+    TaskStatusCancelled  TaskStatus = "cancelled"
+)
+```
 
 ## Error Handling
-- Always handle errors explicitly
-- Use the established i18n error pattern from [backend/i18n/](mdc:backend/i18n/)
-- Return errors in the standardized format: `gin.H{"error": i18n.T(lang, "error.key")}`
-- Log errors using the utils logger: `utils.Error("message", "key", value)`
 
-## Layer Architecture Patterns
-Follow the established pattern in [backend/main.go](mdc:backend/main.go):
-
-### Repository Pattern
+### Error Creation and Wrapping
 ```go
-type TaskRepository interface {
-    Create(task *models.Task) error
-    GetByID(id uint) (*models.Task, error)
-    // ... other methods
+// Return errors, don't panic
+func (s *projectService) GetProject(id uint) (*database.Project, error) {
+    project, err := s.repo.GetByID(id)
+    if err != nil {
+        // Wrap errors with context
+        return nil, fmt.Errorf("failed to get project %d: %w", id, err)
+    }
+    
+    if project == nil {
+        // Return custom error types when appropriate
+        return nil, errors.NewI18nError(
+            "project.not_found",
+            "PROJECT_NOT_FOUND",
+            "Project not found",
+            map[string]interface{}{"id": id},
+        )
+    }
+    
+    return project, nil
 }
 ```
 
-### Service Pattern
+### Error Checking
 ```go
-type TaskService struct {
-    taskRepo    repository.TaskRepository
-    projectRepo repository.ProjectRepository
-    // dependencies injection
+// Check errors immediately
+result, err := someOperation()
+if err != nil {
+    return fmt.Errorf("operation failed: %w", err)
+}
+
+// Don't ignore errors
+_ = file.Close() // BAD
+
+// Handle or log errors appropriately
+if err := file.Close(); err != nil {
+    utils.Error("Failed to close file", "error", err)
 }
 ```
 
-### Handler Pattern
+## Function Design
+
+### Function Signatures
 ```go
-func (h *TaskHandlers) CreateTask(c *gin.Context) {
-    lang := middleware.GetLangFromContext(c)
-    // validate input
-    // call service
-    // return response
+// Keep function signatures simple and clear
+func CreateProject(name, description, repoURL string) (*Project, error) {
+    // Implementation
+}
+
+// Use struct parameters for complex inputs
+type CreateProjectRequest struct {
+    Name        string `json:"name" binding:"required"`
+    Description string `json:"description"`
+    RepoURL     string `json:"repo_url" binding:"required"`
+    CreatedBy   string `json:"created_by"`
+}
+
+func (s *projectService) CreateProject(req CreateProjectRequest) (*database.Project, error) {
+    // Implementation
 }
 ```
 
-## Database Patterns
-- Use GORM for all database operations
-- Follow the model structure in [backend/database/models.go](mdc:backend/database/models.go)
-- Always use transactions for complex operations
-- Include timestamps: `CreatedAt`, `UpdatedAt`, `DeletedAt` for soft deletes
+### Return Values
+```go
+// Return errors as last parameter
+func ProcessTask(taskID uint) (*TaskResult, error) {
+    // Implementation
+}
 
-## Dependency Injection
-- Inject dependencies through constructors like `NewTaskService()`
-- Initialize all dependencies in [backend/main.go](mdc:backend/main.go)
-- Pass database connection to repositories, repositories to services, services to handlers
+// Use named returns for clarity when appropriate
+func validateProject(project *Project) (isValid bool, errorMessage string) {
+    if project.Name == "" {
+        return false, "name is required"
+    }
+    return true, ""
+}
+```
 
-## Documentation
-- Use Swagger annotations for all API endpoints
-- Follow the pattern established in [backend/handlers/auth.go](mdc:backend/handlers/auth.go)
-- Include proper HTTP status codes and response types
+## Struct Design
+
+### Struct Definitions
+```go
+// Use clear field names and types
+type Project struct {
+    ID          uint      `gorm:"primarykey" json:"id"`
+    CreatedAt   time.Time `json:"created_at"`
+    UpdatedAt   time.Time `json:"updated_at"`
+    
+    Name        string    `gorm:"not null" json:"name"`
+    Description string    `gorm:"type:text" json:"description"`
+    RepoURL     string    `gorm:"not null" json:"repo_url"`
+    
+    // Foreign keys and relationships
+    CredentialID *uint          `gorm:"index" json:"credential_id"`
+    Credential   *GitCredential `gorm:"foreignKey:CredentialID" json:"credential"`
+    
+    CreatedBy string `gorm:"not null;index" json:"created_by"`
+}
+```
+
+### Constructor Functions
+```go
+// Provide constructor functions for complex types
+func NewProjectService(
+    repo ProjectRepository,
+    gitSvc GitCredentialService,
+    cfg *config.Config,
+) ProjectService {
+    return &projectService{
+        repo:   repo,
+        gitSvc: gitSvc,
+        config: cfg,
+    }
+}
+```
+
+## Interface Design
+
+### Interface Definition
+```go
+// Keep interfaces small and focused
+type ProjectRepository interface {
+    Create(project *database.Project) error
+    GetByID(id uint) (*database.Project, error)
+    GetByName(name string) (*database.Project, error)
+    Update(project *database.Project) error
+    Delete(id uint) error
+    List(filters ProjectFilters) ([]database.Project, error)
+}
+
+// Use composition for larger interfaces
+type ProjectService interface {
+    ProjectCreator
+    ProjectReader
+    ProjectUpdater
+    ProjectDeleter
+}
+```
+
+### Interface Usage
+```go
+// Accept interfaces, return concrete types
+func NewProjectHandler(service ProjectService) *ProjectHandler {
+    return &ProjectHandler{service: service}
+}
+
+// Use interfaces for testing and flexibility
+type mockProjectService struct{}
+
+func (m *mockProjectService) CreateProject(req CreateProjectRequest) (*database.Project, error) {
+    // Mock implementation
+}
+```
+
+## Context Usage
+
+### Context Propagation
+```go
+// Always pass context as first parameter
+func (s *projectService) CreateProjectWithContext(
+    ctx context.Context,
+    req CreateProjectRequest,
+) (*database.Project, error) {
+    // Check context cancellation
+    select {
+    case <-ctx.Done():
+        return nil, ctx.Err()
+    default:
+    }
+    
+    // Pass context to dependencies
+    return s.repo.CreateWithContext(ctx, project)
+}
+```
+
+### Context Values
+```go
+// Use typed keys for context values
+type contextKey string
+
+const (
+    userContextKey contextKey = "user"
+    requestIDKey   contextKey = "request_id"
+)
+
+// Helper functions for context values
+func GetUserFromContext(ctx context.Context) (string, bool) {
+    user, ok := ctx.Value(userContextKey).(string)
+    return user, ok
+}
+
+func SetUserInContext(ctx context.Context, username string) context.Context {
+    return context.WithValue(ctx, userContextKey, username)
+}
+```
+
+## Logging
+
+### Structured Logging
+```go
+// Use structured logging with key-value pairs
+utils.Info("Project created",
+    "project_id", project.ID,
+    "project_name", project.Name,
+    "created_by", project.CreatedBy,
+)
+
+utils.Error("Failed to create project",
+    "error", err,
+    "project_name", req.Name,
+    "repo_url", req.RepoURL,
+)
+```
+
+### Log Levels
+```go
+// Use appropriate log levels
+utils.Debug("Validating project request", "request", req)  // Development only
+utils.Info("Project operation started", "operation", "create")  // Normal operations
+utils.Warn("Deprecated API used", "endpoint", "/api/v1/old")  // Warnings
+utils.Error("Database connection failed", "error", err)  // Errors
+```
+
+## Testing Patterns
+
+### Test Function Names
+```go
+// Use descriptive test names
+func TestProjectService_CreateProject_Success(t *testing.T) { }
+func TestProjectService_CreateProject_ValidationError(t *testing.T) { }
+func TestProjectService_CreateProject_DatabaseError(t *testing.T) { }
+```
+
+### Test Structure
+```go
+func TestProjectService_CreateProject(t *testing.T) {
+    tests := []struct {
+        name           string
+        input          CreateProjectRequest
+        setupMock      func(*MockProjectRepository)
+        expectedError  bool
+        expectedResult *database.Project
+    }{
+        {
+            name: "successful creation",
+            input: CreateProjectRequest{
+                Name:    "test-project",
+                RepoURL: "https://github.com/test/repo",
+            },
+            setupMock: func(mock *MockProjectRepository) {
+                mock.EXPECT().Create(gomock.Any()).Return(nil)
+            },
+            expectedError: false,
+        },
+        // More test cases...
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            // Test implementation
+        })
+    }
+}
+```
+
+## Performance Considerations
+
+### Memory Management
+```go
+// Use buffers for string building
+var buf strings.Builder
+for _, item := range items {
+    buf.WriteString(item)
+}
+result := buf.String()
+
+// Close resources properly
+defer func() {
+    if err := file.Close(); err != nil {
+        utils.Error("Failed to close file", "error", err)
+    }
+}()
+```
+
+### Goroutine Usage
+```go
+// Use goroutines judiciously
+func (s *service) ProcessTasksAsync(tasks []Task) {
+    for _, task := range tasks {
+        go func(t Task) {
+            if err := s.processTask(t); err != nil {
+                utils.Error("Failed to process task", "task_id", t.ID, "error", err)
+            }
+        }(task)
+    }
+}
+
+// Use context for cancellation
+func (s *service) ProcessWithTimeout(ctx context.Context, data string) error {
+    ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+    defer cancel()
+    
+    return s.process(ctx, data)
+}
+```
+
+Follow these standards consistently to maintain high code quality and readability.

@@ -77,6 +77,7 @@ type TaskService interface {
 	CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint, createdBy string) (*database.Task, error)
 	GetTask(id uint) (*database.Task, error)
 	ListTasks(projectID *uint, statuses []database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error)
+	GetKanbanTasks(projectID uint) (map[database.TaskStatus][]database.Task, error)
 	UpdateTask(id uint, updates map[string]interface{}) error
 	UpdateTaskStatus(id uint, status database.TaskStatus) error
 	UpdateTaskSessionID(id uint, sessionID string) error
@@ -92,6 +93,7 @@ type TaskConversationService interface {
 	CreateConversation(taskID uint, content, createdBy string) (*database.TaskConversation, error)
 	CreateConversationWithExecutionTime(taskID uint, content, createdBy string, executionTime *time.Time) (*database.TaskConversation, error)
 	GetConversation(id uint) (*database.TaskConversation, error)
+	GetConversationWithResult(id uint) (map[string]interface{}, error)
 	ListConversations(taskID uint, page, pageSize int) ([]database.TaskConversation, int64, error)
 	UpdateConversation(id uint, updates map[string]interface{}) error
 	DeleteConversation(id uint) error

@@ -1,0 +1,119 @@
+import { useState, useCallback, useEffect } from "react";
+import { apiService } from "@/lib/api/index";
+import { logError } from "@/lib/errors";
+import type { Task } from "@/types/task";
+import type {
+  TaskConversation as TaskConversationInterface,
+} from "@/types/task-conversation";
+
+export function useTaskConversations(task: Task | null) {
+  const [conversations, setConversations] = useState<TaskConversationInterface[]>([]);
+  const [conversationsLoading, setConversationsLoading] = useState(false);
+  const [newMessage, setNewMessage] = useState("");
+  const [executionTime, setExecutionTime] = useState<Date | undefined>(undefined);
+  const [sending, setSending] = useState(false);
+  const [expandedConversations, setExpandedConversations] = useState<Set<number>>(new Set());
+
+  const loadConversations = useCallback(async () => {
+    if (!task) return;
+
+    setConversationsLoading(true);
+    try {
+      const response = await apiService.taskConversations.list({
+        task_id: task.id,
+      });
+      setConversations(response.data.conversations);
+    } catch (error) {
+      console.error("Failed to load conversations:", error);
+      logError(error as Error, "Failed to load conversations");
+    } finally {
+      setConversationsLoading(false);
+    }
+  }, [task]);
+
+  const handleSendMessage = async () => {
+    if (!task || !newMessage.trim() || !canSendMessage()) return;
+
+    setSending(true);
+    try {
+      await apiService.taskConversations.create({
+        task_id: task.id,
+        content: newMessage.trim(),
+        execution_time: executionTime?.toISOString(),
+      });
+
+      // Clear form and refresh conversations list
+      setNewMessage("");
+      setExecutionTime(undefined);
+      await loadConversations();
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      throw error;
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const toggleExpanded = (conversationId: number) => {
+    const newExpanded = new Set(expandedConversations);
+    if (newExpanded.has(conversationId)) {
+      newExpanded.delete(conversationId);
+    } else {
+      newExpanded.add(conversationId);
+    }
+    setExpandedConversations(newExpanded);
+  };
+
+  const isConversationExpanded = (conversationId: number) => {
+    return expandedConversations.has(conversationId);
+  };
+
+  const hasPendingOrRunningConversations = () => {
+    return conversations.some(
+      (conv) => conv.status === "pending" || conv.status === "running"
+    );
+  };
+
+  const isTaskCompleted = () => {
+    return task?.status === "done" || task?.status === "cancelled";
+  };
+
+  const canSendMessage = () => {
+    return !hasPendingOrRunningConversations() && !isTaskCompleted();
+  };
+
+  const shouldShowExpandButton = (content: string) => {
+    return content.split("\n").length > 3 || content.length > 150;
+  };
+
+  // Reset state when task changes
+  useEffect(() => {
+    if (task) {
+      setConversations([]);
+      setNewMessage("");
+      setExecutionTime(undefined);
+      setSending(false);
+      setExpandedConversations(new Set());
+      loadConversations();
+    }
+  }, [task?.id, loadConversations]);
+
+  return {
+    conversations,
+    conversationsLoading,
+    newMessage,
+    setNewMessage,
+    executionTime,
+    setExecutionTime,
+    sending,
+    expandedConversations,
+    loadConversations,
+    handleSendMessage,
+    toggleExpanded,
+    isConversationExpanded,
+    hasPendingOrRunningConversations,
+    isTaskCompleted,
+    canSendMessage,
+    shouldShowExpandButton,
+  };
+}

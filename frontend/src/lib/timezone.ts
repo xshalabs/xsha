@@ -7,6 +7,7 @@
  * 格式化时间为本地时区显示
  * @param dateString - 后端返回的UTC时间字符串
  * @param options - 格式化选项
+ * @param locale - 语言代码，如 'en-US', 'zh-CN'
  * @returns 本地时区格式化后的字符串
  */
 export function formatToLocal(
@@ -18,7 +19,8 @@ export function formatToLocal(
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-  }
+  },
+  locale?: string
 ): string {
   if (!dateString) return '';
   
@@ -30,33 +32,35 @@ export function formatToLocal(
     return '';
   }
   
-  return date.toLocaleString(undefined, options);
+  return date.toLocaleString(locale, options);
 }
 
 /**
  * 格式化时间为本地日期显示（不含时间）
  * @param dateString - 后端返回的UTC时间字符串
+ * @param locale - 语言代码
  * @returns 本地时区格式化后的日期字符串
  */
-export function formatDateToLocal(dateString: string | Date): string {
+export function formatDateToLocal(dateString: string | Date, locale?: string): string {
   return formatToLocal(dateString, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-  });
+  }, locale);
 }
 
 /**
  * 格式化时间为本地时间显示（不含日期）
  * @param dateString - 后端返回的UTC时间字符串
+ * @param locale - 语言代码
  * @returns 本地时区格式化后的时间字符串
  */
-export function formatTimeToLocal(dateString: string | Date): string {
+export function formatTimeToLocal(dateString: string | Date, locale?: string): string {
   return formatToLocal(dateString, {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-  });
+  }, locale);
 }
 
 /**
@@ -164,7 +168,7 @@ export function isSameDay(date1: Date, date2: Date): boolean {
  * @param showTimezone - 是否显示时区信息
  * @returns 格式化函数
  */
-export function createTimeFormatter(showTimezone: boolean = false) {
+export function createTimeFormatter(showTimezone: boolean = false, locale?: string) {
   return (dateString: string | Date) => {
     if (showTimezone) {
       return formatToLocal(dateString, {
@@ -175,8 +179,69 @@ export function createTimeFormatter(showTimezone: boolean = false) {
         minute: '2-digit',
         second: '2-digit',
         timeZoneName: 'short',
-      });
+      }, locale);
     }
-    return formatToLocal(dateString);
+    return formatToLocal(dateString, undefined, locale);
   };
+}
+
+/**
+ * 格式化未来执行时间为人类友好的显示格式
+ * @param dateString - 未来执行时间字符串
+ * @param t - 国际化翻译函数
+ * @param locale - 语言代码，如 'en-US', 'zh-CN'
+ * @returns 人类友好的时间显示
+ */
+export function formatFutureExecutionTime(
+  dateString: string | Date, 
+  t?: (key: string, options?: any) => string,
+  locale?: string
+): string {
+  if (!dateString) return '';
+  
+  const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+  
+  // 检查日期是否有效
+  if (isNaN(date.getTime())) {
+    console.warn('Invalid date string:', dateString);
+    return '';
+  }
+  
+  const now = new Date();
+  const diffMs = date.getTime() - now.getTime();
+  
+  // 如果是过去的时间，直接返回格式化的时间
+  if (diffMs <= 0) {
+    return formatToLocal(date, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }, locale);
+  }
+  
+  // 计算时间差
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  
+  // 根据时间差返回不同的显示格式
+  if (diffMinutes < 1) {
+    // 小于1分钟，显示"即将执行"
+    return t ? t('tasks.timeRelative.soon') : '即将执行';
+  } else if (diffMinutes < 60) {
+    return t ? t('tasks.timeRelative.minutesLater', { minutes: diffMinutes }) : `${diffMinutes}分钟后`;
+  } else if (diffHours < 24) {
+    return t ? t('tasks.timeRelative.hoursLater', { hours: diffHours }) : `${diffHours}小时后`;
+  } else if (diffDays < 7) {
+    return t ? t('tasks.timeRelative.daysLater', { days: diffDays }) : `${diffDays}天后`;
+  } else {
+    // 超过一周，显示具体日期时间
+    return formatToLocal(date, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }, locale);
+  }
 }

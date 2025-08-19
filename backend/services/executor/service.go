@@ -44,6 +44,25 @@ func NewAITaskExecutorService(
 	systemConfigService services.SystemConfigService,
 	cfg *config.Config,
 ) services.AITaskExecutorService {
+	return NewAITaskExecutorServiceWithManager(
+		taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo,
+		gitCredService, taskConvResultService, taskService, systemConfigService,
+		cfg, nil,
+	)
+}
+
+func NewAITaskExecutorServiceWithManager(
+	taskConvRepo repository.TaskConversationRepository,
+	taskRepo repository.TaskRepository,
+	execLogRepo repository.TaskExecutionLogRepository,
+	taskConvResultRepo repository.TaskConversationResultRepository,
+	gitCredService services.GitCredentialService,
+	taskConvResultService services.TaskConversationResultService,
+	taskService services.TaskService,
+	systemConfigService services.SystemConfigService,
+	cfg *config.Config,
+	executionManager *ExecutionManager,
+) services.AITaskExecutorService {
 	gitCloneTimeout, err := systemConfigService.GetGitCloneTimeout()
 	if err != nil {
 		utils.Error("Failed to get git clone timeout from system config, using default", "error", err)
@@ -55,12 +74,14 @@ func NewAITaskExecutorService(
 		execLogRepo: execLogRepo,
 	}
 
-	maxConcurrency := 5
-	if cfg.MaxConcurrentTasks > 0 {
-		maxConcurrency = cfg.MaxConcurrentTasks
+	// Create ExecutionManager if not provided
+	if executionManager == nil {
+		maxConcurrency := 5
+		if cfg.MaxConcurrentTasks > 0 {
+			maxConcurrency = cfg.MaxConcurrentTasks
+		}
+		executionManager = NewExecutionManager(maxConcurrency)
 	}
-
-	executionManager := NewExecutionManager(maxConcurrency)
 	dockerExecutor := NewDockerExecutor(cfg, logAppender, systemConfigService)
 	resultParser := NewResultParser(taskConvResultRepo, taskConvResultService, taskService)
 	workspaceCleaner := NewWorkspaceCleaner(workspaceManager)

@@ -6,12 +6,13 @@ import React, {
   useRef,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
-import { Plus } from "lucide-react";
+import { Plus, Save } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
@@ -23,6 +24,17 @@ import {
   SectionHeader,
   SectionTitle,
 } from "@/components/content/section";
+import {
+  FormSheet,
+  FormSheetContent,
+  FormSheetHeader,
+  FormSheetTitle,
+  FormSheetDescription,
+  FormSheetFooter,
+  FormCardGroup,
+} from "@/components/forms/form-sheet";
+import { FormCard, FormCardContent } from "@/components/forms/form-card";
+import { EnvironmentFormSheet } from "@/components/EnvironmentFormSheet";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTablePaginationServer } from "@/components/ui/data-table/data-table-pagination-server";
 import { createDevEnvironmentColumns } from "@/components/data-table/environments/columns";
@@ -36,17 +48,28 @@ import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 
 const EnvironmentListPage: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { setItems } = useBreadcrumb();
   const { setActions } = usePageActions();
   
   usePageTitle(t("navigation.environments"));
 
+  // Check for action parameter to auto-open create sheet
+  useEffect(() => {
+    const actionParam = searchParams.get("action");
+    if (actionParam === "create") {
+      setIsCreateSheetOpen(true);
+      // Remove action parameter from URL to keep it clean
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete("action");
+      setSearchParams(newSearchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   // Set page actions (Create button in header) and clear breadcrumb
   useEffect(() => {
     const handleCreateNew = () => {
-      navigate("/environments/create");
+      setIsCreateSheetOpen(true);
     };
 
     setActions(
@@ -64,7 +87,7 @@ const EnvironmentListPage: React.FC = () => {
       setActions(null);
       setItems([]);
     };
-  }, [navigate, setActions, setItems, t]);
+  }, [setActions, setItems, t]);
 
   const [environments, setEnvironments] = useState<DevEnvironmentDisplay[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,6 +98,12 @@ const EnvironmentListPage: React.FC = () => {
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  // Sheet state management
+  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [editingEnvironment, setEditingEnvironment] = useState<DevEnvironmentDisplay | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add request deduplication
   const lastRequestRef = useRef<string>("");
@@ -211,10 +240,60 @@ const EnvironmentListPage: React.FC = () => {
 
   const handleEditEnvironment = useCallback(
     (environment: DevEnvironmentDisplay) => {
-      navigate(`/environments/${environment.id}/edit`);
+      setEditingEnvironment(environment);
+      setIsEditSheetOpen(true);
     },
-    [navigate]
+    []
   );
+
+  // Sheet handlers
+  const handleCreateEnvironment = async (environment: DevEnvironmentDisplay) => {
+    try {
+      setIsSubmitting(true);
+      // Refresh the environment list
+      await loadEnvironmentsData(currentPage, columnFilters);
+      // Close the sheet
+      setIsCreateSheetOpen(false);
+      // Show success message
+      toast.success(t("devEnvironments.create_success"));
+      console.log("Environment created successfully:", environment);
+    } catch (error) {
+      console.error("Failed to create environment:", error);
+      logError(error as Error, "Failed to create environment");
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateEnvironment = async (environment: DevEnvironmentDisplay) => {
+    try {
+      setIsSubmitting(true);
+      // Refresh the environment list
+      await loadEnvironmentsData(currentPage, columnFilters);
+      // Close the sheet
+      setIsEditSheetOpen(false);
+      setEditingEnvironment(null);
+      // Show success message
+      toast.success(t("devEnvironments.update_success"));
+      console.log("Environment updated successfully:", environment);
+    } catch (error) {
+      console.error("Failed to update environment:", error);
+      logError(error as Error, "Failed to update environment");
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCloseCreateSheet = () => {
+    setIsCreateSheetOpen(false);
+  };
+
+  const handleCloseEditSheet = () => {
+    setIsEditSheetOpen(false);
+    setEditingEnvironment(null);
+  };
 
   const columns = useMemo(
     () =>
@@ -285,15 +364,14 @@ const EnvironmentListPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <SectionGroup>
-          <Section>
-            <SectionHeader>
-              <SectionTitle>{t("navigation.environments")}</SectionTitle>
-              <SectionDescription>
-                {t("devEnvironments.page_description")}
-              </SectionDescription>
-            </SectionHeader>
-
-          </Section>
+        <Section>
+          <SectionHeader>
+            <SectionTitle>{t("navigation.environments")}</SectionTitle>
+            <SectionDescription>
+              {t("devEnvironments.page_description")}
+            </SectionDescription>
+          </SectionHeader>
+        </Section>
         <Section>
           <div className="space-y-4">
             <DataTable
@@ -315,6 +393,87 @@ const EnvironmentListPage: React.FC = () => {
           </div>
         </Section>
       </SectionGroup>
+
+      {/* Create Environment Sheet */}
+      <FormSheet
+        open={isCreateSheetOpen}
+        onOpenChange={setIsCreateSheetOpen}
+      >
+        <FormSheetContent className="w-full sm:w-[600px] sm:max-w-[600px]">
+          <FormSheetHeader>
+            <FormSheetTitle>{t("devEnvironments.create")}</FormSheetTitle>
+            <FormSheetDescription>
+              {t("devEnvironments.create_description")}
+            </FormSheetDescription>
+          </FormSheetHeader>
+          <FormCardGroup className="overflow-y-auto">
+            <FormCard className="border-none overflow-auto">
+              <FormCardContent>
+                <EnvironmentFormSheet
+                  onSubmit={handleCreateEnvironment}
+                  onCancel={handleCloseCreateSheet}
+                  formId="environment-create-sheet-form"
+                />
+              </FormCardContent>
+            </FormCard>
+          </FormCardGroup>
+          <FormSheetFooter>
+            <Button
+              type="submit"
+              form="environment-create-sheet-form"
+              disabled={isSubmitting}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSubmitting
+                ? t("common.saving")
+                : t("devEnvironments.create")}
+            </Button>
+          </FormSheetFooter>
+        </FormSheetContent>
+      </FormSheet>
+
+      {/* Edit Environment Sheet */}
+      <FormSheet
+        open={isEditSheetOpen}
+        onOpenChange={setIsEditSheetOpen}
+      >
+        <FormSheetContent className="w-full sm:w-[600px] sm:max-w-[600px]">
+          <FormSheetHeader>
+            <FormSheetTitle>
+              {t("devEnvironments.edit")} - {editingEnvironment?.name || ""}
+            </FormSheetTitle>
+            <FormSheetDescription>
+              {t("devEnvironments.edit_description")}
+            </FormSheetDescription>
+          </FormSheetHeader>
+          <FormCardGroup className="overflow-y-auto">
+            <FormCard className="border-none overflow-auto">
+              <FormCardContent>
+                {editingEnvironment && (
+                  <EnvironmentFormSheet
+                    environment={editingEnvironment}
+                    onSubmit={handleUpdateEnvironment}
+                    onCancel={handleCloseEditSheet}
+                    formId="environment-edit-sheet-form"
+                  />
+                )}
+              </FormCardContent>
+            </FormCard>
+          </FormCardGroup>
+          <FormSheetFooter>
+            <Button
+              type="submit"
+              form="environment-edit-sheet-form"
+              disabled={isSubmitting}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSubmitting
+                ? t("common.saving")
+                : t("common.save")}
+            </Button>
+          </FormSheetFooter>
+        </FormSheetContent>
+      </FormSheet>
     </div>
   );
 };

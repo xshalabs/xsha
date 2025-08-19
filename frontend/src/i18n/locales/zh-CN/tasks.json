@@ -2,17 +2,27 @@
   "title": "任务管理",
   "page_description": "在项目中管理开发任务，跟踪任务进度和状态",
   "actions": {
+    "title": "操作",
     "create": "创建",
     "edit": "编辑",
     "viewConversation": "对话",
     "viewGitDiff": "Git差异",
-    "pushBranch": "推送分支"
+    "pushBranch": "推送分支",
+    "delete": "删除任务"
   },
   "status": {
+    "label": "状态",
     "todo": "待办",
     "in_progress": "进行中",
     "done": "已完成",
     "cancelled": "已取消"
+  },
+  "addTask": "添加任务",
+  "no_tasks": "暂无任务",
+  "details": "任务详情",
+  "tabs": {
+    "basic": "基础信息",
+    "conversations": "对话"
   },
   "fields": {
     "title": "任务标题",
@@ -23,6 +33,12 @@
     "work_branch": "工作分支",
     "executionTime": "执行时间"
   },
+  "startBranch": "起始分支",
+  "workBranch": "工作分支",
+  "environment": "开发环境",
+  "executionTime": "执行时间",
+  "createdBy": "创建者",
+  "createdAt": "创建时间",
   "form": {
     "titlePlaceholder": "输入任务标题",
     "requirementDescPlaceholder": "描述任务的具体需求和目标",
@@ -72,6 +88,7 @@
     "loadFailed": "加载任务失败",
     "createSuccess": "任务创建成功",
     "updateSuccess": "任务更新成功",
+    "updateFailed": "任务更新失败",
     "batchUpdateFailed": "批量更新失败",
     "push_failed": "分支推送失败"
   },
@@ -106,6 +123,12 @@
     "deleteSuccess": "成功删除 {{count}} 个任务",
     "deleteFailed": "批量删除失败"
   },
+  "delete": {
+    "confirmTitle": "删除任务",
+    "confirmDescription": "确定要删除此任务吗？此操作不可撤销，相关的对话记录和执行日志也将被删除。",
+    "deleteSuccess": "任务删除成功",
+    "deleteFailed": "删除任务失败"
+  },
   "errors": {
     "fetchBranchesFailed": "获取仓库分支失败",
     "fetchBranchesFailedTitle": "获取分支失败",
@@ -113,5 +136,12 @@
   },
   "create": "创建",
   "edit": "编辑",
-  "conversation": "任务对话"
+  "conversation": "任务对话",
+  "scheduledExecution": "计划执行时间",
+  "timeRelative": {
+    "soon": "即将执行",
+    "minutesLater": "{{minutes}}分钟后",
+    "hoursLater": "{{hours}}小时后",
+    "daysLater": "{{days}}天后"
+  }
 }

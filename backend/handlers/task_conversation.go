@@ -1,12 +1,15 @@
 package handlers
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 	"xsha-backend/i18n"
 	"xsha-backend/middleware"
 	"xsha-backend/services"
+	"xsha-backend/services/executor"
 	"xsha-backend/utils"
 
 	"github.com/gin-gonic/gin"
@@ -14,11 +17,13 @@ import (
 
 type TaskConversationHandlers struct {
 	conversationService services.TaskConversationService
+	logStreamingService executor.LogStreamingService
 }
 
-func NewTaskConversationHandlers(conversationService services.TaskConversationService) *TaskConversationHandlers {
+func NewTaskConversationHandlers(conversationService services.TaskConversationService, logStreamingService executor.LogStreamingService) *TaskConversationHandlers {
 	return &TaskConversationHandlers{
 		conversationService: conversationService,
+		logStreamingService: logStreamingService,
 	}
 }
 
@@ -105,6 +110,41 @@ func (h *TaskConversationHandlers) GetConversation(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": i18n.T(lang, "taskConversation.get_success"),
 		"data":    conversation,
+	})
+}
+
+// GetConversationDetails retrieves a conversation with its result details
+// @Summary Get conversation details
+// @Description Get a conversation with its associated result information
+// @Tags Task Conversations
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Conversation ID"
+// @Success 200 {object} object{message=string,data=object} "Conversation details retrieved successfully"
+// @Failure 400 {object} object{error=string} "Invalid conversation ID"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 404 {object} object{error=string} "Conversation not found"
+// @Router /conversations/{id}/details [get]
+func (h *TaskConversationHandlers) GetConversationDetails(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	details, err := h.conversationService.GetConversationWithResult(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.not_found")})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "taskConversation.get_success"),
+		"data":    details,
 	})
 }
 
@@ -362,4 +402,99 @@ func (h *TaskConversationHandlers) GetConversationGitDiffFile(c *gin.Context) {
 			"diff_content": diffContent,
 		},
 	})
+}
+
+// StreamConversationLogs streams real-time execution logs for a conversation
+// @Summary Stream conversation execution logs
+// @Description Get real-time or historical execution logs for a specific conversation via Server-Sent Events (SSE)
+// @Tags Task Conversations
+// @Accept json
+// @Produce text/event-stream
+// @Security BearerAuth
+// @Param id path int true "Conversation ID"
+// @Success 200 {string} string "Real-time log stream"
+// @Failure 400 {object} object{error=string} "Invalid conversation ID"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Failure 404 {object} object{error=string} "Conversation not found"
+// @Failure 500 {object} object{error=string} "Failed to stream logs"
+// @Router /conversations/{id}/logs/stream [get]
+func (h *TaskConversationHandlers) StreamConversationLogs(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	conversationIDStr := c.Param("id")
+	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_id"),
+		})
+		return
+	}
+
+	// Set SSE headers
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
+	c.Header("Access-Control-Allow-Origin", "*")
+	c.Header("Access-Control-Allow-Headers", "Cache-Control")
+
+	// Create context that will be cancelled when client disconnects
+	ctx, cancel := context.WithCancel(c.Request.Context())
+	defer cancel()
+
+	// Start streaming logs
+	logChan, errChan, err := h.logStreamingService.StreamConversationLogs(ctx, uint(conversationID))
+	if err != nil {
+		utils.Error("Failed to start log streaming", "conversationID", conversationID, "error", err)
+		c.SSEvent("error", gin.H{"message": i18n.T(lang, "taskConversation.log_stream_failed")})
+		return
+	}
+
+	utils.Info("Started log streaming", "conversationID", conversationID)
+
+	// Send initial connection message
+	c.SSEvent("connected", gin.H{
+		"conversation_id": conversationID,
+		"timestamp":       time.Now().Unix(),
+	})
+	c.Writer.Flush()
+
+	// Stream logs
+	for {
+		select {
+		case <-ctx.Done():
+			utils.Info("Log streaming cancelled by client", "conversationID", conversationID)
+			return
+		case logLine, ok := <-logChan:
+			if !ok {
+				// Log channel closed, conversation finished
+				utils.Info("Log streaming completed", "conversationID", conversationID)
+				c.SSEvent("finished", gin.H{
+					"conversation_id": conversationID,
+					"timestamp":       time.Now().Unix(),
+				})
+				c.Writer.Flush()
+				return
+			}
+
+			// Send log line to client
+			c.SSEvent("log", gin.H{
+				"line":      logLine,
+				"timestamp": time.Now().Unix(),
+			})
+			c.Writer.Flush()
+
+		case streamErr, ok := <-errChan:
+			if !ok {
+				continue
+			}
+
+			utils.Error("Error during log streaming", "conversationID", conversationID, "error", streamErr)
+			c.SSEvent("error", gin.H{
+				"message":   fmt.Sprintf("Log streaming error: %v", streamErr),
+				"timestamp": time.Now().Unix(),
+			})
+			c.Writer.Flush()
+			return
+		}
+	}
 }

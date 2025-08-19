@@ -64,6 +64,7 @@
   "task.create_success": "任务创建成功",
   "task.update_success": "任务更新成功",
   "task.batch_update_success": "批量更新任务状态成功",
+  "task.kanban_get_success": "看板任务获取成功",
   "task.delete_success": "任务删除成功",
   "task.get_success": "获取任务成功",
   "task.not_found": "任务不存在",

@@ -15,11 +15,6 @@ export function SiteHeader() {
   const { items } = useBreadcrumb();
 
   const getPageTitle = (pathname: string): string => {
-    const projectTasksMatch = pathname.match(/^\/projects\/(\d+)\/tasks$/);
-    if (projectTasksMatch) {
-      return t("common.pageTitle.projectTasks");
-    }
-
     switch (pathname) {
       case "/dashboard":
         return t("common.pageTitle.dashboard");

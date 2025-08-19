@@ -1,5 +1,6 @@
 {
   "pageNotFound": "Page not found",
+  "projectNotFound": "Project not found",
   "execution_log_load_failed": "Failed to load execution log",
   "execution_cancel_failed": "Failed to cancel execution",
   "execution_retry_failed": "Failed to retry execution",
