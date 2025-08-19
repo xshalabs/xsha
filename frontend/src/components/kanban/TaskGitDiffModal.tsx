@@ -17,10 +17,10 @@ import {
   Minus,
   GitBranch,
   GitCommit,
-
+  ChevronDown,
+  ChevronRight,
   Loader2,
   AlertCircle,
-  FolderOpen,
 } from "lucide-react";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
@@ -62,12 +62,11 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
   const [diffSummary, setDiffSummary] = useState<GitDiffSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set());
   const [fileContents, setFileContents] = useState<Map<string, string>>(
     new Map()
   );
   const [loadingFiles, setLoadingFiles] = useState<Set<string>>(new Set());
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
   const loadDiffSummary = async () => {
     if (!task) return;
@@ -124,11 +123,15 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
 
 
 
-  const handleFileSelect = (filePath: string) => {
-    setSelectedFile(filePath);
-    if (!fileContents.has(filePath)) {
+  const toggleFileExpanded = (filePath: string) => {
+    const newExpanded = new Set(expandedFiles);
+    if (expandedFiles.has(filePath)) {
+      newExpanded.delete(filePath);
+    } else {
+      newExpanded.add(filePath);
       loadFileContent(filePath);
     }
+    setExpandedFiles(newExpanded);
   };
 
   // Reset state when modal opens
@@ -136,10 +139,9 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
     if (isOpen && task) {
       setDiffSummary(null);
       setError(null);
-
+      setExpandedFiles(new Set());
       setFileContents(new Map());
       setLoadingFiles(new Set());
-      setSelectedFile(null);
       loadDiffSummary();
     }
   }, [isOpen, task]);
@@ -147,15 +149,15 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "added":
-        return "bg-green-100 text-green-800 border-green-300";
+        return "text-green-600 border-green-600";
       case "modified":
-        return "bg-blue-100 text-blue-800 border-blue-300";
+        return "text-blue-600 border-blue-600";
       case "deleted":
-        return "bg-red-100 text-red-800 border-red-300";
+        return "text-red-600 border-red-600";
       case "renamed":
-        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+        return "text-yellow-600 border-yellow-600";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
+        return "text-gray-600 border-gray-600";
     }
   };
 
@@ -179,20 +181,20 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
 
     const lines = content.split("\n");
     return (
-      <div className="bg-gray-50 rounded border font-mono text-sm overflow-x-auto max-h-[60vh]">
+      <div className="bg-foreground/5 border border-border rounded p-3 text-xs font-mono overflow-x-auto max-h-[60vh]">
         {lines &&
           lines.map((line, index) => {
-            let lineClass = "px-4 py-1 whitespace-pre";
+            let className = "";
             if (line.startsWith("+")) {
-              lineClass += " bg-green-50 text-green-800";
+              className = "text-green-600 bg-green-50";
             } else if (line.startsWith("-")) {
-              lineClass += " bg-red-50 text-red-800";
+              className = "text-red-600 bg-red-50";
             } else if (line.startsWith("@@")) {
-              lineClass += " bg-blue-50 text-blue-800 font-semibold";
+              className = "text-blue-600 font-bold";
             }
 
             return (
-              <div key={index} className={lineClass}>
+              <div key={index} className={`${className} px-2 py-0.5`}>
                 {line || " "}
               </div>
             );
@@ -214,23 +216,24 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
             {t("gitDiff.title")} - {task.title}
           </DialogTitle>
           <DialogDescription>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
-                <GitCommit className="w-4 h-4" />
-                <span>
+                <GitCommit className="w-4 h-4 flex-shrink-0" />
+                <span className="font-mono text-xs sm:text-sm truncate">
                   {task.start_branch} → {task.work_branch}
                 </span>
               </div>
               {diffSummary && (
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-2 sm:gap-4">
                   <span className="text-green-600">
                     +{diffSummary.total_additions || 0}
                   </span>
                   <span className="text-red-600">
                     -{diffSummary.total_deletions || 0}
                   </span>
-                  <span>
-                    {diffSummary.total_files || 0} {t("gitDiff.filesChanged")}
+                  <span className="whitespace-nowrap">
+                    {diffSummary.total_files || 0}{" "}
+                    {t("gitDiff.filesChanged")}
                   </span>
                 </div>
               )}
@@ -238,7 +241,7 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-auto">
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
@@ -261,9 +264,9 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
               <p className="text-muted-foreground">{t("gitDiff.noData")}</p>
             </div>
           ) : (
-            <div className="space-y-6 h-full flex flex-col">
-              {/* Summary section - 优先显示在最上方 */}
-              <Card className="flex-shrink-0">
+            <div className="space-y-6">
+              {/* Summary section */}
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <GitBranch className="w-5 h-5" />
@@ -271,7 +274,7 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <Card>
                       <CardContent className="p-4 text-center">
                         <div className="text-2xl font-bold text-blue-600">
@@ -316,145 +319,116 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
                 </CardContent>
               </Card>
 
-              {/* File Changes section - 左侧文件树 + 右侧内容 */}
-              <Card className="flex-1 overflow-hidden">
+              {/* File changes section */}
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FolderOpen className="w-5 h-5" />
+                    <File className="w-5 h-5" />
                     {t("gitDiff.fileChanges")}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-0 h-full">
+                <CardContent>
                   {safeFiles.length > 0 ? (
-                    <div className="flex flex-col md:flex-row h-full">
-                      {/* 左侧文件树 */}
-                      <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r bg-muted/20 overflow-y-auto max-h-48 md:max-h-none">
-                        <div className="p-2 md:p-4">
-                          <div className="space-y-1">
-                            {safeFiles.map((file) => (
-                              <div
-                                key={file.path}
-                                className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-muted/50 text-sm transition-colors ${
-                                  selectedFile === file.path 
-                                    ? 'bg-muted border-l-2 md:border-l-2 border-l-primary' 
-                                    : ''
-                                }`}
-                                onClick={() => handleFileSelect(file.path)}
+                    <div className="space-y-2">
+                      {safeFiles.map((file) => (
+                        <div key={file.path} className="border border-border rounded-lg overflow-hidden">
+                          <div
+                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50"
+                            onClick={() => toggleFileExpanded(file.path)}
+                          >
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              {expandedFiles.has(file.path) ? (
+                                <ChevronDown className="w-4 h-4 flex-shrink-0" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4 flex-shrink-0" />
+                              )}
+                              <File className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                              <span
+                                className="font-medium text-sm truncate"
+                                title={file.path}
                               >
-                                <File className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                                <span className="font-medium truncate flex-1" title={file.path}>
-                                  <span className="hidden sm:inline">{file.path}</span>
-                                  <span className="sm:hidden">{file.path.split('/').pop() || file.path}</span>
-                                </span>
-                                <div className="flex items-center gap-1 text-xs flex-shrink-0">
-                                  <Badge
-                                    variant="outline"
-                                    className={`text-xs px-1 py-0 ${getStatusColor(file.status)}`}
-                                  >
-                                    {getStatusIcon(file.status)}
+                                {file.path}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                              <div className="hidden sm:flex items-center gap-2">
+                                <Badge
+                                  variant="outline"
+                                  className={`text-xs ${getStatusColor(
+                                    file.status
+                                  )}`}
+                                >
+                                  {getStatusIcon(file.status)}
+                                  <span className="ml-1 hidden md:inline">
+                                    {getStatusText(file.status)}
+                                  </span>
+                                </Badge>
+                                {file.is_binary && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {t("gitDiff.binary")}
                                   </Badge>
-                                  {!file.is_binary && (
-                                    <div className="hidden sm:flex items-center gap-1">
-                                      <span className="text-green-600">
-                                        +{file.additions}
-                                      </span>
-                                      <span className="text-red-600">
-                                        -{file.deletions}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
+                                )}
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* 右侧变化内容 */}
-                      <div className="flex-1 overflow-y-auto">
-                        {selectedFile ? (
-                          <div className="h-full">
-                            {/* 文件头部信息 */}
-                            <div className="border-b p-2 md:p-4 bg-background sticky top-0 z-10">
-                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                                <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
-                                  <File className="w-4 h-4 md:w-5 md:h-5 text-gray-500 flex-shrink-0" />
-                                  <span className="font-medium text-sm md:text-base truncate" title={selectedFile}>
-                                    {selectedFile}
+                              {!file.is_binary && (
+                                <div className="flex items-center gap-1 text-xs">
+                                  <span className="text-green-600">
+                                    +{file.additions}
+                                  </span>
+                                  <span className="text-red-600">
+                                    -{file.deletions}
                                   </span>
                                 </div>
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                  {(() => {
-                                    const file = safeFiles.find(f => f.path === selectedFile);
-                                    return file ? (
-                                      <>
-                                        <Badge
-                                          variant="outline"
-                                          className={`text-xs ${getStatusColor(file.status)}`}
-                                        >
-                                          {getStatusIcon(file.status)}
-                                          <span className="ml-1">
-                                            {getStatusText(file.status)}
-                                          </span>
-                                        </Badge>
-                                        {file.is_binary && (
-                                          <Badge variant="outline" className="text-xs">
-                                            {t("gitDiff.binary")}
-                                          </Badge>
-                                        )}
-                                        {!file.is_binary && (
-                                          <div className="flex items-center gap-1 text-xs sm:hidden">
-                                            <span className="text-green-600">
-                                              +{file.additions}
-                                            </span>
-                                            <span className="text-red-600">
-                                              -{file.deletions}
-                                            </span>
-                                          </div>
-                                        )}
-                                      </>
-                                    ) : null;
-                                  })()}
-                                </div>
-                              </div>
-                            </div>
-                            
-                            {/* 文件内容 */}
-                            <div className="p-2 md:p-4">
-                              {loadingFiles.has(selectedFile) ? (
-                                <div className="flex items-center justify-center py-12">
-                                  <div className="text-center">
-                                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                                    <span className="text-muted-foreground">
-                                      {t("common.loading")}
-                                    </span>
-                                  </div>
-                                </div>
-                              ) : (() => {
-                                const file = safeFiles.find(f => f.path === selectedFile);
-                                return file?.is_binary ? (
-                                  <div className="text-center py-12 text-muted-foreground">
-                                    <File className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                                    <p>{t("gitDiff.binaryFileNote")}</p>
-                                  </div>
-                                ) : (
-                                  renderDiffContent(fileContents.get(selectedFile) || "")
-                                );
-                              })()}
+                              )}
                             </div>
                           </div>
-                        ) : (
-                          <div className="flex items-center justify-center h-full text-muted-foreground">
-                            <div className="text-center">
-                              <File className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                              <p>{t("gitDiff.selectFile")}</p>
+                          
+                          {/* 在小屏幕上显示状态标签 */}
+                          <div className="sm:hidden px-4 pb-3">
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant="outline"
+                                className={`text-xs ${getStatusColor(
+                                  file.status
+                                )}`}
+                              >
+                                {getStatusIcon(file.status)}
+                                <span className="ml-1">
+                                  {getStatusText(file.status)}
+                                </span>
+                              </Badge>
+                              {file.is_binary && (
+                                <Badge variant="outline" className="text-xs">
+                                  {t("gitDiff.binary")}
+                                </Badge>
+                              )}
                             </div>
                           </div>
-                        )}
-                      </div>
+
+                          {expandedFiles.has(file.path) && (
+                            <div className="border-t border-border p-4">
+                              {loadingFiles.has(file.path) ? (
+                                <div className="flex items-center justify-center py-8">
+                                  <Loader2 className="w-6 h-6 animate-spin" />
+                                  <span className="ml-2">
+                                    {t("common.loading")}
+                                  </span>
+                                </div>
+                              ) : file.is_binary ? (
+                                <div className="text-center py-8 text-muted-foreground">
+                                  {t("gitDiff.binaryFileNote")}
+                                </div>
+                              ) : (
+                                renderDiffContent(
+                                  fileContents.get(file.path) || ""
+                                )
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center h-32 text-muted-foreground">
+                    <div className="text-center py-8 text-muted-foreground">
                       {t("gitDiff.noChanges")}
                     </div>
                   )}
