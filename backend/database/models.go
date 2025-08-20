@@ -206,6 +206,9 @@ type TaskConversation struct {
 
 	CommitHash string `gorm:"default:''" json:"commit_hash"`
 
+	// EnvParams 环境参数，如model等参数的JSON存储
+	EnvParams string `gorm:"type:text;default:'{}'" json:"env_params"`
+
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 

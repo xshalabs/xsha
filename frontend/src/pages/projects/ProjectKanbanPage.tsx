@@ -127,11 +127,19 @@ export default function ProjectKanbanPage() {
     refreshKanbanData();
   };
 
-  const handleCreateTask = async (taskData: TaskFormData) => {
+  const handleCreateTask = async (taskData: TaskFormData, selectedEnvironment?: DevEnvironment) => {
     if (!projectId) return;
 
     try {
       setIsCreatingTask(true);
+
+      // Prepare env_params based on selected environment and model
+      let envParams = "{}";
+      if (taskData.dev_environment_id && taskData.model && taskData.model !== "default" && selectedEnvironment) {
+        if (selectedEnvironment.type === "claude-code") {
+          envParams = JSON.stringify({ model: taskData.model });
+        }
+      }
 
       // Convert TaskFormData to CreateTaskRequest
       const createRequest = {
@@ -144,6 +152,7 @@ export default function ProjectKanbanPage() {
         execution_time: taskData.execution_time
           ? taskData.execution_time.toISOString()
           : undefined,
+        env_params: envParams,
       };
 
       const response = await apiService.tasks.create(createRequest);

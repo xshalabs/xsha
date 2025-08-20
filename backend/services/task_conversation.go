@@ -64,7 +64,7 @@ func (s *taskConversationService) CreateConversation(taskID uint, content, creat
 	return conversation, nil
 }
 
-func (s *taskConversationService) CreateConversationWithExecutionTime(taskID uint, content, createdBy string, executionTime *time.Time) (*database.TaskConversation, error) {
+func (s *taskConversationService) CreateConversationWithExecutionTime(taskID uint, content, createdBy string, executionTime *time.Time, envParams string) (*database.TaskConversation, error) {
 	if err := s.ValidateConversationData(taskID, content); err != nil {
 		return nil, err
 	}
@@ -86,11 +86,17 @@ func (s *taskConversationService) CreateConversationWithExecutionTime(taskID uin
 		return nil, appErrors.ErrConversationCreateFailed
 	}
 
+	// Ensure envParams is valid JSON, default to empty object if not provided
+	if envParams == "" {
+		envParams = "{}"
+	}
+
 	conversation := &database.TaskConversation{
 		TaskID:        taskID,
 		Content:       strings.TrimSpace(content),
 		Status:        database.ConversationStatusPending,
 		ExecutionTime: executionTime,
+		EnvParams:     envParams,
 		CreatedBy:     createdBy,
 	}
 

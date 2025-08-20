@@ -5,6 +5,8 @@
   "newMessage": "新消息",
   "content": "内容",
   "contentPlaceholder": "请输入您的消息...",
+  "selectModel": "选择模型",
+  "modelHint": "仅对Claude Code环境可用，选择要使用的模型版本",
   "executionTime": "执行时间",
   "executionTimePlaceholder": "选择执行时间（可选）",
   "executionTimeHint": "如果不设置执行时间，对话将立即执行",
@@ -159,5 +161,11 @@
     "confirmDescription": "确定要删除此对话吗？此操作无法撤销，将会将git仓库重置到上一次提交。",
     "deleteSuccess": "对话删除成功",
     "deleteFailed": "对话删除失败"
+  },
+  "model": {
+    "default": "默认",
+    "defaultDescription": "使用默认模型",
+    "sonnet": "Sonnet",
+    "opus": "Opus"
   }
 } 

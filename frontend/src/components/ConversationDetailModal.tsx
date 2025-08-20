@@ -95,6 +95,18 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
     }
   }, [details?.result?.usage]);
 
+  // 解析环境参数获取model信息
+  const parseEnvParams = useMemo(() => {
+    if (!details?.conversation?.env_params) return null;
+    
+    try {
+      const envParams = JSON.parse(details.conversation.env_params);
+      return envParams;
+    } catch (error) {
+      return null;
+    }
+  }, [details?.conversation?.env_params]);
+
   // 格式化token数量为人类友好显示
   const formatTokens = (count: number): string => {
     if (count >= 1000000) {
@@ -179,6 +191,18 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
               <span className="text-sm font-mono text-xs break-all">
                 {conversation.commit_hash.substring(0, 8)}
               </span>
+            </div>
+          )}
+
+          {/* Display model parameter if exists */}
+          {parseEnvParams?.model && (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-w-0">
+              <span className="text-sm text-muted-foreground min-w-0">
+                {t("tasks.fields.model")}:
+              </span>
+              <Badge variant="outline" className="self-start sm:self-auto">
+                {parseEnvParams.model}
+              </Badge>
             </div>
           )}
 

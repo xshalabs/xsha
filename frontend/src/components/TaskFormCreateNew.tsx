@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,10 @@ import {
   Calendar,
   GitBranch,
   FileText,
-  Zap
+  Zap,
+  Clock,
+  Sparkles,
+  X
 } from "lucide-react";
 import type { TaskFormData } from "@/types/task";
 import type { Project } from "@/types/project";
@@ -32,7 +35,7 @@ import { projectsApi } from "@/lib/api/projects";
 interface TaskFormCreateNewProps {
   defaultProjectId?: number;
   currentProject?: Project;
-  onSubmit: (data: TaskFormData) => Promise<void>;
+  onSubmit: (data: TaskFormData, selectedEnvironment?: DevEnvironment) => Promise<void>;
   formId?: string;
 }
 
@@ -53,6 +56,7 @@ export function TaskFormCreateNew({
     requirement_desc: "",
     execution_time: undefined,
     include_branches: true,
+    model: "default",
   });
 
   // UI state
@@ -68,6 +72,12 @@ export function TaskFormCreateNew({
   const [availableBranches, setAvailableBranches] = useState<string[]>([]);
   const [fetchingBranches, setFetchingBranches] = useState(false);
   const [branchError, setBranchError] = useState<string>("");
+
+  // UI state for inline controls
+  const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
+  const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
+  const timePickerRef = useRef<HTMLDivElement>(null);
+  const modelSelectorRef = useRef<HTMLDivElement>(null);
 
   // Load development environments
   useEffect(() => {
@@ -198,7 +208,12 @@ export function TaskFormCreateNew({
 
     setSubmitting(true);
     try {
-      await onSubmit({ ...formData, include_branches: true });
+      // Find the selected environment from loaded environments
+      const selectedEnvironment = formData.dev_environment_id 
+        ? devEnvironments.find(env => env.id === formData.dev_environment_id)
+        : undefined;
+      
+      await onSubmit({ ...formData, include_branches: true }, selectedEnvironment);
     } catch (error) {
       console.error("Failed to submit task:", error);
     } finally {
@@ -224,6 +239,59 @@ export function TaskFormCreateNew({
       }));
     }
   };
+
+  // Inline control handlers (similar to NewMessageForm)
+  const handleTimePickerToggle = useCallback(() => {
+    setIsTimePickerOpen(!isTimePickerOpen);
+    setIsModelSelectorOpen(false); // Close model selector when opening time picker
+  }, [isTimePickerOpen]);
+
+  const handleModelSelectorToggle = useCallback(() => {
+    setIsModelSelectorOpen(!isModelSelectorOpen);
+    setIsTimePickerOpen(false); // Close time picker when opening model selector
+  }, [isModelSelectorOpen]);
+
+  const handleTimeChange = useCallback((time: Date | undefined) => {
+    handleChange("execution_time", time);
+    // Don't auto-close to allow multiple time adjustments
+  }, []);
+
+  const handleModelChange = useCallback((newModel: string) => {
+    handleChange("model", newModel);
+    setIsModelSelectorOpen(false); // Close after selection
+  }, []);
+
+  // Get selected environment
+  const selectedEnvironment = formData.dev_environment_id 
+    ? devEnvironments.find(env => env.id === formData.dev_environment_id)
+    : undefined;
+
+  // Handle click outside to close popups
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      
+      // Only close if clicking completely outside our components and not on any portal/popup content
+      const isClickOnPortal = target.closest('[data-radix-popper-content-wrapper], [data-radix-portal], [data-sonner-toaster]');
+      const isClickOnTimePicker = timePickerRef.current?.contains(target as Node);
+      const isClickOnModelSelector = modelSelectorRef.current?.contains(target as Node);
+      
+      if (!isClickOnPortal && !isClickOnTimePicker && !isClickOnModelSelector) {
+        setIsTimePickerOpen(false);
+        setIsModelSelectorOpen(false);
+      }
+    };
+
+    // Use a timeout to avoid immediate closure
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <form id={formId} onSubmit={handleSubmit} className="my-4 space-y-6">
@@ -254,67 +322,6 @@ export function TaskFormCreateNew({
             )}
           </div>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <Label htmlFor="requirement_desc" className="text-sm font-medium">
-                {t("tasks.fields.requirementDesc")} <span className="text-red-500">*</span>
-              </Label>
-            </div>
-            <Textarea
-              id="requirement_desc"
-              value={formData.requirement_desc || ""}
-              onChange={(e) => handleChange("requirement_desc", e.target.value)}
-              placeholder={t("tasks.form.requirementDescPlaceholder")}
-              rows={4}
-              className={errors.requirement_desc ? "border-red-500 focus-visible:ring-red-500" : ""}
-              disabled={submitting}
-            />
-            {errors.requirement_desc && (
-              <p className="text-sm text-red-500 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                {errors.requirement_desc}
-              </p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              {t("tasks.form.requirementDescHint")}
-            </p>
-          </div>
-
-          {/* Execution Time */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <Label htmlFor="execution_time" className="text-sm font-medium">
-                {t("tasks.fields.executionTime")}
-              </Label>
-            </div>
-            <DateTimePicker
-              id="execution_time"
-              value={formData.execution_time}
-              onChange={(date) => handleChange("execution_time", date)}
-              placeholder={t("tasks.form.executionTimePlaceholder")}
-              label=""
-              className={errors.execution_time ? "border-red-500" : ""}
-              disabled={submitting}
-            />
-            {errors.execution_time && (
-              <p className="text-sm text-red-500 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                {errors.execution_time}
-              </p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              {t("tasks.form.executionTimeHint")}
-            </p>
-          </div>
-        </div>
-
-      <Separator />
-
-      {/* Configuration */}
-      <div className="space-y-6">
           {/* Development Environment */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -387,6 +394,176 @@ export function TaskFormCreateNew({
             </p>
           </div>
 
+          {/* Description */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <Label htmlFor="requirement_desc" className="text-sm font-medium">
+                {t("tasks.fields.requirementDesc")} <span className="text-red-500">*</span>
+              </Label>
+            </div>
+            <div className="relative">
+              <Textarea
+                id="requirement_desc"
+                value={formData.requirement_desc || ""}
+                onChange={(e) => handleChange("requirement_desc", e.target.value)}
+                placeholder={t("tasks.form.requirementDescPlaceholder")}
+                rows={4}
+                className={`min-h-[120px] resize-none pr-4 pb-16 ${errors.requirement_desc ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                disabled={submitting}
+              />
+              
+              {/* Interactive Controls positioned at the bottom left of the textarea */}
+              <div className="absolute bottom-3 left-3 right-3 flex items-end gap-3">
+                {/* Execution Time Control */}
+                <div className="relative" ref={timePickerRef}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleTimePickerToggle}
+                    className={`h-7 w-7 p-0 rounded-md transition-colors ${
+                      formData.execution_time 
+                        ? 'bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-400' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                    title={formData.execution_time ? t("tasks.fields.executionTime") + ": " + formData.execution_time.toLocaleString() : t("tasks.fields.executionTime")}
+                  >
+                    {formData.execution_time ? <Calendar className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
+                  </Button>
+                  
+                  {isTimePickerOpen && (
+                    <div className="absolute bottom-full left-0 mb-2 p-3 bg-background border rounded-lg shadow-lg z-10 min-w-[200px]">
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-xs font-medium">{t("tasks.fields.executionTime")}</Label>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsTimePickerOpen(false)}
+                          className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        <DateTimePicker
+                          value={formData.execution_time}
+                          onChange={handleTimeChange}
+                          placeholder={t("tasks.form.executionTimePlaceholder")}
+                          label=""
+                          className="h-8 text-xs"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {t("tasks.form.executionTimeHint")}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Model Selection - Only show when environment is selected */}
+                {selectedEnvironment && (
+                  <div className="relative" ref={modelSelectorRef}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleModelSelectorToggle}
+                      className={`h-7 w-7 p-0 rounded-md transition-colors ${
+                        formData.model && formData.model !== 'default'
+                          ? 'bg-purple-100 text-purple-600 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-400'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      }`}
+                      title={formData.model ? t("tasks.fields.model") + ": " + formData.model : t("tasks.fields.model")}
+                    >
+                      {formData.model && formData.model !== 'default' ? <Sparkles className="h-3.5 w-3.5" /> : <Zap className="h-3.5 w-3.5" />}
+                    </Button>
+                    
+                    {isModelSelectorOpen && (
+                      <div className="absolute bottom-full left-0 mb-2 p-3 bg-background border rounded-lg shadow-lg z-10 min-w-[200px]">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label className="text-xs font-medium">{t("tasks.fields.model")}</Label>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsModelSelectorOpen(false)}
+                            className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="space-y-2">
+                          <Select
+                            value={formData.model || "default"}
+                            onValueChange={handleModelChange}
+                            disabled={submitting}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder={t("tasks.form.selectModel")} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="default">
+                                <div className="flex flex-col items-start">
+                                  <span className="font-medium text-xs">{t("tasks.model.default")}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {t("tasks.model.defaultDescription")}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                              {selectedEnvironment.type === "claude-code" && (
+                                <>
+                                  <SelectItem value="sonnet">
+                                    <div className="flex flex-col items-start">
+                                      <span className="font-medium text-xs">{t("tasks.model.sonnet")}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        Sonnet
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="opus">
+                                    <div className="flex flex-col items-start">
+                                      <span className="font-medium text-xs">{t("tasks.model.opus")}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        Opus
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                </>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">
+                            {t("tasks.form.modelHint")}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {errors.requirement_desc && (
+              <p className="text-sm text-red-500 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                {errors.requirement_desc}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {t("tasks.form.requirementDescHint")}
+            </p>
+            
+            {/* Hint for interactive controls */}
+            <div className="text-xs text-muted-foreground">
+              {t("tasks.form.clickIconsToConfigureHint", "Click icons in the text area to configure execution settings")}
+            </div>
+          </div>
+        </div>
+
+      <Separator />
+
+      {/* Configuration */}
+      <div className="space-y-6">
           {/* Start Branch */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">

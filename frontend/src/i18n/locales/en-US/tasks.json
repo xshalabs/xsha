@@ -28,6 +28,7 @@
     "title": "Task Title",
     "requirementDesc": "Requirement Description",
     "project": "Project",
+    "model": "Model",
     "startBranch": "Start Branch",
     "devEnvironment": "Development Environment",
     "work_branch": "Work Branch",
@@ -57,7 +58,10 @@
     "createFooterInfo": "Make sure to provide clear requirements and select the correct development environment for optimal task execution.",
     "editFooterInfo": "Changes will be saved immediately. You can view task conversations and execution logs from the task list.",
     "executionTimePlaceholder": "Select execution time (optional)",
-    "executionTimeHint": "If no execution time is set, the task will be executed immediately"
+    "executionTimeHint": "If no execution time is set, the task will be executed immediately",
+    "selectModel": "Select model",
+    "modelHint": "Only available for Claude Code environments, choose the model version to use",
+    "clickIconsToConfigureHint": "Click icons in the text area to configure execution settings"
   },
   "validation": {
     "titleRequired": "Task title is required",
@@ -144,5 +148,11 @@
     "minutesLater": "in {{minutes}} minutes",
     "hoursLater": "in {{hours}} hours",
     "daysLater": "in {{days}} days"
+  },
+  "model": {
+    "default": "Default",
+    "defaultDescription": "Use default model",
+    "sonnet": "Sonnet",
+    "opus": "Opus"
   }
 }
