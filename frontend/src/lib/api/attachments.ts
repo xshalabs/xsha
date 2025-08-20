@@ -1,4 +1,6 @@
-import { apiClient } from './request';
+import { request } from './request';
+import { API_BASE_URL } from './config';
+import { tokenManager } from './token';
 
 export interface Attachment {
   id: number;
@@ -32,56 +34,71 @@ export const attachmentApi = {
     formData.append('conversation_id', conversationId.toString());
     formData.append('file', file);
 
-    const response = await apiClient.post<AttachmentApiResponse<Attachment>>(
-      '/attachments/upload',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-    return response.data.data;
+    const token = tokenManager.getToken();
+    const response = await fetch(`${API_BASE_URL}/attachments/upload`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.statusText}`);
+    }
+
+    const result: AttachmentApiResponse<Attachment> = await response.json();
+    return result.data;
   },
 
   // Get attachment info
   async getAttachment(id: number): Promise<Attachment> {
-    const response = await apiClient.get<AttachmentApiResponse<Attachment>>(
+    const response = await request<AttachmentApiResponse<Attachment>>(
       `/attachments/${id}`
     );
-    return response.data.data;
+    return response.data;
   },
 
   // Get attachments for a conversation
   async getConversationAttachments(conversationId: number): Promise<Attachment[]> {
-    const response = await apiClient.get<AttachmentApiResponse<Attachment[]>>(
+    const response = await request<AttachmentApiResponse<Attachment[]>>(
       `/attachments?conversation_id=${conversationId}`
     );
-    return response.data.data;
+    return response.data;
   },
 
   // Download attachment
   getDownloadUrl(id: number): string {
-    return `${apiClient.defaults.baseURL}/attachments/${id}/download`;
+    return `${API_BASE_URL}/attachments/${id}/download`;
   },
 
   // Preview attachment (for images)
   getPreviewUrl(id: number): string {
-    return `${apiClient.defaults.baseURL}/attachments/${id}/preview`;
+    return `${API_BASE_URL}/attachments/${id}/preview`;
   },
 
   // Delete attachment
   async deleteAttachment(id: number): Promise<void> {
-    await apiClient.delete(`/attachments/${id}`);
+    await request(`/attachments/${id}`, {
+      method: 'DELETE',
+    });
   },
 
   // Download attachment file
   async downloadAttachment(id: number, filename: string): Promise<void> {
-    const response = await apiClient.get(`/attachments/${id}/download`, {
-      responseType: 'blob',
+    const token = tokenManager.getToken();
+    const response = await fetch(`${API_BASE_URL}/attachments/${id}/download`, {
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
     });
     
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    if (!response.ok) {
+      throw new Error(`Download failed: ${response.statusText}`);
+    }
+    
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', filename);

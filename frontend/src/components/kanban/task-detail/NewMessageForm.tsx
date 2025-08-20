@@ -26,7 +26,7 @@ interface NewMessageFormProps {
   canSendMessage: boolean;
   isTaskCompleted: boolean;
   _hasPendingOrRunningConversations: boolean;
-  attachments: Attachment[];
+  attachments?: Attachment[];
   onMessageChange: (message: string) => void;
   onExecutionTimeChange: (time: Date | undefined) => void;
   onModelChange: (model: string) => void;
@@ -83,7 +83,7 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     );
 
     const handleSendMessage = useCallback(() => {
-      const attachmentIds = attachments.map(a => a.id);
+      const attachmentIds = attachments?.map(a => a.id) || [];
       onSendMessage(attachmentIds.length > 0 ? attachmentIds : undefined);
     }, [onSendMessage, attachments]);
 
@@ -303,7 +303,7 @@ export const NewMessageForm = memo<NewMessageFormProps>(
                     size="sm"
                     onClick={handleAttachmentsToggle}
                     className={`h-7 w-7 p-0 rounded-md transition-colors ${
-                      attachments.length > 0 || showAttachments
+                      (attachments?.length || 0) > 0 || showAttachments
                         ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-400'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                     }`}
@@ -328,9 +328,9 @@ export const NewMessageForm = memo<NewMessageFormProps>(
                       
                       <div className="space-y-3">
                         {/* Existing Attachments */}
-                        {attachments.length > 0 && (
+                        {(attachments?.length || 0) > 0 && (
                           <AttachmentList
-                            attachments={attachments}
+                            attachments={attachments || []}
                             onAttachmentDelete={onAttachmentDelete}
                             className="max-h-32 overflow-y-auto"
                           />
