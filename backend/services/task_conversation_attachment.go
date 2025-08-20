@@ -1,0 +1,176 @@
+package services
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
+	"xsha-backend/database"
+	appErrors "xsha-backend/errors"
+	"xsha-backend/repository"
+)
+
+type taskConversationAttachmentService struct {
+	repo repository.TaskConversationAttachmentRepository
+}
+
+func NewTaskConversationAttachmentService(repo repository.TaskConversationAttachmentRepository) TaskConversationAttachmentService {
+	return &taskConversationAttachmentService{
+		repo: repo,
+	}
+}
+
+func (s *taskConversationAttachmentService) UploadAttachment(conversationID uint, fileName, originalName, contentType string, fileSize int64, filePath string, attachmentType database.AttachmentType, createdBy string) (*database.TaskConversationAttachment, error) {
+	// Validate file exists
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return nil, appErrors.NewI18nError("attachment.file_not_found", "File does not exist")
+	}
+
+	// Get sort order (next sequence number for this conversation)
+	existingAttachments, err := s.repo.GetByConversationID(conversationID)
+	if err != nil {
+		return nil, err
+	}
+	sortOrder := len(existingAttachments) + 1
+
+	attachment := &database.TaskConversationAttachment{
+		ConversationID: conversationID,
+		FileName:       fileName,
+		OriginalName:   originalName,
+		FilePath:       filePath,
+		FileSize:       fileSize,
+		ContentType:    contentType,
+		Type:           attachmentType,
+		SortOrder:      sortOrder,
+		CreatedBy:      createdBy,
+	}
+
+	if err := s.repo.Create(attachment); err != nil {
+		return nil, err
+	}
+
+	return attachment, nil
+}
+
+func (s *taskConversationAttachmentService) GetAttachment(id uint) (*database.TaskConversationAttachment, error) {
+	return s.repo.GetByID(id)
+}
+
+func (s *taskConversationAttachmentService) GetAttachmentsByConversation(conversationID uint) ([]database.TaskConversationAttachment, error) {
+	return s.repo.GetByConversationID(conversationID)
+}
+
+func (s *taskConversationAttachmentService) UpdateAttachment(id uint, attachment *database.TaskConversationAttachment) error {
+	return s.repo.Update(attachment)
+}
+
+func (s *taskConversationAttachmentService) DeleteAttachment(id uint) error {
+	attachment, err := s.repo.GetByID(id)
+	if err != nil {
+		return err
+	}
+
+	// Delete physical file
+	if err := os.Remove(attachment.FilePath); err != nil {
+		// Log error but don't fail the operation
+		// File might already be deleted or moved
+		fmt.Printf("Warning: Failed to delete physical file %s: %v\n", attachment.FilePath, err)
+	}
+
+	return s.repo.Delete(id)
+}
+
+func (s *taskConversationAttachmentService) DeleteAttachmentsByConversation(conversationID uint) error {
+	attachments, err := s.repo.GetByConversationID(conversationID)
+	if err != nil {
+		return err
+	}
+
+	// Delete physical files
+	for _, attachment := range attachments {
+		if err := os.Remove(attachment.FilePath); err != nil {
+			// Log error but continue with other files
+			fmt.Printf("Warning: Failed to delete physical file %s: %v\n", attachment.FilePath, err)
+		}
+	}
+
+	return s.repo.DeleteByConversationID(conversationID)
+}
+
+func (s *taskConversationAttachmentService) ProcessContentWithAttachments(content string, attachments []database.TaskConversationAttachment) string {
+	if len(attachments) == 0 {
+		return content
+	}
+
+	// Create maps for quick lookup
+	imageCount := 1
+	pdfCount := 1
+
+	for _, attachment := range attachments {
+		var tag string
+		if attachment.Type == database.AttachmentTypeImage {
+			tag = fmt.Sprintf("[image%d]", imageCount)
+			imageCount++
+		} else if attachment.Type == database.AttachmentTypePDF {
+			tag = fmt.Sprintf("[pdf%d]", pdfCount)
+			pdfCount++
+		}
+
+		// Add tag to content if not already present
+		if tag != "" && !strings.Contains(content, tag) {
+			if content != "" {
+				content += " "
+			}
+			content += tag
+		}
+	}
+
+	return content
+}
+
+func (s *taskConversationAttachmentService) ParseAttachmentTags(content string) []string {
+	// Parse [image1], [pdf1], etc. tags from content
+	re := regexp.MustCompile(`\[(image|pdf)(\d+)\]`)
+	matches := re.FindAllString(content, -1)
+
+	var tags []string
+	for _, match := range matches {
+		tags = append(tags, match)
+	}
+
+	return tags
+}
+
+// Helper function to extract attachment type and number from tag
+func parseAttachmentTag(tag string) (database.AttachmentType, int, error) {
+	re := regexp.MustCompile(`\[(image|pdf)(\d+)\]`)
+	matches := re.FindStringSubmatch(tag)
+
+	if len(matches) != 3 {
+		return "", 0, fmt.Errorf("invalid attachment tag format: %s", tag)
+	}
+
+	attachmentType := database.AttachmentType(matches[1])
+	number, err := strconv.Atoi(matches[2])
+	if err != nil {
+		return "", 0, fmt.Errorf("invalid attachment number in tag: %s", tag)
+	}
+
+	return attachmentType, number, nil
+}
+
+// GetAttachmentStorageDir returns the storage directory for attachments
+func GetAttachmentStorageDir() string {
+	return filepath.Join("static", "attachments")
+}
+
+// GenerateAttachmentFileName generates a unique filename for an attachment
+func GenerateAttachmentFileName(conversationID uint, originalName string) string {
+	ext := filepath.Ext(originalName)
+	base := strings.TrimSuffix(originalName, ext)
+	// Clean filename for security
+	base = regexp.MustCompile(`[^a-zA-Z0-9._-]`).ReplaceAllString(base, "_")
+	return fmt.Sprintf("conv_%d_%s%s", conversationID, base, ext)
+}

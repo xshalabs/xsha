@@ -293,3 +293,32 @@ type SystemConfig struct {
 	IsEditable  bool           `gorm:"not null;default:true" json:"is_editable"`
 	SortOrder   int            `gorm:"not null;default:0;index" json:"sort_order"`
 }
+
+type AttachmentType string
+
+const (
+	AttachmentTypeImage AttachmentType = "image"
+	AttachmentTypePDF   AttachmentType = "pdf"
+)
+
+type TaskConversationAttachment struct {
+	ID        uint           `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	ConversationID uint              `gorm:"not null;index" json:"conversation_id"`
+	Conversation   *TaskConversation `gorm:"foreignKey:ConversationID" json:"conversation"`
+
+	FileName     string         `gorm:"not null" json:"file_name"`
+	OriginalName string         `gorm:"not null" json:"original_name"`
+	FilePath     string         `gorm:"not null" json:"file_path"`
+	FileSize     int64          `gorm:"not null" json:"file_size"`
+	ContentType  string         `gorm:"not null" json:"content_type"`
+	Type         AttachmentType `gorm:"not null;index" json:"type"`
+
+	// Metadata for ordering and referencing in content
+	SortOrder int `gorm:"not null;default:0" json:"sort_order"`
+
+	CreatedBy string `gorm:"not null;index" json:"created_by"`
+}

@@ -59,6 +59,7 @@ func main() {
 	taskConvRepo := repository.NewTaskConversationRepository(dbManager.GetDB())
 	execLogRepo := repository.NewTaskExecutionLogRepository(dbManager.GetDB())
 	taskConvResultRepo := repository.NewTaskConversationResultRepository(dbManager.GetDB())
+	taskConvAttachmentRepo := repository.NewTaskConversationAttachmentRepository(dbManager.GetDB())
 	systemConfigRepo := repository.NewSystemConfigRepository(dbManager.GetDB())
 	dashboardRepo := repository.NewDashboardRepository(dbManager.GetDB())
 
@@ -83,7 +84,8 @@ func main() {
 	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, taskRepo, systemConfigService, cfg)
 	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, workspaceManager, cfg, gitCredService, systemConfigService)
 	taskConvResultService := services.NewTaskConversationResultService(taskConvResultRepo, taskConvRepo, taskRepo, projectRepo)
-	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, taskService)
+	taskConvAttachmentService := services.NewTaskConversationAttachmentService(taskConvAttachmentRepo)
+	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, taskService, taskConvAttachmentService)
 
 	// Create shared execution manager
 	maxConcurrency := 5
@@ -110,6 +112,7 @@ func main() {
 	taskConvHandlers := handlers.NewTaskConversationHandlers(taskConvService, logStreamingService)
 	taskConvResultHandlers := handlers.NewTaskConversationResultHandlers(taskConvResultService)
 	taskExecLogHandlers := handlers.NewTaskExecutionLogHandlers(aiTaskExecutor)
+	taskConvAttachmentHandlers := handlers.NewTaskConversationAttachmentHandlers(taskConvAttachmentService)
 	systemConfigHandlers := handlers.NewSystemConfigHandlers(systemConfigService)
 	dashboardHandlers := handlers.NewDashboardHandlers(dashboardService)
 
@@ -128,7 +131,7 @@ func main() {
 	}
 
 	// Setup routes - Pass all handler instances including static files
-	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvResultHandlers, taskExecLogHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
+	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvResultHandlers, taskExecLogHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

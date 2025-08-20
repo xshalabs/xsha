@@ -134,5 +134,15 @@
   "tasks.push_success": "分支推送成功",
   "system_config.update_success": "系统配置更新成功",
   "system_config.list_success": "获取配置列表成功",
-  "system_config.list_failed": "获取配置列表失败"
+  "system_config.list_failed": "获取配置列表失败",
+  "attachment.upload_success": "附件上传成功",
+  "attachment.get_success": "获取附件信息成功",
+  "attachment.delete_success": "附件删除成功",
+  "attachment.file_required": "文件不能为空",
+  "attachment.file_too_large": "文件过大（最大10MB）",
+  "attachment.unsupported_file_type": "仅支持图片和PDF文件",
+  "attachment.save_failed": "文件保存失败",
+  "attachment.not_found": "附件不存在",
+  "attachment.file_not_found": "附件文件不存在",
+  "validation.conversation_id_required": "会话ID不能为空"
 }

@@ -169,5 +169,31 @@
     "defaultDescription": "Use default model",
     "sonnet": "Sonnet",
     "opus": "Opus"
+  },
+  "attachments": "Attachments",
+  "attachment": {
+    "click_to_upload": "Click to upload",
+    "or_drag_and_drop": " or drag and drop",
+    "supported_formats": "Images (JPG, PNG, GIF, WebP) and PDF files up to 10MB",
+    "upload_success": "Upload successful",
+    "file_too_large": "File is too large (max 10MB)",
+    "unsupported_file_type": "Only images and PDF files are supported",
+    "conversation_required": "Please create a conversation first to upload attachments",
+    "type_image": "Image",
+    "type_pdf": "PDF",
+    "type_file": "File",
+    "preview": "Preview",
+    "view_pdf": "View PDF",
+    "download": "Download",
+    "delete": "Delete",
+    "delete_confirm_title": "Delete Attachment",
+    "delete_confirm_message": "Are you sure you want to delete this attachment? This action cannot be undone.",
+    "image_load_error": "Failed to load image",
+    "file_size": "Size",
+    "file_type": "Type",
+    "uploaded_by": "Uploaded by",
+    "uploaded_at": "Uploaded",
+    "not_found": "Attachment not found",
+    "file_not_found": "Attachment file not found on disk"
   }
 } 

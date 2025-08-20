@@ -66,7 +66,7 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 		panic(fmt.Sprintf("Unsupported database type: %s", cfg.DatabaseType))
 	}
 
-	if err := db.AutoMigrate(&TokenBlacklist{}, &LoginLog{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &SystemConfig{}); err != nil {
+	if err := db.AutoMigrate(&TokenBlacklist{}, &LoginLog{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}); err != nil {
 		return nil, err
 	}
 	utils.Info("Database table migration completed")

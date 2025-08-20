@@ -16,7 +16,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskConvResultHandlers *handlers.TaskConversationResultHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, staticFiles *embed.FS) {
+func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskConvResultHandlers *handlers.TaskConversationResultHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, staticFiles *embed.FS) {
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
 
@@ -98,6 +98,16 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			conversations.GET("/:id/git-diff", taskConvHandlers.GetConversationGitDiff)
 			conversations.GET("/:id/git-diff/file", taskConvHandlers.GetConversationGitDiffFile)
 			conversations.GET("/:id/logs/stream", taskConvHandlers.StreamConversationLogs)
+		}
+
+		attachments := api.Group("/attachments")
+		{
+			attachments.POST("/upload", attachmentHandlers.UploadAttachment)
+			attachments.GET("", attachmentHandlers.GetConversationAttachments)
+			attachments.GET("/:id", attachmentHandlers.GetAttachment)
+			attachments.GET("/:id/download", attachmentHandlers.DownloadAttachment)
+			attachments.GET("/:id/preview", attachmentHandlers.PreviewAttachment)
+			attachments.DELETE("/:id", attachmentHandlers.DeleteAttachment)
 		}
 
 		results := api.Group("/conversation-results")

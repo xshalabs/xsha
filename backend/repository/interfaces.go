@@ -136,3 +136,12 @@ type DashboardRepository interface {
 	GetDashboardStats() (map[string]interface{}, error)
 	GetRecentTasks(limit int) ([]database.Task, error)
 }
+
+type TaskConversationAttachmentRepository interface {
+	Create(attachment *database.TaskConversationAttachment) error
+	GetByID(id uint) (*database.TaskConversationAttachment, error)
+	GetByConversationID(conversationID uint) ([]database.TaskConversationAttachment, error)
+	Update(attachment *database.TaskConversationAttachment) error
+	Delete(id uint) error
+	DeleteByConversationID(conversationID uint) error
+}

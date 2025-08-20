@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"xsha-backend/database"
 	"xsha-backend/i18n"
 	"xsha-backend/middleware"
 	"xsha-backend/services"
@@ -33,6 +34,7 @@ type CreateConversationRequest struct {
 	Content       string     `json:"content" binding:"required" example:"Please implement the user authentication feature"`
 	ExecutionTime *time.Time `json:"execution_time" example:"2024-01-01T10:00:00Z"`
 	EnvParams     string     `json:"env_params" example:"{\"model\":\"sonnet\"}"`
+	AttachmentIDs []uint     `json:"attachment_ids,omitempty" example:"[1,2]"`
 }
 
 // @Description Update conversation request
@@ -67,7 +69,14 @@ func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 		return
 	}
 
-	conversation, err := h.conversationService.CreateConversationWithExecutionTime(req.TaskID, req.Content, username.(string), req.ExecutionTime, req.EnvParams)
+	var conversation *database.TaskConversation
+	var err error
+
+	if len(req.AttachmentIDs) > 0 {
+		conversation, err = h.conversationService.CreateConversationWithExecutionTimeAndAttachments(req.TaskID, req.Content, username.(string), req.ExecutionTime, req.EnvParams, req.AttachmentIDs)
+	} else {
+		conversation, err = h.conversationService.CreateConversationWithExecutionTime(req.TaskID, req.Content, username.(string), req.ExecutionTime, req.EnvParams)
+	}
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return

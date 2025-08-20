@@ -1,6 +1,6 @@
 import { memo, useCallback, useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Send, MessageSquare, Clock, Zap, Calendar, Sparkles, X } from "lucide-react";
+import { Send, MessageSquare, Clock, Zap, Calendar, Sparkles, X, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Task } from "@/types/task";
+import { AttachmentUploader } from "@/components/AttachmentUploader";
+import { AttachmentList } from "@/components/AttachmentList";
+import type { Attachment } from "@/lib/api/attachments";
 
 interface NewMessageFormProps {
   task: Task;
@@ -23,10 +26,13 @@ interface NewMessageFormProps {
   canSendMessage: boolean;
   isTaskCompleted: boolean;
   _hasPendingOrRunningConversations: boolean;
+  attachments: Attachment[];
   onMessageChange: (message: string) => void;
   onExecutionTimeChange: (time: Date | undefined) => void;
   onModelChange: (model: string) => void;
-  onSendMessage: () => void;
+  onSendMessage: (attachmentIds?: number[]) => void;
+  onAttachmentUpload?: (attachment: Attachment) => void;
+  onAttachmentDelete?: (attachmentId: number) => void;
 }
 
 export const NewMessageForm = memo<NewMessageFormProps>(
@@ -39,16 +45,21 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     canSendMessage,
     isTaskCompleted,
     _hasPendingOrRunningConversations,
+    attachments,
     onMessageChange,
     onExecutionTimeChange,
     onModelChange,
     onSendMessage,
+    onAttachmentUpload,
+    onAttachmentDelete,
   }) => {
     const { t } = useTranslation();
     const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
     const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
+    const [showAttachments, setShowAttachments] = useState(false);
     const timePickerRef = useRef<HTMLDivElement>(null);
     const modelSelectorRef = useRef<HTMLDivElement>(null);
+    const attachmentRef = useRef<HTMLDivElement>(null);
 
     // Explicitly acknowledge the parameter to avoid linter warning
     // This parameter is used implicitly through canSendMessage logic
@@ -72,8 +83,9 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     );
 
     const handleSendMessage = useCallback(() => {
-      onSendMessage();
-    }, [onSendMessage]);
+      const attachmentIds = attachments.map(a => a.id);
+      onSendMessage(attachmentIds.length > 0 ? attachmentIds : undefined);
+    }, [onSendMessage, attachments]);
 
     const handleTimePickerToggle = useCallback(() => {
       setIsTimePickerOpen(!isTimePickerOpen);
@@ -83,7 +95,14 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     const handleModelSelectorToggle = useCallback(() => {
       setIsModelSelectorOpen(!isModelSelectorOpen);
       setIsTimePickerOpen(false); // Close time picker when opening model selector
+      setShowAttachments(false); // Close attachments when opening model selector
     }, [isModelSelectorOpen]);
+
+    const handleAttachmentsToggle = useCallback(() => {
+      setShowAttachments(!showAttachments);
+      setIsTimePickerOpen(false); // Close time picker when opening attachments
+      setIsModelSelectorOpen(false); // Close model selector when opening attachments
+    }, [showAttachments]);
 
     const handleTimeChange = useCallback((time: Date | undefined) => {
       onExecutionTimeChange(time);
@@ -104,10 +123,12 @@ export const NewMessageForm = memo<NewMessageFormProps>(
         const isClickOnPortal = target.closest('[data-radix-popper-content-wrapper], [data-radix-portal], [data-sonner-toaster]');
         const isClickOnTimePicker = timePickerRef.current?.contains(target as Node);
         const isClickOnModelSelector = modelSelectorRef.current?.contains(target as Node);
+        const isClickOnAttachment = attachmentRef.current?.contains(target as Node);
         
-        if (!isClickOnPortal && !isClickOnTimePicker && !isClickOnModelSelector) {
+        if (!isClickOnPortal && !isClickOnTimePicker && !isClickOnModelSelector && !isClickOnAttachment) {
           setIsTimePickerOpen(false);
           setIsModelSelectorOpen(false);
+          setShowAttachments(false);
         }
       };
 
@@ -273,6 +294,60 @@ export const NewMessageForm = memo<NewMessageFormProps>(
                     )}
                   </div>
                 )}
+
+                {/* Attachment Control */}
+                <div className="relative" ref={attachmentRef}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleAttachmentsToggle}
+                    className={`h-7 w-7 p-0 rounded-md transition-colors ${
+                      attachments.length > 0 || showAttachments
+                        ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-400'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                    title={t("taskConversations.attachments", "Attachments")}
+                  >
+                    <Paperclip className="h-3.5 w-3.5" />
+                  </Button>
+                  
+                  {showAttachments && (
+                    <div className="absolute bottom-full left-0 mb-2 p-4 bg-background border rounded-lg shadow-lg z-10 min-w-[300px] max-w-[400px]">
+                      <div className="flex items-center justify-between mb-3">
+                        <Label className="text-sm font-medium">{t("taskConversations.attachments", "Attachments")}</Label>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowAttachments(false)}
+                          className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {/* Existing Attachments */}
+                        {attachments.length > 0 && (
+                          <AttachmentList
+                            attachments={attachments}
+                            onAttachmentDelete={onAttachmentDelete}
+                            className="max-h-32 overflow-y-auto"
+                          />
+                        )}
+                        
+                        {/* Attachment Uploader */}
+                        <AttachmentUploader
+                          conversationId={null} // Will be set when conversation is created
+                          onUploadSuccess={onAttachmentUpload}
+                          onUploadError={(error) => console.error('Upload error:', error)}
+                          disabled={sending}
+                          className="scale-90 origin-top"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             
