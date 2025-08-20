@@ -150,16 +150,6 @@ export const ConversationItem = memo<ConversationItemProps>(
               >
                 {formatTime(conversation.created_at)}
               </time>
-              {/* Future execution indicator */}
-              {isFuture && (
-                <Badge 
-                  variant="outline" 
-                  className="text-xs h-5 px-1.5 bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800"
-                >
-                  <Clock className="w-2.5 h-2.5 mr-1" />
-                  {t("taskConversations.status.scheduled")}
-                </Badge>
-              )}
             </div>
             <div className="relative group">
               <div
@@ -219,7 +209,10 @@ export const ConversationItem = memo<ConversationItemProps>(
           </div>
 
           <div className="flex items-center space-x-3 shrink-0">
-            <StatusDot status={conversation.status as ConversationStatus} />
+            <StatusDot 
+              status={conversation.status as ConversationStatus} 
+              isScheduled={conversation.status === 'pending' && isFuture} 
+            />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
