@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
-- 新增 model 选择
+- Add model selection to task conversation
 
 ## v0.3.0 - 2025-08-20
 
