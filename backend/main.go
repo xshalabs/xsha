@@ -82,7 +82,7 @@ func main() {
 	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir, gitCloneTimeout)
 	devEnvService := services.NewDevEnvironmentService(devEnvRepo, taskRepo, systemConfigService, cfg)
 	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, taskRepo, systemConfigService, cfg)
-	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, workspaceManager, cfg, gitCredService, systemConfigService)
+	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, taskConvRepo, execLogRepo, taskConvResultRepo, taskConvAttachmentRepo, workspaceManager, cfg, gitCredService, systemConfigService)
 	taskConvResultService := services.NewTaskConversationResultService(taskConvResultRepo, taskConvRepo, taskRepo, projectRepo)
 	taskConvAttachmentService := services.NewTaskConversationAttachmentService(taskConvAttachmentRepo)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, taskService, taskConvAttachmentService)

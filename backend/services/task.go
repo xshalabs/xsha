@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -14,24 +15,32 @@ import (
 )
 
 type taskService struct {
-	repo                repository.TaskRepository
-	projectRepo         repository.ProjectRepository
-	devEnvRepo          repository.DevEnvironmentRepository
-	workspaceManager    *utils.WorkspaceManager
-	config              *config.Config
-	gitCredService      GitCredentialService
-	systemConfigService SystemConfigService
+	repo                           repository.TaskRepository
+	projectRepo                    repository.ProjectRepository
+	devEnvRepo                     repository.DevEnvironmentRepository
+	taskConversationRepo           repository.TaskConversationRepository
+	taskExecutionLogRepo           repository.TaskExecutionLogRepository
+	taskConversationResultRepo     repository.TaskConversationResultRepository
+	taskConversationAttachmentRepo repository.TaskConversationAttachmentRepository
+	workspaceManager               *utils.WorkspaceManager
+	config                         *config.Config
+	gitCredService                 GitCredentialService
+	systemConfigService            SystemConfigService
 }
 
-func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository, workspaceManager *utils.WorkspaceManager, cfg *config.Config, gitCredService GitCredentialService, systemConfigService SystemConfigService) TaskService {
+func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository, taskConversationRepo repository.TaskConversationRepository, taskExecutionLogRepo repository.TaskExecutionLogRepository, taskConversationResultRepo repository.TaskConversationResultRepository, taskConversationAttachmentRepo repository.TaskConversationAttachmentRepository, workspaceManager *utils.WorkspaceManager, cfg *config.Config, gitCredService GitCredentialService, systemConfigService SystemConfigService) TaskService {
 	return &taskService{
-		repo:                repo,
-		projectRepo:         projectRepo,
-		devEnvRepo:          devEnvRepo,
-		workspaceManager:    workspaceManager,
-		config:              cfg,
-		gitCredService:      gitCredService,
-		systemConfigService: systemConfigService,
+		repo:                           repo,
+		projectRepo:                    projectRepo,
+		devEnvRepo:                     devEnvRepo,
+		taskConversationRepo:           taskConversationRepo,
+		taskExecutionLogRepo:           taskExecutionLogRepo,
+		taskConversationResultRepo:     taskConversationResultRepo,
+		taskConversationAttachmentRepo: taskConversationAttachmentRepo,
+		workspaceManager:               workspaceManager,
+		config:                         cfg,
+		gitCredService:                 gitCredService,
+		systemConfigService:            systemConfigService,
 	}
 }
 
@@ -194,6 +203,34 @@ func (s *taskService) DeleteTask(id uint) error {
 		return err
 	}
 
+	// First, delete all conversations and their related data
+	conversations, err := s.taskConversationRepo.ListByTask(id)
+	if err != nil {
+		utils.Error("Failed to get task conversations for deletion",
+			"task_id", id,
+			"error", err.Error(),
+		)
+		// Continue with task deletion even if we can't get conversations
+	} else {
+		// Delete each conversation and its related data
+		for _, conv := range conversations {
+			if err := s.deleteConversationCascade(conv.ID, task.WorkspacePath); err != nil {
+				utils.Error("Failed to delete task conversation during task deletion",
+					"task_id", id,
+					"conversation_id", conv.ID,
+					"error", err.Error(),
+				)
+				// Continue deleting other conversations even if one fails
+			} else {
+				utils.Info("Task conversation deleted during task deletion",
+					"task_id", id,
+					"conversation_id", conv.ID,
+				)
+			}
+		}
+	}
+
+	// Clean up workspace
 	if task.WorkspacePath != "" {
 		if err := s.workspaceManager.CleanupTaskWorkspace(task.WorkspacePath); err != nil {
 			utils.Error("Failed to cleanup task workspace",
@@ -209,6 +246,7 @@ func (s *taskService) DeleteTask(id uint) error {
 		}
 	}
 
+	// Finally, delete the task record
 	if err := s.repo.Delete(id); err != nil {
 		return err
 	}
@@ -515,6 +553,83 @@ func (s *taskService) GetKanbanTasks(projectID uint) (map[database.TaskStatus][]
 	}
 
 	return kanbanData, nil
+}
+
+// deleteConversationCascade deletes a conversation and all its related data
+// This method is used internally by DeleteTask to avoid circular dependencies
+func (s *taskService) deleteConversationCascade(conversationID uint, workspacePath string) error {
+	// Get conversation details
+	conversation, err := s.taskConversationRepo.GetByID(conversationID)
+	if err != nil {
+		return err
+	}
+
+	// Handle git repository reset if needed
+	if conversation.CommitHash != "" && workspacePath != "" {
+		if err := utils.GitResetToPreviousCommit(workspacePath, conversation.CommitHash); err != nil {
+			utils.Error("Failed to reset git repository to previous commit",
+				"conversation_id", conversationID,
+				"commit_hash", conversation.CommitHash,
+				"workspace_path", workspacePath,
+				"error", err)
+			// Don't fail the entire operation for git reset errors
+		} else {
+			utils.Info("Successfully reset git repository to previous commit",
+				"conversation_id", conversationID,
+				"commit_hash", conversation.CommitHash,
+				"workspace_path", workspacePath)
+		}
+	}
+
+	// Delete execution logs
+	if err := s.taskExecutionLogRepo.DeleteByConversationID(conversationID); err != nil {
+		utils.Error("Failed to delete execution logs for conversation",
+			"conversation_id", conversationID,
+			"error", err)
+		// Continue with deletion even if this fails
+	}
+
+	// Delete conversation results
+	if err := s.taskConversationResultRepo.DeleteByConversationID(conversationID); err != nil {
+		utils.Warn("Failed to delete conversation result",
+			"conversation_id", conversationID,
+			"error", err)
+		// Continue with deletion even if this fails
+	}
+
+	// Delete attachments (both records and physical files)
+	attachments, err := s.taskConversationAttachmentRepo.GetByConversationID(conversationID)
+	if err != nil {
+		utils.Warn("Failed to get attachments for conversation deletion",
+			"conversation_id", conversationID,
+			"error", err)
+	} else {
+		// Delete physical files first
+		for _, attachment := range attachments {
+			if err := os.Remove(attachment.FilePath); err != nil {
+				// Log error but continue with other files
+				utils.Warn("Failed to delete physical attachment file",
+					"conversation_id", conversationID,
+					"attachment_id", attachment.ID,
+					"file_path", attachment.FilePath,
+					"error", err)
+			}
+		}
+
+		// Delete attachment records
+		if err := s.taskConversationAttachmentRepo.DeleteByConversationID(conversationID); err != nil {
+			utils.Warn("Failed to delete attachment records for conversation",
+				"conversation_id", conversationID,
+				"error", err)
+		}
+	}
+
+	// Finally, delete the conversation record
+	if err := s.taskConversationRepo.Delete(conversationID); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *taskService) getGitProxyConfig() (*utils.GitProxyConfig, error) {

@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 	"xsha-backend/database"
@@ -123,10 +122,11 @@ func (s *taskConversationAttachmentService) ProcessContentWithAttachments(conten
 
 	for _, attachment := range attachments {
 		var tag string
-		if attachment.Type == database.AttachmentTypeImage {
+		switch attachment.Type {
+		case database.AttachmentTypeImage:
 			tag = fmt.Sprintf("[image%d]", imageCount)
 			imageCount++
-		} else if attachment.Type == database.AttachmentTypePDF {
+		case database.AttachmentTypePDF:
 			tag = fmt.Sprintf("[pdf%d]", pdfCount)
 			pdfCount++
 		}
@@ -148,30 +148,9 @@ func (s *taskConversationAttachmentService) ParseAttachmentTags(content string) 
 	re := regexp.MustCompile(`\[(image|pdf)(\d+)\]`)
 	matches := re.FindAllString(content, -1)
 
-	var tags []string
-	for _, match := range matches {
-		tags = append(tags, match)
-	}
+	tags := append([]string(nil), matches...)
 
 	return tags
-}
-
-// Helper function to extract attachment type and number from tag
-func parseAttachmentTag(tag string) (database.AttachmentType, int, error) {
-	re := regexp.MustCompile(`\[(image|pdf)(\d+)\]`)
-	matches := re.FindStringSubmatch(tag)
-
-	if len(matches) != 3 {
-		return "", 0, fmt.Errorf("invalid attachment tag format: %s", tag)
-	}
-
-	attachmentType := database.AttachmentType(matches[1])
-	number, err := strconv.Atoi(matches[2])
-	if err != nil {
-		return "", 0, fmt.Errorf("invalid attachment number in tag: %s", tag)
-	}
-
-	return attachmentType, number, nil
 }
 
 // GetAttachmentStorageDir returns the storage directory for attachments
