@@ -77,6 +77,23 @@ export const attachmentApi = {
     return `${API_BASE_URL}/attachments/${id}/preview`;
   },
 
+  // Get preview with authentication for images
+  async getPreviewBlob(id: number): Promise<string> {
+    const token = tokenManager.getToken();
+    const response = await fetch(`${API_BASE_URL}/attachments/${id}/preview`, {
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Preview failed: ${response.statusText}`);
+    }
+    
+    const blob = await response.blob();
+    return window.URL.createObjectURL(blob);
+  },
+
   // Delete attachment
   async deleteAttachment(id: number): Promise<void> {
     await request(`/attachments/${id}`, {

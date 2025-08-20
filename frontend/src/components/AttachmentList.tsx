@@ -17,7 +17,7 @@ import {
 
 import { cn } from '@/lib/utils';
 import { attachmentApi, type Attachment } from '@/lib/api/attachments';
-import { AttachmentPreviewModal } from './AttachmentPreviewModal';
+import { AttachmentPreviewModal } from '@/components/AttachmentPreviewModal';
 
 interface AttachmentListProps {
   attachments: Attachment[];
@@ -44,13 +44,21 @@ export function AttachmentList({
     }
   };
 
-  const handlePreview = (attachment: Attachment) => {
+  const handlePreview = async (attachment: Attachment) => {
     if (attachment.type === 'image') {
       setPreviewAttachment(attachment);
     } else {
-      // For PDF files, open in new tab
-      const previewUrl = attachmentApi.getPreviewUrl(attachment.id);
-      window.open(previewUrl, '_blank');
+      // For PDF files, create blob URL and open in new tab
+      try {
+        const blobUrl = await attachmentApi.getPreviewBlob(attachment.id);
+        window.open(blobUrl, '_blank');
+        // Clean up blob URL after a delay to ensure it loads
+        setTimeout(() => {
+          window.URL.revokeObjectURL(blobUrl);
+        }, 5000);
+      } catch (error) {
+        console.error('Failed to preview PDF:', error);
+      }
     }
   };
 
@@ -130,21 +138,23 @@ export function AttachmentList({
               </div>
 
               {/* Action buttons - visible on hover */}
-              {!readonly && (
-                <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDownload(attachment);
-                    }}
-                    className="h-6 w-6 p-0 hover:bg-orange-200"
-                    title={t('attachment.download', 'Download')}
-                  >
-                    <Download className="h-3 w-3" />
-                  </Button>
-                  
+              <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
+                {/* Download button - always available */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownload(attachment);
+                  }}
+                  className="h-6 w-6 p-0 hover:bg-orange-200"
+                  title={t('attachment.download', 'Download')}
+                >
+                  <Download className="h-3 w-3" />
+                </Button>
+                
+                {/* Delete button - only in edit mode */}
+                {!readonly && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
@@ -182,8 +192,8 @@ export function AttachmentList({
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ))}
         </div>

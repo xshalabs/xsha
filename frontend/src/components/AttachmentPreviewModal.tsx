@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,57 @@ export function AttachmentPreviewModal({
   const { t } = useTranslation();
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+
+  // Load preview URL when attachment changes
+  useEffect(() => {
+    let mounted = true;
+
+    const loadPreview = async () => {
+      if (!attachment || !open || attachment.type !== 'image') {
+        return;
+      }
+
+      setImageLoading(true);
+      setImageError(false);
+      setPreviewUrl('');
+
+      try {
+        const blobUrl = await attachmentApi.getPreviewBlob(attachment.id);
+        if (mounted) {
+          setPreviewUrl(blobUrl);
+        }
+      } catch (error) {
+        console.error('Failed to load preview:', error);
+        if (mounted) {
+          setImageError(true);
+        }
+      } finally {
+        if (mounted) {
+          setImageLoading(false);
+        }
+      }
+    };
+
+    loadPreview();
+
+    return () => {
+      mounted = false;
+      // Clean up blob URL to prevent memory leaks
+      if (previewUrl) {
+        window.URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [attachment?.id, open]);
+
+  // Clean up blob URL when component unmounts or attachment changes
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        window.URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const handleDownload = async () => {
     if (!attachment) return;
@@ -83,22 +134,22 @@ export function AttachmentPreviewModal({
                 </div>
               )}
               
-              <img
-                src={attachmentApi.getPreviewUrl(attachment.id)}
-                alt={attachment.original_name}
-                className={`w-full h-auto max-h-[70vh] object-contain ${
-                  imageLoading ? 'opacity-0' : 'opacity-100'
-                } transition-opacity duration-200`}
-                onLoad={() => {
-                  setImageLoading(false);
-                  setImageError(false);
-                }}
-                onError={() => {
-                  setImageLoading(false);
-                  setImageError(true);
-                }}
-                style={{ display: imageError ? 'none' : 'block' }}
-              />
+              {previewUrl && (
+                <img
+                  src={previewUrl}
+                  alt={attachment.original_name}
+                  className="w-full h-auto max-h-[70vh] object-contain transition-opacity duration-200"
+                  onLoad={() => {
+                    setImageLoading(false);
+                    setImageError(false);
+                  }}
+                  onError={() => {
+                    setImageLoading(false);
+                    setImageError(true);
+                  }}
+                  style={{ display: imageError ? 'none' : 'block' }}
+                />
+              )}
             </div>
           )}
           
