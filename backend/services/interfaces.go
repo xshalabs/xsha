@@ -162,4 +162,8 @@ type TaskConversationAttachmentService interface {
 	ProcessContentWithAttachments(content string, attachments []database.TaskConversationAttachment) string
 	ParseAttachmentTags(content string) []string
 	GetAttachmentStorageDir() string
+	// Workspace attachment handling methods
+	CopyAttachmentsToWorkspace(conversationID uint, workspacePath string) ([]database.TaskConversationAttachment, error)
+	ReplaceAttachmentTagsWithPaths(content string, attachments []database.TaskConversationAttachment, workspacePath string) string
+	CleanupWorkspaceAttachments(workspacePath string) error
 }

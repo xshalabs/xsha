@@ -168,3 +168,155 @@ func GenerateAttachmentFileName(originalName string) string {
 	timestamp := time.Now().UnixNano()
 	return fmt.Sprintf("attach_%d%s", timestamp, ext)
 }
+
+// CopyAttachmentsToWorkspace copies conversation attachments to workspace xsha directory
+func (s *taskConversationAttachmentService) CopyAttachmentsToWorkspace(conversationID uint, workspacePath string) ([]database.TaskConversationAttachment, error) {
+	// Get attachments for the conversation
+	attachments, err := s.repo.GetByConversationID(conversationID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get attachments: %v", err)
+	}
+
+	if len(attachments) == 0 {
+		return []database.TaskConversationAttachment{}, nil
+	}
+
+	// Create xsha directory in workspace
+	xshaDir := filepath.Join(workspacePath, "xsha")
+	if err := os.MkdirAll(xshaDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create xsha directory: %v", err)
+	}
+
+	// Track counters for each attachment type
+	imageCount := 1
+	pdfCount := 1
+	
+	var copiedAttachments []database.TaskConversationAttachment
+
+	// Sort attachments by SortOrder to maintain consistent numbering
+	for i := 0; i < len(attachments)-1; i++ {
+		for j := i + 1; j < len(attachments); j++ {
+			if attachments[i].SortOrder > attachments[j].SortOrder {
+				attachments[i], attachments[j] = attachments[j], attachments[i]
+			}
+		}
+	}
+
+	for _, attachment := range attachments {
+		var workspaceFileName string
+		var ext string
+
+		switch attachment.Type {
+		case database.AttachmentTypeImage:
+			ext = filepath.Ext(attachment.FileName)
+			workspaceFileName = fmt.Sprintf("image%d%s", imageCount, ext)
+			imageCount++
+		case database.AttachmentTypePDF:
+			workspaceFileName = fmt.Sprintf("pdf%d.pdf", pdfCount)
+			pdfCount++
+		default:
+			continue // Skip unknown types
+		}
+
+		// Source and destination paths
+		srcPath := attachment.FilePath
+		destPath := filepath.Join(xshaDir, workspaceFileName)
+
+		// Copy file
+		if err := s.copyFile(srcPath, destPath); err != nil {
+			return nil, fmt.Errorf("failed to copy attachment %s to workspace: %v", attachment.FileName, err)
+		}
+
+		// Create a copy of the attachment with workspace path
+		workspaceAttachment := attachment
+		workspaceAttachment.FilePath = destPath
+		workspaceAttachment.FileName = workspaceFileName
+		
+		copiedAttachments = append(copiedAttachments, workspaceAttachment)
+	}
+
+	return copiedAttachments, nil
+}
+
+// copyFile copies a file from src to dst
+func (s *taskConversationAttachmentService) copyFile(src, dst string) error {
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	_, err = destFile.ReadFrom(sourceFile)
+	return err
+}
+
+// ReplaceAttachmentTagsWithPaths replaces attachment tags with workspace relative paths
+func (s *taskConversationAttachmentService) ReplaceAttachmentTagsWithPaths(content string, attachments []database.TaskConversationAttachment, workspacePath string) string {
+	if len(attachments) == 0 {
+		return content
+	}
+
+	processedContent := content
+
+	// Track counters for each attachment type
+	imageCount := 1
+	pdfCount := 1
+
+	// Sort attachments by SortOrder to maintain consistent numbering
+	sortedAttachments := make([]database.TaskConversationAttachment, len(attachments))
+	copy(sortedAttachments, attachments)
+	
+	for i := 0; i < len(sortedAttachments)-1; i++ {
+		for j := i + 1; j < len(sortedAttachments); j++ {
+			if sortedAttachments[i].SortOrder > sortedAttachments[j].SortOrder {
+				sortedAttachments[i], sortedAttachments[j] = sortedAttachments[j], sortedAttachments[i]
+			}
+		}
+	}
+
+	for _, attachment := range sortedAttachments {
+		var oldTag, newPath string
+
+		switch attachment.Type {
+		case database.AttachmentTypeImage:
+			oldTag = fmt.Sprintf("[image%d]", imageCount)
+			newPath = fmt.Sprintf("xsha/%s", attachment.FileName)
+			imageCount++
+		case database.AttachmentTypePDF:
+			oldTag = fmt.Sprintf("[pdf%d]", pdfCount)
+			newPath = fmt.Sprintf("xsha/%s", attachment.FileName)
+			pdfCount++
+		default:
+			continue // Skip unknown types
+		}
+
+		// Replace the tag with the relative path
+		processedContent = strings.Replace(processedContent, oldTag, newPath, -1)
+	}
+
+	return processedContent
+}
+
+// CleanupWorkspaceAttachments removes attachment files from workspace
+func (s *taskConversationAttachmentService) CleanupWorkspaceAttachments(workspacePath string) error {
+	xshaDir := filepath.Join(workspacePath, "xsha")
+	
+	// Check if xsha directory exists
+	if _, err := os.Stat(xshaDir); os.IsNotExist(err) {
+		// Directory doesn't exist, nothing to clean
+		return nil
+	}
+
+	// Remove the entire xsha directory and its contents
+	if err := os.RemoveAll(xshaDir); err != nil {
+		return fmt.Errorf("failed to remove xsha directory: %v", err)
+	}
+
+	return nil
+}
