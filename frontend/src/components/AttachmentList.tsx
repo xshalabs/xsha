@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Download, Eye, Trash2, FileText, Image, AlertCircle } from 'lucide-react';
+import { Download, Trash2, FileText, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
+
 import { cn } from '@/lib/utils';
 import { attachmentApi, type Attachment } from '@/lib/api/attachments';
 import { AttachmentPreviewModal } from './AttachmentPreviewModal';
@@ -94,7 +94,7 @@ export function AttachmentList({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const getDisplayName = (attachment: Attachment, index: number) => {
+  const getDisplayName = (attachment: Attachment) => {
     const typeCount = attachments.filter(a => a.type === attachment.type).indexOf(attachment) + 1;
     return attachment.type === 'image' ? `[image${typeCount}]` : `[pdf${typeCount}]`;
   };
@@ -108,7 +108,7 @@ export function AttachmentList({
       <div className={cn('space-y-3', className)}>
         {/* Compact attachment cards in a flexible layout */}
         <div className="flex flex-wrap gap-2">
-          {attachments.map((attachment, index) => (
+          {attachments.map((attachment, _index) => (
             <div
               key={attachment.id}
               className="relative group inline-flex items-center gap-2 px-3 py-2 border border-orange-200 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors max-w-[240px] cursor-pointer"
@@ -121,7 +121,7 @@ export function AttachmentList({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1">
                   <span className="text-sm font-medium text-gray-900 truncate">
-                    {getDisplayName(attachment, index)}
+                    {getDisplayName(attachment)}
                   </span>
                 </div>
                 <div className="text-xs text-gray-600">
@@ -193,7 +193,7 @@ export function AttachmentList({
       <AttachmentPreviewModal
         attachment={previewAttachment}
         open={!!previewAttachment}
-        onOpenChange={(open) => !open && setPreviewAttachment(null)}
+        onOpenChange={(open: boolean) => !open && setPreviewAttachment(null)}
       />
     </>
   );

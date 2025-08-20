@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { attachmentApi, type Attachment } from "@/lib/api/attachments";
 
 export function useAttachments() {

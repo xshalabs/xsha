@@ -38,6 +38,7 @@ import {
 
 
 import type { TaskStatus } from "@/types/task";
+import type { DevEnvironment } from "@/types/dev-environment";
 
 const KANBAN_COLUMNS = [
   { id: "todo", title: "Todo", status: "todo" as TaskStatus },
