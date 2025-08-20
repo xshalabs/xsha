@@ -36,6 +36,15 @@ func (r *taskConversationAttachmentRepository) GetByConversationID(conversationI
 	return attachments, nil
 }
 
+func (r *taskConversationAttachmentRepository) GetUnassociated(createdBy string) ([]database.TaskConversationAttachment, error) {
+	var attachments []database.TaskConversationAttachment
+	err := r.db.Where("conversation_id IS NULL AND created_by = ?", createdBy).Order("created_at DESC").Find(&attachments).Error
+	if err != nil {
+		return nil, err
+	}
+	return attachments, nil
+}
+
 func (r *taskConversationAttachmentRepository) Update(attachment *database.TaskConversationAttachment) error {
 	return r.db.Save(attachment).Error
 }

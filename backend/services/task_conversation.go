@@ -167,17 +167,17 @@ func (s *taskConversationService) CreateConversationWithExecutionTimeAndAttachme
 	// Process attachment associations if provided
 	if len(attachmentIDs) > 0 {
 		for _, attachmentID := range attachmentIDs {
-			attachment, err := s.attachmentService.GetAttachment(attachmentID)
-			if err != nil {
-				// Log error but continue - attachment might have been deleted
-				utils.Warn("Attachment not found for conversation", "attachmentID", attachmentID, "conversationID", conversation.ID)
+			// Associate attachment with conversation
+			if err := s.attachmentService.AssociateWithConversation(attachmentID, conversation.ID); err != nil {
+				utils.Error("Failed to associate attachment with conversation", "attachmentID", attachmentID, "conversationID", conversation.ID, "error", err)
 				continue
 			}
 
-			// Update attachment to associate with conversation
-			attachment.ConversationID = conversation.ID
-			if err := s.attachmentService.UpdateAttachment(attachment.ID, attachment); err != nil {
-				utils.Error("Failed to associate attachment with conversation", "attachmentID", attachmentID, "conversationID", conversation.ID, "error", err)
+			// Get the updated attachment
+			attachment, err := s.attachmentService.GetAttachment(attachmentID)
+			if err != nil {
+				utils.Warn("Attachment not found after association", "attachmentID", attachmentID, "conversationID", conversation.ID)
+				continue
 			}
 
 			attachments = append(attachments, *attachment)

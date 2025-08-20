@@ -152,9 +152,11 @@ type DashboardService interface {
 }
 
 type TaskConversationAttachmentService interface {
-	UploadAttachment(conversationID uint, fileName, originalName, contentType string, fileSize int64, filePath string, attachmentType database.AttachmentType, createdBy string) (*database.TaskConversationAttachment, error)
+	UploadAttachment(fileName, originalName, contentType string, fileSize int64, filePath string, attachmentType database.AttachmentType, createdBy string) (*database.TaskConversationAttachment, error)
+	AssociateWithConversation(attachmentID, conversationID uint) error
 	GetAttachment(id uint) (*database.TaskConversationAttachment, error)
 	GetAttachmentsByConversation(conversationID uint) ([]database.TaskConversationAttachment, error)
+	GetUnassociatedAttachments(createdBy string) ([]database.TaskConversationAttachment, error)
 	UpdateAttachment(id uint, attachment *database.TaskConversationAttachment) error
 	DeleteAttachment(id uint) error
 	DeleteAttachmentsByConversation(conversationID uint) error

@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 	"xsha-backend/database"
 	appErrors "xsha-backend/errors"
 	"xsha-backend/repository"
@@ -22,28 +23,21 @@ func NewTaskConversationAttachmentService(repo repository.TaskConversationAttach
 	}
 }
 
-func (s *taskConversationAttachmentService) UploadAttachment(conversationID uint, fileName, originalName, contentType string, fileSize int64, filePath string, attachmentType database.AttachmentType, createdBy string) (*database.TaskConversationAttachment, error) {
+func (s *taskConversationAttachmentService) UploadAttachment(fileName, originalName, contentType string, fileSize int64, filePath string, attachmentType database.AttachmentType, createdBy string) (*database.TaskConversationAttachment, error) {
 	// Validate file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return nil, appErrors.NewI18nError("attachment.file_not_found", "File does not exist")
 	}
 
-	// Get sort order (next sequence number for this conversation)
-	existingAttachments, err := s.repo.GetByConversationID(conversationID)
-	if err != nil {
-		return nil, err
-	}
-	sortOrder := len(existingAttachments) + 1
-
 	attachment := &database.TaskConversationAttachment{
-		ConversationID: conversationID,
+		ConversationID: nil, // Will be set later when associating with conversation
 		FileName:       fileName,
 		OriginalName:   originalName,
 		FilePath:       filePath,
 		FileSize:       fileSize,
 		ContentType:    contentType,
 		Type:           attachmentType,
-		SortOrder:      sortOrder,
+		SortOrder:      0, // Will be set when associating with conversation
 		CreatedBy:      createdBy,
 	}
 
@@ -52,6 +46,29 @@ func (s *taskConversationAttachmentService) UploadAttachment(conversationID uint
 	}
 
 	return attachment, nil
+}
+
+func (s *taskConversationAttachmentService) AssociateWithConversation(attachmentID, conversationID uint) error {
+	attachment, err := s.repo.GetByID(attachmentID)
+	if err != nil {
+		return err
+	}
+
+	// Get sort order (next sequence number for this conversation)
+	existingAttachments, err := s.repo.GetByConversationID(conversationID)
+	if err != nil {
+		return err
+	}
+	sortOrder := len(existingAttachments) + 1
+
+	attachment.ConversationID = &conversationID
+	attachment.SortOrder = sortOrder
+
+	return s.repo.Update(attachment)
+}
+
+func (s *taskConversationAttachmentService) GetUnassociatedAttachments(createdBy string) ([]database.TaskConversationAttachment, error) {
+	return s.repo.GetUnassociated(createdBy)
 }
 
 func (s *taskConversationAttachmentService) GetAttachment(id uint) (*database.TaskConversationAttachment, error) {
@@ -167,10 +184,12 @@ func GetAttachmentStorageDir() string {
 }
 
 // GenerateAttachmentFileName generates a unique filename for an attachment
-func GenerateAttachmentFileName(conversationID uint, originalName string) string {
+func GenerateAttachmentFileName(originalName string) string {
 	ext := filepath.Ext(originalName)
 	base := strings.TrimSuffix(originalName, ext)
 	// Clean filename for security
 	base = regexp.MustCompile(`[^a-zA-Z0-9._-]`).ReplaceAllString(base, "_")
-	return fmt.Sprintf("conv_%d_%s%s", conversationID, base, ext)
+	// Generate unique timestamp-based filename
+	timestamp := time.Now().UnixNano()
+	return fmt.Sprintf("attach_%d_%s%s", timestamp, base, ext)
 }

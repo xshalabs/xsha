@@ -28,14 +28,13 @@ func NewTaskConversationAttachmentHandlers(attachmentService services.TaskConver
 	}
 }
 
-// UploadAttachment uploads a file attachment for a conversation
-// @Summary Upload conversation attachment
-// @Description Upload an image or PDF file for a conversation
+// UploadAttachment uploads a file attachment (not yet associated with any conversation)
+// @Summary Upload attachment
+// @Description Upload an image or PDF file that will be associated with a conversation later
 // @Tags Task Conversation Attachments
 // @Accept multipart/form-data
 // @Produce json
 // @Security BearerAuth
-// @Param conversation_id formData int true "Conversation ID"
 // @Param file formData file true "File to upload"
 // @Success 200 {object} object{message=string,data=object} "Attachment uploaded successfully"
 // @Failure 400 {object} object{error=string} "Request parameter error"
@@ -48,19 +47,6 @@ func (h *TaskConversationAttachmentHandlers) UploadAttachment(c *gin.Context) {
 	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	// Get conversation ID
-	conversationIDStr := c.PostForm("conversation_id")
-	if conversationIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.conversation_id_required")})
-		return
-	}
-
-	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
@@ -98,7 +84,7 @@ func (h *TaskConversationAttachmentHandlers) UploadAttachment(c *gin.Context) {
 	}
 
 	// Generate unique filename
-	fileName := services.GenerateAttachmentFileName(uint(conversationID), header.Filename)
+	fileName := services.GenerateAttachmentFileName(header.Filename)
 	filePath := filepath.Join(storageDir, fileName)
 
 	// Save file
@@ -110,7 +96,6 @@ func (h *TaskConversationAttachmentHandlers) UploadAttachment(c *gin.Context) {
 
 	// Create attachment record
 	attachment, err := h.attachmentService.UploadAttachment(
-		uint(conversationID),
 		fileName,
 		header.Filename,
 		contentType,
@@ -315,6 +300,37 @@ func (h *TaskConversationAttachmentHandlers) GetConversationAttachments(c *gin.C
 	}
 
 	attachments, err := h.attachmentService.GetAttachmentsByConversation(uint(conversationID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "attachment.get_success"),
+		"data":    attachments,
+	})
+}
+
+// GetUnassociatedAttachments gets all unassociated attachments for current user
+// @Summary Get unassociated attachments
+// @Description Get all attachments uploaded by current user that are not yet associated with any conversation
+// @Tags Task Conversation Attachments
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} object{message=string,data=[]object} "Unassociated attachments retrieved successfully"
+// @Failure 401 {object} object{error=string} "Authentication failed"
+// @Router /attachments/unassociated [get]
+func (h *TaskConversationAttachmentHandlers) GetUnassociatedAttachments(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+
+	attachments, err := h.attachmentService.GetUnassociatedAttachments(username.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
 		return

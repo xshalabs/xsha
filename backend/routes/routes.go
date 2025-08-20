@@ -104,6 +104,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		{
 			attachments.POST("/upload", attachmentHandlers.UploadAttachment)
 			attachments.GET("", attachmentHandlers.GetConversationAttachments)
+			attachments.GET("/unassociated", attachmentHandlers.GetUnassociatedAttachments)
 			attachments.GET("/:id", attachmentHandlers.GetAttachment)
 			attachments.GET("/:id/download", attachmentHandlers.DownloadAttachment)
 			attachments.GET("/:id/preview", attachmentHandlers.PreviewAttachment)

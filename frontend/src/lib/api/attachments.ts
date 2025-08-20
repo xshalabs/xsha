@@ -4,7 +4,7 @@ import { tokenManager } from './token';
 
 export interface Attachment {
   id: number;
-  conversation_id: number;
+  conversation_id: number | null;
   file_name: string;
   original_name: string;
   file_path: string;
@@ -18,7 +18,6 @@ export interface Attachment {
 }
 
 export interface UploadAttachmentRequest {
-  conversation_id: number;
   file: File;
 }
 
@@ -28,10 +27,9 @@ export interface AttachmentApiResponse<T = any> {
 }
 
 export const attachmentApi = {
-  // Upload attachment
-  async uploadAttachment(conversationId: number, file: File): Promise<Attachment> {
+  // Upload attachment (no conversation association yet)
+  async uploadAttachment(file: File): Promise<Attachment> {
     const formData = new FormData();
-    formData.append('conversation_id', conversationId.toString());
     formData.append('file', file);
 
     const token = tokenManager.getToken();
@@ -63,6 +61,14 @@ export const attachmentApi = {
   async getConversationAttachments(conversationId: number): Promise<Attachment[]> {
     const response = await request<AttachmentApiResponse<Attachment[]>>(
       `/attachments?conversation_id=${conversationId}`
+    );
+    return response.data;
+  },
+
+  // Get unassociated attachments for current user
+  async getUnassociatedAttachments(): Promise<Attachment[]> {
+    const response = await request<AttachmentApiResponse<Attachment[]>>(
+      `/attachments/unassociated`
     );
     return response.data;
   },

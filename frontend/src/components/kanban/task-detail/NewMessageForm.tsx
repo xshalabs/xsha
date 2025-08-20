@@ -338,7 +338,6 @@ export const NewMessageForm = memo<NewMessageFormProps>(
                         
                         {/* Attachment Uploader */}
                         <AttachmentUploader
-                          conversationId={null} // Will be set when conversation is created
                           onUploadSuccess={onAttachmentUpload}
                           onUploadError={(error) => console.error('Upload error:', error)}
                           disabled={sending}

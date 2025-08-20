@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils';
 import { attachmentApi, type Attachment } from '@/lib/api/attachments';
 
 interface AttachmentUploaderProps {
-  conversationId: number | null;
   onUploadSuccess?: (attachment: Attachment) => void;
   onUploadError?: (error: string) => void;
   disabled?: boolean;
@@ -32,7 +31,6 @@ const ACCEPTED_TYPES = {
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export function AttachmentUploader({
-  conversationId,
   onUploadSuccess,
   onUploadError,
   disabled = false,
@@ -63,8 +61,6 @@ export function AttachmentUploader({
   const generateUploadId = () => Math.random().toString(36).substr(2, 9);
 
   const addFiles = useCallback((files: FileList | File[]) => {
-    if (!conversationId) return;
-
     const fileArray = Array.from(files);
     const newUploadFiles: UploadFile[] = [];
 
@@ -89,17 +85,15 @@ export function AttachmentUploader({
     newUploadFiles.forEach(uploadFile => {
       uploadFileAsync(uploadFile);
     });
-  }, [conversationId, onUploadError]);
+  }, [onUploadError]);
 
   const uploadFileAsync = async (uploadFile: UploadFile) => {
-    if (!conversationId) return;
-
     setUploadFiles(prev =>
       prev.map(f => f.id === uploadFile.id ? { ...f, status: 'uploading' as const } : f)
     );
 
     try {
-      const attachment = await attachmentApi.uploadAttachment(conversationId, uploadFile.file);
+      const attachment = await attachmentApi.uploadAttachment(uploadFile.file);
       
       setUploadFiles(prev =>
         prev.map(f => f.id === uploadFile.id ? { 
@@ -185,16 +179,7 @@ export function AttachmentUploader({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  if (!conversationId) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          {t('attachment.conversation_required', 'Please create a conversation first to upload attachments')}
-        </AlertDescription>
-      </Alert>
-    );
-  }
+
 
   return (
     <div className={cn('space-y-4', className)}>

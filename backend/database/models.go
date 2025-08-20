@@ -307,7 +307,7 @@ type TaskConversationAttachment struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
-	ConversationID uint              `gorm:"not null;index" json:"conversation_id"`
+	ConversationID *uint             `gorm:"index" json:"conversation_id"`
 	Conversation   *TaskConversation `gorm:"foreignKey:ConversationID" json:"conversation"`
 
 	FileName     string         `gorm:"not null" json:"file_name"`
