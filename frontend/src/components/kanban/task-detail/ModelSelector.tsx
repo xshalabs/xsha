@@ -1,6 +1,6 @@
 import { memo, useState, useCallback, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { X, Zap, Sparkles } from "lucide-react";
+import { X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -79,7 +79,7 @@ export const ModelSelector = memo<ModelSelectorProps>(
           }`}
           title={model ? t("taskConversations.selectModel") + ": " + model : t("taskConversations.selectModel")}
         >
-          {model && model !== 'default' ? <Sparkles className="h-3.5 w-3.5" /> : <Zap className="h-3.5 w-3.5" />}
+          <Sparkles className="h-3.5 w-3.5" />
         </Button>
         
         {isOpen && (

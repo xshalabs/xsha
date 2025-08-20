@@ -601,6 +601,23 @@ export function TaskFormCreateNew({
               
               {/* Interactive Controls positioned at the bottom left of the textarea */}
               <div className="absolute bottom-3 left-3 right-3 flex items-end gap-3">
+                {/* File attachment button */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleFileSelect}
+                  className={`h-7 w-7 p-0 rounded-md transition-colors ${
+                    attachments.length > 0
+                      ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-400'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                  title={attachments.length > 0 ? `${attachments.length} attachment(s)` : "Attach files"}
+                  disabled={uploadingAttachments || submitting}
+                >
+                  <Paperclip className="h-3.5 w-3.5" />
+                </Button>
+
                 {/* Execution Time Control */}
                 <div className="relative" ref={timePickerRef}>
                   <Button
@@ -647,23 +664,6 @@ export function TaskFormCreateNew({
                   )}
                 </div>
 
-                {/* File attachment button */}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleFileSelect}
-                  className={`h-7 w-7 p-0 rounded-md transition-colors ${
-                    attachments.length > 0
-                      ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-400'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                  }`}
-                  title={attachments.length > 0 ? `${attachments.length} attachment(s)` : "Attach files"}
-                  disabled={uploadingAttachments || submitting}
-                >
-                  <Paperclip className="h-3.5 w-3.5" />
-                </Button>
-
                 {/* Model Selection - Only show when environment is selected */}
                 {selectedEnvironment && (
                   <div className="relative" ref={modelSelectorRef}>
@@ -679,7 +679,7 @@ export function TaskFormCreateNew({
                       }`}
                       title={formData.model ? t("tasks.fields.model") + ": " + formData.model : t("tasks.fields.model")}
                     >
-                      {formData.model && formData.model !== 'default' ? <Sparkles className="h-3.5 w-3.5" /> : <Zap className="h-3.5 w-3.5" />}
+                      <Sparkles className="h-3.5 w-3.5" />
                     </Button>
                     
                     {isModelSelectorOpen && (

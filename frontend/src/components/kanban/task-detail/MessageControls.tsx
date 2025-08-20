@@ -45,23 +45,6 @@ export const MessageControls = memo<MessageControlsProps>(
 
     return (
       <div className="absolute bottom-3 left-3 right-3 flex items-end gap-3">
-        {/* Execution Time Control */}
-        <ExecutionTimeControl
-          executionTime={executionTime}
-          onChange={onExecutionTimeChange}
-          onCloseOtherControls={closeAllControls}
-        />
-
-        {/* Model Selection - Only show for claude-code environments */}
-        {task.dev_environment?.type === "claude-code" && (
-          <ModelSelector
-            model={model}
-            disabled={sending}
-            onChange={onModelChange}
-            onCloseOtherControls={closeAllControls}
-          />
-        )}
-
         {/* Attachment Control */}
         <div className="relative">
           <Button
@@ -84,6 +67,23 @@ export const MessageControls = memo<MessageControlsProps>(
             )}
           </Button>
         </div>
+
+        {/* Execution Time Control */}
+        <ExecutionTimeControl
+          executionTime={executionTime}
+          onChange={onExecutionTimeChange}
+          onCloseOtherControls={closeAllControls}
+        />
+
+        {/* Model Selection - Only show for claude-code environments */}
+        {task.dev_environment?.type === "claude-code" && (
+          <ModelSelector
+            model={model}
+            disabled={sending}
+            onChange={onModelChange}
+            onCloseOtherControls={closeAllControls}
+          />
+        )}
       </div>
     );
   }
