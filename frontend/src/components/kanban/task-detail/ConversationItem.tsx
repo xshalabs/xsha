@@ -129,9 +129,8 @@ export const ConversationItem = memo<ConversationItemProps>(
     // Check if cancel should be enabled (only for running conversations)
     const isCancelEnabled = conversation.status === 'running';
     
-    // Check if delete should be enabled (only for latest conversation, not running, and task not pending/in progress)
-    const isDeleteEnabled = isLatest && conversation.status !== 'running' && 
-                           task.status !== 'pending' && task.status !== 'in_progress';
+    // Check if delete should be enabled (only for latest conversation and not running)
+    const isDeleteEnabled = isLatest && conversation.status !== 'running';
     
     // Check if this conversation is scheduled for future execution
     const isFuture = isFutureExecution(conversation.execution_time);
