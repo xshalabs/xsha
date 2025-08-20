@@ -58,6 +58,43 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     // This parameter is used implicitly through canSendMessage logic
     void _hasPendingOrRunningConversations;
 
+    // Generate attachment tags for content
+    const generateAttachmentTags = useCallback((allAttachments: Attachment[]) => {
+      const images = allAttachments.filter(a => a.type === 'image');
+      const pdfs = allAttachments.filter(a => a.type === 'pdf');
+      
+      const tags: string[] = [];
+      
+      images.forEach((_, index) => {
+        tags.push(`[image${index + 1}]`);
+      });
+      
+      pdfs.forEach((_, index) => {
+        tags.push(`[pdf${index + 1}]`);
+      });
+      
+      return tags.join(' ');
+    }, []);
+
+    // Update content with attachment tags when attachments change
+    useEffect(() => {
+      const tags = generateAttachmentTags(attachments);
+      if (tags) {
+        // Remove existing tags from content first
+        let currentContent = newMessage.replace(/\[(image|pdf)\d+\]\s*/g, '').trim();
+        const newContent = currentContent ? `${currentContent} ${tags}` : tags;
+        if (newContent !== newMessage) {
+          onMessageChange(newContent);
+        }
+      } else if (newMessage.match(/\[(image|pdf)\d+\]/)) {
+        // If no attachments but content has tags, remove them
+        const cleanContent = newMessage.replace(/\[(image|pdf)\d+\]\s*/g, '').trim();
+        if (cleanContent !== newMessage) {
+          onMessageChange(cleanContent);
+        }
+      }
+    }, [attachments, generateAttachmentTags, newMessage, onMessageChange]);
+
     const handleMessageChange = useCallback(
       (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         onMessageChange(e.target.value);
@@ -107,24 +144,6 @@ export const NewMessageForm = memo<NewMessageFormProps>(
       setIsModelSelectorOpen(false); // Close after selection
     }, [onModelChange]);
 
-    // Generate attachment tags for content
-    const generateAttachmentTags = useCallback((allAttachments: Attachment[]) => {
-      const images = allAttachments.filter(a => a.type === 'image');
-      const pdfs = allAttachments.filter(a => a.type === 'pdf');
-      
-      const tags: string[] = [];
-      
-      images.forEach((_, index) => {
-        tags.push(`[image${index + 1}]`);
-      });
-      
-      pdfs.forEach((_, index) => {
-        tags.push(`[pdf${index + 1}]`);
-      });
-      
-      return tags.join(' ');
-    }, []);
-
     // Handle file input change
     const handleFileInputChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = event.target.files;
@@ -151,20 +170,9 @@ export const NewMessageForm = memo<NewMessageFormProps>(
 
         const uploadedAttachments = await Promise.all(uploadPromises);
         
-        setAttachments(prev => {
-          const newAttachments = [...prev, ...uploadedAttachments];
-          
-          // Auto-generate tags and update content
-          const tags = generateAttachmentTags(newAttachments);
-          if (tags) {
-            // Remove existing tags from content first
-            let currentContent = newMessage.replace(/\[(image|pdf)\d+\]\s*/g, '').trim();
-            const newContent = currentContent ? `${currentContent} ${tags}` : tags;
-            onMessageChange(newContent);
-          }
-          
-          return newAttachments;
-        });
+        // Update attachments state
+        setAttachments(prev => [...prev, ...uploadedAttachments]);
+        
       } catch (error) {
         console.error('Failed to upload files:', error);
         // You might want to show a toast error here
@@ -175,32 +183,17 @@ export const NewMessageForm = memo<NewMessageFormProps>(
           fileInputRef.current.value = '';
         }
       }
-    }, [attachments, newMessage, onMessageChange, generateAttachmentTags]);
+    }, []);
 
     // Handle attachment removal
     const handleAttachmentRemove = useCallback(async (attachment: Attachment) => {
       try {
         await attachmentApi.deleteAttachment(attachment.id);
-        setAttachments(prev => {
-          const newAttachments = prev.filter(a => a.id !== attachment.id);
-          
-          // Update content by regenerating tags
-          const tags = generateAttachmentTags(newAttachments);
-          
-          // Remove old tags and replace with new ones
-          let currentContent = newMessage;
-          // Remove existing attachment tags
-          currentContent = currentContent.replace(/\[(image|pdf)\d+\]\s*/g, '').trim();
-          
-          const newContent = currentContent && tags ? `${currentContent} ${tags}` : (tags || currentContent);
-          onMessageChange(newContent);
-          
-          return newAttachments;
-        });
+        setAttachments(prev => prev.filter(a => a.id !== attachment.id));
       } catch (error) {
         console.error('Failed to delete attachment:', error);
       }
-    }, [newMessage, onMessageChange, generateAttachmentTags]);
+    }, []);
 
     // Handle click outside to close popups - simplified approach
     useEffect(() => {
