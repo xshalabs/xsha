@@ -1,19 +1,14 @@
-import { memo, useCallback, useState, useEffect, useRef } from "react";
+import { memo, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Send, MessageSquare, Clock, Zap, Calendar, Sparkles, X, Paperclip, Image, FileText } from "lucide-react";
+import { Send, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { DateTimePicker } from "@/components/ui/datetime-picker";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { Task } from "@/types/task";
-import { attachmentApi, type Attachment } from "@/lib/api/attachments";
+import { useAttachments } from "@/hooks/useAttachments";
+import { AttachmentSection } from "./AttachmentSection";
+import { MessageControls } from "./MessageControls";
+import type { Attachment } from "@/lib/api/attachments";
 
 interface NewMessageFormProps {
   task: Task;
@@ -46,54 +41,25 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     onSendMessage,
   }) => {
     const { t } = useTranslation();
-    const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
-    const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
-    const [attachments, setAttachments] = useState<Attachment[]>([]);
-    const [uploading, setUploading] = useState(false);
-    const timePickerRef = useRef<HTMLDivElement>(null);
-    const modelSelectorRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Use attachment hook
+    const {
+      attachments,
+      uploading,
+      uploadFiles,
+      removeAttachment,
+      clearAttachments,
+      getAttachmentIds,
+    } = useAttachments();
 
     // Explicitly acknowledge the parameter to avoid linter warning
     // This parameter is used implicitly through canSendMessage logic
     void _hasPendingOrRunningConversations;
 
-    // Generate attachment tags for content
-    const generateAttachmentTags = useCallback((allAttachments: Attachment[]) => {
-      const images = allAttachments.filter(a => a.type === 'image');
-      const pdfs = allAttachments.filter(a => a.type === 'pdf');
-      
-      const tags: string[] = [];
-      
-      images.forEach((_, index) => {
-        tags.push(`[image${index + 1}]`);
-      });
-      
-      pdfs.forEach((_, index) => {
-        tags.push(`[pdf${index + 1}]`);
-      });
-      
-      return tags.join(' ');
-    }, []);
 
-    // Update content with attachment tags when attachments change
-    useEffect(() => {
-      const tags = generateAttachmentTags(attachments);
-      if (tags) {
-        // Remove existing tags from content first
-        let currentContent = newMessage.replace(/\[(image|pdf)\d+\]\s*/g, '').trim();
-        const newContent = currentContent ? `${currentContent} ${tags}` : tags;
-        if (newContent !== newMessage) {
-          onMessageChange(newContent);
-        }
-      } else if (newMessage.match(/\[(image|pdf)\d+\]/)) {
-        // If no attachments but content has tags, remove them
-        const cleanContent = newMessage.replace(/\[(image|pdf)\d+\]\s*/g, '').trim();
-        if (cleanContent !== newMessage) {
-          onMessageChange(cleanContent);
-        }
-      }
-    }, [attachments, generateAttachmentTags, newMessage, onMessageChange]);
+
+
 
     const handleMessageChange = useCallback(
       (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -113,114 +79,101 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     );
 
     const handleSendMessage = useCallback(() => {
-      const attachmentIds = attachments.map(a => a.id);
+      const attachmentIds = getAttachmentIds();
       onSendMessage(attachmentIds.length > 0 ? attachmentIds : undefined);
       
       // Clear attachments after sending (they will be associated with the new conversation)
-      setAttachments([]);
-    }, [onSendMessage, attachments]);
-
-    const handleTimePickerToggle = useCallback(() => {
-      setIsTimePickerOpen(!isTimePickerOpen);
-      setIsModelSelectorOpen(false); // Close model selector when opening time picker
-    }, [isTimePickerOpen]);
-
-    const handleModelSelectorToggle = useCallback(() => {
-      setIsModelSelectorOpen(!isModelSelectorOpen);
-      setIsTimePickerOpen(false); // Close time picker when opening model selector
-    }, [isModelSelectorOpen]);
-
-    const handleAttachmentClick = useCallback(() => {
-      fileInputRef.current?.click();
-    }, []);
-
-    const handleTimeChange = useCallback((time: Date | undefined) => {
-      onExecutionTimeChange(time);
-      // Don't auto-close to allow multiple time adjustments
-    }, [onExecutionTimeChange]);
-
-    const handleModelChange = useCallback((newModel: string) => {
-      onModelChange(newModel);
-      setIsModelSelectorOpen(false); // Close after selection
-    }, [onModelChange]);
+      clearAttachments();
+    }, [onSendMessage, getAttachmentIds, clearAttachments]);
 
     // Handle file input change
     const handleFileInputChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = event.target.files;
       if (!files || files.length === 0) return;
 
-      setUploading(true);
-      
       try {
-        const uploadPromises = Array.from(files).map(async (file) => {
-          // Validate file
-          if (file.size > 10 * 1024 * 1024) { // 10MB
-            throw new Error(`File ${file.name} is too large (max 10MB)`);
-          }
-          
-          const isImage = file.type.startsWith('image/');
-          const isPdf = file.type === 'application/pdf';
-          
-          if (!isImage && !isPdf) {
-            throw new Error(`File ${file.name} is not supported (only images and PDF)`);
-          }
-
-          return await attachmentApi.uploadAttachment(file);
-        });
-
-        const uploadedAttachments = await Promise.all(uploadPromises);
+        const uploadedAttachments = await uploadFiles(files);
         
-        // Update attachments state
-        setAttachments(prev => [...prev, ...uploadedAttachments]);
-        
+        // Add attachment tags to the message content
+        if (uploadedAttachments && uploadedAttachments.length > 0) {
+          // Generate tags only for newly uploaded attachments
+          const newTags: string[] = [];
+          
+          uploadedAttachments.forEach((attachment, index) => {
+            if (attachment.type === 'image') {
+              // Count existing images to get correct index
+              const imageCount = attachments.filter(a => a.type === 'image').length + 
+                               uploadedAttachments.slice(0, index + 1).filter(a => a.type === 'image').length;
+              newTags.push(`[image${imageCount}]`);
+            } else if (attachment.type === 'pdf') {
+              // Count existing PDFs to get correct index  
+              const pdfCount = attachments.filter(a => a.type === 'pdf').length + 
+                             uploadedAttachments.slice(0, index + 1).filter(a => a.type === 'pdf').length;
+              newTags.push(`[pdf${pdfCount}]`);
+            }
+          });
+          
+          // Add new tags to the end of existing content
+          const newContent = newMessage.trim() ? 
+            `${newMessage.trim()} ${newTags.join(' ')}` : 
+            newTags.join(' ');
+          
+          onMessageChange(newContent);
+        }
       } catch (error) {
         console.error('Failed to upload files:', error);
         // You might want to show a toast error here
       } finally {
-        setUploading(false);
         // Reset file input
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
       }
+    }, [uploadFiles, attachments, newMessage, onMessageChange]);
+
+    // Handle file select trigger
+    const handleFileSelect = useCallback(() => {
+      fileInputRef.current?.click();
     }, []);
 
-    // Handle attachment removal
+    // Handle attachment removal with tag update
     const handleAttachmentRemove = useCallback(async (attachment: Attachment) => {
       try {
-        await attachmentApi.deleteAttachment(attachment.id);
-        setAttachments(prev => prev.filter(a => a.id !== attachment.id));
-      } catch (error) {
-        console.error('Failed to delete attachment:', error);
-      }
-    }, []);
-
-    // Handle click outside to close popups - simplified approach
-    useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-        const target = event.target as Element;
+        // Find the index of the attachment being removed among its type
+        const sameTypeAttachments = attachments.filter(a => a.type === attachment.type);
+        const attachmentIndex = sameTypeAttachments.findIndex(a => a.id === attachment.id);
         
-        // Only close if clicking completely outside our components and not on any portal/popup content
-        const isClickOnPortal = target.closest('[data-radix-popper-content-wrapper], [data-radix-portal], [data-sonner-toaster]');
-        const isClickOnTimePicker = timePickerRef.current?.contains(target as Node);
-        const isClickOnModelSelector = modelSelectorRef.current?.contains(target as Node);
-        
-        if (!isClickOnPortal && !isClickOnTimePicker && !isClickOnModelSelector) {
-          setIsTimePickerOpen(false);
-          setIsModelSelectorOpen(false);
+        if (attachmentIndex !== -1) {
+          // Remove the specific tag for this attachment
+          const tagToRemove = attachment.type === 'image' ? 
+            `[image${attachmentIndex + 1}]` : 
+            `[pdf${attachmentIndex + 1}]`;
+          
+          // Remove the tag from the message
+          let updatedMessage = newMessage.replace(new RegExp(`\\s*${tagToRemove.replace(/[[\]]/g, '\\$&')}\\s*`, 'g'), ' ');
+          
+          // Renumber remaining tags of the same type
+          for (let i = attachmentIndex + 1; i < sameTypeAttachments.length; i++) {
+            const oldTag = attachment.type === 'image' ? `[image${i + 1}]` : `[pdf${i + 1}]`;
+            const newTag = attachment.type === 'image' ? `[image${i}]` : `[pdf${i}]`;
+            updatedMessage = updatedMessage.replace(new RegExp(oldTag.replace(/[[\]]/g, '\\$&'), 'g'), newTag);
+          }
+          
+          // Clean up extra spaces
+          updatedMessage = updatedMessage.replace(/\s+/g, ' ').trim();
+          
+          // Update the message
+          if (updatedMessage !== newMessage) {
+            onMessageChange(updatedMessage);
+          }
         }
-      };
-
-      // Use a timeout to avoid immediate closure
-      const timeoutId = setTimeout(() => {
-        document.addEventListener('mousedown', handleClickOutside);
-      }, 100);
-
-      return () => {
-        clearTimeout(timeoutId);
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }, []);
+        
+        // Remove the attachment
+        await removeAttachment(attachment);
+      } catch (error) {
+        console.error('Failed to remove attachment:', error);
+      }
+    }, [removeAttachment, attachments, newMessage, onMessageChange]);
 
     const isDisabled = !newMessage.trim() || sending || !canSendMessage;
 
@@ -241,45 +194,10 @@ export const NewMessageForm = memo<NewMessageFormProps>(
             </div>
             
             {/* Uploaded Attachments Display - Above the textarea */}
-            {attachments.length > 0 && (
-              <div className="space-y-2 p-3 bg-muted/30 rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <Paperclip className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {t("taskConversations.attachments", "Attachments")} ({attachments.length})
-                  </span>
-                </div>
-                <div className="grid gap-2">
-                  {attachments.map((attachment) => (
-                    <div
-                      key={attachment.id}
-                      className="flex items-center gap-2 p-2 bg-background rounded border"
-                    >
-                      <div className="flex-shrink-0">
-                        {attachment.type === 'image' ? 
-                          <Image className="h-3 w-3 text-blue-500" /> : 
-                          <FileText className="h-3 w-3 text-red-500" />
-                        }
-                      </div>
-                      <span className="flex-1 text-xs truncate">
-                        {attachment.original_name}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {Math.round(attachment.file_size / 1024)}KB
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleAttachmentRemove(attachment)}
-                        className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            <AttachmentSection
+              attachments={attachments}
+              onRemove={handleAttachmentRemove}
+            />
             
             <div className="relative">
               <Textarea
@@ -293,150 +211,17 @@ export const NewMessageForm = memo<NewMessageFormProps>(
               />
               
               {/* Interactive Controls positioned at the bottom left of the textarea */}
-              <div className="absolute bottom-3 left-3 right-3 flex items-end gap-3">
-                {/* Execution Time Control */}
-                <div className="relative" ref={timePickerRef}>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleTimePickerToggle}
-                    className={`h-7 w-7 p-0 rounded-md transition-colors ${
-                      executionTime 
-                        ? 'bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-400' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                    }`}
-                    title={executionTime ? t("taskConversations.executionTime") + ": " + executionTime.toLocaleString() : t("taskConversations.executionTime")}
-                  >
-                    {executionTime ? <Calendar className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
-                  </Button>
-                  
-                                      {isTimePickerOpen && (
-                      <div className="absolute bottom-full left-0 mb-2 p-3 bg-background border rounded-lg shadow-lg z-10 min-w-[200px]">
-                        <div className="flex items-center justify-between mb-2">
-                          <Label className="text-xs font-medium">{t("taskConversations.executionTime")}</Label>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsTimePickerOpen(false)}
-                            className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <div className="space-y-2">
-                          <DateTimePicker
-                            value={executionTime}
-                            onChange={handleTimeChange}
-                            placeholder={t("taskConversations.executionTimePlaceholder")}
-                            label=""
-                            className="h-8 text-xs"
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            {t("taskConversations.executionTimeHint")}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                </div>
-
-                {/* Model Selection - Only show for claude-code environments */}
-                {task.dev_environment?.type === "claude-code" && (
-                  <div className="relative" ref={modelSelectorRef}>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleModelSelectorToggle}
-                      className={`h-7 w-7 p-0 rounded-md transition-colors ${
-                        model && model !== 'default'
-                          ? 'bg-purple-100 text-purple-600 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-400'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                      }`}
-                      title={model ? t("taskConversations.selectModel") + ": " + model : t("taskConversations.selectModel")}
-                    >
-                      {model && model !== 'default' ? <Sparkles className="h-3.5 w-3.5" /> : <Zap className="h-3.5 w-3.5" />}
-                    </Button>
-                    
-                    {isModelSelectorOpen && (
-                      <div className="absolute bottom-full left-0 mb-2 p-3 bg-background border rounded-lg shadow-lg z-10 min-w-[200px]">
-                        <div className="flex items-center justify-between mb-2">
-                          <Label className="text-xs font-medium">{t("taskConversations.selectModel")}</Label>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsModelSelectorOpen(false)}
-                            className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <div className="space-y-2">
-                          <Select
-                            value={model}
-                            onValueChange={handleModelChange}
-                            disabled={sending}
-                          >
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue placeholder={t("taskConversations.selectModel")} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="default">
-                                <div className="flex flex-col items-start">
-                                  <span className="font-medium text-xs">{t("taskConversations.model.default")}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {t("taskConversations.model.defaultDescription")}
-                                  </span>
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="sonnet">
-                                <div className="flex flex-col items-start">
-                                  <span className="font-medium text-xs">{t("taskConversations.model.sonnet")}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    Sonnet
-                                  </span>
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="opus">
-                                <div className="flex flex-col items-start">
-                                  <span className="font-medium text-xs">{t("taskConversations.model.opus")}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    Opus
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <p className="text-xs text-muted-foreground">
-                            {t("taskConversations.modelHint")}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Attachment Control */}
-                <div className="relative">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleAttachmentClick}
-                    disabled={sending || uploading}
-                    className={`h-7 w-7 p-0 rounded-md transition-colors ${
-                      attachments.length > 0
-                        ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-400'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                    } ${uploading ? 'opacity-50' : ''}`}
-                    title={uploading ? t("attachment.uploading", "Uploading...") : t("taskConversations.attachments", "Attachments")}
-                  >
-                    {uploading ? (
-                      <div className="animate-spin rounded-full h-3.5 w-3.5 border-b border-current"></div>
-                    ) : (
-                      <Paperclip className="h-3.5 w-3.5" />
-                    )}
-                  </Button>
+              <MessageControls
+                task={task}
+                executionTime={executionTime}
+                model={model}
+                attachmentCount={attachments.length}
+                sending={sending}
+                uploading={uploading}
+                onExecutionTimeChange={onExecutionTimeChange}
+                onModelChange={onModelChange}
+                onFileSelect={handleFileSelect}
+              />
                   
                   {/* Hidden file input */}
                   <input
@@ -447,8 +232,6 @@ export const NewMessageForm = memo<NewMessageFormProps>(
                     onChange={handleFileInputChange}
                     className="hidden"
                   />
-                </div>
-              </div>
             </div>
             
             {/* Hint for interactive controls */}
