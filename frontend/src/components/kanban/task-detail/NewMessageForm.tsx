@@ -72,10 +72,12 @@ export const NewMessageForm = memo<NewMessageFormProps>(
       (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
           e.preventDefault();
-          onSendMessage();
+          const attachmentIds = getAttachmentIds();
+          onSendMessage(attachmentIds.length > 0 ? attachmentIds : undefined);
+          clearAttachments();
         }
       },
-      [onSendMessage]
+      [onSendMessage, getAttachmentIds, clearAttachments]
     );
 
     const handlePaste = useCallback(async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
