@@ -65,13 +65,7 @@ export const attachmentApi = {
     return response.data;
   },
 
-  // Get unassociated attachments for current user
-  async getUnassociatedAttachments(): Promise<Attachment[]> {
-    const response = await request<AttachmentApiResponse<Attachment[]>>(
-      `/attachments/unassociated`
-    );
-    return response.data;
-  },
+
 
   // Download attachment
   getDownloadUrl(id: number): string {

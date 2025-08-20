@@ -311,37 +311,6 @@ func (h *TaskConversationAttachmentHandlers) GetConversationAttachments(c *gin.C
 	})
 }
 
-// GetUnassociatedAttachments gets all unassociated attachments for current user
-// @Summary Get unassociated attachments
-// @Description Get all attachments uploaded by current user that are not yet associated with any conversation
-// @Tags Task Conversation Attachments
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Success 200 {object} object{message=string,data=[]object} "Unassociated attachments retrieved successfully"
-// @Failure 401 {object} object{error=string} "Authentication failed"
-// @Router /attachments/unassociated [get]
-func (h *TaskConversationAttachmentHandlers) GetUnassociatedAttachments(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	attachments, err := h.attachmentService.GetUnassociatedAttachments(username.(string))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "attachment.get_success"),
-		"data":    attachments,
-	})
-}
-
 // Helper functions
 
 func (h *TaskConversationAttachmentHandlers) getAttachmentType(contentType, filename string) (database.AttachmentType, error) {

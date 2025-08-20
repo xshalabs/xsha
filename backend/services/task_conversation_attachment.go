@@ -67,10 +67,6 @@ func (s *taskConversationAttachmentService) AssociateWithConversation(attachment
 	return s.repo.Update(attachment)
 }
 
-func (s *taskConversationAttachmentService) GetUnassociatedAttachments(createdBy string) ([]database.TaskConversationAttachment, error) {
-	return s.repo.GetUnassociated(createdBy)
-}
-
 func (s *taskConversationAttachmentService) GetAttachment(id uint) (*database.TaskConversationAttachment, error) {
 	return s.repo.GetByID(id)
 }

@@ -32,7 +32,7 @@ export function useTaskConversations(task: Task | null) {
     }
   }, [task]);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (attachmentIds?: number[]) => {
     if (!task || !newMessage.trim() || !canSendMessage()) return;
 
     setSending(true);
@@ -48,6 +48,7 @@ export function useTaskConversations(task: Task | null) {
         content: newMessage.trim(),
         execution_time: executionTime?.toISOString(),
         env_params: envParams,
+        attachment_ids: attachmentIds,
       });
 
       // Clear form and refresh conversations list

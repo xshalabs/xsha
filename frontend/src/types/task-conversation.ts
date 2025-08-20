@@ -27,6 +27,7 @@ export interface CreateConversationRequest {
   content: string;
   execution_time?: string; // ISO 8601 date string
   env_params?: string; // JSON string containing environment parameters
+  attachment_ids?: number[]; // Optional array of attachment IDs
 }
 
 export interface UpdateConversationRequest {

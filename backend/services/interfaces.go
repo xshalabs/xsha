@@ -156,7 +156,6 @@ type TaskConversationAttachmentService interface {
 	AssociateWithConversation(attachmentID, conversationID uint) error
 	GetAttachment(id uint) (*database.TaskConversationAttachment, error)
 	GetAttachmentsByConversation(conversationID uint) ([]database.TaskConversationAttachment, error)
-	GetUnassociatedAttachments(createdBy string) ([]database.TaskConversationAttachment, error)
 	UpdateAttachment(id uint, attachment *database.TaskConversationAttachment) error
 	DeleteAttachment(id uint) error
 	DeleteAttachmentsByConversation(conversationID uint) error

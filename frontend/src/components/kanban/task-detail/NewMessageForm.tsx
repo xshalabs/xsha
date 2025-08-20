@@ -1,6 +1,6 @@
 import { memo, useCallback, useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Send, MessageSquare, Clock, Zap, Calendar, Sparkles, X, Paperclip } from "lucide-react";
+import { Send, MessageSquare, Clock, Zap, Calendar, Sparkles, X, Paperclip, Image, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Task } from "@/types/task";
-import { AttachmentUploader } from "@/components/AttachmentUploader";
 import { attachmentApi, type Attachment } from "@/lib/api/attachments";
 
 interface NewMessageFormProps {
@@ -29,8 +28,6 @@ interface NewMessageFormProps {
   onExecutionTimeChange: (time: Date | undefined) => void;
   onModelChange: (model: string) => void;
   onSendMessage: (attachmentIds?: number[]) => void;
-  onAttachmentUpload?: (attachment: Attachment) => void;
-  onAttachmentDelete?: (attachmentId: number) => void;
 }
 
 export const NewMessageForm = memo<NewMessageFormProps>(
@@ -47,18 +44,15 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     onExecutionTimeChange,
     onModelChange,
     onSendMessage,
-    onAttachmentUpload,
-    onAttachmentDelete,
   }) => {
     const { t } = useTranslation();
     const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
     const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
-    const [showAttachments, setShowAttachments] = useState(false);
-    const [unassociatedAttachments, setUnassociatedAttachments] = useState<Attachment[]>([]);
-    const [loadingAttachments, setLoadingAttachments] = useState(false);
+    const [attachments, setAttachments] = useState<Attachment[]>([]);
+    const [uploading, setUploading] = useState(false);
     const timePickerRef = useRef<HTMLDivElement>(null);
     const modelSelectorRef = useRef<HTMLDivElement>(null);
-    const attachmentRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Explicitly acknowledge the parameter to avoid linter warning
     // This parameter is used implicitly through canSendMessage logic
@@ -82,12 +76,12 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     );
 
     const handleSendMessage = useCallback(() => {
-      const attachmentIds = unassociatedAttachments.map(a => a.id);
+      const attachmentIds = attachments.map(a => a.id);
       onSendMessage(attachmentIds.length > 0 ? attachmentIds : undefined);
       
-      // Clear unassociated attachments after sending (they will be associated with the new conversation)
-      setUnassociatedAttachments([]);
-    }, [onSendMessage, unassociatedAttachments]);
+      // Clear attachments after sending (they will be associated with the new conversation)
+      setAttachments([]);
+    }, [onSendMessage, attachments]);
 
     const handleTimePickerToggle = useCallback(() => {
       setIsTimePickerOpen(!isTimePickerOpen);
@@ -97,28 +91,11 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     const handleModelSelectorToggle = useCallback(() => {
       setIsModelSelectorOpen(!isModelSelectorOpen);
       setIsTimePickerOpen(false); // Close time picker when opening model selector
-      setShowAttachments(false); // Close attachments when opening model selector
     }, [isModelSelectorOpen]);
 
-    const handleAttachmentsToggle = useCallback(async () => {
-      const newShowState = !showAttachments;
-      setShowAttachments(newShowState);
-      setIsTimePickerOpen(false); // Close time picker when opening attachments
-      setIsModelSelectorOpen(false); // Close model selector when opening attachments
-      
-      // Load unassociated attachments when opening
-      if (newShowState && unassociatedAttachments.length === 0) {
-        setLoadingAttachments(true);
-        try {
-          const attachments = await attachmentApi.getUnassociatedAttachments();
-          setUnassociatedAttachments(attachments);
-        } catch (error) {
-          console.error('Failed to load unassociated attachments:', error);
-        } finally {
-          setLoadingAttachments(false);
-        }
-      }
-    }, [showAttachments, unassociatedAttachments.length]);
+    const handleAttachmentClick = useCallback(() => {
+      fileInputRef.current?.click();
+    }, []);
 
     const handleTimeChange = useCallback((time: Date | undefined) => {
       onExecutionTimeChange(time);
@@ -148,31 +125,63 @@ export const NewMessageForm = memo<NewMessageFormProps>(
       return tags.join(' ');
     }, []);
 
-    // Handle new attachment upload
-    const handleAttachmentUpload = useCallback((attachment: Attachment) => {
-      setUnassociatedAttachments(prev => {
-        const newAttachments = [...prev, attachment];
-        
-        // Auto-generate tags and update content
-        const tags = generateAttachmentTags(newAttachments);
-        if (tags) {
-          const currentContent = newMessage.trim();
-          const newContent = currentContent ? `${currentContent} ${tags}` : tags;
-          onMessageChange(newContent);
-        }
-        
-        return newAttachments;
-      });
+    // Handle file input change
+    const handleFileInputChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+
+      setUploading(true);
       
-      // Call parent handler if provided
-      onAttachmentUpload?.(attachment);
-    }, [newMessage, onMessageChange, onAttachmentUpload, generateAttachmentTags]);
+      try {
+        const uploadPromises = Array.from(files).map(async (file) => {
+          // Validate file
+          if (file.size > 10 * 1024 * 1024) { // 10MB
+            throw new Error(`File ${file.name} is too large (max 10MB)`);
+          }
+          
+          const isImage = file.type.startsWith('image/');
+          const isPdf = file.type === 'application/pdf';
+          
+          if (!isImage && !isPdf) {
+            throw new Error(`File ${file.name} is not supported (only images and PDF)`);
+          }
+
+          return await attachmentApi.uploadAttachment(file);
+        });
+
+        const uploadedAttachments = await Promise.all(uploadPromises);
+        
+        setAttachments(prev => {
+          const newAttachments = [...prev, ...uploadedAttachments];
+          
+          // Auto-generate tags and update content
+          const tags = generateAttachmentTags(newAttachments);
+          if (tags) {
+            // Remove existing tags from content first
+            let currentContent = newMessage.replace(/\[(image|pdf)\d+\]\s*/g, '').trim();
+            const newContent = currentContent ? `${currentContent} ${tags}` : tags;
+            onMessageChange(newContent);
+          }
+          
+          return newAttachments;
+        });
+      } catch (error) {
+        console.error('Failed to upload files:', error);
+        // You might want to show a toast error here
+      } finally {
+        setUploading(false);
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    }, [attachments, newMessage, onMessageChange, generateAttachmentTags]);
 
     // Handle attachment removal
     const handleAttachmentRemove = useCallback(async (attachment: Attachment) => {
       try {
         await attachmentApi.deleteAttachment(attachment.id);
-        setUnassociatedAttachments(prev => {
+        setAttachments(prev => {
           const newAttachments = prev.filter(a => a.id !== attachment.id);
           
           // Update content by regenerating tags
@@ -188,13 +197,10 @@ export const NewMessageForm = memo<NewMessageFormProps>(
           
           return newAttachments;
         });
-        
-        // Call parent handler if provided
-        onAttachmentDelete?.(attachment.id);
       } catch (error) {
         console.error('Failed to delete attachment:', error);
       }
-    }, [newMessage, onMessageChange, onAttachmentDelete, generateAttachmentTags]);
+    }, [newMessage, onMessageChange, generateAttachmentTags]);
 
     // Handle click outside to close popups - simplified approach
     useEffect(() => {
@@ -205,12 +211,10 @@ export const NewMessageForm = memo<NewMessageFormProps>(
         const isClickOnPortal = target.closest('[data-radix-popper-content-wrapper], [data-radix-portal], [data-sonner-toaster]');
         const isClickOnTimePicker = timePickerRef.current?.contains(target as Node);
         const isClickOnModelSelector = modelSelectorRef.current?.contains(target as Node);
-        const isClickOnAttachment = attachmentRef.current?.contains(target as Node);
         
-        if (!isClickOnPortal && !isClickOnTimePicker && !isClickOnModelSelector && !isClickOnAttachment) {
+        if (!isClickOnPortal && !isClickOnTimePicker && !isClickOnModelSelector) {
           setIsTimePickerOpen(false);
           setIsModelSelectorOpen(false);
-          setShowAttachments(false);
         }
       };
 
@@ -242,6 +246,48 @@ export const NewMessageForm = memo<NewMessageFormProps>(
                 {t("taskConversations.content")}:
               </Label>
             </div>
+            
+            {/* Uploaded Attachments Display - Above the textarea */}
+            {attachments.length > 0 && (
+              <div className="space-y-2 p-3 bg-muted/30 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <Paperclip className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {t("taskConversations.attachments", "Attachments")} ({attachments.length})
+                  </span>
+                </div>
+                <div className="grid gap-2">
+                  {attachments.map((attachment) => (
+                    <div
+                      key={attachment.id}
+                      className="flex items-center gap-2 p-2 bg-background rounded border"
+                    >
+                      <div className="flex-shrink-0">
+                        {attachment.type === 'image' ? 
+                          <Image className="h-3 w-3 text-blue-500" /> : 
+                          <FileText className="h-3 w-3 text-red-500" />
+                        }
+                      </div>
+                      <span className="flex-1 text-xs truncate">
+                        {attachment.original_name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {Math.round(attachment.file_size / 1024)}KB
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAttachmentRemove(attachment)}
+                        className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             <div className="relative">
               <Textarea
                 id="message-content"
@@ -378,59 +424,36 @@ export const NewMessageForm = memo<NewMessageFormProps>(
                 )}
 
                 {/* Attachment Control */}
-                <div className="relative" ref={attachmentRef}>
+                <div className="relative">
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={handleAttachmentsToggle}
+                    onClick={handleAttachmentClick}
+                    disabled={sending || uploading}
                     className={`h-7 w-7 p-0 rounded-md transition-colors ${
-                      unassociatedAttachments.length > 0 || showAttachments
+                      attachments.length > 0
                         ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-400'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                    }`}
-                    title={t("taskConversations.attachments", "Attachments")}
+                    } ${uploading ? 'opacity-50' : ''}`}
+                    title={uploading ? t("attachment.uploading", "Uploading...") : t("taskConversations.attachments", "Attachments")}
                   >
-                    <Paperclip className="h-3.5 w-3.5" />
+                    {uploading ? (
+                      <div className="animate-spin rounded-full h-3.5 w-3.5 border-b border-current"></div>
+                    ) : (
+                      <Paperclip className="h-3.5 w-3.5" />
+                    )}
                   </Button>
                   
-                  {showAttachments && (
-                    <div className="absolute bottom-full left-0 mb-2 p-4 bg-background border rounded-lg shadow-lg z-10 min-w-[300px] max-w-[400px]">
-                      <div className="flex items-center justify-between mb-3">
-                        <Label className="text-sm font-medium">{t("taskConversations.attachments", "Attachments")}</Label>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowAttachments(false)}
-                          className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        {/* Loading state */}
-                        {loadingAttachments && (
-                          <div className="flex items-center justify-center py-4">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                            <span className="ml-2 text-sm text-muted-foreground">
-                              {t('attachment.loading', 'Loading attachments...')}
-                            </span>
-                          </div>
-                        )}
-                        
-                        {/* Attachment Uploader with existing attachments */}
-                        <AttachmentUploader
-                          existingAttachments={unassociatedAttachments}
-                          onUploadSuccess={handleAttachmentUpload}
-                          onUploadError={(error) => console.error('Upload error:', error)}
-                          onAttachmentRemove={handleAttachmentRemove}
-                          disabled={sending || loadingAttachments}
-                          className="scale-90 origin-top"
-                        />
-                      </div>
-                    </div>
-                  )}
+                  {/* Hidden file input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,.pdf"
+                    multiple
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                  />
                 </div>
               </div>
             </div>
