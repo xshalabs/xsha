@@ -184,7 +184,7 @@ func (s *taskConversationService) CreateConversationWithExecutionTimeAndAttachme
 		}
 
 		// Update conversation content with attachment tags
-		processedContent = s.attachmentService.ProcessContentWithAttachments(content, attachments)
+		processedContent = s.attachmentService.ProcessContentWithAttachments(content, attachments, conversation.ID)
 		conversation.Content = processedContent
 
 		// Save the updated content

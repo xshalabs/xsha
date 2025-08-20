@@ -159,7 +159,7 @@ type TaskConversationAttachmentService interface {
 	UpdateAttachment(id uint, attachment *database.TaskConversationAttachment) error
 	DeleteAttachment(id uint) error
 	DeleteAttachmentsByConversation(conversationID uint) error
-	ProcessContentWithAttachments(content string, attachments []database.TaskConversationAttachment) string
+	ProcessContentWithAttachments(content string, attachments []database.TaskConversationAttachment, conversationID uint) string
 	ParseAttachmentTags(content string) []string
 	GetAttachmentStorageDir() string
 	// Workspace attachment handling methods

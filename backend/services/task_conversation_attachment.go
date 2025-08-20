@@ -114,7 +114,7 @@ func (s *taskConversationAttachmentService) DeleteAttachmentsByConversation(conv
 	return s.repo.DeleteByConversationID(conversationID)
 }
 
-func (s *taskConversationAttachmentService) ProcessContentWithAttachments(content string, attachments []database.TaskConversationAttachment) string {
+func (s *taskConversationAttachmentService) ProcessContentWithAttachments(content string, attachments []database.TaskConversationAttachment, conversationID uint) string {
 	if len(attachments) == 0 {
 		return content
 	}
@@ -127,10 +127,10 @@ func (s *taskConversationAttachmentService) ProcessContentWithAttachments(conten
 		var tag string
 		switch attachment.Type {
 		case database.AttachmentTypeImage:
-			tag = fmt.Sprintf("[image%d]", imageCount)
+			tag = fmt.Sprintf("__xsha_workspace/%d_image%d%s", conversationID, imageCount, filepath.Ext(attachment.FileName))
 			imageCount++
 		case database.AttachmentTypePDF:
-			tag = fmt.Sprintf("[pdf%d]", pdfCount)
+			tag = fmt.Sprintf("__xsha_workspace/%d_pdf%d.pdf", conversationID, pdfCount)
 			pdfCount++
 		}
 
@@ -147,8 +147,8 @@ func (s *taskConversationAttachmentService) ProcessContentWithAttachments(conten
 }
 
 func (s *taskConversationAttachmentService) ParseAttachmentTags(content string) []string {
-	// Parse [image1], [pdf1], etc. tags from content
-	re := regexp.MustCompile(`\[(image|pdf)(\d+)\]`)
+	// Parse __xsha_workspace/{conversation_id}_image{n}.ext or __xsha_workspace/{conversation_id}_pdf{n}.pdf paths from content
+	re := regexp.MustCompile(`__xsha_workspace/\d+_(image|pdf)\d+\.\w+`)
 	matches := re.FindAllString(content, -1)
 
 	tags := append([]string(nil), matches...)
@@ -181,10 +181,10 @@ func (s *taskConversationAttachmentService) CopyAttachmentsToWorkspace(conversat
 		return []database.TaskConversationAttachment{}, nil
 	}
 
-	// Create xsha directory in workspace
-	xshaDir := filepath.Join(workspacePath, "xsha")
+	// Create __xsha_workspace directory in workspace
+	xshaDir := filepath.Join(workspacePath, "__xsha_workspace")
 	if err := os.MkdirAll(xshaDir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create xsha directory: %v", err)
+		return nil, fmt.Errorf("failed to create __xsha_workspace directory: %v", err)
 	}
 
 	// Track counters for each attachment type
@@ -209,10 +209,10 @@ func (s *taskConversationAttachmentService) CopyAttachmentsToWorkspace(conversat
 		switch attachment.Type {
 		case database.AttachmentTypeImage:
 			ext = filepath.Ext(attachment.FileName)
-			workspaceFileName = fmt.Sprintf("image%d%s", imageCount, ext)
+			workspaceFileName = fmt.Sprintf("%d_image%d%s", conversationID, imageCount, ext)
 			imageCount++
 		case database.AttachmentTypePDF:
-			workspaceFileName = fmt.Sprintf("pdf%d.pdf", pdfCount)
+			workspaceFileName = fmt.Sprintf("%d_pdf%d.pdf", conversationID, pdfCount)
 			pdfCount++
 		default:
 			continue // Skip unknown types
@@ -256,7 +256,7 @@ func (s *taskConversationAttachmentService) copyFile(src, dst string) error {
 	return err
 }
 
-// ReplaceAttachmentTagsWithPaths replaces attachment tags with workspace relative paths
+// ReplaceAttachmentTagsWithPaths handles backward compatibility for old format tags and ensures new format paths are correctly set
 func (s *taskConversationAttachmentService) ReplaceAttachmentTagsWithPaths(content string, attachments []database.TaskConversationAttachment, workspacePath string) string {
 	if len(attachments) == 0 {
 		return content
@@ -285,19 +285,23 @@ func (s *taskConversationAttachmentService) ReplaceAttachmentTagsWithPaths(conte
 
 		switch attachment.Type {
 		case database.AttachmentTypeImage:
+			// Handle old format tags for backward compatibility
 			oldTag = fmt.Sprintf("[image%d]", imageCount)
-			newPath = fmt.Sprintf("xsha/%s", attachment.FileName)
+			newPath = fmt.Sprintf("__xsha_workspace/%s", attachment.FileName)
 			imageCount++
 		case database.AttachmentTypePDF:
+			// Handle old format tags for backward compatibility
 			oldTag = fmt.Sprintf("[pdf%d]", pdfCount)
-			newPath = fmt.Sprintf("xsha/%s", attachment.FileName)
+			newPath = fmt.Sprintf("__xsha_workspace/%s", attachment.FileName)
 			pdfCount++
 		default:
 			continue // Skip unknown types
 		}
 
-		// Replace the tag with the relative path
-		processedContent = strings.Replace(processedContent, oldTag, newPath, -1)
+		// Replace the old tag format with the new path format for backward compatibility
+		if strings.Contains(processedContent, oldTag) {
+			processedContent = strings.Replace(processedContent, oldTag, newPath, -1)
+		}
 	}
 
 	return processedContent
@@ -305,17 +309,17 @@ func (s *taskConversationAttachmentService) ReplaceAttachmentTagsWithPaths(conte
 
 // CleanupWorkspaceAttachments removes attachment files from workspace
 func (s *taskConversationAttachmentService) CleanupWorkspaceAttachments(workspacePath string) error {
-	xshaDir := filepath.Join(workspacePath, "xsha")
+	xshaDir := filepath.Join(workspacePath, "__xsha_workspace")
 	
-	// Check if xsha directory exists
+	// Check if __xsha_workspace directory exists
 	if _, err := os.Stat(xshaDir); os.IsNotExist(err) {
 		// Directory doesn't exist, nothing to clean
 		return nil
 	}
 
-	// Remove the entire xsha directory and its contents
+	// Remove the entire __xsha_workspace directory and its contents
 	if err := os.RemoveAll(xshaDir); err != nil {
-		return fmt.Errorf("failed to remove xsha directory: %v", err)
+		return fmt.Errorf("failed to remove __xsha_workspace directory: %v", err)
 	}
 
 	return nil
