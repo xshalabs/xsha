@@ -266,9 +266,7 @@ export const ConversationItem = memo<ConversationItemProps>(
                 <DropdownMenuItem 
                   onClick={isDeleteEnabled ? handleDelete : undefined}
                   disabled={!isDeleteEnabled}
-                  className={isDeleteEnabled 
-                    ? "text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950" 
-                    : "opacity-50 cursor-not-allowed"}
+                  className={!isDeleteEnabled ? "opacity-50 cursor-not-allowed" : ""}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   {t("taskConversations.actions.delete")}
