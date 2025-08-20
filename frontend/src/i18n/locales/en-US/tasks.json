@@ -60,7 +60,8 @@
     "executionTimePlaceholder": "Select execution time (optional)",
     "executionTimeHint": "If no execution time is set, the task will be executed immediately",
     "selectModel": "Select model",
-    "modelHint": "Only available for Claude Code environments, choose the model version to use"
+    "modelHint": "Only available for Claude Code environments, choose the model version to use",
+    "clickIconsToConfigureHint": "Click icons in the text area to configure execution settings"
   },
   "validation": {
     "titleRequired": "Task title is required",
