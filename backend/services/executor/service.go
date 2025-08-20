@@ -199,6 +199,16 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint, createdBy s
 		return fmt.Errorf("failed to update conversation status to cancelled: %v", err)
 	}
 
+	// Delete associated execution result if it exists
+	if err := s.taskConvResultRepo.DeleteByConversationID(conversationID); err != nil {
+		utils.Warn("Failed to delete conversation result during cancellation",
+			"conversation_id", conversationID,
+			"error", err)
+	} else {
+		utils.Info("Successfully deleted conversation result during cancellation",
+			"conversation_id", conversationID)
+	}
+
 	if conv.Task != nil && conv.Task.WorkspacePath != "" {
 		if cleanupErr := s.workspaceCleaner.CleanupOnCancel(conv.Task.ID, conv.Task.WorkspacePath); cleanupErr != nil {
 			utils.Error("Failed to cleanup workspace during cancellation", "task_id", conv.Task.ID, "workspace", conv.Task.WorkspacePath, "error", cleanupErr)
