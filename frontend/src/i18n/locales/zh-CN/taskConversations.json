@@ -194,6 +194,10 @@
     "uploaded_by": "上传者",
     "uploaded_at": "上传时间",
     "not_found": "附件不存在",
-    "file_not_found": "附件文件不存在"
+    "file_not_found": "附件文件不存在",
+    "existing_files": "已上传文件",
+    "uploading": "上传中...",
+    "uploaded": "已上传",
+    "loading": "加载附件中..."
   }
 } 

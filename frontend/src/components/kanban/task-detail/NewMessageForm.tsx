@@ -14,8 +14,7 @@ import {
 } from "@/components/ui/select";
 import type { Task } from "@/types/task";
 import { AttachmentUploader } from "@/components/AttachmentUploader";
-import { AttachmentList } from "@/components/AttachmentList";
-import type { Attachment } from "@/lib/api/attachments";
+import { attachmentApi, type Attachment } from "@/lib/api/attachments";
 
 interface NewMessageFormProps {
   task: Task;
@@ -26,7 +25,6 @@ interface NewMessageFormProps {
   canSendMessage: boolean;
   isTaskCompleted: boolean;
   _hasPendingOrRunningConversations: boolean;
-  attachments?: Attachment[];
   onMessageChange: (message: string) => void;
   onExecutionTimeChange: (time: Date | undefined) => void;
   onModelChange: (model: string) => void;
@@ -45,7 +43,6 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     canSendMessage,
     isTaskCompleted,
     _hasPendingOrRunningConversations,
-    attachments,
     onMessageChange,
     onExecutionTimeChange,
     onModelChange,
@@ -57,6 +54,8 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
     const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
     const [showAttachments, setShowAttachments] = useState(false);
+    const [unassociatedAttachments, setUnassociatedAttachments] = useState<Attachment[]>([]);
+    const [loadingAttachments, setLoadingAttachments] = useState(false);
     const timePickerRef = useRef<HTMLDivElement>(null);
     const modelSelectorRef = useRef<HTMLDivElement>(null);
     const attachmentRef = useRef<HTMLDivElement>(null);
@@ -83,9 +82,12 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     );
 
     const handleSendMessage = useCallback(() => {
-      const attachmentIds = attachments?.map(a => a.id) || [];
+      const attachmentIds = unassociatedAttachments.map(a => a.id);
       onSendMessage(attachmentIds.length > 0 ? attachmentIds : undefined);
-    }, [onSendMessage, attachments]);
+      
+      // Clear unassociated attachments after sending (they will be associated with the new conversation)
+      setUnassociatedAttachments([]);
+    }, [onSendMessage, unassociatedAttachments]);
 
     const handleTimePickerToggle = useCallback(() => {
       setIsTimePickerOpen(!isTimePickerOpen);
@@ -98,11 +100,25 @@ export const NewMessageForm = memo<NewMessageFormProps>(
       setShowAttachments(false); // Close attachments when opening model selector
     }, [isModelSelectorOpen]);
 
-    const handleAttachmentsToggle = useCallback(() => {
-      setShowAttachments(!showAttachments);
+    const handleAttachmentsToggle = useCallback(async () => {
+      const newShowState = !showAttachments;
+      setShowAttachments(newShowState);
       setIsTimePickerOpen(false); // Close time picker when opening attachments
       setIsModelSelectorOpen(false); // Close model selector when opening attachments
-    }, [showAttachments]);
+      
+      // Load unassociated attachments when opening
+      if (newShowState && unassociatedAttachments.length === 0) {
+        setLoadingAttachments(true);
+        try {
+          const attachments = await attachmentApi.getUnassociatedAttachments();
+          setUnassociatedAttachments(attachments);
+        } catch (error) {
+          console.error('Failed to load unassociated attachments:', error);
+        } finally {
+          setLoadingAttachments(false);
+        }
+      }
+    }, [showAttachments, unassociatedAttachments.length]);
 
     const handleTimeChange = useCallback((time: Date | undefined) => {
       onExecutionTimeChange(time);
@@ -113,6 +129,72 @@ export const NewMessageForm = memo<NewMessageFormProps>(
       onModelChange(newModel);
       setIsModelSelectorOpen(false); // Close after selection
     }, [onModelChange]);
+
+    // Generate attachment tags for content
+    const generateAttachmentTags = useCallback((allAttachments: Attachment[]) => {
+      const images = allAttachments.filter(a => a.type === 'image');
+      const pdfs = allAttachments.filter(a => a.type === 'pdf');
+      
+      const tags: string[] = [];
+      
+      images.forEach((_, index) => {
+        tags.push(`[image${index + 1}]`);
+      });
+      
+      pdfs.forEach((_, index) => {
+        tags.push(`[pdf${index + 1}]`);
+      });
+      
+      return tags.join(' ');
+    }, []);
+
+    // Handle new attachment upload
+    const handleAttachmentUpload = useCallback((attachment: Attachment) => {
+      setUnassociatedAttachments(prev => {
+        const newAttachments = [...prev, attachment];
+        
+        // Auto-generate tags and update content
+        const tags = generateAttachmentTags(newAttachments);
+        if (tags) {
+          const currentContent = newMessage.trim();
+          const newContent = currentContent ? `${currentContent} ${tags}` : tags;
+          onMessageChange(newContent);
+        }
+        
+        return newAttachments;
+      });
+      
+      // Call parent handler if provided
+      onAttachmentUpload?.(attachment);
+    }, [newMessage, onMessageChange, onAttachmentUpload, generateAttachmentTags]);
+
+    // Handle attachment removal
+    const handleAttachmentRemove = useCallback(async (attachment: Attachment) => {
+      try {
+        await attachmentApi.deleteAttachment(attachment.id);
+        setUnassociatedAttachments(prev => {
+          const newAttachments = prev.filter(a => a.id !== attachment.id);
+          
+          // Update content by regenerating tags
+          const tags = generateAttachmentTags(newAttachments);
+          
+          // Remove old tags and replace with new ones
+          let currentContent = newMessage;
+          // Remove existing attachment tags
+          currentContent = currentContent.replace(/\[(image|pdf)\d+\]\s*/g, '').trim();
+          
+          const newContent = currentContent && tags ? `${currentContent} ${tags}` : (tags || currentContent);
+          onMessageChange(newContent);
+          
+          return newAttachments;
+        });
+        
+        // Call parent handler if provided
+        onAttachmentDelete?.(attachment.id);
+      } catch (error) {
+        console.error('Failed to delete attachment:', error);
+      }
+    }, [newMessage, onMessageChange, onAttachmentDelete, generateAttachmentTags]);
 
     // Handle click outside to close popups - simplified approach
     useEffect(() => {
@@ -303,7 +385,7 @@ export const NewMessageForm = memo<NewMessageFormProps>(
                     size="sm"
                     onClick={handleAttachmentsToggle}
                     className={`h-7 w-7 p-0 rounded-md transition-colors ${
-                      (attachments?.length || 0) > 0 || showAttachments
+                      unassociatedAttachments.length > 0 || showAttachments
                         ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-400'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                     }`}
@@ -327,20 +409,23 @@ export const NewMessageForm = memo<NewMessageFormProps>(
                       </div>
                       
                       <div className="space-y-3">
-                        {/* Existing Attachments */}
-                        {(attachments?.length || 0) > 0 && (
-                          <AttachmentList
-                            attachments={attachments || []}
-                            onAttachmentDelete={onAttachmentDelete}
-                            className="max-h-32 overflow-y-auto"
-                          />
+                        {/* Loading state */}
+                        {loadingAttachments && (
+                          <div className="flex items-center justify-center py-4">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                            <span className="ml-2 text-sm text-muted-foreground">
+                              {t('attachment.loading', 'Loading attachments...')}
+                            </span>
+                          </div>
                         )}
                         
-                        {/* Attachment Uploader */}
+                        {/* Attachment Uploader with existing attachments */}
                         <AttachmentUploader
-                          onUploadSuccess={onAttachmentUpload}
+                          existingAttachments={unassociatedAttachments}
+                          onUploadSuccess={handleAttachmentUpload}
                           onUploadError={(error) => console.error('Upload error:', error)}
-                          disabled={sending}
+                          onAttachmentRemove={handleAttachmentRemove}
+                          disabled={sending || loadingAttachments}
                           className="scale-90 origin-top"
                         />
                       </div>

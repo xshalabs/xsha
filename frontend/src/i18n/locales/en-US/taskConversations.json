@@ -194,6 +194,10 @@
     "uploaded_by": "Uploaded by",
     "uploaded_at": "Uploaded",
     "not_found": "Attachment not found",
-    "file_not_found": "Attachment file not found on disk"
+    "file_not_found": "Attachment file not found on disk",
+    "existing_files": "Uploaded Files",
+    "uploading": "Uploading...",
+    "uploaded": "Uploaded",
+    "loading": "Loading attachments..."
   }
 } 

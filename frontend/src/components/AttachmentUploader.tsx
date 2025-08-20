@@ -1,15 +1,16 @@
 import { useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Upload, X, FileText, Image, AlertCircle } from 'lucide-react';
+import { Upload, X, FileText, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { attachmentApi, type Attachment } from '@/lib/api/attachments';
 
 interface AttachmentUploaderProps {
+  existingAttachments?: Attachment[];
   onUploadSuccess?: (attachment: Attachment) => void;
   onUploadError?: (error: string) => void;
+  onAttachmentRemove?: (attachment: Attachment) => void;
   disabled?: boolean;
   className?: string;
 }
@@ -31,8 +32,10 @@ const ACCEPTED_TYPES = {
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export function AttachmentUploader({
+  existingAttachments = [],
   onUploadSuccess,
   onUploadError,
+  onAttachmentRemove,
   disabled = false,
   className
 }: AttachmentUploaderProps) {
@@ -226,9 +229,55 @@ export function AttachmentUploader({
         className="hidden"
       />
 
+      {/* Existing Attachments */}
+      {existingAttachments.length > 0 && (
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium text-muted-foreground">
+            {t('attachment.existing_files', 'Uploaded Files')} ({existingAttachments.length})
+          </h4>
+          {existingAttachments.map((attachment) => (
+            <div
+              key={attachment.id}
+              className="flex items-center space-x-3 p-3 border rounded-lg bg-green-50 dark:bg-green-950/20"
+            >
+              <div className="flex-shrink-0">
+                {attachment.type === 'image' ? <Image className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium truncate">
+                    {attachment.original_name}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onAttachmentRemove?.(attachment)}
+                    className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+                
+                <p className="text-xs text-muted-foreground">
+                  {formatFileSize(attachment.file_size)}
+                </p>
+                
+                <p className="text-xs text-green-600 mt-1">
+                  {t('attachment.uploaded', 'Uploaded')}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Upload Progress */}
       {uploadFiles.length > 0 && (
         <div className="space-y-2">
+          <h4 className="text-sm font-medium text-muted-foreground">
+            {t('attachment.uploading', 'Uploading...')}
+          </h4>
           {uploadFiles.map((uploadFile) => (
             <div
               key={uploadFile.id}
