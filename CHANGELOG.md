@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Add model selection to task conversation
 - Added scheduled label and execution time to the task conversation list
 
+### Fixed
+
+- Fixed container log capture failure when logs exceed 100KB
+
 ## v0.3.0 - 2025-08-20
 
 ### Added
