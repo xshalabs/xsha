@@ -182,10 +182,7 @@ func GetAttachmentStorageDir() string {
 // GenerateAttachmentFileName generates a unique filename for an attachment
 func GenerateAttachmentFileName(originalName string) string {
 	ext := filepath.Ext(originalName)
-	base := strings.TrimSuffix(originalName, ext)
-	// Clean filename for security
-	base = regexp.MustCompile(`[^a-zA-Z0-9._-]`).ReplaceAllString(base, "_")
-	// Generate unique timestamp-based filename
+	// Generate unique timestamp-based filename without original name
 	timestamp := time.Now().UnixNano()
-	return fmt.Sprintf("attach_%d_%s%s", timestamp, base, ext)
+	return fmt.Sprintf("attach_%d%s", timestamp, ext)
 }

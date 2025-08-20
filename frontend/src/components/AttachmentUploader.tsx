@@ -182,6 +182,11 @@ export function AttachmentUploader({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const getDisplayName = (attachment: Attachment) => {
+    const typeCount = existingAttachments.filter(a => a.type === attachment.type).indexOf(attachment) + 1;
+    return attachment.type === 'image' ? `[image${typeCount}]` : `[pdf${typeCount}]`;
+  };
+
 
 
   return (
@@ -231,44 +236,42 @@ export function AttachmentUploader({
 
       {/* Existing Attachments */}
       {existingAttachments.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <h4 className="text-sm font-medium text-muted-foreground">
             {t('attachment.existing_files', 'Uploaded Files')} ({existingAttachments.length})
           </h4>
-          {existingAttachments.map((attachment) => (
-            <div
-              key={attachment.id}
-              className="flex items-center space-x-3 p-3 border rounded-lg bg-green-50 dark:bg-green-950/20"
-            >
-              <div className="flex-shrink-0">
-                {attachment.type === 'image' ? <Image className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium truncate">
-                    {attachment.original_name}
-                  </p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onAttachmentRemove?.(attachment)}
-                    className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
+          <div className="flex flex-wrap gap-2">
+            {existingAttachments.map((attachment) => (
+              <div
+                key={attachment.id}
+                className="relative group inline-flex items-center gap-2 px-3 py-2 border border-green-200 bg-green-50 hover:bg-green-100 rounded-lg transition-colors max-w-[240px]"
+              >
+                <div className="flex-shrink-0 text-green-600">
+                  {attachment.type === 'image' ? <Image className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
                 </div>
                 
-                <p className="text-xs text-muted-foreground">
-                  {formatFileSize(attachment.file_size)}
-                </p>
-                
-                <p className="text-xs text-green-600 mt-1">
-                  {t('attachment.uploaded', 'Uploaded')}
-                </p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm font-medium text-gray-900 truncate">
+                      {getDisplayName(attachment)}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    {attachment.type === 'image' ? 'IMAGE' : 'PDF'} · {formatFileSize(attachment.file_size)}
+                  </div>
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onAttachmentRemove?.(attachment)}
+                  className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground hover:bg-green-200"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 

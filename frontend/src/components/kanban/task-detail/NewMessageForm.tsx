@@ -78,6 +78,36 @@ export const NewMessageForm = memo<NewMessageFormProps>(
       [onSendMessage]
     );
 
+    const handlePaste = useCallback(async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      const imageFiles: File[] = [];
+      
+      // Check for image files in clipboard
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            imageFiles.push(file);
+          }
+        }
+      }
+
+      // Upload image files if found
+      if (imageFiles.length > 0) {
+        try {
+          const fileList = new DataTransfer();
+          imageFiles.forEach(file => fileList.items.add(file));
+          
+          await uploadFiles(fileList.files);
+        } catch (error) {
+          console.error('Failed to upload pasted images:', error);
+        }
+      }
+    }, [uploadFiles]);
+
     const handleSendMessage = useCallback(() => {
       const attachmentIds = getAttachmentIds();
       onSendMessage(attachmentIds.length > 0 ? attachmentIds : undefined);
@@ -207,6 +237,7 @@ export const NewMessageForm = memo<NewMessageFormProps>(
                 value={newMessage}
                 onChange={handleMessageChange}
                 onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
                 aria-describedby="message-shortcut-hint"
               />
               

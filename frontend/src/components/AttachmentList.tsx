@@ -94,87 +94,68 @@ export function AttachmentList({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const getDisplayName = (attachment: Attachment, index: number) => {
+    const typeCount = attachments.filter(a => a.type === attachment.type).indexOf(attachment) + 1;
+    return attachment.type === 'image' ? `[image${typeCount}]` : `[pdf${typeCount}]`;
+  };
+
   if (attachments.length === 0) {
     return null;
   }
 
   return (
     <>
-      <div className={cn('space-y-2', className)}>
-        <h4 className="text-sm font-medium text-muted-foreground">
-          {t('attachment.attachments', 'Attachments')} ({attachments.length})
-        </h4>
-        
-        <div className="space-y-2">
-          {attachments.map((attachment) => (
+      <div className={cn('space-y-3', className)}>
+        {/* Compact attachment cards in a flexible layout */}
+        <div className="flex flex-wrap gap-2">
+          {attachments.map((attachment, index) => (
             <div
               key={attachment.id}
-              className="flex items-center space-x-3 p-3 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+              className="relative group inline-flex items-center gap-2 px-3 py-2 border border-orange-200 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors max-w-[240px] cursor-pointer"
+              onClick={() => handlePreview(attachment)}
             >
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 text-orange-600">
                 {getFileIcon(attachment.type)}
               </div>
               
               <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-2">
-                  <p className="text-sm font-medium truncate">
-                    {attachment.original_name}
-                  </p>
-                  <Badge variant="secondary" className="text-xs">
-                    {getFileTypeLabel(attachment.type)}
-                  </Badge>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm font-medium text-gray-900 truncate">
+                    {getDisplayName(attachment, index)}
+                  </span>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {formatFileSize(attachment.file_size)}
-                </p>
+                <div className="text-xs text-gray-600">
+                  {getFileTypeLabel(attachment.type).toUpperCase()} · {formatFileSize(attachment.file_size)}
+                </div>
               </div>
-              
-              <div className="flex items-center space-x-1">
-                {attachment.type === 'image' && (
+
+              {/* Action buttons - visible on hover */}
+              {!readonly && (
+                <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handlePreview(attachment)}
-                    className="h-8 w-8 p-0"
-                    title={t('attachment.preview', 'Preview')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownload(attachment);
+                    }}
+                    className="h-6 w-6 p-0 hover:bg-orange-200"
+                    title={t('attachment.download', 'Download')}
                   >
-                    <Eye className="h-4 w-4" />
+                    <Download className="h-3 w-3" />
                   </Button>
-                )}
-                
-                {attachment.type === 'pdf' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handlePreview(attachment)}
-                    className="h-8 w-8 p-0"
-                    title={t('attachment.view_pdf', 'View PDF')}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                )}
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDownload(attachment)}
-                  className="h-8 w-8 p-0"
-                  title={t('attachment.download', 'Download')}
-                >
-                  <Download className="h-4 w-4" />
-                </Button>
-                
-                {!readonly && (
+                  
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        onClick={(e) => e.stopPropagation()}
+                        className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-orange-200"
                         title={t('attachment.delete', 'Delete')}
                         disabled={deletingId === attachment.id}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -201,8 +182,8 @@ export function AttachmentList({
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
