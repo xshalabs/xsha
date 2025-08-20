@@ -32,7 +32,6 @@ import type { Project } from "@/types/project";
 import type { DevEnvironment } from "@/types/dev-environment";
 import { devEnvironmentsApi } from "@/lib/api/environments";
 import { projectsApi } from "@/lib/api/projects";
-import { AttachmentUploader } from "@/components/AttachmentUploader";
 import { AttachmentSection } from "@/components/kanban/task-detail/AttachmentSection";
 import { useAttachments } from "@/hooks/useAttachments";
 import type { Attachment } from "@/lib/api/attachments";
@@ -56,10 +55,14 @@ export function TaskFormCreateNew({
   const {
     attachments,
     uploading: uploadingAttachments,
+    uploadFiles,
     removeAttachment,
     clearAttachments,
     getAttachmentIds,
   } = useAttachments();
+
+  // File input ref for attachment selection
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [formData, setFormData] = useState<TaskFormData>({
@@ -285,14 +288,154 @@ export function TaskFormCreateNew({
     setIsModelSelectorOpen(false); // Close after selection
   }, []);
 
-  // Attachment handlers
+  // Handle paste event for images (similar to NewMessageForm)
+  const handlePaste = useCallback(async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const imageFiles: File[] = [];
+    
+    // Check for image files in clipboard
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          imageFiles.push(file);
+        }
+      }
+    }
+
+    // Upload image files if found
+    if (imageFiles.length > 0) {
+      try {
+        const fileList = new DataTransfer();
+        imageFiles.forEach(file => fileList.items.add(file));
+        
+        const uploadedAttachments = await uploadFiles(fileList.files);
+        
+        // Add attachment tags to the requirement_desc
+        if (uploadedAttachments && uploadedAttachments.length > 0) {
+          const newTags: string[] = [];
+          
+          uploadedAttachments.forEach((attachment, index) => {
+            if (attachment.type === 'image') {
+              // Count existing images to get correct index
+              const imageCount = attachments.filter(a => a.type === 'image').length + 
+                               uploadedAttachments.slice(0, index + 1).filter(a => a.type === 'image').length;
+              newTags.push(`[image${imageCount}]`);
+            } else if (attachment.type === 'pdf') {
+              // Count existing PDFs to get correct index  
+              const pdfCount = attachments.filter(a => a.type === 'pdf').length + 
+                             uploadedAttachments.slice(0, index + 1).filter(a => a.type === 'pdf').length;
+              newTags.push(`[pdf${pdfCount}]`);
+            }
+          });
+          
+          // Add new tags to the end of existing content
+          const currentDesc = formData.requirement_desc || "";
+          const newContent = currentDesc.trim() ? 
+            `${currentDesc.trim()} ${newTags.join(' ')}` : 
+            newTags.join(' ');
+          
+          handleChange("requirement_desc", newContent);
+        }
+      } catch (error) {
+        console.error('Failed to upload pasted images:', error);
+      }
+    }
+  }, [uploadFiles, attachments, formData.requirement_desc, handleChange]);
+
+  // Handle file input change
+  const handleFileInputChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      const uploadedAttachments = await uploadFiles(files);
+      
+      // Add attachment tags to the requirement_desc
+      if (uploadedAttachments && uploadedAttachments.length > 0) {
+        // Generate tags only for newly uploaded attachments
+        const newTags: string[] = [];
+        
+        uploadedAttachments.forEach((attachment, index) => {
+          if (attachment.type === 'image') {
+            // Count existing images to get correct index
+            const imageCount = attachments.filter(a => a.type === 'image').length + 
+                             uploadedAttachments.slice(0, index + 1).filter(a => a.type === 'image').length;
+            newTags.push(`[image${imageCount}]`);
+          } else if (attachment.type === 'pdf') {
+            // Count existing PDFs to get correct index  
+            const pdfCount = attachments.filter(a => a.type === 'pdf').length + 
+                           uploadedAttachments.slice(0, index + 1).filter(a => a.type === 'pdf').length;
+            newTags.push(`[pdf${pdfCount}]`);
+          }
+        });
+        
+        // Add new tags to the end of existing content
+        const currentDesc = formData.requirement_desc || "";
+        const newContent = currentDesc.trim() ? 
+          `${currentDesc.trim()} ${newTags.join(' ')}` : 
+          newTags.join(' ');
+        
+        handleChange("requirement_desc", newContent);
+      }
+    } catch (error) {
+      console.error('Failed to upload files:', error);
+    } finally {
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [uploadFiles, attachments, formData.requirement_desc, handleChange]);
+
+  // Handle file select trigger
+  const handleFileSelect = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  // Attachment handlers with tag update logic (similar to NewMessageForm)
   const handleAttachmentRemove = useCallback(async (attachment: Attachment) => {
     try {
+      // Find the index of the attachment being removed among its type
+      const sameTypeAttachments = attachments.filter(a => a.type === attachment.type);
+      const attachmentIndex = sameTypeAttachments.findIndex(a => a.id === attachment.id);
+      
+      if (attachmentIndex !== -1) {
+        // Remove the specific tag for this attachment
+        const tagToRemove = attachment.type === 'image' ? 
+          `[image${attachmentIndex + 1}]` : 
+          `[pdf${attachmentIndex + 1}]`;
+        
+        const currentDesc = formData.requirement_desc || "";
+        
+        // Remove the tag from the requirement_desc
+        let updatedDesc = currentDesc.replace(new RegExp(`\\s*${tagToRemove.replace(/[[\]]/g, '\\$&')}\\s*`, 'g'), ' ');
+        
+        // Renumber remaining tags of the same type
+        for (let i = attachmentIndex + 1; i < sameTypeAttachments.length; i++) {
+          const oldTag = attachment.type === 'image' ? `[image${i + 1}]` : `[pdf${i + 1}]`;
+          const newTag = attachment.type === 'image' ? `[image${i}]` : `[pdf${i}]`;
+          updatedDesc = updatedDesc.replace(new RegExp(oldTag.replace(/[[\]]/g, '\\$&'), 'g'), newTag);
+        }
+        
+        // Clean up extra spaces
+        updatedDesc = updatedDesc.replace(/\s+/g, ' ').trim();
+        
+        // Update the requirement_desc
+        if (updatedDesc !== currentDesc) {
+          handleChange("requirement_desc", updatedDesc);
+        }
+      }
+      
+      // Remove the attachment
       await removeAttachment(attachment);
     } catch (error) {
       console.error("Failed to remove attachment:", error);
     }
-  }, [removeAttachment]);
+  }, [removeAttachment, attachments, formData.requirement_desc, handleChange]);
 
   // Get selected environment
   const selectedEnvironment = formData.dev_environment_id 
@@ -435,15 +578,25 @@ export function TaskFormCreateNew({
                 {t("tasks.fields.requirementDesc")} <span className="text-red-500">*</span>
               </Label>
             </div>
+            
+            {/* Uploaded Attachments Display - Above the textarea */}
+            {attachments.length > 0 && (
+              <AttachmentSection
+                attachments={attachments}
+                onRemove={handleAttachmentRemove}
+              />
+            )}
             <div className="relative">
               <Textarea
                 id="requirement_desc"
                 value={formData.requirement_desc || ""}
                 onChange={(e) => handleChange("requirement_desc", e.target.value)}
+                onPaste={handlePaste}
                 placeholder={t("tasks.form.requirementDescPlaceholder")}
                 rows={4}
                 className={`min-h-[120px] resize-none pr-4 pb-16 ${errors.requirement_desc ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                 disabled={submitting}
+                aria-describedby="requirement-desc-shortcut-hint"
               />
               
               {/* Interactive Controls positioned at the bottom left of the textarea */}
@@ -493,6 +646,23 @@ export function TaskFormCreateNew({
                     </div>
                   )}
                 </div>
+
+                {/* File attachment button */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleFileSelect}
+                  className={`h-7 w-7 p-0 rounded-md transition-colors ${
+                    attachments.length > 0
+                      ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-400'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                  title={attachments.length > 0 ? `${attachments.length} attachment(s)` : "Attach files"}
+                  disabled={uploadingAttachments || submitting}
+                >
+                  <Paperclip className="h-3.5 w-3.5" />
+                </Button>
 
                 {/* Model Selection - Only show when environment is selected */}
                 {selectedEnvironment && (
@@ -574,6 +744,16 @@ export function TaskFormCreateNew({
                   </div>
                 )}
               </div>
+              
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.pdf"
+                multiple
+                onChange={handleFileInputChange}
+                className="hidden"
+              />
             </div>
             
             {errors.requirement_desc && (
@@ -592,39 +772,7 @@ export function TaskFormCreateNew({
             </div>
           </div>
 
-          {/* Attachments Section */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Paperclip className="h-4 w-4 text-muted-foreground" />
-              <Label className="text-sm font-medium">
-                {t("tasks.fields.attachments", "Attachments")}
-              </Label>
-            </div>
-            
-            {/* Display existing attachments if any */}
-            {attachments.length > 0 && (
-              <AttachmentSection
-                attachments={attachments}
-                onRemove={handleAttachmentRemove}
-              />
-            )}
-            
-            {/* Attachment uploader */}
-            <AttachmentUploader
-              existingAttachments={attachments}
-              onUploadSuccess={() => {
-                // Attachment is automatically added to the hook state
-              }}
-              onUploadError={(error) => {
-                console.error("Upload error:", error);
-              }}
-              disabled={submitting || uploadingAttachments}
-            />
-            
-            <p className="text-xs text-muted-foreground">
-              {t("tasks.form.attachmentsHint", "Upload images or PDF files to provide additional context for your task (max 10MB per file)")}
-            </p>
-          </div>
+
         </div>
 
       <Separator />
