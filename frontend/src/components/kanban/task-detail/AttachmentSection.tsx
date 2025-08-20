@@ -30,11 +30,11 @@ export const AttachmentSection = memo<AttachmentSectionProps>(
             {t("taskConversations.attachments", "Attachments")} ({attachments.length})
           </span>
         </div>
-        <div className="grid gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
           {attachments.map((attachment) => (
             <div
               key={attachment.id}
-              className="flex items-center gap-2 p-2 bg-background rounded border"
+              className="flex items-center gap-2 p-2 bg-background rounded border min-w-0"
             >
               <div className="flex-shrink-0">
                 {attachment.type === 'image' ? 
@@ -45,14 +45,14 @@ export const AttachmentSection = memo<AttachmentSectionProps>(
               <span className="flex-1 text-xs truncate">
                 {getDisplayName(attachment)}
               </span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {Math.round(attachment.file_size / 1024)}KB
               </span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onRemove(attachment)}
-                className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive"
+                className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive flex-shrink-0"
               >
                 <X className="h-3 w-3" />
               </Button>
