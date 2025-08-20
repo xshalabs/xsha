@@ -161,4 +161,5 @@ type TaskConversationAttachmentService interface {
 	DeleteAttachmentsByConversation(conversationID uint) error
 	ProcessContentWithAttachments(content string, attachments []database.TaskConversationAttachment) string
 	ParseAttachmentTags(content string) []string
+	GetAttachmentStorageDir() string
 }

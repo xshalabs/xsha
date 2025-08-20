@@ -7,18 +7,21 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"xsha-backend/config"
 	"xsha-backend/database"
 	appErrors "xsha-backend/errors"
 	"xsha-backend/repository"
 )
 
 type taskConversationAttachmentService struct {
-	repo repository.TaskConversationAttachmentRepository
+	repo   repository.TaskConversationAttachmentRepository
+	config *config.Config
 }
 
-func NewTaskConversationAttachmentService(repo repository.TaskConversationAttachmentRepository) TaskConversationAttachmentService {
+func NewTaskConversationAttachmentService(repo repository.TaskConversationAttachmentRepository, cfg *config.Config) TaskConversationAttachmentService {
 	return &taskConversationAttachmentService{
-		repo: repo,
+		repo:   repo,
+		config: cfg,
 	}
 }
 
@@ -154,8 +157,8 @@ func (s *taskConversationAttachmentService) ParseAttachmentTags(content string) 
 }
 
 // GetAttachmentStorageDir returns the storage directory for attachments
-func GetAttachmentStorageDir() string {
-	return filepath.Join("static", "attachments")
+func (s *taskConversationAttachmentService) GetAttachmentStorageDir() string {
+	return s.config.AttachmentsDir
 }
 
 // GenerateAttachmentFileName generates a unique filename for an attachment

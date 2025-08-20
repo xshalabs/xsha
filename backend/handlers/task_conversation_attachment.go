@@ -76,7 +76,7 @@ func (h *TaskConversationAttachmentHandlers) UploadAttachment(c *gin.Context) {
 	}
 
 	// Create storage directory
-	storageDir := services.GetAttachmentStorageDir()
+	storageDir := h.attachmentService.GetAttachmentStorageDir()
 	if err := os.MkdirAll(storageDir, 0755); err != nil {
 		utils.Error("Failed to create attachment storage directory", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})

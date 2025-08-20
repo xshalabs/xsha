@@ -84,7 +84,7 @@ func main() {
 	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, taskRepo, systemConfigService, cfg)
 	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, taskConvRepo, execLogRepo, taskConvResultRepo, taskConvAttachmentRepo, workspaceManager, cfg, gitCredService, systemConfigService)
 	taskConvResultService := services.NewTaskConversationResultService(taskConvResultRepo, taskConvRepo, taskRepo, projectRepo)
-	taskConvAttachmentService := services.NewTaskConversationAttachmentService(taskConvAttachmentRepo)
+	taskConvAttachmentService := services.NewTaskConversationAttachmentService(taskConvAttachmentRepo, cfg)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, taskService, taskConvAttachmentService)
 
 	// Create shared execution manager
@@ -129,6 +129,13 @@ func main() {
 		utils.Error("Failed to initialize default system configurations", "error", err)
 		os.Exit(1)
 	}
+
+	// Create attachment storage directory
+	if err := os.MkdirAll(cfg.AttachmentsDir, 0755); err != nil {
+		utils.Error("Failed to create attachment storage directory", "directory", cfg.AttachmentsDir, "error", err)
+		os.Exit(1)
+	}
+	utils.Info("Attachment storage directory initialized", "directory", cfg.AttachmentsDir)
 
 	// Setup routes - Pass all handler instances including static files
 	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvResultHandlers, taskExecLogHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
