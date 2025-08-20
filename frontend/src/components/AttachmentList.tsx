@@ -204,6 +204,7 @@ export function AttachmentList({
         attachment={previewAttachment}
         open={!!previewAttachment}
         onOpenChange={(open: boolean) => !open && setPreviewAttachment(null)}
+        displayName={previewAttachment ? getDisplayName(previewAttachment) : undefined}
       />
     </>
   );

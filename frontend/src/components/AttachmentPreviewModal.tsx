@@ -14,12 +14,14 @@ interface AttachmentPreviewModalProps {
   attachment: Attachment | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  displayName?: string;
 }
 
 export function AttachmentPreviewModal({
   attachment,
   open,
-  onOpenChange
+  onOpenChange,
+  displayName
 }: AttachmentPreviewModalProps) {
   const { t } = useTranslation();
   const [imageLoading, setImageLoading] = useState(true);
@@ -94,6 +96,11 @@ export function AttachmentPreviewModal({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const getDisplayName = (attachment: Attachment) => {
+    // Use provided displayName or fall back to original name
+    return displayName || attachment.original_name;
+  };
+
   if (!attachment) return null;
 
   return (
@@ -101,7 +108,7 @@ export function AttachmentPreviewModal({
       <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-hidden">
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <DialogTitle className="text-lg font-semibold truncate pr-8">
-            {attachment.original_name}
+            {getDisplayName(attachment)}
           </DialogTitle>
           
           <div className="flex items-center space-x-2">

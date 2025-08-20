@@ -13,6 +13,11 @@ export const AttachmentSection = memo<AttachmentSectionProps>(
   ({ attachments, onRemove }) => {
     const { t } = useTranslation();
 
+    const getDisplayName = (attachment: Attachment) => {
+      const typeCount = attachments.filter(a => a.type === attachment.type).indexOf(attachment) + 1;
+      return attachment.type === 'image' ? `[image${typeCount}]` : `[pdf${typeCount}]`;
+    };
+
     if (attachments.length === 0) {
       return null;
     }
@@ -38,7 +43,7 @@ export const AttachmentSection = memo<AttachmentSectionProps>(
                 }
               </div>
               <span className="flex-1 text-xs truncate">
-                {attachment.original_name}
+                {getDisplayName(attachment)}
               </span>
               <span className="text-xs text-muted-foreground">
                 {Math.round(attachment.file_size / 1024)}KB
