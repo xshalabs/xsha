@@ -24,13 +24,18 @@ import {
   Zap,
   Clock,
   Sparkles,
-  X
+  X,
+  Paperclip
 } from "lucide-react";
 import type { TaskFormData } from "@/types/task";
 import type { Project } from "@/types/project";
 import type { DevEnvironment } from "@/types/dev-environment";
 import { devEnvironmentsApi } from "@/lib/api/environments";
 import { projectsApi } from "@/lib/api/projects";
+import { AttachmentUploader } from "@/components/AttachmentUploader";
+import { AttachmentSection } from "@/components/kanban/task-detail/AttachmentSection";
+import { useAttachments } from "@/hooks/useAttachments";
+import type { Attachment } from "@/lib/api/attachments";
 
 interface TaskFormCreateNewProps {
   defaultProjectId?: number;
@@ -46,6 +51,15 @@ export function TaskFormCreateNew({
   formId = "new-task-create-form",
 }: TaskFormCreateNewProps) {
   const { t } = useTranslation();
+
+  // Attachment state
+  const {
+    attachments,
+    uploading: uploadingAttachments,
+    removeAttachment,
+    clearAttachments,
+    getAttachmentIds,
+  } = useAttachments();
 
   // Form state
   const [formData, setFormData] = useState<TaskFormData>({
@@ -213,7 +227,17 @@ export function TaskFormCreateNew({
         ? devEnvironments.find(env => env.id === formData.dev_environment_id)
         : undefined;
       
-      await onSubmit({ ...formData, include_branches: true }, selectedEnvironment);
+      // Include attachment IDs in the form data
+      const submitData: TaskFormData = { 
+        ...formData, 
+        include_branches: true,
+        attachment_ids: getAttachmentIds()
+      };
+      
+      await onSubmit(submitData, selectedEnvironment);
+      
+      // Clear attachments after successful submission
+      clearAttachments();
     } catch (error) {
       console.error("Failed to submit task:", error);
     } finally {
@@ -260,6 +284,15 @@ export function TaskFormCreateNew({
     handleChange("model", newModel);
     setIsModelSelectorOpen(false); // Close after selection
   }, []);
+
+  // Attachment handlers
+  const handleAttachmentRemove = useCallback(async (attachment: Attachment) => {
+    try {
+      await removeAttachment(attachment);
+    } catch (error) {
+      console.error("Failed to remove attachment:", error);
+    }
+  }, [removeAttachment]);
 
   // Get selected environment
   const selectedEnvironment = formData.dev_environment_id 
@@ -557,6 +590,40 @@ export function TaskFormCreateNew({
             <div className="text-xs text-muted-foreground">
               {t("tasks.form.clickIconsToConfigureHint", "Click icons in the text area to configure execution settings")}
             </div>
+          </div>
+
+          {/* Attachments Section */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Paperclip className="h-4 w-4 text-muted-foreground" />
+              <Label className="text-sm font-medium">
+                {t("tasks.fields.attachments", "Attachments")}
+              </Label>
+            </div>
+            
+            {/* Display existing attachments if any */}
+            {attachments.length > 0 && (
+              <AttachmentSection
+                attachments={attachments}
+                onRemove={handleAttachmentRemove}
+              />
+            )}
+            
+            {/* Attachment uploader */}
+            <AttachmentUploader
+              existingAttachments={attachments}
+              onUploadSuccess={() => {
+                // Attachment is automatically added to the hook state
+              }}
+              onUploadError={(error) => {
+                console.error("Upload error:", error);
+              }}
+              disabled={submitting || uploadingAttachments}
+            />
+            
+            <p className="text-xs text-muted-foreground">
+              {t("tasks.form.attachmentsHint", "Upload images or PDF files to provide additional context for your task (max 10MB per file)")}
+            </p>
           </div>
         </div>
 

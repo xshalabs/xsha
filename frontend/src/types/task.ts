@@ -36,6 +36,7 @@ export interface CreateTaskRequest {
   include_branches?: boolean;
   execution_time?: string; // ISO 8601 date string
   env_params?: string; // JSON string containing environment parameters
+  attachment_ids?: number[]; // Optional array of attachment IDs
 }
 
 export interface UpdateTaskRequest {
@@ -83,6 +84,7 @@ export interface TaskFormData {
   include_branches?: boolean;
   execution_time?: Date; // Date object for form handling
   model?: string; // Model selection for claude-code environments
+  attachment_ids?: number[]; // Optional array of attachment IDs for form handling
 }
 
 export interface BatchUpdateStatusRequest {

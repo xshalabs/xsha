@@ -154,6 +154,7 @@ export default function ProjectKanbanPage() {
           ? taskData.execution_time.toISOString()
           : undefined,
         env_params: envParams,
+        attachment_ids: taskData.attachment_ids,
       };
 
       const response = await apiService.tasks.create(createRequest);
