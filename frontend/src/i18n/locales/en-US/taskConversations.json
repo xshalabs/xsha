@@ -22,7 +22,8 @@
     "running": "Running", 
     "success": "Success",
     "failed": "Failed",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "scheduled": "Scheduled"
   },
   "statusLegend": "Status Legend",
   "empty": {
@@ -108,6 +109,7 @@
     "createdBy": "Created By",
     "createdAt": "Created At",
     "executionTime": "Execution Time",
+    "scheduledFor": "Scheduled for",
     "commitHash": "Commit Hash",
     "content": "Content",
     "resultType": "Result Type",

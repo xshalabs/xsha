@@ -97,7 +97,7 @@ export const ConversationList = memo<ConversationListProps>(
                 <div className="text-xs text-muted-foreground mb-3 font-medium">
                   {t("taskConversations.statusLegend")}:
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-x-4 gap-y-2 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-x-4 gap-y-2 text-xs">
                   <div className="flex items-center space-x-2 min-w-0">
                     <StatusDot status="pending" />
                     <span className="text-muted-foreground truncate">
@@ -126,6 +126,12 @@ export const ConversationList = memo<ConversationListProps>(
                     <StatusDot status="cancelled" />
                     <span className="text-muted-foreground truncate">
                       {t("taskConversations.status.cancelled")}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <div className="w-3 h-3 rounded-full bg-purple-500" />
+                    <span className="text-muted-foreground truncate">
+                      {t("taskConversations.status.scheduled")}
                     </span>
                   </div>
                 </div>

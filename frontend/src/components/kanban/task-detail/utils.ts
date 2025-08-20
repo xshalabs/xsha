@@ -37,8 +37,29 @@ export const formatTime = (dateString: string): string => {
 };
 
 /**
+ * 格式化时间显示（不显示秒）
+ */
+export const formatTimeWithoutSeconds = (dateString: string): string => {
+  return new Date(dateString).toLocaleString(undefined, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+/**
  * 格式化日期显示
  */
 export const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString();
+};
+
+/**
+ * 检查对话是否是未来执行的
+ */
+export const isFutureExecution = (executionTime?: string): boolean => {
+  if (!executionTime) return false;
+  return new Date(executionTime) > new Date();
 };

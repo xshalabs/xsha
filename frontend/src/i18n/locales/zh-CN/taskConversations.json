@@ -22,7 +22,8 @@
     "running": "执行中",
     "success": "成功",
     "failed": "失败",
-    "cancelled": "已取消"
+    "cancelled": "已取消",
+    "scheduled": "已定时"
   },
   "statusLegend": "状态说明",
   "empty": {
@@ -108,6 +109,7 @@
     "createdBy": "创建者",
     "createdAt": "创建时间",
     "executionTime": "执行时间",
+    "scheduledFor": "定时执行于",
     "commitHash": "提交哈希",
     "content": "对话内容",
     "resultType": "结果类型",

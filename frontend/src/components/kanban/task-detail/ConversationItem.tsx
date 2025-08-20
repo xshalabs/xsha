@@ -1,8 +1,9 @@
 import { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { User, MoreHorizontal, Eye, FileText, Terminal, RotateCcw, X, Trash2, Copy, Check } from "lucide-react";
+import { User, MoreHorizontal, Eye, FileText, Terminal, RotateCcw, X, Trash2, Copy, Check, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { StatusDot, type ConversationStatus } from "./StatusDot";
-import { formatTime } from "./utils";
+import { formatTime, formatTimeWithoutSeconds, isFutureExecution } from "./utils";
 
 interface ConversationItemProps {
   conversation: any;
@@ -107,6 +108,9 @@ export const ConversationItem = memo<ConversationItemProps>(
     // Check if delete should be enabled (only for latest conversation, not running, and task not pending/in progress)
     const isDeleteEnabled = isLatest && conversation.status !== 'running' && 
                            task.status !== 'pending' && task.status !== 'in_progress';
+    
+    // Check if this conversation is scheduled for future execution
+    const isFuture = isFutureExecution(conversation.execution_time);
 
     return (
       <div className="p-4 rounded-md border border-border bg-card">
@@ -123,6 +127,16 @@ export const ConversationItem = memo<ConversationItemProps>(
               >
                 {formatTime(conversation.created_at)}
               </time>
+              {/* Future execution indicator */}
+              {isFuture && (
+                <Badge 
+                  variant="outline" 
+                  className="text-xs h-5 px-1.5 bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800"
+                >
+                  <Clock className="w-2.5 h-2.5 mr-1" />
+                  {t("taskConversations.status.scheduled")}
+                </Badge>
+              )}
             </div>
             <div className="relative group">
               <div
@@ -146,6 +160,15 @@ export const ConversationItem = memo<ConversationItemProps>(
                 )}
               </Button>
             </div>
+            
+            {/* Execution time info for future scheduled tasks */}
+            {isFuture && conversation.execution_time && (
+              <div className="mt-2 text-xs text-muted-foreground flex items-center">
+                <Clock className="w-3 h-3 mr-1 flex-shrink-0" />
+                <span>{t("taskConversations.details.scheduledFor")}: {formatTimeWithoutSeconds(conversation.execution_time)}</span>
+              </div>
+            )}
+            
             {shouldShowExpandButton && (
               <Button
                 variant="ghost"
