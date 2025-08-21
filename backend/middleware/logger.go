@@ -6,13 +6,12 @@ import (
 	"xsha-backend/utils"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func LoggerMiddleware() gin.HandlerFunc {
-	logger := utils.GetLogger()
-
 	return gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-		logger.Info("HTTP Request",
+		utils.Info("HTTP Request",
 			"client_ip", param.ClientIP,
 			"timestamp", param.TimeStamp.Format(time.RFC3339),
 			"method", param.Method,
@@ -37,20 +36,21 @@ func RequestLogMiddleware() gin.HandlerFunc {
 		requestID := fmt.Sprintf("%d-%s", start.UnixNano(), c.ClientIP())
 		c.Set("request_id", requestID)
 
-		logger := utils.WithFields(map[string]interface{}{
-			"request_id": requestID,
-			"method":     c.Request.Method,
-			"path":       path,
-			"client_ip":  c.ClientIP(),
-			"user_agent": c.GetHeader("User-Agent"),
-		})
+		// Create logger with request fields using zap
+		logger := utils.GetLogger().With(
+			zap.String("request_id", requestID),
+			zap.String("method", c.Request.Method),
+			zap.String("path", path),
+			zap.String("client_ip", c.ClientIP()),
+			zap.String("user_agent", c.GetHeader("User-Agent")),
+		)
 
 		if raw != "" {
 			path = path + "?" + raw
 		}
 
 		logger.Info("Request started",
-			"full_path", path,
+			zap.String("full_path", path),
 		)
 
 		c.Next()
@@ -59,24 +59,33 @@ func RequestLogMiddleware() gin.HandlerFunc {
 		latency := end.Sub(start)
 		statusCode := c.Writer.Status()
 
-		logFunc := logger.Info
-		if statusCode >= 400 && statusCode < 500 {
-			logFunc = logger.Warn
-		} else if statusCode >= 500 {
-			logFunc = logger.Error
+		// Log request completion with appropriate level
+		if statusCode >= 500 {
+			logger.Error("Request completed",
+				zap.Int("status_code", statusCode),
+				zap.String("latency", latency.String()),
+				zap.Int("response_size", c.Writer.Size()),
+			)
+		} else if statusCode >= 400 {
+			logger.Warn("Request completed",
+				zap.Int("status_code", statusCode),
+				zap.String("latency", latency.String()),
+				zap.Int("response_size", c.Writer.Size()),
+			)
+		} else {
+			logger.Info("Request completed",
+				zap.Int("status_code", statusCode),
+				zap.String("latency", latency.String()),
+				zap.Int("response_size", c.Writer.Size()),
+			)
 		}
 
-		logFunc("Request completed",
-			"status_code", statusCode,
-			"latency", latency.String(),
-			"response_size", c.Writer.Size(),
-		)
-
+		// Log any errors that occurred during request processing
 		if len(c.Errors) > 0 {
 			for _, err := range c.Errors {
 				logger.Error("Request error",
-					"error", err.Error(),
-					"type", err.Type,
+					zap.String("error", err.Error()),
+					zap.Uint64("type", uint64(err.Type)),
 				)
 			}
 		}

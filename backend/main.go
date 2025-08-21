@@ -159,6 +159,11 @@ func main() {
 			utils.Error("Failed to stop scheduler", "error", err)
 		}
 
+		// Sync logger before exit
+		if err := utils.Sync(); err != nil {
+			utils.Error("Failed to sync logger", "error", err)
+		}
+
 		os.Exit(0)
 	}()
 
@@ -168,6 +173,7 @@ func main() {
 
 	if err := r.Run(":" + cfg.Port); err != nil {
 		utils.Error("Server start failed", "error", err)
+		utils.Sync()
 		os.Exit(1)
 	}
 }

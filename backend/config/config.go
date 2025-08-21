@@ -52,9 +52,19 @@ func Load() *Config {
 		fmt.Println("Successfully loaded .env file")
 	}
 
+	environment := getEnv("XSHA_ENVIRONMENT", "production")
+	
+	// Set default log level and format based on environment
+	defaultLogLevel := "INFO"
+	defaultLogFormat := "JSON"
+	if environment == "development" || environment == "dev" {
+		defaultLogLevel = "DEBUG"
+		defaultLogFormat = "TEXT"
+	}
+
 	config := &Config{
 		Port:         getEnv("XSHA_PORT", "8080"),
-		Environment:  getEnv("XSHA_ENVIRONMENT", "production"),
+		Environment:  environment,
 		DatabaseType: getEnv("XSHA_DATABASE_TYPE", "sqlite"),
 		SQLitePath:   getEnv("XSHA_SQLITE_PATH", "app.db"),
 		MySQLDSN:     getEnv("XSHA_MYSQL_DSN", ""),
@@ -65,8 +75,8 @@ func Load() *Config {
 		DevSessionsDir:     getEnv("XSHA_DEV_SESSIONS_DIR", "/tmp/xsha-dev-sessions"),
 		AttachmentsDir:     getEnv("XSHA_ATTACHMENTS_DIR", "./attachments"),
 		MaxConcurrentTasks: getEnvInt("XSHA_MAX_CONCURRENT_TASKS", 8),
-		LogLevel:           LogLevel(getEnv("XSHA_LOG_LEVEL", "INFO")),
-		LogFormat:          LogFormat(getEnv("XSHA_LOG_FORMAT", "JSON")),
+		LogLevel:           LogLevel(getEnv("XSHA_LOG_LEVEL", defaultLogLevel)),
+		LogFormat:          LogFormat(getEnv("XSHA_LOG_FORMAT", defaultLogFormat)),
 		LogOutput:          getEnv("XSHA_LOG_OUTPUT", "stdout"),
 	}
 
