@@ -202,14 +202,15 @@ func (s *taskConversationService) GetConversation(id uint) (*database.TaskConver
 }
 
 func (s *taskConversationService) GetConversationWithResult(id uint) (map[string]interface{}, error) {
-	conversation, result, err := s.repo.GetWithResult(id)
+	conversation, result, executionLog, err := s.repo.GetWithResult(id)
 	if err != nil {
 		return nil, err
 	}
 
 	response := map[string]interface{}{
-		"conversation": conversation,
-		"result":       result,
+		"conversation":   conversation,
+		"result":         result,
+		"execution_log":  executionLog,
 	}
 
 	return response, nil

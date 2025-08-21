@@ -32,7 +32,7 @@ func (r *taskConversationRepository) GetByID(id uint) (*database.TaskConversatio
 	return &conversation, nil
 }
 
-func (r *taskConversationRepository) GetWithResult(id uint) (*database.TaskConversation, *database.TaskConversationResult, error) {
+func (r *taskConversationRepository) GetWithResult(id uint) (*database.TaskConversation, *database.TaskConversationResult, *database.TaskExecutionLog, error) {
 	var conversation database.TaskConversation
 	err := r.db.Preload("Task").
 		Preload("Task.Project").
@@ -40,21 +40,35 @@ func (r *taskConversationRepository) GetWithResult(id uint) (*database.TaskConve
 		Preload("Task.DevEnvironment").
 		Where("id = ?", id).First(&conversation).Error
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	// Get conversation result if exists
 	var result database.TaskConversationResult
 	err = r.db.Where("conversation_id = ?", id).First(&result).Error
-	if err != nil {
-		// If no result found, return conversation with nil result
-		if err == gorm.ErrRecordNotFound {
-			return &conversation, nil, nil
-		}
-		return nil, nil, err
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, nil, nil, err
 	}
 
-	return &conversation, &result, nil
+	// Get execution log if exists
+	var executionLog database.TaskExecutionLog
+	err = r.db.Where("conversation_id = ?", id).First(&executionLog).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, nil, nil, err
+	}
+
+	// Return conversation with result and execution log (both can be nil if not found)
+	var resultPtr *database.TaskConversationResult
+	if result.ID != 0 {
+		resultPtr = &result
+	}
+	
+	var logPtr *database.TaskExecutionLog
+	if executionLog.ID != 0 {
+		logPtr = &executionLog
+	}
+
+	return &conversation, resultPtr, logPtr, nil
 }
 
 func (r *taskConversationRepository) List(taskID uint, page, pageSize int) ([]database.TaskConversation, int64, error) {

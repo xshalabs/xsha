@@ -123,7 +123,8 @@
     "inputTokens": "Input Tokens",
     "outputTokens": "Output Tokens",
     "noResult": "No Execution Result",
-    "noResultDescription": "This conversation has not been executed or execution failed"
+    "noResultDescription": "This conversation has not been executed or execution failed",
+    "executionError": "Execution Error"
   },
   "logs": {
     "title": "Execution Logs",

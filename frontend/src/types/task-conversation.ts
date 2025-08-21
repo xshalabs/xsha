@@ -1,9 +1,28 @@
+import type { TaskExecutionLog } from "./task-execution-log";
+
 export type ConversationStatus =
   | "pending"
   | "running"
   | "success"
   | "failed"
   | "cancelled";
+
+export interface TaskConversationResult {
+  id: number;
+  conversation_id: number;
+  type: string;
+  subtype: string;
+  is_error: boolean;
+  duration_ms: number;
+  duration_api_ms: number;
+  num_turns: number;
+  result: string;
+  session_id: string;
+  total_cost_usd: number;
+  usage: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface TaskConversation {
   id: number;
@@ -58,6 +77,15 @@ export interface ConversationListResponse {
 export interface ConversationDetailResponse {
   message: string;
   data: TaskConversation;
+}
+
+export interface ConversationWithResultAndLogResponse {
+  message: string;
+  data: {
+    conversation: TaskConversation;
+    result?: TaskConversationResult;
+    execution_log?: TaskExecutionLog;
+  };
 }
 
 export interface LatestConversationResponse {

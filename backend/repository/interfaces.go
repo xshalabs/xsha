@@ -77,7 +77,7 @@ type TaskRepository interface {
 type TaskConversationRepository interface {
 	Create(conversation *database.TaskConversation) error
 	GetByID(id uint) (*database.TaskConversation, error)
-	GetWithResult(id uint) (*database.TaskConversation, *database.TaskConversationResult, error)
+	GetWithResult(id uint) (*database.TaskConversation, *database.TaskConversationResult, *database.TaskExecutionLog, error)
 	List(taskID uint, page, pageSize int) ([]database.TaskConversation, int64, error)
 	Update(conversation *database.TaskConversation) error
 	Delete(id uint) error

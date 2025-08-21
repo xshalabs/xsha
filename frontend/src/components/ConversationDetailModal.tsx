@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { User, Settings, Activity, BarChart3, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
+import { User, Settings, Activity, BarChart3, ChevronDown, ChevronUp, Copy, Check, AlertTriangle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { taskConversationsApi } from "@/lib/api/task-conversations";
 import { getConversationStatusColor, formatTime } from "@/components/kanban/task-detail/utils";
 
@@ -29,19 +30,17 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
 }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
-  const [details, setDetails] = useState<any>(null);
+  const [details, setDetails] = useState<{
+    conversation?: any;
+    result?: any;
+    execution_log?: { error_message?: string };
+  } | null>(null);
   const [isContentExpanded, setIsContentExpanded] = useState(false);
   const [isResultExpanded, setIsResultExpanded] = useState(false);
   const [copiedContent, setCopiedContent] = useState(false);
   const [copiedResult, setCopiedResult] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && conversationId) {
-      loadConversationDetails();
-    }
-  }, [isOpen, conversationId]);
-
-  const loadConversationDetails = async () => {
+  const loadConversationDetails = useCallback(async () => {
     if (!conversationId) return;
 
     setLoading(true);
@@ -53,7 +52,13 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
     } finally {
       setLoading(false);
     }
-  };
+  }, [conversationId]);
+
+  useEffect(() => {
+    if (isOpen && conversationId) {
+      loadConversationDetails();
+    }
+  }, [isOpen, conversationId, loadConversationDetails]);
 
   const handleClose = () => {
     setDetails(null);
@@ -90,7 +95,7 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
         inputTokens: usage.input_tokens || 0,
         outputTokens: usage.output_tokens || 0,
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   }, [details?.result?.usage]);
@@ -102,7 +107,7 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
     try {
       const envParams = JSON.parse(details.conversation.env_params);
       return envParams;
-    } catch (error) {
+    } catch {
       return null;
     }
   }, [details?.conversation?.env_params]);
@@ -135,6 +140,31 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
   // 检查是否需要显示省略号
   const shouldShowEllipsis = (content: string, isExpanded: boolean): boolean => {
     return shouldShowExpandButton(content) && !isExpanded;
+  };
+
+  // Check if execution failed and has error message
+  const hasExecutionError = useMemo(() => {
+    return details?.execution_log?.error_message && 
+           (details?.conversation?.status === 'failed' || details?.result?.is_error);
+  }, [details]);
+
+  // Render error alert if execution failed
+  const renderErrorAlert = () => {
+    if (!hasExecutionError) return null;
+
+    return (
+      <Alert className="border-destructive/50 bg-destructive/10">
+        <AlertTriangle className="h-4 w-4 text-destructive" />
+        <AlertDescription className="text-destructive">
+          <div className="font-medium mb-2">
+            {t("taskConversations.details.executionError")}
+          </div>
+          <div className="text-sm text-muted-foreground bg-background/50 p-2 rounded border whitespace-pre-wrap break-words">
+            {details?.execution_log?.error_message}
+          </div>
+        </AlertDescription>
+      </Alert>
+    );
   };
 
   const renderConversationInfo = () => {
@@ -429,6 +459,7 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
             </div>
           ) : (
             <>
+              {renderErrorAlert()}
               {renderConversationInfo()}
               {details?.result ? renderResultInfo() : renderNoResult()}
             </>

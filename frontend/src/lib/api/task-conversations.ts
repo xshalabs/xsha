@@ -5,6 +5,7 @@ import type {
   UpdateConversationRequest,
   ConversationListResponse,
   ConversationDetailResponse,
+  ConversationWithResultAndLogResponse,
   LatestConversationResponse,
   ConversationListParams,
   ConversationGitDiffParams,
@@ -40,8 +41,8 @@ export const taskConversationsApi = {
     return request<ConversationDetailResponse>(`/conversations/${id}`);
   },
 
-  getDetails: async (id: number): Promise<any> => {
-    return request<any>(`/conversations/${id}/details`);
+  getDetails: async (id: number): Promise<ConversationWithResultAndLogResponse> => {
+    return request<ConversationWithResultAndLogResponse>(`/conversations/${id}/details`);
   },
 
   update: async (
