@@ -133,7 +133,7 @@ func (s *devEnvironmentService) DeleteEnvironment(id uint) error {
 		if err := os.RemoveAll(env.SessionDir); err != nil {
 			// Log the error but don't fail the deletion
 			// as the database record should still be removed
-			fmt.Printf("Warning: Failed to delete session directory %s: %v\n", env.SessionDir, err)
+			utils.Warn("Failed to delete session directory", "sessionDir", env.SessionDir, "error", err)
 		}
 	}
 

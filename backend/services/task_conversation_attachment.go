@@ -11,6 +11,7 @@ import (
 	"xsha-backend/database"
 	appErrors "xsha-backend/errors"
 	"xsha-backend/repository"
+	"xsha-backend/utils"
 )
 
 type taskConversationAttachmentService struct {
@@ -91,7 +92,7 @@ func (s *taskConversationAttachmentService) DeleteAttachment(id uint) error {
 	if err := os.Remove(attachment.FilePath); err != nil {
 		// Log error but don't fail the operation
 		// File might already be deleted or moved
-		fmt.Printf("Warning: Failed to delete physical file %s: %v\n", attachment.FilePath, err)
+		utils.Warn("Failed to delete physical file", "filePath", attachment.FilePath, "error", err)
 	}
 
 	return s.repo.Delete(id)
@@ -107,7 +108,7 @@ func (s *taskConversationAttachmentService) DeleteAttachmentsByConversation(conv
 	for _, attachment := range attachments {
 		if err := os.Remove(attachment.FilePath); err != nil {
 			// Log error but continue with other files
-			fmt.Printf("Warning: Failed to delete physical file %s: %v\n", attachment.FilePath, err)
+			utils.Warn("Failed to delete physical file", "filePath", attachment.FilePath, "error", err)
 		}
 	}
 

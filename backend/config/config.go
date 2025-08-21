@@ -1,12 +1,12 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 )
 
 type LogLevel string
@@ -46,10 +46,14 @@ type Config struct {
 }
 
 func Load() *Config {
+	// Create a simple logger for config loading since main logger isn't initialized yet
+	logger, _ := zap.NewDevelopment()
+	defer logger.Sync()
+	
 	if err := godotenv.Load(); err != nil {
-		fmt.Printf("No .env file found or failed to load, using environment variables and default values: %v\n", err)
+		logger.Warn("No .env file found or failed to load, using environment variables and default values", zap.Error(err))
 	} else {
-		fmt.Println("Successfully loaded .env file")
+		logger.Info("Successfully loaded .env file")
 	}
 
 	environment := getEnv("XSHA_ENVIRONMENT", "production")
@@ -82,7 +86,9 @@ func Load() *Config {
 
 	schedulerInterval, err := time.ParseDuration(config.SchedulerInterval)
 	if err != nil {
-		fmt.Printf("Warning: Failed to parse scheduler interval, using default 30 seconds. interval=%s error=%v\n", config.SchedulerInterval, err)
+		logger.Warn("Failed to parse scheduler interval, using default 30 seconds", 
+			zap.String("interval", config.SchedulerInterval), 
+			zap.Error(err))
 		schedulerInterval = 30 * time.Second
 	}
 	config.SchedulerIntervalDuration = schedulerInterval
@@ -102,7 +108,13 @@ func getEnvInt(key string, defaultValue int) int {
 		if intValue, err := strconv.Atoi(value); err == nil {
 			return intValue
 		}
-		fmt.Printf("Warning: Failed to parse environment variable as integer, using default value. key=%s value=%s default=%d\n", key, value, defaultValue)
+		// Create a simple logger for this warning
+		logger, _ := zap.NewDevelopment()
+		defer logger.Sync()
+		logger.Warn("Failed to parse environment variable as integer, using default value", 
+			zap.String("key", key), 
+			zap.String("value", value), 
+			zap.Int("default", defaultValue))
 	}
 	return defaultValue
 }
