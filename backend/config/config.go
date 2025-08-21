@@ -50,9 +50,7 @@ func Load() *Config {
 	logger, _ := zap.NewDevelopment()
 	defer logger.Sync()
 	
-	if err := godotenv.Load(); err != nil {
-		logger.Warn("No .env file found or failed to load, using environment variables and default values", zap.Error(err))
-	} else {
+	if err := godotenv.Load(); err == nil {
 		logger.Info("Successfully loaded .env file")
 	}
 
