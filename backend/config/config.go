@@ -75,7 +75,7 @@ func Load() *Config {
 		SchedulerInterval:  getEnv("XSHA_SCHEDULER_INTERVAL", "5s"),
 		WorkspaceBaseDir:   getEnv("XSHA_WORKSPACE_BASE_DIR", "/tmp/xsha-workspaces"),
 		DevSessionsDir:     getEnv("XSHA_DEV_SESSIONS_DIR", "/tmp/xsha-dev-sessions"),
-		AttachmentsDir:     getEnv("XSHA_ATTACHMENTS_DIR", "./attachments"),
+		AttachmentsDir:     getEnv("XSHA_ATTACHMENTS_DIR", "_data/attachments"),
 		MaxConcurrentTasks: getEnvInt("XSHA_MAX_CONCURRENT_TASKS", 8),
 		LogLevel:           LogLevel(getEnv("XSHA_LOG_LEVEL", defaultLogLevel)),
 		LogFormat:          LogFormat(getEnv("XSHA_LOG_FORMAT", defaultLogFormat)),

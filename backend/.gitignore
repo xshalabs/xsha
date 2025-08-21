@@ -43,4 +43,4 @@ xsha-backend
 main
 xsha
 backend*.env
-attachments/
+_data/
