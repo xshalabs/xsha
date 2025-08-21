@@ -208,9 +208,9 @@ func (s *taskConversationService) GetConversationWithResult(id uint) (map[string
 	}
 
 	response := map[string]interface{}{
-		"conversation":   conversation,
-		"result":         result,
-		"execution_log":  executionLog,
+		"conversation":  conversation,
+		"result":        result,
+		"execution_log": executionLog,
 	}
 
 	return response, nil

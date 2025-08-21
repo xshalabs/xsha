@@ -172,6 +172,9 @@ func GenerateAttachmentFileName(originalName string) string {
 
 // CopyAttachmentsToWorkspace copies conversation attachments to workspace xsha directory
 func (s *taskConversationAttachmentService) CopyAttachmentsToWorkspace(conversationID uint, workspacePath string) ([]database.TaskConversationAttachment, error) {
+	// Convert relative workspace path to absolute
+	absoluteWorkspacePath := s.getAbsoluteWorkspacePath(workspacePath)
+
 	// Get attachments for the conversation
 	attachments, err := s.repo.GetByConversationID(conversationID)
 	if err != nil {
@@ -183,7 +186,7 @@ func (s *taskConversationAttachmentService) CopyAttachmentsToWorkspace(conversat
 	}
 
 	// Create __xsha_workspace directory in workspace
-	xshaDir := filepath.Join(workspacePath, "__xsha_workspace")
+	xshaDir := filepath.Join(absoluteWorkspacePath, "__xsha_workspace")
 	if err := os.MkdirAll(xshaDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create __xsha_workspace directory: %v", err)
 	}
@@ -191,7 +194,7 @@ func (s *taskConversationAttachmentService) CopyAttachmentsToWorkspace(conversat
 	// Track counters for each attachment type
 	imageCount := 1
 	pdfCount := 1
-	
+
 	var copiedAttachments []database.TaskConversationAttachment
 
 	// Sort attachments by SortOrder to maintain consistent numbering
@@ -232,7 +235,7 @@ func (s *taskConversationAttachmentService) CopyAttachmentsToWorkspace(conversat
 		workspaceAttachment := attachment
 		workspaceAttachment.FilePath = destPath
 		workspaceAttachment.FileName = workspaceFileName
-		
+
 		copiedAttachments = append(copiedAttachments, workspaceAttachment)
 	}
 
@@ -272,7 +275,7 @@ func (s *taskConversationAttachmentService) ReplaceAttachmentTagsWithPaths(conte
 	// Sort attachments by SortOrder to maintain consistent numbering
 	sortedAttachments := make([]database.TaskConversationAttachment, len(attachments))
 	copy(sortedAttachments, attachments)
-	
+
 	for i := 0; i < len(sortedAttachments)-1; i++ {
 		for j := i + 1; j < len(sortedAttachments); j++ {
 			if sortedAttachments[i].SortOrder > sortedAttachments[j].SortOrder {
@@ -308,8 +311,10 @@ func (s *taskConversationAttachmentService) ReplaceAttachmentTagsWithPaths(conte
 
 // CleanupWorkspaceAttachments removes attachment files from workspace
 func (s *taskConversationAttachmentService) CleanupWorkspaceAttachments(workspacePath string) error {
-	xshaDir := filepath.Join(workspacePath, "__xsha_workspace")
-	
+	// Convert relative workspace path to absolute
+	absoluteWorkspacePath := s.getAbsoluteWorkspacePath(workspacePath)
+	xshaDir := filepath.Join(absoluteWorkspacePath, "__xsha_workspace")
+
 	// Check if __xsha_workspace directory exists
 	if _, err := os.Stat(xshaDir); os.IsNotExist(err) {
 		// Directory doesn't exist, nothing to clean
@@ -322,4 +327,19 @@ func (s *taskConversationAttachmentService) CleanupWorkspaceAttachments(workspac
 	}
 
 	return nil
+}
+
+// getAbsoluteWorkspacePath converts a relative workspace path to absolute
+func (s *taskConversationAttachmentService) getAbsoluteWorkspacePath(workspacePath string) string {
+	if workspacePath == "" {
+		return ""
+	}
+
+	// If already absolute, return as is
+	if filepath.IsAbs(workspacePath) {
+		return workspacePath
+	}
+
+	// Convert relative to absolute using workspace base dir
+	return filepath.Join(s.config.WorkspaceBaseDir, workspacePath)
 }

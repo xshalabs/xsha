@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -37,20 +38,20 @@ func NewBatchLogAppender(execLogID uint, logAppender LogAppender) *BatchLogAppen
 		done:        make(chan bool),
 		batchSize:   50, // Flush after 50 lines
 	}
-	
+
 	// Start the background flushing goroutine
 	bla.wg.Add(1)
 	go bla.flushRoutine()
-	
+
 	return bla
 }
 
 func (bla *BatchLogAppender) AppendLog(content string) {
 	bla.mutex.Lock()
 	defer bla.mutex.Unlock()
-	
+
 	bla.buffer = append(bla.buffer, content)
-	
+
 	// Flush if buffer is full
 	if len(bla.buffer) >= bla.batchSize {
 		bla.flushLocked()
@@ -61,26 +62,26 @@ func (bla *BatchLogAppender) flushLocked() {
 	if len(bla.buffer) == 0 {
 		return
 	}
-	
+
 	// Join all buffered log entries
 	combined := strings.Join(bla.buffer, "")
-	
+
 	// Protect against extremely large combined logs (10MB limit for batch)
 	const maxBatchSize = 10 * 1024 * 1024 // 10MB
 	if len(combined) > maxBatchSize {
 		combined = combined[:maxBatchSize-100] + "... [BATCH TRUNCATED DUE TO SIZE]\n"
 		utils.Warn("Truncated large log batch", "original_size", len(strings.Join(bla.buffer, "")), "truncated_size", len(combined))
 	}
-	
+
 	bla.logAppender.AppendLog(bla.execLogID, combined)
-	
+
 	// Clear buffer
 	bla.buffer = bla.buffer[:0]
 }
 
 func (bla *BatchLogAppender) flushRoutine() {
 	defer bla.wg.Done()
-	
+
 	for {
 		select {
 		case <-bla.ticker.C:
@@ -101,7 +102,7 @@ func (bla *BatchLogAppender) Close() {
 	bla.ticker.Stop()
 	close(bla.done)
 	bla.wg.Wait()
-	
+
 	// Final flush
 	bla.mutex.Lock()
 	bla.flushLocked()
@@ -167,12 +168,16 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	if isInContainer {
 		cmd = append(cmd, "-v xsha_workspaces:/app")
 		cmd = append(cmd, "-v xsha_dev_sessions:/xsha_dev_sessions")
-		workspaceRelPath := utils.ExtractWorkspaceRelativePath(workspacePath)
-		cmd = append(cmd, fmt.Sprintf("-w /app/%s", workspaceRelPath))
+		// workspacePath is now already relative, use it directly
+		cmd = append(cmd, fmt.Sprintf("-w /app/%s", workspacePath))
 	} else {
-		cmd = append(cmd, fmt.Sprintf("-v %s:/app", workspacePath))
+		// workspacePath is now relative, need to convert to absolute for volume mounting
+		absoluteWorkspacePath := filepath.Join(d.config.WorkspaceBaseDir, workspacePath)
+		cmd = append(cmd, fmt.Sprintf("-v %s:/app", absoluteWorkspacePath))
 		if devEnv.SessionDir != "" {
-			cmd = append(cmd, fmt.Sprintf("-v %s:/home/xsha", devEnv.SessionDir))
+			// SessionDir is now also relative, convert to absolute for volume mounting
+			absoluteSessionDir := filepath.Join(d.config.DevSessionsDir, devEnv.SessionDir)
+			cmd = append(cmd, fmt.Sprintf("-v %s:/home/xsha", absoluteSessionDir))
 		}
 		cmd = append(cmd, "-w /app")
 	}
@@ -242,7 +247,8 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 		claudeCommand = append(claudeCommand, d.escapeShellArg(content))
 
 		if isInContainer && devEnv.SessionDir != "" {
-			baseCommand = append(baseCommand, "-d", "/xsha_dev_sessions/"+utils.ExtractDevSessionRelativePath(devEnv.SessionDir))
+			// SessionDir is now already relative, use it directly
+			baseCommand = append(baseCommand, "-d", "/xsha_dev_sessions/"+devEnv.SessionDir)
 		}
 
 		claudeCommandStr := strings.Join(claudeCommand, " ")
@@ -300,16 +306,16 @@ func (d *dockerExecutor) ExecuteWithContext(ctx context.Context, dockerCmd strin
 	// Create batch log appenders for better performance with large logs
 	stdoutBatcher := NewBatchLogAppender(execLogID, d.logAppender)
 	stderrBatcher := NewBatchLogAppender(execLogID, d.logAppender)
-	
+
 	var wg sync.WaitGroup
 	wg.Add(2)
-	
+
 	go func() {
 		defer wg.Done()
 		defer stdoutBatcher.Close()
 		d.readPipeWithBatcher(stdout, stdoutBatcher, "STDOUT")
 	}()
-	
+
 	go func() {
 		defer wg.Done()
 		defer stderrBatcher.Close()
@@ -317,7 +323,7 @@ func (d *dockerExecutor) ExecuteWithContext(ctx context.Context, dockerCmd strin
 	}()
 
 	err = cmd.Wait()
-	
+
 	// Wait for all log processing to complete before returning
 	wg.Wait()
 	if err != nil && len(stderrLines) > 0 {
@@ -337,95 +343,26 @@ func (d *dockerExecutor) ExecuteWithContext(ctx context.Context, dockerCmd strin
 	return err
 }
 
-func (d *dockerExecutor) readPipe(pipe interface{}, execLogID uint, prefix string) {
-	scanner := bufio.NewScanner(pipe.(interface{ Read([]byte) (int, error) }))
-	// Set larger buffer to handle large log outputs (1MB buffer)
-	const maxCapacity = 1024 * 1024 // 1MB
-	buf := make([]byte, 0, 64*1024) // Start with 64KB
-	scanner.Buffer(buf, maxCapacity)
-	
-	for scanner.Scan() {
-		line := scanner.Text()
-		
-		// Protect against extremely large log lines
-		if len(line) > maxCapacity {
-			line = line[:maxCapacity-3] + "..."
-			utils.Warn("Truncated extremely large log line", "prefix", prefix, "original_length", len(scanner.Text()))
-		}
-		
-		logLine := fmt.Sprintf("[%s] %s: %s\n", utils.Now().Format("15:04:05"), prefix, line)
-		d.logAppender.AppendLog(execLogID, logLine)
-	}
-	
-	// Check for scanner errors
-	if err := scanner.Err(); err != nil {
-		errorLine := fmt.Sprintf("[%s] %s: ERROR - Scanner failed: %v\n", utils.Now().Format("15:04:05"), prefix, err)
-		d.logAppender.AppendLog(execLogID, errorLine)
-		utils.Error("Log scanner failed", "prefix", prefix, "execLogID", execLogID, "error", err)
-	}
-}
-
-func (d *dockerExecutor) readPipeWithErrorCapture(pipe interface{}, execLogID uint, prefix string, errorLines *[]string, mu *sync.Mutex) {
-	scanner := bufio.NewScanner(pipe.(interface{ Read([]byte) (int, error) }))
-	// Set larger buffer to handle large log outputs (1MB buffer)
-	const maxCapacity = 1024 * 1024 // 1MB
-	buf := make([]byte, 0, 64*1024) // Start with 64KB
-	scanner.Buffer(buf, maxCapacity)
-	
-	for scanner.Scan() {
-		line := scanner.Text()
-		
-		// Protect against extremely large log lines
-		if len(line) > maxCapacity {
-			line = line[:maxCapacity-3] + "..."
-			utils.Warn("Truncated extremely large log line", "prefix", prefix, "original_length", len(scanner.Text()))
-		}
-		
-		logLine := fmt.Sprintf("[%s] %s: %s\n", utils.Now().Format("15:04:05"), prefix, line)
-		d.logAppender.AppendLog(execLogID, logLine)
-
-		if prefix == "STDERR" {
-			mu.Lock()
-			*errorLines = append(*errorLines, line)
-			mu.Unlock()
-		}
-	}
-	
-	// Check for scanner errors
-	if err := scanner.Err(); err != nil {
-		errorLine := fmt.Sprintf("[%s] %s: ERROR - Scanner failed: %v\n", utils.Now().Format("15:04:05"), prefix, err)
-		d.logAppender.AppendLog(execLogID, errorLine)
-		utils.Error("Log scanner failed", "prefix", prefix, "execLogID", execLogID, "error", err)
-		
-		// If this is STDERR scanner and it failed, add the error to errorLines too
-		if prefix == "STDERR" {
-			mu.Lock()
-			*errorLines = append(*errorLines, fmt.Sprintf("Scanner failed: %v", err))
-			mu.Unlock()
-		}
-	}
-}
-
 func (d *dockerExecutor) readPipeWithBatcher(pipe interface{}, batcher *BatchLogAppender, prefix string) {
 	scanner := bufio.NewScanner(pipe.(interface{ Read([]byte) (int, error) }))
 	// Set larger buffer to handle large log outputs (1MB buffer)
 	const maxCapacity = 1024 * 1024 // 1MB
 	buf := make([]byte, 0, 64*1024) // Start with 64KB
 	scanner.Buffer(buf, maxCapacity)
-	
+
 	for scanner.Scan() {
 		line := scanner.Text()
-		
+
 		// Protect against extremely large log lines
 		if len(line) > maxCapacity {
 			line = line[:maxCapacity-3] + "..."
 			utils.Warn("Truncated extremely large log line", "prefix", prefix, "original_length", len(scanner.Text()))
 		}
-		
+
 		logLine := fmt.Sprintf("[%s] %s: %s\n", utils.Now().Format("15:04:05"), prefix, line)
 		batcher.AppendLog(logLine)
 	}
-	
+
 	// Check for scanner errors
 	if err := scanner.Err(); err != nil {
 		errorLine := fmt.Sprintf("[%s] %s: ERROR - Scanner failed: %v\n", utils.Now().Format("15:04:05"), prefix, err)
@@ -440,16 +377,16 @@ func (d *dockerExecutor) readPipeWithErrorCaptureAndBatcher(pipe interface{}, ba
 	const maxCapacity = 1024 * 1024 // 1MB
 	buf := make([]byte, 0, 64*1024) // Start with 64KB
 	scanner.Buffer(buf, maxCapacity)
-	
+
 	for scanner.Scan() {
 		line := scanner.Text()
-		
+
 		// Protect against extremely large log lines
 		if len(line) > maxCapacity {
 			line = line[:maxCapacity-3] + "..."
 			utils.Warn("Truncated extremely large log line", "prefix", prefix, "original_length", len(scanner.Text()))
 		}
-		
+
 		logLine := fmt.Sprintf("[%s] %s: %s\n", utils.Now().Format("15:04:05"), prefix, line)
 		batcher.AppendLog(logLine)
 
@@ -459,13 +396,13 @@ func (d *dockerExecutor) readPipeWithErrorCaptureAndBatcher(pipe interface{}, ba
 			mu.Unlock()
 		}
 	}
-	
+
 	// Check for scanner errors
 	if err := scanner.Err(); err != nil {
 		errorLine := fmt.Sprintf("[%s] %s: ERROR - Scanner failed: %v\n", utils.Now().Format("15:04:05"), prefix, err)
 		batcher.AppendLog(errorLine)
 		utils.Error("Log scanner failed", "prefix", prefix, "error", err)
-		
+
 		// If this is STDERR scanner and it failed, add the error to errorLines too
 		if prefix == "STDERR" {
 			mu.Lock()
@@ -534,16 +471,16 @@ func (d *dockerExecutor) ExecuteWithContainerTracking(ctx context.Context, conv 
 	// Create batch log appenders for better performance with large logs
 	stdoutBatcher := NewBatchLogAppender(execLogID, d.logAppender)
 	stderrBatcher := NewBatchLogAppender(execLogID, d.logAppender)
-	
+
 	var wg sync.WaitGroup
 	wg.Add(2)
-	
+
 	go func() {
 		defer wg.Done()
 		defer stdoutBatcher.Close()
 		d.readPipeWithBatcher(stdout, stdoutBatcher, "STDOUT")
 	}()
-	
+
 	go func() {
 		defer wg.Done()
 		defer stderrBatcher.Close()
@@ -551,7 +488,7 @@ func (d *dockerExecutor) ExecuteWithContainerTracking(ctx context.Context, conv 
 	}()
 
 	err = cmd.Wait()
-	
+
 	// Wait for all log processing to complete before updating status
 	wg.Wait()
 

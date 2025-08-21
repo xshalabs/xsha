@@ -6,6 +6,14 @@ import (
 	"gorm.io/gorm"
 )
 
+// Migration tracks applied database migrations
+type Migration struct {
+	ID        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	Name      string    `gorm:"uniqueIndex;not null" json:"name"`
+	AppliedAt time.Time `gorm:"not null" json:"applied_at"`
+}
+
 type TokenBlacklist struct {
 	ID        uint           `gorm:"primarykey" json:"id"`
 	CreatedAt time.Time      `json:"created_at"`

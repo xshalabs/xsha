@@ -137,6 +137,20 @@ func main() {
 	}
 	utils.Info("Attachment storage directory initialized", "directory", cfg.AttachmentsDir)
 
+	// Create workspace base directory
+	if err := os.MkdirAll(cfg.WorkspaceBaseDir, 0755); err != nil {
+		utils.Error("Failed to create workspace base directory", "directory", cfg.WorkspaceBaseDir, "error", err)
+		os.Exit(1)
+	}
+	utils.Info("Workspace base directory initialized", "directory", cfg.WorkspaceBaseDir)
+
+	// Create dev sessions directory
+	if err := os.MkdirAll(cfg.DevSessionsDir, 0755); err != nil {
+		utils.Error("Failed to create dev sessions directory", "directory", cfg.DevSessionsDir, "error", err)
+		os.Exit(1)
+	}
+	utils.Info("Dev sessions directory initialized", "directory", cfg.DevSessionsDir)
+
 	// Setup routes - Pass all handler instances including static files
 	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvResultHandlers, taskExecLogHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
 

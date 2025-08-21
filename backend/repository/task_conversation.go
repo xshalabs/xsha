@@ -62,7 +62,7 @@ func (r *taskConversationRepository) GetWithResult(id uint) (*database.TaskConve
 	if result.ID != 0 {
 		resultPtr = &result
 	}
-	
+
 	var logPtr *database.TaskExecutionLog
 	if executionLog.ID != 0 {
 		logPtr = &executionLog
