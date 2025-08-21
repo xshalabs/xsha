@@ -66,10 +66,16 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 		panic(fmt.Sprintf("Unsupported database type: %s", cfg.DatabaseType))
 	}
 
-	if err := db.AutoMigrate(&TokenBlacklist{}, &LoginLog{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}); err != nil {
+	if err := db.AutoMigrate(&Migration{}, &TokenBlacklist{}, &LoginLog{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}); err != nil {
 		return nil, err
 	}
 	utils.Info("Database table migration completed")
+
+	// Run custom migrations
+	if err := runMigrations(db, cfg); err != nil {
+		utils.Error("Failed to run custom migrations", "error", err)
+		return nil, err
+	}
 
 	return &DatabaseManager{db: db}, nil
 }
@@ -108,6 +114,24 @@ func InitSQLite() {
 
 func GetDB() *gorm.DB {
 	return DB
+}
+
+// runMigrations executes custom migrations
+func runMigrations(db *gorm.DB, cfg *config.Config) error {
+	utils.Info("Running custom migrations")
+
+	// Run workspace relative paths migration
+	if err := runWorkspaceRelativePathsMigration(db, cfg.WorkspaceBaseDir); err != nil {
+		return fmt.Errorf("workspace relative paths migration failed: %v", err)
+	}
+
+	// Run dev environment session dir relative paths migration
+	if err := runDevEnvironmentSessionDirMigration(db, cfg.DevSessionsDir); err != nil {
+		return fmt.Errorf("dev environment session dir migration failed: %v", err)
+	}
+
+	utils.Info("Custom migrations completed successfully")
+	return nil
 }
 
 // containsTimeZone checks if the DSN already contains timezone information

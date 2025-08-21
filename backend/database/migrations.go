@@ -1,0 +1,266 @@
+package database
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"gorm.io/gorm"
+	"xsha-backend/utils"
+)
+
+// runWorkspaceRelativePathsMigration converts absolute workspace paths to relative paths
+func runWorkspaceRelativePathsMigration(db *gorm.DB, workspaceBaseDir string) error {
+	migrationName := "001_workspace_relative_paths"
+
+	// Check if migration already applied
+	var existing Migration
+	if err := db.Where("name = ?", migrationName).First(&existing).Error; err == nil {
+		utils.Info("Migration already applied, skipping", "migration", migrationName)
+		return nil
+	} else if err != gorm.ErrRecordNotFound {
+		return fmt.Errorf("failed to check migration status: %v", err)
+	}
+
+	utils.Info("Starting workspace relative paths migration", "migration", migrationName)
+
+	// Get all tasks with non-empty workspace paths
+	var tasks []Task
+	if err := db.Where("workspace_path != '' AND workspace_path IS NOT NULL").Find(&tasks).Error; err != nil {
+		return fmt.Errorf("failed to fetch tasks: %v", err)
+	}
+
+	utils.Info("Found tasks to migrate", "count", len(tasks))
+
+	// Process each task
+	migratedCount := 0
+	errorCount := 0
+
+	for _, task := range tasks {
+		if err := migrateTaskWorkspacePath(db, &task, workspaceBaseDir); err != nil {
+			utils.Error("Failed to migrate task", "taskId", task.ID, "error", err)
+			errorCount++
+			continue
+		}
+		migratedCount++
+	}
+
+	utils.Info("Migration completed",
+		"migration", migrationName,
+		"migrated", migratedCount,
+		"errors", errorCount,
+		"total", len(tasks))
+
+	// Record migration as applied
+	migration := Migration{
+		Name:      migrationName,
+		AppliedAt: time.Now(),
+	}
+	if err := db.Create(&migration).Error; err != nil {
+		return fmt.Errorf("failed to record migration: %v", err)
+	}
+
+	return nil
+}
+
+func migrateTaskWorkspacePath(db *gorm.DB, task *Task, workspaceBaseDir string) error {
+	originalPath := task.WorkspacePath
+
+	// Skip if already looks like a relative path (no leading slash)
+	if !strings.HasPrefix(originalPath, "/") {
+		utils.Debug("Task already has relative path", "taskId", task.ID, "path", originalPath)
+		return nil
+	}
+
+	// Extract relative path from absolute path
+	relativePath := utils.ExtractWorkspaceRelativePath(originalPath)
+	if relativePath == "" {
+		return fmt.Errorf("could not extract relative path from: %s", originalPath)
+	}
+
+	utils.Debug("Converting workspace path",
+		"taskId", task.ID,
+		"from", originalPath,
+		"to", relativePath)
+
+	// Check if old directory exists and move it if needed
+	if _, err := os.Stat(originalPath); err == nil {
+		// Old directory exists, we might need to move it
+		newAbsolutePath := filepath.Join(workspaceBaseDir, relativePath)
+
+		// Only move if the new location doesn't exist
+		if _, err := os.Stat(newAbsolutePath); os.IsNotExist(err) {
+			// Ensure parent directory exists
+			if err := os.MkdirAll(filepath.Dir(newAbsolutePath), 0755); err != nil {
+				return fmt.Errorf("failed to create parent directory: %v", err)
+			}
+
+			// Move the directory
+			if err := os.Rename(originalPath, newAbsolutePath); err != nil {
+				utils.Warn("Failed to move workspace directory",
+					"taskId", task.ID,
+					"from", originalPath,
+					"to", newAbsolutePath,
+					"error", err)
+				// Continue with database update even if move fails
+			} else {
+				utils.Debug("Moved workspace directory",
+					"taskId", task.ID,
+					"from", originalPath,
+					"to", newAbsolutePath)
+			}
+		} else if err != nil {
+			// Error checking new location
+			utils.Warn("Error checking new workspace location",
+				"taskId", task.ID,
+				"path", newAbsolutePath,
+				"error", err)
+		} else {
+			// New location already exists, keep old one for safety
+			utils.Debug("New workspace location already exists",
+				"taskId", task.ID,
+				"path", newAbsolutePath)
+		}
+	}
+
+	// Update database with relative path
+	if err := db.Model(task).Update("workspace_path", relativePath).Error; err != nil {
+		return fmt.Errorf("failed to update task workspace path: %v", err)
+	}
+
+	utils.Debug("Successfully migrated task workspace path",
+		"taskId", task.ID,
+		"oldPath", originalPath,
+		"newPath", relativePath)
+
+	return nil
+}
+
+// runDevEnvironmentSessionDirMigration converts absolute session directories to relative paths
+func runDevEnvironmentSessionDirMigration(db *gorm.DB, devSessionsDir string) error {
+	migrationName := "002_dev_environment_session_dir_relative_paths"
+
+	// Check if migration already applied
+	var existing Migration
+	if err := db.Where("name = ?", migrationName).First(&existing).Error; err == nil {
+		utils.Info("Migration already applied, skipping", "migration", migrationName)
+		return nil
+	} else if err != gorm.ErrRecordNotFound {
+		return fmt.Errorf("failed to check migration status: %v", err)
+	}
+
+	utils.Info("Starting dev environment session dir relative paths migration", "migration", migrationName)
+
+	// Get all dev environments with non-empty session directories
+	var devEnvs []DevEnvironment
+	if err := db.Where("session_dir != '' AND session_dir IS NOT NULL").Find(&devEnvs).Error; err != nil {
+		return fmt.Errorf("failed to fetch dev environments: %v", err)
+	}
+
+	utils.Info("Found dev environments to migrate", "count", len(devEnvs))
+
+	// Process each dev environment
+	migratedCount := 0
+	errorCount := 0
+
+	for _, devEnv := range devEnvs {
+		if err := migrateDevEnvironmentSessionDir(db, &devEnv, devSessionsDir); err != nil {
+			utils.Error("Failed to migrate dev environment", "devEnvId", devEnv.ID, "error", err)
+			errorCount++
+			continue
+		}
+		migratedCount++
+	}
+
+	utils.Info("Migration completed",
+		"migration", migrationName,
+		"migrated", migratedCount,
+		"errors", errorCount,
+		"total", len(devEnvs))
+
+	// Record migration as applied
+	migration := Migration{
+		Name:      migrationName,
+		AppliedAt: time.Now(),
+	}
+	if err := db.Create(&migration).Error; err != nil {
+		return fmt.Errorf("failed to record migration: %v", err)
+	}
+
+	return nil
+}
+
+func migrateDevEnvironmentSessionDir(db *gorm.DB, devEnv *DevEnvironment, devSessionsDir string) error {
+	originalPath := devEnv.SessionDir
+
+	// Skip if already looks like a relative path (no leading slash)
+	if !strings.HasPrefix(originalPath, "/") {
+		utils.Debug("DevEnvironment already has relative session dir", "devEnvId", devEnv.ID, "path", originalPath)
+		return nil
+	}
+
+	// Extract relative path from absolute path
+	relativePath := utils.ExtractDevSessionRelativePath(originalPath)
+	if relativePath == "" {
+		return fmt.Errorf("could not extract relative path from: %s", originalPath)
+	}
+
+	utils.Debug("Converting session dir",
+		"devEnvId", devEnv.ID,
+		"from", originalPath,
+		"to", relativePath)
+
+	// Check if old directory exists and move it if needed
+	if _, err := os.Stat(originalPath); err == nil {
+		// Old directory exists, we might need to move it
+		newAbsolutePath := filepath.Join(devSessionsDir, relativePath)
+
+		// Only move if the new location doesn't exist
+		if _, err := os.Stat(newAbsolutePath); os.IsNotExist(err) {
+			// Ensure parent directory exists
+			if err := os.MkdirAll(filepath.Dir(newAbsolutePath), 0755); err != nil {
+				return fmt.Errorf("failed to create parent directory: %v", err)
+			}
+
+			// Move the directory
+			if err := os.Rename(originalPath, newAbsolutePath); err != nil {
+				utils.Warn("Failed to move session directory",
+					"devEnvId", devEnv.ID,
+					"from", originalPath,
+					"to", newAbsolutePath,
+					"error", err)
+				// Continue with database update even if move fails
+			} else {
+				utils.Debug("Moved session directory",
+					"devEnvId", devEnv.ID,
+					"from", originalPath,
+					"to", newAbsolutePath)
+			}
+		} else if err != nil {
+			// Error checking new location
+			utils.Warn("Error checking new session directory location",
+				"devEnvId", devEnv.ID,
+				"path", newAbsolutePath,
+				"error", err)
+		} else {
+			// New location already exists, keep old one for safety
+			utils.Debug("New session directory location already exists",
+				"devEnvId", devEnv.ID,
+				"path", newAbsolutePath)
+		}
+	}
+
+	// Update database with relative path
+	if err := db.Model(devEnv).Update("session_dir", relativePath).Error; err != nil {
+		return fmt.Errorf("failed to update dev environment session dir: %v", err)
+	}
+
+	utils.Debug("Successfully migrated dev environment session dir",
+		"devEnvId", devEnv.ID,
+		"oldPath", originalPath,
+		"newPath", relativePath)
+
+	return nil
+}

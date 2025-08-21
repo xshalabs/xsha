@@ -16,9 +16,10 @@ type taskConversationService struct {
 	resultRepo        repository.TaskConversationResultRepository
 	taskService       TaskService
 	attachmentService TaskConversationAttachmentService
+	workspaceManager  *utils.WorkspaceManager
 }
 
-func NewTaskConversationService(repo repository.TaskConversationRepository, taskRepo repository.TaskRepository, execLogRepo repository.TaskExecutionLogRepository, resultRepo repository.TaskConversationResultRepository, taskService TaskService, attachmentService TaskConversationAttachmentService) TaskConversationService {
+func NewTaskConversationService(repo repository.TaskConversationRepository, taskRepo repository.TaskRepository, execLogRepo repository.TaskExecutionLogRepository, resultRepo repository.TaskConversationResultRepository, taskService TaskService, attachmentService TaskConversationAttachmentService, workspaceManager *utils.WorkspaceManager) TaskConversationService {
 	return &taskConversationService{
 		repo:              repo,
 		taskRepo:          taskRepo,
@@ -26,6 +27,7 @@ func NewTaskConversationService(repo repository.TaskConversationRepository, task
 		resultRepo:        resultRepo,
 		taskService:       taskService,
 		attachmentService: attachmentService,
+		workspaceManager:  workspaceManager,
 	}
 }
 
@@ -208,9 +210,9 @@ func (s *taskConversationService) GetConversationWithResult(id uint) (map[string
 	}
 
 	response := map[string]interface{}{
-		"conversation":   conversation,
-		"result":         result,
-		"execution_log":  executionLog,
+		"conversation":  conversation,
+		"result":        result,
+		"execution_log": executionLog,
 	}
 
 	return response, nil
@@ -374,7 +376,10 @@ func (s *taskConversationService) GetConversationGitDiff(conversationID uint, in
 		return nil, appErrors.ErrWorkspacePathEmpty
 	}
 
-	diff, err := utils.GetCommitDiff(task.WorkspacePath, conversation.CommitHash, includeContent)
+	// Convert relative workspace path to absolute for git operations
+	absoluteWorkspacePath := s.workspaceManager.GetAbsolutePath(task.WorkspacePath)
+
+	diff, err := utils.GetCommitDiff(absoluteWorkspacePath, conversation.CommitHash, includeContent)
 	if err != nil {
 		return nil, err
 	}
@@ -405,7 +410,10 @@ func (s *taskConversationService) GetConversationGitDiffFile(conversationID uint
 		return "", appErrors.ErrWorkspacePathEmpty
 	}
 
-	diffContent, err := utils.GetCommitFileDiff(task.WorkspacePath, conversation.CommitHash, filePath)
+	// Convert relative workspace path to absolute for git operations
+	absoluteWorkspacePath := s.workspaceManager.GetAbsolutePath(task.WorkspacePath)
+
+	diffContent, err := utils.GetCommitFileDiff(absoluteWorkspacePath, conversation.CommitHash, filePath)
 	if err != nil {
 		return "", err
 	}

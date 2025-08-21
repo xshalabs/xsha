@@ -344,15 +344,18 @@ func (s *taskService) GetTaskGitDiff(task *database.Task, includeContent bool) (
 		return nil, fmt.Errorf("task work branch is empty")
 	}
 
-	if err := utils.ValidateBranchExists(task.WorkspacePath, task.StartBranch); err != nil {
+	// Convert relative workspace path to absolute for git operations
+	absoluteWorkspacePath := s.workspaceManager.GetAbsolutePath(task.WorkspacePath)
+
+	if err := utils.ValidateBranchExists(absoluteWorkspacePath, task.StartBranch); err != nil {
 		return nil, fmt.Errorf("start branch validation failed: %v", err)
 	}
 
-	if err := utils.ValidateBranchExists(task.WorkspacePath, task.WorkBranch); err != nil {
+	if err := utils.ValidateBranchExists(absoluteWorkspacePath, task.WorkBranch); err != nil {
 		return nil, fmt.Errorf("work branch validation failed: %v", err)
 	}
 
-	diff, err := utils.GetBranchDiff(task.WorkspacePath, task.StartBranch, task.WorkBranch, includeContent)
+	diff, err := utils.GetBranchDiff(absoluteWorkspacePath, task.StartBranch, task.WorkBranch, includeContent)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get branch diff: %v", err)
 	}
@@ -384,8 +387,11 @@ func (s *taskService) GetTaskGitDiffFile(task *database.Task, filePath string) (
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	// Convert relative workspace path to absolute for git operations
+	absoluteWorkspacePath := s.workspaceManager.GetAbsolutePath(task.WorkspacePath)
+
 	cmd := exec.CommandContext(ctx, "git", "-c", "core.quotepath=false", "diff", fmt.Sprintf("%s..%s", task.StartBranch, task.WorkBranch), "--", filePath)
-	cmd.Dir = task.WorkspacePath
+	cmd.Dir = absoluteWorkspacePath
 
 	output, err := cmd.Output()
 	if err != nil {

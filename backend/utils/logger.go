@@ -61,7 +61,7 @@ func InitLogger(config LogConfig) error {
 	} else {
 		encoderConfig = zap.NewDevelopmentEncoderConfig()
 	}
-	
+
 	// Customize time format
 	encoderConfig.TimeKey = "timestamp"
 	encoderConfig.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
@@ -119,7 +119,7 @@ func GetSugaredLogger() *zap.SugaredLogger {
 
 func WithContext(ctx context.Context) *zap.Logger {
 	logger := GetLogger()
-	
+
 	fields := make([]zap.Field, 0, 3)
 	if traceID := ctx.Value("trace_id"); traceID != nil {
 		fields = append(fields, zap.Any("trace_id", traceID))
@@ -130,7 +130,7 @@ func WithContext(ctx context.Context) *zap.Logger {
 	if requestID := ctx.Value("request_id"); requestID != nil {
 		fields = append(fields, zap.Any("request_id", requestID))
 	}
-	
+
 	return logger.With(fields...)
 }
 
@@ -188,15 +188,15 @@ func logWithCaller(level zapcore.Level, msg string, args ...interface{}) {
 		if fn != nil {
 			functionName = fn.Name()
 		}
-		
+
 		// Convert args to zap fields
 		fields := argsToFields(args)
-		fields = append(fields, 
+		fields = append(fields,
 			zap.String("source.function", functionName),
 			zap.String("source.file", filepath.Base(file)),
 			zap.Int("source.line", line),
 		)
-		
+
 		logger.Log(level, msg, fields...)
 	} else {
 		fields := argsToFields(args)
@@ -217,15 +217,15 @@ func logWithCallerContext(ctx context.Context, level zapcore.Level, msg string, 
 		if fn != nil {
 			functionName = fn.Name()
 		}
-		
+
 		// Convert args to zap fields
 		fields := argsToFields(args)
-		fields = append(fields, 
+		fields = append(fields,
 			zap.String("source.function", functionName),
 			zap.String("source.file", filepath.Base(file)),
 			zap.Int("source.line", line),
 		)
-		
+
 		logger.Log(level, msg, fields...)
 	} else {
 		fields := argsToFields(args)
@@ -237,7 +237,7 @@ func argsToFields(args []interface{}) []zap.Field {
 	if len(args) == 0 {
 		return nil
 	}
-	
+
 	fields := make([]zap.Field, 0, len(args)/2)
 	for i := 0; i < len(args)-1; i += 2 {
 		if key, ok := args[i].(string); ok {

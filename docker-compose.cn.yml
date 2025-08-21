@@ -14,6 +14,7 @@ services:
       - XSHA_JWT_SECRET=your-jwt-secret-key-change-this-in-production
       - XSHA_WORKSPACE_BASE_DIR=/app/xsha-workspaces
       - XSHA_DEV_SESSIONS_DIR=/app/xsha-dev-sessions
+      - XSHA_ATTACHMENTS_DIR=/app/xsha-attachments
       - XSHA_MAX_CONCURRENT_TASKS=8
     restart: unless-stopped
     volumes:
@@ -21,6 +22,7 @@ services:
       - xsha_db:/app/db
       - xsha_workspaces:/app/xsha-workspaces
       - xsha_dev_sessions:/app/xsha-dev-sessions
+      - xsha_attachments:/app/xsha-attachments
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -35,3 +37,5 @@ volumes:
     name: xsha_workspaces
   xsha_dev_sessions:
     name: xsha_dev_sessions
+  xsha_attachments:
+    name: xsha_attachments

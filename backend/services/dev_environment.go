@@ -130,10 +130,12 @@ func (s *devEnvironmentService) DeleteEnvironment(id uint) error {
 
 	// Delete session directory if it exists
 	if env.SessionDir != "" {
-		if err := os.RemoveAll(env.SessionDir); err != nil {
+		// Convert relative path to absolute path for deletion
+		absoluteSessionDir := s.getAbsoluteSessionPath(env.SessionDir)
+		if err := os.RemoveAll(absoluteSessionDir); err != nil {
 			// Log the error but don't fail the deletion
 			// as the database record should still be removed
-			utils.Warn("Failed to delete session directory", "sessionDir", env.SessionDir, "error", err)
+			utils.Warn("Failed to delete session directory", "sessionDir", absoluteSessionDir, "error", err)
 		}
 	}
 
@@ -258,14 +260,29 @@ func (s *devEnvironmentService) generateSessionDir() (string, error) {
 	// Generate a short random suffix for better uniqueness
 	randomSuffix := utils.Now().Nanosecond() % 10000
 	dirName := fmt.Sprintf("env-%d-%04d", timestamp, randomSuffix)
-	sessionDir := filepath.Join(s.config.DevSessionsDir, dirName)
 
-	// Create the session directory
-	if err := os.MkdirAll(sessionDir, 0755); err != nil {
+	// Create the absolute path for directory creation
+	absoluteSessionDir := filepath.Join(s.config.DevSessionsDir, dirName)
+	if err := os.MkdirAll(absoluteSessionDir, 0755); err != nil {
 		return "", fmt.Errorf("failed to create session directory: %v", err)
 	}
 
-	return sessionDir, nil
+	// Return relative path for database storage
+	return dirName, nil
+}
+
+// getAbsoluteSessionPath converts a relative session path to absolute path
+func (s *devEnvironmentService) getAbsoluteSessionPath(relativePath string) string {
+	if relativePath == "" {
+		return ""
+	}
+
+	// If already absolute, return as is
+	if filepath.IsAbs(relativePath) {
+		return relativePath
+	}
+
+	return filepath.Join(s.config.DevSessionsDir, relativePath)
 }
 
 func (s *devEnvironmentService) GetStats() (map[string]interface{}, error) {
