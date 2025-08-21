@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added scheduled label and execution time to the task conversation list
 - Added image support for chat conversations
 - Added PDF support for chat conversations
+- Refactored backend logging system
 
 ### Fixed
 
