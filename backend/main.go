@@ -85,7 +85,7 @@ func main() {
 	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, taskConvRepo, execLogRepo, taskConvResultRepo, taskConvAttachmentRepo, workspaceManager, cfg, gitCredService, systemConfigService)
 	taskConvResultService := services.NewTaskConversationResultService(taskConvResultRepo, taskConvRepo, taskRepo, projectRepo)
 	taskConvAttachmentService := services.NewTaskConversationAttachmentService(taskConvAttachmentRepo, cfg)
-	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, taskService, taskConvAttachmentService)
+	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, taskService, taskConvAttachmentService, workspaceManager)
 
 	// Create shared execution manager
 	maxConcurrency := 5
