@@ -92,6 +92,7 @@ type TaskService interface {
 type TaskConversationService interface {
 	CreateConversation(taskID uint, content, createdBy string) (*database.TaskConversation, error)
 	CreateConversationWithExecutionTime(taskID uint, content, createdBy string, executionTime *time.Time, envParams string) (*database.TaskConversation, error)
+	CreateConversationWithExecutionTimeAndAttachments(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, attachmentIDs []uint) (*database.TaskConversation, error)
 	GetConversation(id uint) (*database.TaskConversation, error)
 	GetConversationWithResult(id uint) (map[string]interface{}, error)
 	ListConversations(taskID uint, page, pageSize int) ([]database.TaskConversation, int64, error)
@@ -148,4 +149,21 @@ type SystemConfigService interface {
 type DashboardService interface {
 	GetDashboardStats() (map[string]interface{}, error)
 	GetRecentTasks(limit int) ([]database.Task, error)
+}
+
+type TaskConversationAttachmentService interface {
+	UploadAttachment(fileName, originalName, contentType string, fileSize int64, filePath string, attachmentType database.AttachmentType, createdBy string) (*database.TaskConversationAttachment, error)
+	AssociateWithConversation(attachmentID, conversationID uint) error
+	GetAttachment(id uint) (*database.TaskConversationAttachment, error)
+	GetAttachmentsByConversation(conversationID uint) ([]database.TaskConversationAttachment, error)
+	UpdateAttachment(id uint, attachment *database.TaskConversationAttachment) error
+	DeleteAttachment(id uint) error
+	DeleteAttachmentsByConversation(conversationID uint) error
+	ProcessContentWithAttachments(content string, attachments []database.TaskConversationAttachment, conversationID uint) string
+	ParseAttachmentTags(content string) []string
+	GetAttachmentStorageDir() string
+	// Workspace attachment handling methods
+	CopyAttachmentsToWorkspace(conversationID uint, workspacePath string) ([]database.TaskConversationAttachment, error)
+	ReplaceAttachmentTagsWithPaths(content string, attachments []database.TaskConversationAttachment, workspacePath string) string
+	CleanupWorkspaceAttachments(workspacePath string) error
 }

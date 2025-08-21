@@ -165,11 +165,34 @@ func (s *logStreamingService) streamContainerLogs(ctx context.Context, container
 
 func (s *logStreamingService) readLogStream(ctx context.Context, reader io.Reader, prefix string, logChan chan<- string) {
 	scanner := bufio.NewScanner(reader)
+	// Set larger buffer to handle large log outputs (1MB buffer)
+	const maxCapacity = 1024 * 1024 // 1MB
+	buf := make([]byte, 0, 64*1024) // Start with 64KB
+	scanner.Buffer(buf, maxCapacity)
+	
 	for scanner.Scan() {
+		line := scanner.Text()
+		
+		// Protect against extremely large log lines
+		if len(line) > maxCapacity {
+			line = line[:maxCapacity-3] + "..."
+			utils.Warn("Truncated extremely large log line in streaming", "prefix", prefix, "original_length", len(scanner.Text()))
+		}
+		
 		select {
 		case <-ctx.Done():
 			return
-		case logChan <- scanner.Text():
+		case logChan <- line:
+		}
+	}
+	
+	// Check for scanner errors
+	if err := scanner.Err(); err != nil {
+		utils.Error("Log streaming scanner failed", "prefix", prefix, "error", err)
+		select {
+		case <-ctx.Done():
+			return
+		case logChan <- fmt.Sprintf("ERROR - Scanner failed: %v", err):
 		}
 	}
 }

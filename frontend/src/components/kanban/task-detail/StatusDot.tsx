@@ -5,6 +5,7 @@ export type ConversationStatus = "pending" | "running" | "success" | "failed" | 
 
 interface StatusDotProps {
   status: ConversationStatus;
+  isScheduled?: boolean;
   className?: string;
 }
 
@@ -33,21 +34,25 @@ const statusConfig: Record<ConversationStatus, { bgColor: string; ringColor?: st
   },
 };
 
-export const StatusDot = memo<StatusDotProps>(({ status, className }) => {
+export const StatusDot = memo<StatusDotProps>(({ status, isScheduled = false, className }) => {
   const config = statusConfig[status] || statusConfig.pending;
+  
+  // Override colors for scheduled pending tasks
+  const bgColor = status === "pending" && isScheduled ? "bg-purple-500" : config.bgColor;
+  const shadowColor = status === "pending" && isScheduled ? "shadow-purple-500/50" : `shadow-${status === "pending" ? "yellow" : "blue"}-500/50`;
   
   return (
     <div className={cn("relative flex items-center justify-center", className)}>
       <div
         className={cn(
           "w-3 h-3 rounded-full",
-          config.bgColor,
+          bgColor,
           // Animation for pending and running states
           config.hasAnimation && [
             "animate-pulse",
             // Glowing ring effect
             "shadow-lg",
-            `shadow-${status === "pending" ? "yellow" : "blue"}-500/50`,
+            shadowColor,
           ]
         )}
       />
@@ -57,7 +62,7 @@ export const StatusDot = memo<StatusDotProps>(({ status, className }) => {
         <div
           className={cn(
             "absolute inset-0 w-3 h-3 rounded-full",
-            config.bgColor,
+            bgColor,
             "animate-ping opacity-75"
           )}
         />

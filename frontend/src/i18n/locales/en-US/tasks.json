@@ -32,7 +32,8 @@
     "startBranch": "Start Branch",
     "devEnvironment": "Development Environment",
     "work_branch": "Work Branch",
-    "executionTime": "Execution Time"
+    "executionTime": "Execution Time",
+    "attachments": "Attachments"
   },
   "startBranch": "Start Branch",
   "workBranch": "Work Branch",
@@ -61,7 +62,8 @@
     "executionTimeHint": "If no execution time is set, the task will be executed immediately",
     "selectModel": "Select model",
     "modelHint": "Only available for Claude Code environments, choose the model version to use",
-    "clickIconsToConfigureHint": "Click icons in the text area to configure execution settings"
+    "clickIconsToConfigureHint": "Click icons in the text area to configure execution settings",
+    "attachmentsHint": "Upload images or PDF files to provide additional context for your task (max 10MB per file)"
   },
   "validation": {
     "titleRequired": "Task title is required",

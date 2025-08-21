@@ -4,4 +4,8 @@ export { ConversationList } from './ConversationList';
 export { ConversationItem } from './ConversationItem';
 export { NewMessageForm } from './NewMessageForm';
 export { StatusDot } from './StatusDot';
+export { AttachmentSection } from './AttachmentSection';
+export { ExecutionTimeControl } from './ExecutionTimeControl';
+export { ModelSelector } from './ModelSelector';
+export { MessageControls } from './MessageControls';
 export * from './utils';

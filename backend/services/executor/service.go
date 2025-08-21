@@ -22,6 +22,7 @@ type aiTaskExecutorService struct {
 	taskConvResultService services.TaskConversationResultService
 	taskService           services.TaskService
 	systemConfigService   services.SystemConfigService
+	attachmentService     services.TaskConversationAttachmentService
 
 	executionManager *ExecutionManager
 	dockerExecutor   DockerExecutor
@@ -42,12 +43,13 @@ func NewAITaskExecutorService(
 	taskConvResultService services.TaskConversationResultService,
 	taskService services.TaskService,
 	systemConfigService services.SystemConfigService,
+	attachmentService services.TaskConversationAttachmentService,
 	cfg *config.Config,
 ) services.AITaskExecutorService {
 	return NewAITaskExecutorServiceWithManager(
 		taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo,
 		gitCredService, taskConvResultService, taskService, systemConfigService,
-		cfg, nil,
+		attachmentService, cfg, nil,
 	)
 }
 
@@ -60,6 +62,7 @@ func NewAITaskExecutorServiceWithManager(
 	taskConvResultService services.TaskConversationResultService,
 	taskService services.TaskService,
 	systemConfigService services.SystemConfigService,
+	attachmentService services.TaskConversationAttachmentService,
 	cfg *config.Config,
 	executionManager *ExecutionManager,
 ) services.AITaskExecutorService {
@@ -96,6 +99,7 @@ func NewAITaskExecutorServiceWithManager(
 		taskConvResultService: taskConvResultService,
 		taskService:           taskService,
 		systemConfigService:   systemConfigService,
+		attachmentService:     attachmentService,
 		executionManager:      executionManager,
 		dockerExecutor:        dockerExecutor,
 		resultParser:          resultParser,
@@ -193,6 +197,16 @@ func (s *aiTaskExecutorService) CancelExecution(conversationID uint, createdBy s
 	conv.Status = database.ConversationStatusCancelled
 	if err := s.taskConvRepo.Update(conv); err != nil {
 		return fmt.Errorf("failed to update conversation status to cancelled: %v", err)
+	}
+
+	// Delete associated execution result if it exists
+	if err := s.taskConvResultRepo.DeleteByConversationID(conversationID); err != nil {
+		utils.Warn("Failed to delete conversation result during cancellation",
+			"conversation_id", conversationID,
+			"error", err)
+	} else {
+		utils.Info("Successfully deleted conversation result during cancellation",
+			"conversation_id", conversationID)
 	}
 
 	if conv.Task != nil && conv.Task.WorkspacePath != "" {
@@ -470,14 +484,29 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		return
 	}
 
-	dockerCmdForLog := s.dockerExecutor.BuildCommandForLog(conv, workspacePath)
+	// Process attachments before building Docker command
+	workspaceAttachments, err := s.attachmentService.CopyAttachmentsToWorkspace(conv.ID, workspacePath)
+	if err != nil {
+		finalStatus = database.ConversationStatusFailed
+		errorMsg = fmt.Sprintf("failed to copy attachments to workspace: %v", err)
+		return
+	}
+
+	// Replace attachment tags in conversation content with workspace paths
+	processedContent := s.attachmentService.ReplaceAttachmentTagsWithPaths(conv.Content, workspaceAttachments, workspacePath)
+
+	// Create a temporary conversation with processed content for Docker execution
+	tempConv := *conv
+	tempConv.Content = processedContent
+
+	dockerCmdForLog := s.dockerExecutor.BuildCommandForLog(&tempConv, workspacePath)
 	dockerUpdates := map[string]interface{}{
 		"docker_command": dockerCmdForLog,
 	}
 	s.execLogRepo.UpdateMetadata(execLog.ID, dockerUpdates)
 
-	// Execute with container tracking
-	containerID, err := s.dockerExecutor.ExecuteWithContainerTracking(ctx, conv, workspacePath, execLog.ID)
+	// Execute with container tracking using processed conversation
+	containerID, err := s.dockerExecutor.ExecuteWithContainerTracking(ctx, &tempConv, workspacePath, execLog.ID)
 	if containerID != "" {
 		// Set the container ID in execution manager for proper cleanup on cancellation
 		s.executionManager.SetContainerID(conv.ID, containerID)
@@ -493,6 +522,11 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 			errorMsg = fmt.Sprintf("failed to execute docker command: %v", err)
 		}
 		return
+	}
+
+	// Clean up workspace attachments before committing changes
+	if cleanupErr := s.attachmentService.CleanupWorkspaceAttachments(workspacePath); cleanupErr != nil {
+		utils.Warn("Failed to cleanup workspace attachments before commit", "workspace", workspacePath, "error", cleanupErr)
 	}
 
 	hash, err := s.workspaceManager.CommitChanges(workspacePath, fmt.Sprintf("AI generated changes for conversation %d", conv.ID))

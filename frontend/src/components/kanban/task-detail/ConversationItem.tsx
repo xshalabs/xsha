@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { User, MoreHorizontal, Eye, FileText, Terminal, RotateCcw, X, Trash2, Copy, Check, Clock } from "lucide-react";
 import { toast } from "sonner";
@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { StatusDot, type ConversationStatus } from "./StatusDot";
 import { formatTime, formatTimeWithoutSeconds, isFutureExecution } from "./utils";
+import { AttachmentList } from "@/components/AttachmentList";
+import { attachmentApi, type Attachment } from "@/lib/api/attachments";
 
 interface ConversationItemProps {
   conversation: any;
@@ -48,6 +50,28 @@ export const ConversationItem = memo<ConversationItemProps>(
   }) => {
     const { t } = useTranslation();
     const [copied, setCopied] = useState(false);
+    const [attachments, setAttachments] = useState<Attachment[]>([]);
+    const [loadingAttachments, setLoadingAttachments] = useState(false);
+
+    // Load attachments for this conversation
+    useEffect(() => {
+      const loadAttachments = async () => {
+        if (!conversation?.id) return;
+        
+        setLoadingAttachments(true);
+        try {
+          const conversationAttachments = await attachmentApi.getConversationAttachments(conversation.id);
+          setAttachments(conversationAttachments);
+        } catch (error) {
+          console.error("Failed to load conversation attachments:", error);
+          // Don't show error toast as this is not critical functionality
+        } finally {
+          setLoadingAttachments(false);
+        }
+      };
+
+      loadAttachments();
+    }, [conversation?.id]);
 
     const handleCopyContent = useCallback(async () => {
       try {
@@ -105,9 +129,8 @@ export const ConversationItem = memo<ConversationItemProps>(
     // Check if cancel should be enabled (only for running conversations)
     const isCancelEnabled = conversation.status === 'running';
     
-    // Check if delete should be enabled (only for latest conversation, not running, and task not pending/in progress)
-    const isDeleteEnabled = isLatest && conversation.status !== 'running' && 
-                           task.status !== 'pending' && task.status !== 'in_progress';
+    // Check if delete should be enabled (only for latest conversation and not running)
+    const isDeleteEnabled = isLatest && conversation.status !== 'running';
     
     // Check if this conversation is scheduled for future execution
     const isFuture = isFutureExecution(conversation.execution_time);
@@ -127,16 +150,6 @@ export const ConversationItem = memo<ConversationItemProps>(
               >
                 {formatTime(conversation.created_at)}
               </time>
-              {/* Future execution indicator */}
-              {isFuture && (
-                <Badge 
-                  variant="outline" 
-                  className="text-xs h-5 px-1.5 bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800"
-                >
-                  <Clock className="w-2.5 h-2.5 mr-1" />
-                  {t("taskConversations.status.scheduled")}
-                </Badge>
-              )}
             </div>
             <div className="relative group">
               <div
@@ -182,10 +195,24 @@ export const ConversationItem = memo<ConversationItemProps>(
                 {isExpanded ? t("common.showLess") : t("common.showMore")}
               </Button>
             )}
+
+            {/* Attachments */}
+            {attachments.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-border">
+                <AttachmentList
+                  attachments={attachments}
+                  readonly={true}
+                  className="text-sm"
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex items-center space-x-3 shrink-0">
-            <StatusDot status={conversation.status as ConversationStatus} />
+            <StatusDot 
+              status={conversation.status as ConversationStatus} 
+              isScheduled={conversation.status === 'pending' && isFuture} 
+            />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -239,9 +266,7 @@ export const ConversationItem = memo<ConversationItemProps>(
                 <DropdownMenuItem 
                   onClick={isDeleteEnabled ? handleDelete : undefined}
                   disabled={!isDeleteEnabled}
-                  className={isDeleteEnabled 
-                    ? "text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950" 
-                    : "opacity-50 cursor-not-allowed"}
+                  className={!isDeleteEnabled ? "opacity-50 cursor-not-allowed" : ""}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   {t("taskConversations.actions.delete")}

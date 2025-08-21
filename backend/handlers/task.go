@@ -38,6 +38,7 @@ type CreateTaskRequest struct {
 	IncludeBranches  bool       `json:"include_branches" example:"true"`
 	ExecutionTime    *time.Time `json:"execution_time" example:"2024-01-01T10:00:00Z"`
 	EnvParams        string     `json:"env_params" example:"{\"model\":\"sonnet\"}"`
+	AttachmentIDs    []uint     `json:"attachment_ids" example:"[1,2,3]"`
 }
 
 // @Description Create task response
@@ -89,13 +90,25 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 	}
 
 	if strings.TrimSpace(req.RequirementDesc) != "" {
-		_, err := h.conversationService.CreateConversationWithExecutionTime(
-			task.ID,
-			req.RequirementDesc,
-			username.(string),
-			req.ExecutionTime,
-			req.EnvParams,
-		)
+		var err error
+		if len(req.AttachmentIDs) > 0 {
+			_, err = h.conversationService.CreateConversationWithExecutionTimeAndAttachments(
+				task.ID,
+				req.RequirementDesc,
+				username.(string),
+				req.ExecutionTime,
+				req.EnvParams,
+				req.AttachmentIDs,
+			)
+		} else {
+			_, err = h.conversationService.CreateConversationWithExecutionTime(
+				task.ID,
+				req.RequirementDesc,
+				username.(string),
+				req.ExecutionTime,
+				req.EnvParams,
+			)
+		}
 		if err != nil {
 			utils.Error("Failed to create conversation", "taskID", task.ID, "error", err)
 		}

@@ -10,20 +10,22 @@ import (
 )
 
 type taskConversationService struct {
-	repo        repository.TaskConversationRepository
-	taskRepo    repository.TaskRepository
-	execLogRepo repository.TaskExecutionLogRepository
-	resultRepo  repository.TaskConversationResultRepository
-	taskService TaskService
+	repo              repository.TaskConversationRepository
+	taskRepo          repository.TaskRepository
+	execLogRepo       repository.TaskExecutionLogRepository
+	resultRepo        repository.TaskConversationResultRepository
+	taskService       TaskService
+	attachmentService TaskConversationAttachmentService
 }
 
-func NewTaskConversationService(repo repository.TaskConversationRepository, taskRepo repository.TaskRepository, execLogRepo repository.TaskExecutionLogRepository, resultRepo repository.TaskConversationResultRepository, taskService TaskService) TaskConversationService {
+func NewTaskConversationService(repo repository.TaskConversationRepository, taskRepo repository.TaskRepository, execLogRepo repository.TaskExecutionLogRepository, resultRepo repository.TaskConversationResultRepository, taskService TaskService, attachmentService TaskConversationAttachmentService) TaskConversationService {
 	return &taskConversationService{
-		repo:        repo,
-		taskRepo:    taskRepo,
-		execLogRepo: execLogRepo,
-		resultRepo:  resultRepo,
-		taskService: taskService,
+		repo:              repo,
+		taskRepo:          taskRepo,
+		execLogRepo:       execLogRepo,
+		resultRepo:        resultRepo,
+		taskService:       taskService,
+		attachmentService: attachmentService,
 	}
 }
 
@@ -102,6 +104,93 @@ func (s *taskConversationService) CreateConversationWithExecutionTime(taskID uin
 
 	if err := s.repo.Create(conversation); err != nil {
 		return nil, err
+	}
+
+	conversation.Task = task
+	return conversation, nil
+}
+
+func (s *taskConversationService) CreateConversationWithExecutionTimeAndAttachments(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, attachmentIDs []uint) (*database.TaskConversation, error) {
+	if err := s.ValidateConversationData(taskID, content); err != nil {
+		return nil, err
+	}
+
+	task, err := s.taskRepo.GetByID(taskID)
+	if err != nil {
+		return nil, appErrors.ErrTaskNotFound
+	}
+
+	if task.Status == database.TaskStatusDone || task.Status == database.TaskStatusCancelled {
+		return nil, appErrors.ErrConversationTaskCompleted
+	}
+
+	hasPendingOrRunning, err := s.repo.HasPendingOrRunningConversations(taskID)
+	if err != nil {
+		return nil, appErrors.ErrConversationGetFailed
+	}
+	if hasPendingOrRunning {
+		return nil, appErrors.ErrConversationCreateFailed
+	}
+
+	// Ensure envParams is valid JSON, default to empty object if not provided
+	if envParams == "" {
+		envParams = "{}"
+	}
+
+	// Validate and process attachments
+	var attachments []database.TaskConversationAttachment
+	if len(attachmentIDs) > 0 {
+		// First create the conversation, then associate attachments
+		// For now, we'll handle attachments after conversation creation
+	}
+
+	// Process content with attachment tags if attachments exist
+	processedContent := strings.TrimSpace(content)
+	if len(attachmentIDs) > 0 {
+		// We'll update the content after creating attachments
+		// For now, keep original content
+	}
+
+	conversation := &database.TaskConversation{
+		TaskID:        taskID,
+		Content:       processedContent,
+		Status:        database.ConversationStatusPending,
+		ExecutionTime: executionTime,
+		EnvParams:     envParams,
+		CreatedBy:     createdBy,
+	}
+
+	if err := s.repo.Create(conversation); err != nil {
+		return nil, err
+	}
+
+	// Process attachment associations if provided
+	if len(attachmentIDs) > 0 {
+		for _, attachmentID := range attachmentIDs {
+			// Associate attachment with conversation
+			if err := s.attachmentService.AssociateWithConversation(attachmentID, conversation.ID); err != nil {
+				utils.Error("Failed to associate attachment with conversation", "attachmentID", attachmentID, "conversationID", conversation.ID, "error", err)
+				continue
+			}
+
+			// Get the updated attachment
+			attachment, err := s.attachmentService.GetAttachment(attachmentID)
+			if err != nil {
+				utils.Warn("Attachment not found after association", "attachmentID", attachmentID, "conversationID", conversation.ID)
+				continue
+			}
+
+			attachments = append(attachments, *attachment)
+		}
+
+		// Update conversation content with attachment tags
+		processedContent = s.attachmentService.ProcessContentWithAttachments(content, attachments, conversation.ID)
+		conversation.Content = processedContent
+
+		// Save the updated content
+		if err := s.repo.Update(conversation); err != nil {
+			utils.Error("Failed to update conversation content with attachment tags", "conversationID", conversation.ID, "error", err)
+		}
 	}
 
 	conversation.Task = task
@@ -201,6 +290,13 @@ func (s *taskConversationService) DeleteConversation(id uint) error {
 
 	if err := s.resultRepo.DeleteByConversationID(id); err != nil {
 		utils.Warn("Failed to delete conversation result",
+			"conversation_id", id,
+			"error", err)
+	}
+
+	// Delete attachments associated with the conversation
+	if err := s.attachmentService.DeleteAttachmentsByConversation(id); err != nil {
+		utils.Warn("Failed to delete conversation attachments",
 			"conversation_id", id,
 			"error", err)
 	}
