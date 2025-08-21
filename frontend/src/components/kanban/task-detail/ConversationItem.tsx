@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { User, MoreHorizontal, Eye, FileText, Terminal, RotateCcw, X, Trash2, Copy, Check, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +18,6 @@ import { attachmentApi, type Attachment } from "@/lib/api/attachments";
 interface ConversationItemProps {
   conversation: any;
   taskId: number;
-  task: any;
   isExpanded: boolean;
   shouldShowExpandButton: boolean;
   isLatest?: boolean;
@@ -36,7 +34,6 @@ export const ConversationItem = memo<ConversationItemProps>(
   ({
     conversation,
     taskId,
-    task,
     isExpanded,
     shouldShowExpandButton,
     isLatest = false,
@@ -51,22 +48,18 @@ export const ConversationItem = memo<ConversationItemProps>(
     const { t } = useTranslation();
     const [copied, setCopied] = useState(false);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
-    const [loadingAttachments, setLoadingAttachments] = useState(false);
 
     // Load attachments for this conversation
     useEffect(() => {
       const loadAttachments = async () => {
         if (!conversation?.id) return;
         
-        setLoadingAttachments(true);
         try {
           const conversationAttachments = await attachmentApi.getConversationAttachments(conversation.id);
           setAttachments(conversationAttachments);
         } catch (error) {
           console.error("Failed to load conversation attachments:", error);
           // Don't show error toast as this is not critical functionality
-        } finally {
-          setLoadingAttachments(false);
         }
       };
 

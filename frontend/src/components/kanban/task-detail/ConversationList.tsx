@@ -8,7 +8,6 @@ import { StatusDot } from "./StatusDot";
 interface ConversationListProps {
   conversations: any[];
   conversationCount: number;
-  task: any;
   taskId: number;
   onViewConversationGitDiff: (conversationId: number) => void;
   onViewConversationDetails: (conversationId: number) => void;
@@ -25,7 +24,6 @@ export const ConversationList = memo<ConversationListProps>(
   ({
     conversations,
     conversationCount,
-    task,
     taskId,
     onViewConversationGitDiff,
     onViewConversationDetails,
@@ -75,7 +73,6 @@ export const ConversationList = memo<ConversationListProps>(
                 <ConversationItem
                   key={conversation.id}
                   conversation={conversation}
-                  task={task}
                   taskId={taskId}
                   isExpanded={isConversationExpanded(conversation.id)}
                   shouldShowExpandButton={shouldShowExpandButton(

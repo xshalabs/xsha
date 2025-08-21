@@ -415,7 +415,6 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
             <ConversationList
               conversations={conversations}
               conversationCount={task.conversation_count}
-              task={task}
               taskId={task.id}
               onViewConversationGitDiff={handleViewConversationGitDiff}
               onViewConversationDetails={handleViewConversationDetails}
