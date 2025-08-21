@@ -18,6 +18,9 @@ XSha is a software system that combines project management, Git, and AI-driven d
 - **🛡️ Isolated Execution Environments:** Docker-based container solution ensures each Claude Code execution runs in its own isolated container for security.
 - **⚡ Concurrent Task Execution:** Controllable concurrency allows for faster project task development.
 - **🔄 Git Integration:** Directly import Git repositories, push completed project tasks to repositories with one click, and view Git diffs online.
+- **⏰ Scheduled Task Execution:** Support for automated task scheduling and execution at specified times with ultrathink capabilities.
+- **📎 Rich Attachment Support:** Upload and process images, PDFs, and other file attachments for enhanced task context.
+- **📋 Project Kanban Management:** Visual task management with drag-and-drop Kanban boards for better project organization.
 
 ## 🏃‍♂️ Quick Start
 
