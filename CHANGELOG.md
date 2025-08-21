@@ -10,10 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Add model selection to task conversation
 - Added scheduled label and execution time to the task conversation list
+- Added image support for chat conversations
+- Added PDF support for chat conversations
 
 ### Fixed
 
-- Fixed container log capture failure when logs exceed 100KB
+- Fixed task conversation status abnormality caused by container execution input logs exceeding 64KB per line
+- Optimized task conversation retry mechanism - only the latest failed or cancelled task conversation can be retried under the new mechanism
 
 ## v0.3.0 - 2025-08-20
 
