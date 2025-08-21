@@ -240,6 +240,11 @@ func (s *aiTaskExecutorService) RetryExecution(conversationID uint, createdBy st
 		return fmt.Errorf("failed to delete old execution logs: %v", err)
 	}
 
+	// Delete associated execution result if it exists
+	if err := s.taskConvResultRepo.DeleteByConversationID(conversationID); err != nil {
+		return fmt.Errorf("failed to delete old conversation result: %v", err)
+	}
+
 	conv.Status = database.ConversationStatusPending
 	if err := s.taskConvRepo.Update(conv); err != nil {
 		return fmt.Errorf("failed to reset conversation status: %v", err)
