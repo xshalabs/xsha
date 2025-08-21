@@ -300,9 +300,7 @@ func (s *taskConversationAttachmentService) ReplaceAttachmentTagsWithPaths(conte
 		}
 
 		// Replace the old tag format with the new path format for backward compatibility
-		if strings.Contains(processedContent, oldTag) {
-			processedContent = strings.Replace(processedContent, oldTag, newPath, -1)
-		}
+		processedContent = strings.Replace(processedContent, oldTag, newPath, -1)
 	}
 
 	return processedContent
