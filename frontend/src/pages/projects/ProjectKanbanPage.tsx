@@ -99,6 +99,17 @@ export default function ProjectKanbanPage() {
     }
   }, [loading, tasks, searchParams, setSearchParams]);
 
+  // Auto-refresh kanban data every second
+  useEffect(() => {
+    if (!projectId || loading) return;
+    
+    const interval = setInterval(() => {
+      refreshKanbanData();
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [projectId, loading, refreshKanbanData]);
+
 
 
   const handleAddTask = () => {
