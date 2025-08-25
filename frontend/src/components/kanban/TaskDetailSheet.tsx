@@ -81,6 +81,8 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     setExecutionTime,
     model,
     setModel,
+    isPlanMode,
+    setIsPlanMode,
     sending,
     loadConversations,
     handleSendMessage,
@@ -434,6 +436,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
                 newMessage={newMessage}
                 executionTime={executionTime}
                 model={model}
+                isPlanMode={isPlanMode}
                 sending={sending}
                 canSendMessage={canSend}
                 isTaskCompleted={taskCompleted}
@@ -441,6 +444,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
                 onMessageChange={setNewMessage}
                 onExecutionTimeChange={setExecutionTime}
                 onModelChange={setModel}
+                onPlanModeChange={setIsPlanMode}
                 onSendMessage={handleSendMessage}
               />
             )}

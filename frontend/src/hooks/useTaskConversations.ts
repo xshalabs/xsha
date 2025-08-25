@@ -12,6 +12,7 @@ export function useTaskConversations(task: Task | null) {
   const [newMessage, setNewMessage] = useState("");
   const [executionTime, setExecutionTime] = useState<Date | undefined>(undefined);
   const [model, setModel] = useState("default");
+  const [isPlanMode, setIsPlanMode] = useState(false);
   const [sending, setSending] = useState(false);
   const [expandedConversations, setExpandedConversations] = useState<Set<number>>(new Set());
 
@@ -39,8 +40,20 @@ export function useTaskConversations(task: Task | null) {
     try {
       // Prepare env_params based on task environment
       let envParams = "{}";
-      if (task.dev_environment?.type === "claude-code" && model !== "default") {
-        envParams = JSON.stringify({ model });
+      if (task.dev_environment?.type === "claude-code") {
+        const params: { model?: string; is_plan_mode?: boolean } = {};
+        
+        if (model && model !== "default") {
+          params.model = model;
+        }
+        
+        if (isPlanMode === true) {
+          params.is_plan_mode = isPlanMode;
+        }
+        
+        if (Object.keys(params).length > 0) {
+          envParams = JSON.stringify(params);
+        }
       }
 
       await apiService.taskConversations.create({
@@ -103,6 +116,7 @@ export function useTaskConversations(task: Task | null) {
       setNewMessage("");
       setExecutionTime(undefined);
       setModel("default");
+      setIsPlanMode(false);
       setSending(false);
       setExpandedConversations(new Set());
       loadConversations();
@@ -118,6 +132,8 @@ export function useTaskConversations(task: Task | null) {
     setExecutionTime,
     model,
     setModel,
+    isPlanMode,
+    setIsPlanMode,
     sending,
     expandedConversations,
     loadConversations,

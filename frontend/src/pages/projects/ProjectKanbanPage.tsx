@@ -147,9 +147,21 @@ export default function ProjectKanbanPage() {
 
       // Prepare env_params based on selected environment and model
       let envParams = "{}";
-      if (taskData.dev_environment_id && taskData.model && taskData.model !== "default" && selectedEnvironment) {
+      if (taskData.dev_environment_id && selectedEnvironment) {
         if (selectedEnvironment.type === "claude-code") {
-          envParams = JSON.stringify({ model: taskData.model });
+          const params: { model?: string; is_plan_mode?: boolean } = {};
+          
+          if (taskData.model && taskData.model !== "default") {
+            params.model = taskData.model;
+          }
+          
+          if (taskData.is_plan_mode === true) {
+            params.is_plan_mode = taskData.is_plan_mode;
+          }
+          
+          if (Object.keys(params).length > 0) {
+            envParams = JSON.stringify(params);
+          }
         }
       }
 

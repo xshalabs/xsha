@@ -84,6 +84,7 @@ export interface TaskFormData {
   include_branches?: boolean;
   execution_time?: Date; // Date object for form handling
   model?: string; // Model selection for claude-code environments
+  is_plan_mode?: boolean; // Plan mode toggle for claude-code environments
   attachment_ids?: number[]; // Optional array of attachment IDs for form handling
 }
 

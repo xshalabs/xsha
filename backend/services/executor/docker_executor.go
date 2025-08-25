@@ -222,13 +222,19 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 			claudeCommand = append(claudeCommand, "-r", task.SessionID)
 		}
 
-		// Parse env_params to check for model parameter
+		// Parse env_params to check for model and plan mode parameters
 		if conv != nil && conv.EnvParams != "" && conv.EnvParams != "{}" {
 			var envParams map[string]interface{}
 			if err := json.Unmarshal([]byte(conv.EnvParams), &envParams); err == nil {
 				if model, exists := envParams["model"]; exists {
 					if modelStr, ok := model.(string); ok && modelStr != "default" {
 						claudeCommand = append(claudeCommand, "--model", modelStr)
+					}
+				}
+
+				if isPlanMode, exists := envParams["is_plan_mode"]; exists {
+					if isPlanModeBool, ok := isPlanMode.(bool); ok && isPlanModeBool {
+						claudeCommand = append(claudeCommand, "--permission-mode plan")
 					}
 				}
 			}

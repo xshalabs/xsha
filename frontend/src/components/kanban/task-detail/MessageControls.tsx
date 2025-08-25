@@ -4,17 +4,20 @@ import { Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExecutionTimeControl } from "./ExecutionTimeControl";
 import { ModelSelector } from "./ModelSelector";
+import { PlanModeSelector } from "./PlanModeSelector";
 import type { Task } from "@/types/task";
 
 interface MessageControlsProps {
   task: Task;
   executionTime?: Date;
   model: string;
+  isPlanMode?: boolean;
   attachmentCount: number;
   sending: boolean;
   uploading: boolean;
   onExecutionTimeChange: (time: Date | undefined) => void;
   onModelChange: (model: string) => void;
+  onPlanModeChange: (isPlanMode: boolean) => void;
   onFileSelect: () => void;
 }
 
@@ -23,11 +26,13 @@ export const MessageControls = memo<MessageControlsProps>(
     task,
     executionTime,
     model,
+    isPlanMode,
     attachmentCount,
     sending,
     uploading,
     onExecutionTimeChange,
     onModelChange,
+    onPlanModeChange,
     onFileSelect,
   }) => {
     const { t } = useTranslation();
@@ -81,6 +86,16 @@ export const MessageControls = memo<MessageControlsProps>(
             model={model}
             disabled={sending}
             onChange={onModelChange}
+            onCloseOtherControls={closeAllControls}
+          />
+        )}
+
+        {/* Plan Mode Selection - Only show for claude-code environments */}
+        {task.dev_environment?.type === "claude-code" && (
+          <PlanModeSelector
+            isPlanMode={isPlanMode}
+            disabled={sending}
+            onChange={onPlanModeChange}
             onCloseOtherControls={closeAllControls}
           />
         )}

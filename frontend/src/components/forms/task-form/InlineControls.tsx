@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -15,6 +16,7 @@ import {
   Clock,
   Sparkles,
   X,
+  FileText,
 } from "lucide-react";
 import type { Attachment } from "@/lib/api/attachments";
 import type { DevEnvironment } from "@/types/dev-environment";
@@ -27,16 +29,22 @@ interface InlineControlsProps {
   onExecutionTimeChange: (time: Date | undefined) => void;
   model: string;
   onModelChange: (model: string) => void;
+  isPlanMode?: boolean;
+  onPlanModeChange: (isPlanMode: boolean) => void;
   selectedEnvironment?: DevEnvironment;
   disabled?: boolean;
   isTimePickerOpen: boolean;
   isModelSelectorOpen: boolean;
+  isPlanModeSelectorOpen: boolean;
   timePickerRef: React.RefObject<HTMLDivElement | null>;
   modelSelectorRef: React.RefObject<HTMLDivElement | null>;
+  planModeSelectorRef: React.RefObject<HTMLDivElement | null>;
   onTimePickerToggle: () => void;
   onModelSelectorToggle: () => void;
+  onPlanModeSelectorToggle: () => void;
   onTimePickerClose: () => void;
   onModelSelectorClose: () => void;
+  onPlanModeSelectorClose: () => void;
 }
 
 export function InlineControls({
@@ -47,16 +55,22 @@ export function InlineControls({
   onExecutionTimeChange,
   model,
   onModelChange,
+  isPlanMode,
+  onPlanModeChange,
   selectedEnvironment,
   disabled,
   isTimePickerOpen,
   isModelSelectorOpen,
+  isPlanModeSelectorOpen,
   timePickerRef,
   modelSelectorRef,
+  planModeSelectorRef,
   onTimePickerToggle,
   onModelSelectorToggle,
+  onPlanModeSelectorToggle,
   onTimePickerClose,
   onModelSelectorClose,
+  onPlanModeSelectorClose,
 }: InlineControlsProps) {
   const { t } = useTranslation();
 
@@ -199,6 +213,58 @@ export function InlineControls({
                 </Select>
                 <p className="text-xs text-muted-foreground">
                   {t("tasks.form.modelHint")}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Plan Mode Selection - Only show when environment is claude-code */}
+      {selectedEnvironment && selectedEnvironment.type === "claude-code" && (
+        <div className="relative" ref={planModeSelectorRef}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onPlanModeSelectorToggle}
+            className={`h-7 w-7 p-0 rounded-md transition-colors ${
+              isPlanMode
+                ? 'bg-orange-100 text-orange-600 hover:bg-orange-200 dark:bg-orange-900/50 dark:text-orange-400'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+            }`}
+            title={isPlanMode ? t("tasks.fields.planModeEnabled") : t("tasks.fields.planMode")}
+          >
+            <FileText className="h-3.5 w-3.5" />
+          </Button>
+          
+          {isPlanModeSelectorOpen && (
+            <div className="absolute bottom-full left-0 mb-2 p-3 bg-background border rounded-lg shadow-lg z-10 min-w-[200px]">
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-xs font-medium">{t("tasks.fields.planMode")}</Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onPlanModeSelectorClose}
+                  className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="plan-mode-switch" className="text-xs">
+                    {t("tasks.fields.enablePlanMode")}
+                  </Label>
+                  <Switch
+                    id="plan-mode-switch"
+                    checked={isPlanMode || false}
+                    onCheckedChange={onPlanModeChange}
+                    disabled={disabled}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("tasks.form.planModeHint")}
                 </p>
               </div>
             </div>
