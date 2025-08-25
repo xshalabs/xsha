@@ -173,13 +173,13 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	} else {
 		// workspacePath is now relative, need to convert to absolute for volume mounting
 		absoluteWorkspacePath := filepath.Join(d.config.WorkspaceBaseDir, workspacePath)
-		cmd = append(cmd, fmt.Sprintf("-v %s:/app", absoluteWorkspacePath))
+		cmd = append(cmd, fmt.Sprintf("-v %s:/app/%s", absoluteWorkspacePath, workspacePath))
 		if devEnv.SessionDir != "" {
 			// SessionDir is now also relative, convert to absolute for volume mounting
 			absoluteSessionDir := filepath.Join(d.config.DevSessionsDir, devEnv.SessionDir)
 			cmd = append(cmd, fmt.Sprintf("-v %s:/home/xsha", absoluteSessionDir))
 		}
-		cmd = append(cmd, "-w /app")
+		cmd = append(cmd, fmt.Sprintf("-w /app/%s", workspacePath))
 	}
 
 	if devEnv.CPULimit > 0 {
