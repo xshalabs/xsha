@@ -7,6 +7,7 @@
   "contentPlaceholder": "请输入您的消息...",
   "selectModel": "选择模型",
   "modelHint": "仅对Claude Code环境可用，选择要使用的模型版本",
+  "modelLockedInPlanMode": "计划模式下模型已锁定为Opus",
   "planMode": "计划模式",
   "planModeEnabled": "计划模式已启用",
   "enablePlanMode": "启用计划模式",

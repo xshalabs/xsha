@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 
-export function useInlineControls() {
+export function useInlineControls(isPlanMode?: boolean) {
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
   const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
   const [isPlanModeSelectorOpen, setIsPlanModeSelectorOpen] = useState(false);
@@ -15,10 +15,11 @@ export function useInlineControls() {
   }, [isTimePickerOpen]);
 
   const handleModelSelectorToggle = useCallback(() => {
+    if (isPlanMode) return; // Don't open when plan mode is active
     setIsModelSelectorOpen(!isModelSelectorOpen);
     setIsTimePickerOpen(false); // Close time picker when opening model selector
     setIsPlanModeSelectorOpen(false); // Close plan mode selector when opening model selector
-  }, [isModelSelectorOpen]);
+  }, [isModelSelectorOpen, isPlanMode]);
 
   const handlePlanModeSelectorToggle = useCallback(() => {
     setIsPlanModeSelectorOpen(!isPlanModeSelectorOpen);

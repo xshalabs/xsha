@@ -59,7 +59,7 @@ export function TaskFormCreateNew({
     closeTimePickerManual,
     closeModelSelectorManual,
     closePlanModeSelectorManual,
-  } = useInlineControls();
+  } = useInlineControls(formData.is_plan_mode);
 
   const { 
     availableBranches, 
@@ -164,6 +164,10 @@ export function TaskFormCreateNew({
 
   const handlePlanModeChange = useCallback((isPlanMode: boolean) => {
     handleChange("is_plan_mode", isPlanMode);
+    // When enabling plan mode, automatically set model to opus
+    if (isPlanMode) {
+      handleChange("model", "opus");
+    }
     closePlanModeSelectorManual();
   }, [handleChange, closePlanModeSelectorManual]);
 

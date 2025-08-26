@@ -148,12 +148,15 @@ export function InlineControls({
             variant="ghost"
             size="sm"
             onClick={onModelSelectorToggle}
+            disabled={isPlanMode}
             className={`h-7 w-7 p-0 rounded-md transition-colors ${
-              model && model !== 'default'
+              isPlanMode
+                ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/50 dark:text-orange-400 opacity-75 cursor-not-allowed'
+                : model && model !== 'default'
                 ? 'bg-purple-100 text-purple-600 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-400'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted'
             }`}
-            title={model ? t("tasks.fields.model") + ": " + model : t("tasks.fields.model")}
+            title={isPlanMode ? t("taskConversations.modelLockedInPlanMode") : (model ? t("tasks.fields.model") + ": " + model : t("tasks.fields.model"))}
           >
             <Sparkles className="h-3.5 w-3.5" />
           </Button>
