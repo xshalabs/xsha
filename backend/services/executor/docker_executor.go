@@ -214,7 +214,6 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 			"claude",
 			"-p",
 			"--output-format=stream-json",
-			"--dangerously-skip-permissions",
 			"--verbose",
 		}
 
@@ -223,6 +222,7 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 		}
 
 		// Parse env_params to check for model and plan mode parameters
+		var isPlanModeEnabled bool
 		if conv != nil && conv.EnvParams != "" && conv.EnvParams != "{}" {
 			var envParams map[string]interface{}
 			if err := json.Unmarshal([]byte(conv.EnvParams), &envParams); err == nil {
@@ -234,10 +234,17 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 
 				if isPlanMode, exists := envParams["is_plan_mode"]; exists {
 					if isPlanModeBool, ok := isPlanMode.(bool); ok && isPlanModeBool {
-						claudeCommand = append(claudeCommand, "--permission-mode plan")
+						isPlanModeEnabled = true
+						claudeCommand = append(claudeCommand, "--permission-mode", "plan")
 					}
 				}
 			}
+		}
+
+		// Add permission flag based on plan mode status
+		// Use --permission-mode=plan when plan mode is enabled, otherwise use --dangerously-skip-permissions
+		if !isPlanModeEnabled {
+			claudeCommand = append(claudeCommand, "--dangerously-skip-permissions")
 		}
 
 		// Add system prompt if project has one
