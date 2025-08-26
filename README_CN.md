@@ -6,7 +6,7 @@
 
 # 🚀 xsha - AI 驱动的项目开发平台
 
-[English](README_EN.md) • [X](https://x.com/0xTYZ) • [ProductHunt](https://www.producthunt.com/products/xsha) • [QQ群](assets/qq-group.jpg)
+[X](https://x.com/0xTYZ) • [ProductHunt](https://www.producthunt.com/products/xsha) • [QQ群](assets/qq-group.jpg)
 
 </div>
 

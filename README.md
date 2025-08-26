@@ -6,7 +6,7 @@
 
 # 🚀 xsha - AI-powered project development platform
 
-[X](https://x.com/0xTYZ) • [ProductHunt](https://www.producthunt.com/products/xsha)
+[中文 README](README_CN.md) • [X](https://x.com/0xTYZ) • [ProductHunt](https://www.producthunt.com/products/xsha)
 
 </div>
 
