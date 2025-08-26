@@ -226,16 +226,21 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 		if conv != nil && conv.EnvParams != "" && conv.EnvParams != "{}" {
 			var envParams map[string]interface{}
 			if err := json.Unmarshal([]byte(conv.EnvParams), &envParams); err == nil {
-				if model, exists := envParams["model"]; exists {
-					if modelStr, ok := model.(string); ok && modelStr != "default" {
-						claudeCommand = append(claudeCommand, "--model", modelStr)
-					}
-				}
-
 				if isPlanMode, exists := envParams["is_plan_mode"]; exists {
 					if isPlanModeBool, ok := isPlanMode.(bool); ok && isPlanModeBool {
 						isPlanModeEnabled = true
 						claudeCommand = append(claudeCommand, "--permission-mode", "plan")
+						// Force model to be "opus" when plan mode is enabled
+						claudeCommand = append(claudeCommand, "--model", "opus")
+					}
+				}
+
+				// Only set model if plan mode is not enabled
+				if !isPlanModeEnabled {
+					if model, exists := envParams["model"]; exists {
+						if modelStr, ok := model.(string); ok && modelStr != "default" {
+							claudeCommand = append(claudeCommand, "--model", modelStr)
+						}
 					}
 				}
 			}
