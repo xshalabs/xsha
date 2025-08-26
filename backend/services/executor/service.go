@@ -9,6 +9,7 @@ import (
 	"xsha-backend/database"
 	"xsha-backend/repository"
 	"xsha-backend/services"
+	"xsha-backend/services/executor/result_parser"
 	"xsha-backend/utils"
 )
 
@@ -26,7 +27,7 @@ type aiTaskExecutorService struct {
 
 	executionManager *ExecutionManager
 	dockerExecutor   DockerExecutor
-	resultParser     ResultParser
+	resultParser     result_parser.ResultParser
 	workspaceCleaner WorkspaceCleaner
 	stateManager     ConversationStateManager
 
@@ -86,7 +87,7 @@ func NewAITaskExecutorServiceWithManager(
 		executionManager = NewExecutionManager(maxConcurrency)
 	}
 	dockerExecutor := NewDockerExecutor(cfg, logAppender, systemConfigService)
-	resultParser := NewResultParser(taskConvResultRepo, taskConvResultService, taskService)
+	resultParser := result_parser.NewResultParser(taskConvResultRepo, taskConvResultService, taskService)
 	workspaceCleaner := NewWorkspaceCleaner(workspaceManager)
 	stateManager := NewConversationStateManager(taskConvRepo, execLogRepo)
 

@@ -1,0 +1,280 @@
+package strategies
+
+import (
+	"bufio"
+	"context"
+	"encoding/json"
+	"errors"
+	"regexp"
+	"strings"
+)
+
+// JSONStrategy JSON解析策略
+type JSONStrategy struct {
+	patterns []*regexp.Regexp
+	name     string
+	priority int
+}
+
+// NewJSONStrategy 创建JSON解析策略
+func NewJSONStrategy(patterns ...string) *JSONStrategy {
+	strategy := &JSONStrategy{
+		name:     "json",
+		priority: 1, // 高优先级
+	}
+	
+	// 使用默认模式如果没有提供
+	if len(patterns) == 0 {
+		patterns = []string{
+			`^(?:\[\d{2}:\d{2}:\d{2}\]\s*)?(?:\w+:\s*)?(\{.*\})\s*$`,
+			`^(\{.*\})$`,
+			`(?i)(?:info|debug|warn|error):\s*(\{.*\})`,
+		}
+	}
+	
+	// 编译正则表达式
+	for _, pattern := range patterns {
+		if regex, err := regexp.Compile(pattern); err == nil {
+			strategy.patterns = append(strategy.patterns, regex)
+		}
+	}
+	
+	return strategy
+}
+
+// Name 返回策略名称
+func (s *JSONStrategy) Name() string {
+	return s.name
+}
+
+// Priority 返回策略优先级
+func (s *JSONStrategy) Priority() int {
+	return s.priority
+}
+
+// CanParse 检查是否能解析给定的日志内容
+func (s *JSONStrategy) CanParse(logs string) bool {
+	if logs == "" {
+		return false
+	}
+	
+	// 快速检查是否包含JSON指示符
+	if !containsJSON(logs) {
+		return false
+	}
+	
+	// 尝试提取JSON并验证
+	lines := strings.Split(logs, "\n")
+	for i := len(lines) - 1; i >= 0 && i >= len(lines)-10; i-- { // 只检查最后10行
+		line := strings.TrimSpace(lines[i])
+		if line == "" {
+			continue
+		}
+		
+		if jsonStr := s.extractJSONFromLine(line); jsonStr != "" {
+			var testData map[string]interface{}
+			if err := json.Unmarshal([]byte(jsonStr), &testData); err == nil {
+				if typeVal, ok := testData["type"].(string); ok && typeVal == "result" {
+					return true
+				}
+			}
+		}
+	}
+	
+	return false
+}
+
+// Parse 解析日志内容
+func (s *JSONStrategy) Parse(ctx context.Context, logs string) (map[string]interface{}, error) {
+	if logs == "" {
+		return nil, errors.New("empty logs")
+	}
+	
+	// 使用上下文监控超时
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+	
+	// 使用scanner进行流式处理
+	scanner := bufio.NewScanner(strings.NewReader(logs))
+	lines := make([]string, 0)
+	
+	// 收集所有非空行
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line != "" {
+			lines = append(lines, line)
+		}
+		
+		// 检查上下文取消
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+	}
+	
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+	
+	// 从末尾开始查找有效的JSON结果
+	for i := len(lines) - 1; i >= 0; i-- {
+		line := lines[i]
+		
+		jsonStr := s.extractJSONFromLine(line)
+		if jsonStr == "" {
+			continue
+		}
+		
+		var result map[string]interface{}
+		if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
+			continue
+		}
+		
+		// 检查是否是有效的结果JSON
+		if s.isValidResultJSON(result) {
+			return result, nil
+		}
+		
+		// 检查上下文取消
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+	}
+	
+	return nil, errors.New("no valid result JSON found")
+}
+
+// SupportsBatch 支持批量解析
+func (s *JSONStrategy) SupportsBatch() bool {
+	return true
+}
+
+// ParseBatch 批量解析
+func (s *JSONStrategy) ParseBatch(ctx context.Context, logEntries []string) ([]map[string]interface{}, error) {
+	results := make([]map[string]interface{}, 0, len(logEntries))
+	
+	for _, logs := range logEntries {
+		select {
+		case <-ctx.Done():
+			return results, ctx.Err()
+		default:
+		}
+		
+		if result, err := s.Parse(ctx, logs); err == nil {
+			results = append(results, result)
+		}
+	}
+	
+	return results, nil
+}
+
+// extractJSONFromLine 从单行日志中提取JSON
+func (s *JSONStrategy) extractJSONFromLine(line string) string {
+	// 尝试所有正则表达式模式
+	for _, pattern := range s.patterns {
+		matches := pattern.FindStringSubmatch(line)
+		if len(matches) >= 2 {
+			return matches[1]
+		}
+	}
+	
+	// 如果没有匹配，检查是否整行都是JSON
+	trimmedLine := strings.TrimSpace(line)
+	if strings.HasPrefix(trimmedLine, "{") && strings.HasSuffix(trimmedLine, "}") {
+		return trimmedLine
+	}
+	
+	return ""
+}
+
+// isValidResultJSON 检查是否是有效的结果JSON
+func (s *JSONStrategy) isValidResultJSON(data map[string]interface{}) bool {
+	// 检查必需的字段
+	typeVal, hasType := data["type"].(string)
+	if !hasType || typeVal != "result" {
+		return false
+	}
+	
+	// 检查subtype字段
+	if _, hasSubtype := data["subtype"]; !hasSubtype {
+		return false
+	}
+	
+	// 检查is_error字段
+	if _, hasIsError := data["is_error"]; !hasIsError {
+		return false
+	}
+	
+	// 检查session_id字段
+	if sessionID, hasSessionID := data["session_id"].(string); !hasSessionID || sessionID == "" {
+		return false
+	}
+	
+	return true
+}
+
+// OptimizedJSONStrategy 优化的JSON解析策略
+type OptimizedJSONStrategy struct {
+	*JSONStrategy
+	maxLines int
+}
+
+// NewOptimizedJSONStrategy 创建优化的JSON解析策略
+func NewOptimizedJSONStrategy(maxLines int, patterns ...string) *OptimizedJSONStrategy {
+	base := NewJSONStrategy(patterns...)
+	return &OptimizedJSONStrategy{
+		JSONStrategy: base,
+		maxLines:     maxLines,
+	}
+}
+
+// Parse 优化的解析方法，限制处理的行数
+func (s *OptimizedJSONStrategy) Parse(ctx context.Context, logs string) (map[string]interface{}, error) {
+	if logs == "" {
+		return nil, errors.New("empty logs")
+	}
+	
+	lines := strings.Split(logs, "\n")
+	
+	// 限制处理的行数，从末尾开始
+	startIndex := 0
+	if len(lines) > s.maxLines {
+		startIndex = len(lines) - s.maxLines
+	}
+	
+	// 从末尾开始查找
+	for i := len(lines) - 1; i >= startIndex; i-- {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+		
+		line := strings.TrimSpace(lines[i])
+		if line == "" {
+			continue
+		}
+		
+		jsonStr := s.extractJSONFromLine(line)
+		if jsonStr == "" {
+			continue
+		}
+		
+		var result map[string]interface{}
+		if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
+			continue
+		}
+		
+		if s.isValidResultJSON(result) {
+			return result, nil
+		}
+	}
+	
+	return nil, errors.New("no valid result JSON found")
+}
