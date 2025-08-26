@@ -68,6 +68,7 @@ export function useTaskConversations(task: Task | null) {
       setNewMessage("");
       setExecutionTime(undefined);
       setModel("default");
+      setIsPlanMode(false);
       await loadConversations();
     } catch (error) {
       console.error("Failed to send message:", error);
