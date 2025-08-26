@@ -225,11 +225,60 @@ func (p *DefaultParser) validateResult(result map[string]interface{}) error {
 		return nil
 	}
 	
+	// 对于计划模式结果，使用更宽松的验证
+	if p.isPlanModeResult(result) {
+		return p.validatePlanModeResult(result)
+	}
+	
 	if p.config.AllowPartialData {
 		return p.validator.ValidatePartial(result)
 	}
 	
 	return p.validator.Validate(result)
+}
+
+// isPlanModeResult 检查是否是计划模式结果
+func (p *DefaultParser) isPlanModeResult(result map[string]interface{}) bool {
+	if typeVal, ok := result["type"].(string); ok && typeVal == "result" {
+		if subtypeVal, ok := result["subtype"].(string); ok && subtypeVal == "plan_mode" {
+			return true
+		}
+	}
+	return false
+}
+
+// validatePlanModeResult 验证计划模式结果
+func (p *DefaultParser) validatePlanModeResult(result map[string]interface{}) error {
+	// 检查必需字段
+	requiredFields := []string{"type", "subtype", "is_error", "session_id", "result"}
+	
+	for _, field := range requiredFields {
+		if _, exists := result[field]; !exists {
+			return fmt.Errorf("missing required field: %s", field)
+		}
+	}
+	
+	// 验证type字段
+	if typeVal, ok := result["type"].(string); !ok || typeVal != "result" {
+		return fmt.Errorf("invalid type field, expected 'result', got: %v", result["type"])
+	}
+	
+	// 验证subtype字段
+	if subtypeVal, ok := result["subtype"].(string); !ok || subtypeVal != "plan_mode" {
+		return fmt.Errorf("invalid subtype field, expected 'plan_mode', got: %v", result["subtype"])
+	}
+	
+	// 验证session_id字段
+	if sessionID, ok := result["session_id"].(string); !ok || sessionID == "" {
+		return fmt.Errorf("invalid or empty session_id field: %v", result["session_id"])
+	}
+	
+	// 验证result字段（应包含计划内容）
+	if planResult, ok := result["result"].(string); !ok || planResult == "" {
+		return fmt.Errorf("invalid or empty result field: %v", result["result"])
+	}
+	
+	return nil
 }
 
 // Metrics 解析指标

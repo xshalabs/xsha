@@ -195,6 +195,11 @@ func (s *JSONStrategy) extractJSONFromLine(line string) string {
 
 // isValidResultJSON 检查是否是有效的结果JSON
 func (s *JSONStrategy) isValidResultJSON(data map[string]interface{}) bool {
+	// 首先检查是否是计划模式结果
+	if s.isPlanModeResult(data) {
+		return false // 计划模式结果应该由PlanModeStrategy处理
+	}
+	
 	// 检查必需的字段
 	typeVal, hasType := data["type"].(string)
 	if !hasType || typeVal != "result" {
@@ -217,6 +222,51 @@ func (s *JSONStrategy) isValidResultJSON(data map[string]interface{}) bool {
 	}
 	
 	return true
+}
+
+// isPlanModeResult 检查是否是计划模式结果
+func (s *JSONStrategy) isPlanModeResult(data map[string]interface{}) bool {
+	// 检查是否是assistant类型
+	typeVal, hasType := data["type"].(string)
+	if !hasType || typeVal != "assistant" {
+		return false
+	}
+	
+	// 检查message字段
+	message, hasMessage := data["message"]
+	if !hasMessage {
+		return false
+	}
+	
+	messageMap, ok := message.(map[string]interface{})
+	if !ok {
+		return false
+	}
+	
+	// 检查content字段
+	content, hasContent := messageMap["content"]
+	if !hasContent {
+		return false
+	}
+	
+	// content应该是一个数组
+	contentArray, ok := content.([]interface{})
+	if !ok {
+		return false
+	}
+	
+	// 检查是否包含ExitPlanMode工具使用
+	for _, item := range contentArray {
+		if itemMap, ok := item.(map[string]interface{}); ok {
+			if toolType, hasType := itemMap["type"].(string); hasType && toolType == "tool_use" {
+				if name, hasName := itemMap["name"].(string); hasName && name == "ExitPlanMode" {
+					return true
+				}
+			}
+		}
+	}
+	
+	return false
 }
 
 // OptimizedJSONStrategy 优化的JSON解析策略

@@ -38,6 +38,11 @@ func (s *TextStrategy) CanParse(logs string) bool {
 		return false
 	}
 	
+	// 如果是计划模式，应该由PlanModeStrategy处理
+	if containsPlanMode(logs) {
+		return false
+	}
+	
 	// 检查是否包含结构化文本指示符
 	return containsStructuredText(logs)
 }

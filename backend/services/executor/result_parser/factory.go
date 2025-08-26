@@ -45,6 +45,9 @@ func NewDefaultStrategyFactory(config *Config) *DefaultStrategyFactory {
 
 // initializeDefaultStrategies 初始化默认策略
 func (f *DefaultStrategyFactory) initializeDefaultStrategies() {
+	// 计划模式策略（最高优先级）
+	planModeStrategy := strategies.NewPlanModeStrategy()
+	
 	// JSON策略（高优先级）
 	jsonStrategy := strategies.NewJSONStrategy(f.config.JSONLogPatterns...)
 	
@@ -61,6 +64,7 @@ func (f *DefaultStrategyFactory) initializeDefaultStrategies() {
 	fallbackStrategy := strategies.NewFallbackStrategy()
 	
 	f.strategies = []strategies.ParseStrategy{
+		planModeStrategy,
 		optimizedJSONStrategy,
 		jsonStrategy,
 		textStrategy,

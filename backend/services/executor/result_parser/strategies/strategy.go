@@ -65,6 +65,10 @@ func DetectLogFormat(logs string) LogFormat {
 	}
 	
 	// 简单的格式检测逻辑
+	if containsPlanMode(logs) {
+		return LogFormatJSON // 计划模式也是JSON格式
+	}
+	
 	if containsJSON(logs) {
 		return LogFormatJSON
 	}
@@ -115,6 +119,27 @@ func containsStructuredText(logs string) bool {
 		}
 	}
 	
+	return count >= 2
+}
+
+// containsPlanMode 检查是否包含计划模式
+func containsPlanMode(logs string) bool {
+	// 检查计划模式特有的标识符
+	planModeIndicators := []string{
+		`"type":"assistant"`,
+		`"name":"ExitPlanMode"`,
+		`"tool_use"`,
+		`ExitPlanMode`,
+	}
+	
+	count := 0
+	for _, indicator := range planModeIndicators {
+		if containsString(logs, indicator) {
+			count++
+		}
+	}
+	
+	// 至少需要包含2个计划模式指示符
 	return count >= 2
 }
 
