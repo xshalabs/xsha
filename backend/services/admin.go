@@ -128,6 +128,11 @@ func (s *adminService) DeleteAdmin(id uint) error {
 		return fmt.Errorf("failed to get admin: %v", err)
 	}
 
+	// Check if this is a system-created admin
+	if admin.CreatedBy == "system" {
+		return appErrors.ErrCannotDeleteSystemAdmin
+	}
+
 	// Check if this is the last active admin
 	activeCount, err := s.adminRepo.CountAdmins()
 	if err != nil {

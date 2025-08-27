@@ -112,5 +112,6 @@ var (
 	ErrAdminNotFound         = &I18nError{Key: "admin.not_found"}
 	ErrAdminInactive         = &I18nError{Key: "admin.inactive"}
 	ErrInvalidCredentials    = &I18nError{Key: "admin.invalid_credentials"}
-	ErrCannotDeleteLastAdmin = &I18nError{Key: "admin.cannot_delete_last"}
+	ErrCannotDeleteLastAdmin   = &I18nError{Key: "admin.cannot_delete_last"}
+	ErrCannotDeleteSystemAdmin = &I18nError{Key: "admin.cannot_delete_system"}
 )

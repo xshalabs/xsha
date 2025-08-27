@@ -75,6 +75,7 @@
     "createFailed": "创建管理员用户失败",
     "updateFailed": "更新管理员用户失败",
     "deleteFailed": "删除管理员用户失败",
-    "passwordChangeFailed": "修改密码失败"
+    "passwordChangeFailed": "修改密码失败",
+    "cannotDeleteSystemAdmin": "不能删除系统创建的管理员账户"
   }
 }

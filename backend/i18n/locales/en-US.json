@@ -144,5 +144,20 @@
   "attachment.save_failed": "Failed to save file",
   "attachment.not_found": "Attachment not found",
   "attachment.file_not_found": "Attachment file not found on disk",
-  "validation.conversation_id_required": "Conversation ID is required"
+  "validation.conversation_id_required": "Conversation ID is required",
+  "admin.username_required": "Username is required",
+  "admin.username_invalid": "Username is invalid (3-50 characters, alphanumeric and underscore only)",
+  "admin.username_exists": "Username already exists",
+  "admin.password_required": "Password is required",
+  "admin.password_invalid": "Password is invalid (6-128 characters)",
+  "admin.not_found": "Admin user not found",
+  "admin.inactive": "Admin user is inactive",
+  "admin.invalid_credentials": "Invalid username or password",
+  "admin.cannot_delete_last": "Cannot delete the last admin user",
+  "admin.cannot_delete_system": "Cannot delete system-created admin accounts",
+  "admin.create_success": "Admin user created successfully",
+  "admin.update_success": "Admin user updated successfully",
+  "admin.delete_success": "Admin user deleted successfully",
+  "admin.password_change_success": "Admin password changed successfully",
+  "admin.list_success": "Admin users retrieved successfully"
 }

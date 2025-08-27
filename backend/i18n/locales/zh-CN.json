@@ -144,5 +144,20 @@
   "attachment.save_failed": "文件保存失败",
   "attachment.not_found": "附件不存在",
   "attachment.file_not_found": "附件文件不存在",
-  "validation.conversation_id_required": "会话ID不能为空"
+  "validation.conversation_id_required": "会话ID不能为空",
+  "admin.username_required": "用户名是必需的",
+  "admin.username_invalid": "用户名无效（3-50个字符，仅支持字母数字和下划线）",
+  "admin.username_exists": "用户名已存在",
+  "admin.password_required": "密码是必需的",
+  "admin.password_invalid": "密码无效（6-128个字符）",
+  "admin.not_found": "管理员用户不存在",
+  "admin.inactive": "管理员用户未激活",
+  "admin.invalid_credentials": "用户名或密码错误",
+  "admin.cannot_delete_last": "不能删除最后一个管理员用户",
+  "admin.cannot_delete_system": "不能删除系统创建的管理员账户",
+  "admin.create_success": "管理员用户创建成功",
+  "admin.update_success": "管理员用户更新成功",
+  "admin.delete_success": "管理员用户删除成功",
+  "admin.password_change_success": "管理员密码修改成功",
+  "admin.list_success": "管理员用户获取成功"
 }

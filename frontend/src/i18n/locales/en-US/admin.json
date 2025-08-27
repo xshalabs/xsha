@@ -75,6 +75,7 @@
     "createFailed": "Failed to create admin user",
     "updateFailed": "Failed to update admin user",
     "deleteFailed": "Failed to delete admin user",
-    "passwordChangeFailed": "Failed to change password"
+    "passwordChangeFailed": "Failed to change password",
+    "cannotDeleteSystemAdmin": "Cannot delete system-created admin accounts"
   }
 }

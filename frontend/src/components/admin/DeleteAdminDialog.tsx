@@ -30,6 +30,12 @@ export function DeleteAdminDialog({
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async () => {
+    // Additional client-side check for system admins
+    if (admin.created_by === 'system') {
+      toast.error(t('admin.errors.cannotDeleteSystemAdmin'));
+      return;
+    }
+
     try {
       setLoading(true);
       await adminApi.deleteAdmin(admin.id);

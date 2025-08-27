@@ -136,13 +136,14 @@ export const createAdminColumns = ({
         },
       ];
 
-      const deleteAction = {
+      // Only allow deletion if not created by system
+      const deleteAction = admin.created_by !== 'system' ? {
         title: admin.username,
         confirmationValue: admin.username,
         submitAction: async () => {
           await onDelete(admin);
         },
-      };
+      } : undefined;
 
       return (
         <QuickActions 
