@@ -1,18 +1,20 @@
-<p align="center">
-    <img src="assets/logo.png" width="400"/>
-<p>
+<div align="center">
 
-<p align="center">
-    <img src="assets/preview_20250814.png" width="800"/>
-<p>
+<img src="assets/logo.png" width="400"/>
 
-# 🚀 XSha - Cursor Background 开源替代
+<img src="assets/preview_20250814.png" width="800"/>
 
-XSha 是一款将项目管理、Git、基于 AI 驱动的需求开发结合的软件系统。现基于 Claude Code 实现了通过任务对话即可完成项目任务开发，可同时多个任务并发执行，每个任务拥有独立的工作空间。通过 Docker 容器分配每个任务的执行环境从而保证了安全性。基于 ENV 环境变量的配置，可以轻松简答的接入 Kimi2、GLM 4.5、Qwen Coder 等更有性价比的大模型。 ✨
+# 🚀 xsha - AI 驱动的项目开发平台
+
+[X](https://x.com/0xTYZ) • [ProductHunt](https://www.producthunt.com/products/xsha) • [QQ群](assets/qq-group.jpg)
+
+</div>
+
+xsha 是一款将项目管理、Git、基于 AI 驱动的需求开发结合的软件系统。现基于 Claude Code 实现了通过任务对话即可完成项目任务开发，可同时多个任务并发执行，每个任务拥有独立的工作空间。通过 Docker 容器分配每个任务的执行环境从而保证了安全性。基于 ENV 环境变量的配置，可以轻松简答的接入 Kimi K2、GLM 4.5、Qwen Coder 等更有性价比的大模型。 ✨
 
 ## 🔥 核心特性
 
-- **🧠 AI 驱动的项目任务自动开发：** 于 Claude Code 封装，开发能力上线取决于 Claude Code 的上限。同时支持 Kimi2/GLM 4.5/Qwen Coder 等模型。
+- **🧠 AI 驱动的项目任务自动开发：** 于 Claude Code 封装，开发能力上线取决于 Claude Code 的上限。同时支持 Kimi K2/GLM 4.5/Qwen Coder 等模型。
 - **🛡️ 执行环境隔离：** 基于 Docker 的容器运行方案，每个 Claude Code 的执行都在独立的容器内部，保证安全性。
 - **⚡ 并发执行任务：** 可控制的并发数量让项目任务开发更快速。
 - **🔄 Git 接入：** 直接导入 Git 仓库，项目任务开发完成后一键推送到仓库，还可以在线查看 Git Diff 。
@@ -94,8 +96,8 @@ npm run dev        # 启动开发服务器
 
 ## 📄 开源协议
 
-本仓库采用 [XSHA 开源许可证](LICENSE) 授权，基于 Apache 2.0 并附加额外条件。⚖️
+本仓库采用 [xsha 开源许可证](LICENSE) 授权，基于 Apache 2.0 并附加额外条件。⚖️
 
 ---
 
-**由 XSHA 团队用 ❤️ 构建** 👨‍💻👩‍💻
+**由 xsha 团队用 ❤️ 构建** 👨‍💻👩‍💻

@@ -1,20 +1,20 @@
-<p align="center">
-    <img src="assets/logo.png" width="400"/>
-<p>
+<div align="center">
 
-<p align="center">
-    <img src="assets/preview_20250814.png" width="800"/>
-<p>
+<img src="assets/logo.png" width="400"/>
 
-# 🚀 XSha - Open Source Alternative to Cursor Background
+<img src="assets/preview_20250814.png" width="800"/>
 
-[中文](README_CN.md)
+# 🚀 xsha - AI-powered project development platform
 
-XSha is a software system that combines project management, Git, and AI-driven development. Based on Claude Code, it enables project task development through conversational interactions, with multiple tasks running concurrently, each with its own isolated workspace. Docker containers are used to allocate execution environments for each task, ensuring security. With ENV variable configuration, you can easily integrate more cost-effective large language models like Kimi2, GLM 4.5, and Qwen Coder. ✨
+[中文 README](README_CN.md) • [X](https://x.com/0xTYZ) • [ProductHunt](https://www.producthunt.com/products/xsha)
+
+</div>
+
+xsha is a software system that combines project management, Git, and AI-driven development. Based on Claude Code, it enables project task development through conversational interactions, with multiple tasks running concurrently, each with its own isolated workspace. Docker containers are used to allocate execution environments for each task, ensuring security. With ENV variable configuration, you can easily integrate more cost-effective large language models like Kimi K2, GLM 4.5, and Qwen Coder. ✨
 
 ## 🔥 Core Features
 
-- **🧠 AI-Driven Project Task Automation:** Built on Claude Code, with development capabilities limited only by Claude Code's potential. Also supports models like Kimi2/GLM 4.5/Qwen Coder.
+- **🧠 AI-Driven Project Task Automation:** Built on Claude Code, with development capabilities limited only by Claude Code's potential. Also supports models like Kimi K2/GLM 4.5/Qwen Coder.
 - **🛡️ Isolated Execution Environments:** Docker-based container solution ensures each Claude Code execution runs in its own isolated container for security.
 - **⚡ Concurrent Task Execution:** Controllable concurrency allows for faster project task development.
 - **🔄 Git Integration:** Directly import Git repositories, push completed project tasks to repositories with one click, and view Git diffs online.
@@ -96,8 +96,8 @@ We welcome contributions from the community! Here's how you can get involved: �
 
 ## 📄 License
 
-This repository is licensed under the [XSHA Open Source License](LICENSE), based on Apache 2.0 with additional conditions. ⚖️
+This repository is licensed under the [xsha Open Source License](LICENSE), based on Apache 2.0 with additional conditions. ⚖️
 
 ---
 
-**Built with ❤️ by the XSHA team** 👨‍💻👩‍💻
+**Built with ❤️ by the xsha team** 👨‍💻👩‍💻
