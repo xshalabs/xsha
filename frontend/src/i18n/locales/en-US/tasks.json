@@ -29,6 +29,9 @@
     "requirementDesc": "Requirement Description",
     "project": "Project",
     "model": "Model",
+    "planMode": "Plan Mode",
+    "planModeEnabled": "Plan mode enabled",
+    "enablePlanMode": "Enable plan mode",
     "startBranch": "Start Branch",
     "devEnvironment": "Development Environment",
     "work_branch": "Work Branch",
@@ -62,6 +65,7 @@
     "executionTimeHint": "If no execution time is set, the task will be executed immediately",
     "selectModel": "Select model",
     "modelHint": "Only available for Claude Code environments, choose the model version to use",
+    "planModeHint": "When enabled, Claude will create a plan before executing tasks",
     "clickIconsToConfigureHint": "Click icons in the text area to configure execution settings",
     "attachmentsHint": "Upload images or PDF files to provide additional context for your task (max 10MB per file)"
   },

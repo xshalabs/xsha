@@ -173,13 +173,13 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	} else {
 		// workspacePath is now relative, need to convert to absolute for volume mounting
 		absoluteWorkspacePath := filepath.Join(d.config.WorkspaceBaseDir, workspacePath)
-		cmd = append(cmd, fmt.Sprintf("-v %s:/app", absoluteWorkspacePath))
+		cmd = append(cmd, fmt.Sprintf("-v %s:/app/%s", absoluteWorkspacePath, workspacePath))
 		if devEnv.SessionDir != "" {
 			// SessionDir is now also relative, convert to absolute for volume mounting
 			absoluteSessionDir := filepath.Join(d.config.DevSessionsDir, devEnv.SessionDir)
 			cmd = append(cmd, fmt.Sprintf("-v %s:/home/xsha", absoluteSessionDir))
 		}
-		cmd = append(cmd, "-w /app")
+		cmd = append(cmd, fmt.Sprintf("-w /app/%s", workspacePath))
 	}
 
 	if devEnv.CPULimit > 0 {
@@ -214,7 +214,6 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 			"claude",
 			"-p",
 			"--output-format=stream-json",
-			"--dangerously-skip-permissions",
 			"--verbose",
 		}
 
@@ -222,16 +221,35 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 			claudeCommand = append(claudeCommand, "-r", task.SessionID)
 		}
 
-		// Parse env_params to check for model parameter
+		// Parse env_params to check for model and plan mode parameters
+		var isPlanModeEnabled bool
 		if conv != nil && conv.EnvParams != "" && conv.EnvParams != "{}" {
 			var envParams map[string]interface{}
 			if err := json.Unmarshal([]byte(conv.EnvParams), &envParams); err == nil {
-				if model, exists := envParams["model"]; exists {
-					if modelStr, ok := model.(string); ok && modelStr != "default" {
-						claudeCommand = append(claudeCommand, "--model", modelStr)
+				if isPlanMode, exists := envParams["is_plan_mode"]; exists {
+					if isPlanModeBool, ok := isPlanMode.(bool); ok && isPlanModeBool {
+						isPlanModeEnabled = true
+						claudeCommand = append(claudeCommand, "--permission-mode", "plan")
+						// Force model to be "opus" when plan mode is enabled
+						claudeCommand = append(claudeCommand, "--model", "opus")
+					}
+				}
+
+				// Only set model if plan mode is not enabled
+				if !isPlanModeEnabled {
+					if model, exists := envParams["model"]; exists {
+						if modelStr, ok := model.(string); ok && modelStr != "default" {
+							claudeCommand = append(claudeCommand, "--model", modelStr)
+						}
 					}
 				}
 			}
+		}
+
+		// Add permission flag based on plan mode status
+		// Use --permission-mode=plan when plan mode is enabled, otherwise use --dangerously-skip-permissions
+		if !isPlanModeEnabled {
+			claudeCommand = append(claudeCommand, "--dangerously-skip-permissions")
 		}
 
 		// Add system prompt if project has one

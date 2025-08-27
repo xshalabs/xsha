@@ -108,20 +108,30 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 
 **claude-code 类型** (最复杂的映射):
 ```bash
-claude -p --output-format=stream-json --dangerously-skip-permissions --verbose
+claude -p --output-format=stream-json --verbose
 ```
 
 参数映射：
 - `SessionID` → `-r {task.SessionID}` (如果存在)
 - `EnvParams.model` → `--model {modelName}` (如果不是 "default")
+- `EnvParams.is_plan_mode` → `--permission-mode plan` (如果为 true) 或 `--dangerously-skip-permissions` (如果为 false 或未设置)
 - `Project.SystemPrompt` → `--append-system-prompt "{prompt}"`
 - `DevEnvironment.SystemPrompt` → `--append-system-prompt "{prompt}"`
 - `Content` → 最终的用户输入参数
 - `SessionDir` → `-d /xsha_dev_sessions/{sessionDir}` (容器内执行时)
 
-最终构造为：
+**权限模式说明**：
+- 当 `is_plan_mode=true` 时，使用 `--permission-mode plan` 参数
+- 当 `is_plan_mode=false` 或未设置时，使用 `--dangerously-skip-permissions` 参数
+- 这两个参数是互斥的，不能同时使用
+
+最终构造示例：
 ```bash
+# 普通模式
 --command "claude -p --output-format=stream-json --dangerously-skip-permissions --verbose [参数...] \"用户内容\""
+
+# 计划模式
+--command "claude -p --output-format=stream-json --permission-mode plan --verbose [参数...] \"用户内容\""
 ```
 
 **opencode 和 gemini-cli 类型**:

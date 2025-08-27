@@ -29,6 +29,9 @@
     "requirementDesc": "需求描述",
     "project": "项目",
     "model": "模型",
+    "planMode": "计划模式",
+    "planModeEnabled": "计划模式已启用",
+    "enablePlanMode": "启用计划模式",
     "startBranch": "起始分支",
     "devEnvironment": "开发环境",
     "work_branch": "工作分支",
@@ -62,6 +65,7 @@
     "executionTimeHint": "如果不设置执行时间，任务将立即执行",
     "selectModel": "选择模型",
     "modelHint": "仅对Claude Code环境可用，选择要使用的模型版本",
+    "planModeHint": "启用后，Claude将在执行任务前创建计划",
     "clickIconsToConfigureHint": "点击文本区域中的图标来配置执行设置",
     "attachmentsHint": "上传图片或PDF文件为您的任务提供额外的上下文信息（每个文件最大10MB）"
   },

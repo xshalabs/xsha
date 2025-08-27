@@ -16,13 +16,9 @@ func NewTaskProcessor(aiTaskExecutor services.AITaskExecutorService) TaskProcess
 }
 
 func (p *taskProcessor) ProcessTasks() error {
-	utils.Info("Starting to process pending task conversations...")
-
 	if err := p.aiTaskExecutor.ProcessPendingConversations(); err != nil {
 		utils.Error("Task processing failed", "error", err)
 		return err
 	}
-
-	utils.Info("Task processing completed")
 	return nil
 }

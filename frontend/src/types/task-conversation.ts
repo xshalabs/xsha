@@ -97,6 +97,7 @@ export interface ConversationFormData {
   content: string;
   execution_time?: Date; // Date object for form handling
   model?: string; // Model selection for claude-code environments
+  is_plan_mode?: boolean; // Plan mode toggle for claude-code environments
 }
 
 // Git diff types for conversations
@@ -150,4 +151,5 @@ export interface ClaudeModelOption {
 // Environment parameters interface
 export interface EnvironmentParams {
   model?: ClaudeModel;
+  is_plan_mode?: boolean;
 }

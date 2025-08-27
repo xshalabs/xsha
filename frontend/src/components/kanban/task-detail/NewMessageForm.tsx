@@ -15,6 +15,7 @@ interface NewMessageFormProps {
   newMessage: string;
   executionTime: Date | undefined;
   model: string;
+  isPlanMode?: boolean;
   sending: boolean;
   canSendMessage: boolean;
   isTaskCompleted: boolean;
@@ -22,6 +23,7 @@ interface NewMessageFormProps {
   onMessageChange: (message: string) => void;
   onExecutionTimeChange: (time: Date | undefined) => void;
   onModelChange: (model: string) => void;
+  onPlanModeChange: (isPlanMode: boolean) => void;
   onSendMessage: (attachmentIds?: number[]) => void;
 }
 
@@ -31,6 +33,7 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     newMessage,
     executionTime,
     model,
+    isPlanMode,
     sending,
     canSendMessage,
     isTaskCompleted,
@@ -38,6 +41,7 @@ export const NewMessageForm = memo<NewMessageFormProps>(
     onMessageChange,
     onExecutionTimeChange,
     onModelChange,
+    onPlanModeChange,
     onSendMessage,
   }) => {
     const { t } = useTranslation();
@@ -248,11 +252,13 @@ export const NewMessageForm = memo<NewMessageFormProps>(
                 task={task}
                 executionTime={executionTime}
                 model={model}
+                isPlanMode={isPlanMode}
                 attachmentCount={attachments.length}
                 sending={sending}
                 uploading={uploading}
                 onExecutionTimeChange={onExecutionTimeChange}
                 onModelChange={onModelChange}
+                onPlanModeChange={onPlanModeChange}
                 onFileSelect={handleFileSelect}
               />
                   
