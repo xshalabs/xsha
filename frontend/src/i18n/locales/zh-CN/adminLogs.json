@@ -1,6 +1,10 @@
 {
   "operationLogs": {
     "title": "操作日志",
+    "overview": {
+      "title": "操作日志",
+      "description": "查看和分析系统操作日志，跟踪用户活动和系统事件"
+    },
     "columns": {
       "id": "ID",
       "username": "用户",
