@@ -1,0 +1,80 @@
+{
+  "title": "管理员用户",
+  "description": "管理系统管理员账户",
+  "pageTitle": {
+    "list": "管理员用户 - XSha"
+  },
+  "table": {
+    "username": "用户名",
+    "email": "邮箱",
+    "status": "状态",
+    "lastLogin": "最后登录",
+    "createdBy": "创建者",
+    "createdAt": "创建时间",
+    "noData": "暂无管理员用户"
+  },
+  "fields": {
+    "username": "用户名",
+    "password": "密码",
+    "email": "邮箱",
+    "status": "状态",
+    "statusDescription": "启用或禁用此管理员账户",
+    "newPassword": "新密码",
+    "confirmPassword": "确认密码"
+  },
+  "placeholders": {
+    "username": "请输入用户名（仅支持字母、数字、下划线）",
+    "password": "请输入密码（最少6位字符）",
+    "email": "请输入邮箱地址（可选）",
+    "newPassword": "请输入新密码",
+    "confirmPassword": "请确认新密码"
+  },
+  "filters": {
+    "searchUsername": "按用户名搜索...",
+    "status": "状态",
+    "allStatus": "全部状态",
+    "active": "启用",
+    "inactive": "禁用"
+  },
+  "status": {
+    "active": "启用",
+    "inactive": "禁用"
+  },
+  "actions": {
+    "create": "创建管理员",
+    "changePassword": "修改密码",
+    "changingPassword": "修改中..."
+  },
+  "dialogs": {
+    "create": {
+      "title": "创建管理员用户",
+      "description": "创建新的管理员账户"
+    },
+    "update": {
+      "title": "更新管理员用户",
+      "description": "更新管理员账户：{{username}}"
+    },
+    "changePassword": {
+      "title": "修改密码",
+      "description": "修改管理员密码：{{username}}"
+    },
+    "delete": {
+      "title": "删除管理员用户",
+      "description": "确定要删除管理员：{{username}}？",
+      "warning": "此操作不可撤销。"
+    }
+  },
+  "messages": {
+    "createSuccess": "管理员用户创建成功",
+    "updateSuccess": "管理员用户更新成功",
+    "deleteSuccess": "管理员用户删除成功",
+    "passwordChangeSuccess": "密码修改成功"
+  },
+  "errors": {
+    "loadFailed": "加载管理员用户失败",
+    "createFailed": "创建管理员用户失败",
+    "updateFailed": "更新管理员用户失败",
+    "deleteFailed": "删除管理员用户失败",
+    "passwordChangeFailed": "修改密码失败"
+  }
+}

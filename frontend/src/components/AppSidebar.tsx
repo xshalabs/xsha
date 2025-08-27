@@ -9,6 +9,7 @@ import {
   Shield,
   TrendingUp,
   Activity,
+  Users,
 } from "lucide-react";
 
 import { NavMain } from "@/components/NavMain";
@@ -78,6 +79,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title: t("navigation.logs.stats"),
             url: "/logs/stats",
             icon: TrendingUp,
+          },
+        ],
+      },
+      {
+        title: t("navigation.groups.admin"),
+        items: [
+          {
+            title: t("navigation.admin.users"),
+            url: "/admin",
+            icon: Users,
           },
         ],
       },

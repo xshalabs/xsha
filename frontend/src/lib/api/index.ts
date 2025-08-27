@@ -7,9 +7,17 @@ export type {
   LoginResponse,
   UserResponse,
   ApiErrorResponse,
+  Admin,
+  CreateAdminRequest,
+  UpdateAdminRequest,
+  ChangePasswordRequest,
+  AdminListResponse,
+  AdminResponse,
+  CreateAdminResponse,
 } from "./types";
 
 import { authApi } from "./auth";
+import { adminApi } from "./admin";
 import { gitCredentialsApi } from "./credentials";
 import { adminLogsApi } from "./admin-logs";
 import { projectsApi } from "./projects";
@@ -23,6 +31,7 @@ import { attachmentApi } from "./attachments";
 
 export {
   authApi,
+  adminApi,
   gitCredentialsApi,
   adminLogsApi,
   projectsApi,
@@ -40,6 +49,8 @@ export const apiService = {
   logout: authApi.logout,
   getCurrentUser: authApi.getCurrentUser,
   healthCheck: authApi.healthCheck,
+
+  admin: adminApi,
 
   gitCredentials: gitCredentialsApi,
 

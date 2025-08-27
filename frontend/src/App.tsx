@@ -21,6 +21,7 @@ import ProjectKanbanPage from "@/pages/projects/ProjectKanbanPage";
 import EnvironmentListPage from "@/pages/environments/EnvironmentListPage";
 import CredentialListPage from "@/pages/credentials/CredentialListPage";
 import SettingsPage from "@/pages/settings/Settings";
+import AdminListPage from "@/pages/admin/AdminListPage";
 
 import "./App.css";
 
@@ -137,6 +138,17 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <SettingsPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AdminListPage />
                   </Layout>
                 </ProtectedRoute>
               }

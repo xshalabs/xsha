@@ -1,0 +1,80 @@
+{
+  "title": "Admin Users",
+  "description": "Manage system administrator accounts",
+  "pageTitle": {
+    "list": "Admin Users - XSha"
+  },
+  "table": {
+    "username": "Username",
+    "email": "Email",
+    "status": "Status",
+    "lastLogin": "Last Login",
+    "createdBy": "Created By",
+    "createdAt": "Created At",
+    "noData": "No admin users found"
+  },
+  "fields": {
+    "username": "Username",
+    "password": "Password",
+    "email": "Email",
+    "status": "Status",
+    "statusDescription": "Enable or disable this admin account",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password"
+  },
+  "placeholders": {
+    "username": "Enter username (letters, numbers, underscore only)",
+    "password": "Enter password (minimum 6 characters)",
+    "email": "Enter email address (optional)",
+    "newPassword": "Enter new password",
+    "confirmPassword": "Confirm new password"
+  },
+  "filters": {
+    "searchUsername": "Search by username...",
+    "status": "Status",
+    "allStatus": "All Status",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "actions": {
+    "create": "Create Admin",
+    "changePassword": "Change Password",
+    "changingPassword": "Changing..."
+  },
+  "dialogs": {
+    "create": {
+      "title": "Create Admin User",
+      "description": "Create a new administrator account"
+    },
+    "update": {
+      "title": "Update Admin User",
+      "description": "Update administrator account: {{username}}"
+    },
+    "changePassword": {
+      "title": "Change Password",
+      "description": "Change password for administrator: {{username}}"
+    },
+    "delete": {
+      "title": "Delete Admin User",
+      "description": "Are you sure you want to delete administrator: {{username}}?",
+      "warning": "This action cannot be undone."
+    }
+  },
+  "messages": {
+    "createSuccess": "Admin user created successfully",
+    "updateSuccess": "Admin user updated successfully",
+    "deleteSuccess": "Admin user deleted successfully",
+    "passwordChangeSuccess": "Password changed successfully"
+  },
+  "errors": {
+    "loadFailed": "Failed to load admin users",
+    "createFailed": "Failed to create admin user",
+    "updateFailed": "Failed to update admin user",
+    "deleteFailed": "Failed to delete admin user",
+    "passwordChangeFailed": "Failed to change password"
+  }
+}
