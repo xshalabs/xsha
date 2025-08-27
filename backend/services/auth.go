@@ -10,16 +10,18 @@ type authService struct {
 	tokenRepo           repository.TokenBlacklistRepository
 	loginLogRepo        repository.LoginLogRepository
 	operationLogService AdminOperationLogService
-	systemConfigRepo    repository.SystemConfigRepository
+	adminService        AdminService
+	adminRepo           repository.AdminRepository
 	config              *config.Config
 }
 
-func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, operationLogService AdminOperationLogService, systemConfigRepo repository.SystemConfigRepository, cfg *config.Config) AuthService {
+func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, operationLogService AdminOperationLogService, adminService AdminService, adminRepo repository.AdminRepository, cfg *config.Config) AuthService {
 	return &authService{
 		tokenRepo:           tokenRepo,
 		loginLogRepo:        loginLogRepo,
 		operationLogService: operationLogService,
-		systemConfigRepo:    systemConfigRepo,
+		adminService:        adminService,
+		adminRepo:           adminRepo,
 		config:              cfg,
 	}
 }
@@ -29,25 +31,25 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 	var failureReason string
 	var token string
 
-	// Get admin username and password from system config
-	adminUser, err := s.systemConfigRepo.GetValue("admin_user")
+	// Validate admin credentials using AdminService
+	_, err := s.adminService.ValidateCredentials(username, password)
 	if err != nil {
-		utils.Error("Failed to get admin username from system config",
-			"error", err.Error(),
-		)
-	}
-
-	adminPassword, err := s.systemConfigRepo.GetValue("admin_password")
-	if err != nil {
-		utils.Error("Failed to get admin password from system config",
-			"error", err.Error(),
-		)
-	}
-
-	if username == adminUser && password == adminPassword {
+		loginSuccess = false
+		if err.Error() == "admin.invalid_credentials" {
+			failureReason = "invalid_credentials"
+		} else if err.Error() == "admin.inactive" {
+			failureReason = "account_inactive"
+		} else {
+			failureReason = "validation_error"
+			utils.Error("Failed to validate admin credentials",
+				"username", username,
+				"error", err.Error(),
+			)
+		}
+	} else {
 		loginSuccess = true
 
-		var err error
+		// Generate JWT token
 		token, err = utils.GenerateJWT(username, s.config.JWTSecret)
 		if err != nil {
 			go func() {
@@ -71,13 +73,17 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 			}()
 			return false, "", err
 		}
-	} else {
-		loginSuccess = false
-		if username != adminUser {
-			failureReason = "invalid_username"
-		} else {
-			failureReason = "invalid_password"
-		}
+
+		// Update admin's last login information
+		go func() {
+			if err := s.adminRepo.UpdateLastLogin(username, clientIP); err != nil {
+				utils.Error("Failed to update admin last login info",
+					"username", username,
+					"client_ip", clientIP,
+					"error", err.Error(),
+				)
+			}
+		}()
 	}
 
 	go func() {

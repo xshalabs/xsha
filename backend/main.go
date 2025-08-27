@@ -51,6 +51,7 @@ func main() {
 	// Initialize repositories
 	tokenRepo := repository.NewTokenBlacklistRepository(dbManager.GetDB())
 	loginLogRepo := repository.NewLoginLogRepository(dbManager.GetDB())
+	adminRepo := repository.NewAdminRepository(dbManager.GetDB())
 	adminOperationLogRepo := repository.NewAdminOperationLogRepository(dbManager.GetDB())
 	gitCredRepo := repository.NewGitCredentialRepository(dbManager.GetDB())
 	projectRepo := repository.NewProjectRepository(dbManager.GetDB())
@@ -66,7 +67,8 @@ func main() {
 	// Initialize services
 	loginLogService := services.NewLoginLogService(loginLogRepo)
 	adminOperationLogService := services.NewAdminOperationLogService(adminOperationLogRepo)
-	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, systemConfigRepo, cfg)
+	adminService := services.NewAdminService(adminRepo)
+	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, adminService, adminRepo, cfg)
 	gitCredService := services.NewGitCredentialService(gitCredRepo, projectRepo, cfg)
 	systemConfigService := services.NewSystemConfigService(systemConfigRepo)
 	dashboardService := services.NewDashboardService(dashboardRepo)
@@ -104,6 +106,7 @@ func main() {
 
 	// Initialize handlers
 	authHandlers := handlers.NewAuthHandlers(authService, loginLogService)
+	adminHandlers := handlers.NewAdminHandlers(adminService)
 	adminOperationLogHandlers := handlers.NewAdminOperationLogHandlers(adminOperationLogService)
 	gitCredHandlers := handlers.NewGitCredentialHandlers(gitCredService)
 	projectHandlers := handlers.NewProjectHandlers(projectService)
@@ -151,8 +154,14 @@ func main() {
 	}
 	utils.Info("Dev sessions directory initialized", "directory", cfg.DevSessionsDir)
 
+	// Initialize default admin user
+	if err := adminService.InitializeDefaultAdmin(); err != nil {
+		utils.Error("Failed to initialize default admin user", "error", err)
+		os.Exit(1)
+	}
+
 	// Setup routes - Pass all handler instances including static files
-	routes.SetupRoutes(r, cfg, authService, authHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvResultHandlers, taskExecLogHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
+	routes.SetupRoutes(r, cfg, authService, authHandlers, adminHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvResultHandlers, taskExecLogHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

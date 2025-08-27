@@ -17,6 +17,18 @@ type LoginLogRepository interface {
 	CleanOld(days int) error
 }
 
+type AdminRepository interface {
+	Create(admin *database.Admin) error
+	GetByID(id uint) (*database.Admin, error)
+	GetByUsername(username string) (*database.Admin, error)
+	List(username *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error)
+	Update(admin *database.Admin) error
+	Delete(id uint) error
+	UpdateLastLogin(username, ip string) error
+	CountAdmins() (int64, error)
+	InitializeDefaultAdmin() error
+}
+
 type GitCredentialRepository interface {
 	Create(credential *database.GitCredential) error
 	GetByID(id uint) (*database.GitCredential, error)

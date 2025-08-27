@@ -108,10 +108,10 @@ func (s *taskConversationResultService) isPlanModeResult(resultData map[string]i
 // handlePlanModeResult 处理计划模式结果
 func (s *taskConversationResultService) handlePlanModeResult(result *database.TaskConversationResult, resultData map[string]interface{}) {
 	// 计划模式的特殊字段处理
-	result.DurationMs = 0      // 计划模式不需要执行时长
-	result.DurationApiMs = 0   // 计划模式不需要API时长
-	result.NumTurns = 1        // 计划模式通常只有一轮对话
-	result.TotalCostUsd = 0.0  // 计划模式通常没有成本
+	result.DurationMs = 0     // 计划模式不需要执行时长
+	result.DurationApiMs = 0  // 计划模式不需要API时长
+	result.NumTurns = 1       // 计划模式通常只有一轮对话
+	result.TotalCostUsd = 0.0 // 计划模式通常没有成本
 
 	utils.Info("Processing plan mode result",
 		"conversation_id", result.ConversationID,
@@ -126,13 +126,13 @@ func (s *taskConversationResultService) handleRegularResult(result *database.Tas
 	} else if durationMs, ok := resultData["duration_ms"].(int64); ok {
 		result.DurationMs = durationMs
 	}
-	
+
 	if durationApiMs, ok := resultData["duration_api_ms"].(float64); ok {
 		result.DurationApiMs = int64(durationApiMs)
 	} else if durationApiMs, ok := resultData["duration_api_ms"].(int64); ok {
 		result.DurationApiMs = durationApiMs
 	}
-	
+
 	if numTurns, ok := resultData["num_turns"].(float64); ok {
 		result.NumTurns = int(numTurns)
 	} else if numTurns, ok := resultData["num_turns"].(int); ok {

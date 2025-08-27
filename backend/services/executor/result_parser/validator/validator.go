@@ -8,13 +8,13 @@ import (
 type Validator interface {
 	// Validate 验证数据
 	Validate(data map[string]interface{}) error
-	
+
 	// ValidatePartial 部分验证（允许缺少某些字段）
 	ValidatePartial(data map[string]interface{}) error
-	
+
 	// GetValidationErrors 获取详细的验证错误
 	GetValidationErrors(data map[string]interface{}) []ValidationError
-	
+
 	// IsValid 快速检查是否有效
 	IsValid(data map[string]interface{}) bool
 }
@@ -36,20 +36,20 @@ func (e ValidationError) Error() string {
 type ValidationRule interface {
 	// Name 规则名称
 	Name() string
-	
+
 	// Validate 执行验证
 	Validate(field string, value interface{}) *ValidationError
-	
+
 	// IsApplicable 检查规则是否适用于给定字段
 	IsApplicable(field string) bool
 }
 
 // ResultValidator 结果验证器
 type ResultValidator struct {
-	rules        []ValidationRule
+	rules          []ValidationRule
 	requiredFields []string
 	optionalFields []string
-	strictMode   bool
+	strictMode     bool
 }
 
 // NewResultValidator 创建结果验证器
@@ -71,10 +71,10 @@ func NewResultValidator(strictMode bool) *ResultValidator {
 			"usage",
 		},
 	}
-	
+
 	// 添加默认验证规则
 	validator.addDefaultRules()
-	
+
 	return validator
 }
 
@@ -112,7 +112,7 @@ func (v *ResultValidator) Validate(data map[string]interface{}) error {
 	if len(errors) == 0 {
 		return nil
 	}
-	
+
 	// 返回第一个错误
 	return errors[0]
 }
@@ -123,7 +123,7 @@ func (v *ResultValidator) ValidatePartial(data map[string]interface{}) error {
 	if len(errors) == 0 {
 		return nil
 	}
-	
+
 	return errors[0]
 }
 
@@ -140,7 +140,7 @@ func (v *ResultValidator) IsValid(data map[string]interface{}) bool {
 // getValidationErrors 获取验证错误（内部方法）
 func (v *ResultValidator) getValidationErrors(data map[string]interface{}, partial bool) []ValidationError {
 	var errors []ValidationError
-	
+
 	// 检查必需字段
 	if !partial {
 		for _, field := range v.requiredFields {
@@ -155,7 +155,7 @@ func (v *ResultValidator) getValidationErrors(data map[string]interface{}, parti
 			}
 		}
 	}
-	
+
 	// 验证存在的字段
 	for field, value := range data {
 		// 检查字段是否被允许
@@ -169,7 +169,7 @@ func (v *ResultValidator) getValidationErrors(data map[string]interface{}, parti
 			})
 			continue
 		}
-		
+
 		// 应用验证规则
 		for _, rule := range v.rules {
 			if rule.IsApplicable(field) {
@@ -179,7 +179,7 @@ func (v *ResultValidator) getValidationErrors(data map[string]interface{}, parti
 			}
 		}
 	}
-	
+
 	return errors
 }
 
@@ -190,19 +190,19 @@ func (v *ResultValidator) isAllowedField(field string) bool {
 			return true
 		}
 	}
-	
+
 	for _, allowedField := range v.optionalFields {
 		if field == allowedField {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
 // ChainValidator 链式验证器
 type ChainValidator struct {
-	validators []Validator
+	validators  []Validator
 	stopOnFirst bool
 }
 
@@ -228,7 +228,7 @@ func (c *ChainValidator) Validate(data map[string]interface{}) error {
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -241,23 +241,23 @@ func (c *ChainValidator) ValidatePartial(data map[string]interface{}) error {
 			}
 		}
 	}
-	
+
 	return nil
 }
 
 // GetValidationErrors 获取所有验证错误
 func (c *ChainValidator) GetValidationErrors(data map[string]interface{}) []ValidationError {
 	var allErrors []ValidationError
-	
+
 	for _, validator := range c.validators {
 		errors := validator.GetValidationErrors(data)
 		allErrors = append(allErrors, errors...)
-		
+
 		if c.stopOnFirst && len(errors) > 0 {
 			break
 		}
 	}
-	
+
 	return allErrors
 }
 
@@ -268,7 +268,7 @@ func (c *ChainValidator) IsValid(data map[string]interface{}) bool {
 			return false
 		}
 	}
-	
+
 	return true
 }
 
@@ -291,7 +291,7 @@ func (c *ConditionalValidator) Validate(data map[string]interface{}) error {
 	if !c.condition(data) {
 		return nil
 	}
-	
+
 	return c.validator.Validate(data)
 }
 
@@ -300,7 +300,7 @@ func (c *ConditionalValidator) ValidatePartial(data map[string]interface{}) erro
 	if !c.condition(data) {
 		return nil
 	}
-	
+
 	return c.validator.ValidatePartial(data)
 }
 
@@ -309,7 +309,7 @@ func (c *ConditionalValidator) GetValidationErrors(data map[string]interface{}) 
 	if !c.condition(data) {
 		return []ValidationError{}
 	}
-	
+
 	return c.validator.GetValidationErrors(data)
 }
 
@@ -318,17 +318,17 @@ func (c *ConditionalValidator) IsValid(data map[string]interface{}) bool {
 	if !c.condition(data) {
 		return true
 	}
-	
+
 	return c.validator.IsValid(data)
 }
 
 // ValidationContext 验证上下文
 type ValidationContext struct {
-	StrictMode     bool
-	AllowPartial   bool
-	CustomRules    map[string]ValidationRule
-	FieldAliases   map[string]string
-	DefaultValues  map[string]interface{}
+	StrictMode    bool
+	AllowPartial  bool
+	CustomRules   map[string]ValidationRule
+	FieldAliases  map[string]string
+	DefaultValues map[string]interface{}
 }
 
 // ContextualValidator 上下文验证器
@@ -348,11 +348,11 @@ func NewContextualValidator(baseValidator Validator, context *ValidationContext)
 // Validate 上下文验证
 func (c *ContextualValidator) Validate(data map[string]interface{}) error {
 	processedData := c.preprocessData(data)
-	
+
 	if c.context.AllowPartial {
 		return c.baseValidator.ValidatePartial(processedData)
 	}
-	
+
 	return c.baseValidator.Validate(processedData)
 }
 
@@ -379,14 +379,14 @@ func (c *ContextualValidator) preprocessData(data map[string]interface{}) map[st
 	if c.context == nil {
 		return data
 	}
-	
+
 	result := make(map[string]interface{})
-	
+
 	// 复制原始数据
 	for k, v := range data {
 		result[k] = v
 	}
-	
+
 	// 应用字段别名
 	if c.context.FieldAliases != nil {
 		for alias, realField := range c.context.FieldAliases {
@@ -396,7 +396,7 @@ func (c *ContextualValidator) preprocessData(data map[string]interface{}) map[st
 			}
 		}
 	}
-	
+
 	// 应用默认值
 	if c.context.DefaultValues != nil {
 		for field, defaultValue := range c.context.DefaultValues {
@@ -405,6 +405,6 @@ func (c *ContextualValidator) preprocessData(data map[string]interface{}) map[st
 			}
 		}
 	}
-	
+
 	return result
 }

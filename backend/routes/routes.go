@@ -16,7 +16,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskConvResultHandlers *handlers.TaskConversationResultHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, staticFiles *embed.FS) {
+func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskConvResultHandlers *handlers.TaskConversationResultHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, staticFiles *embed.FS) {
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
 
@@ -47,6 +47,14 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			admin.GET("/operation-logs", operationLogHandlers.GetOperationLogs)
 			admin.GET("/operation-logs/:id", operationLogHandlers.GetOperationLog)
 			admin.GET("/operation-stats", operationLogHandlers.GetOperationStats)
+
+			// Admin user management
+			admin.POST("/users", adminHandlers.CreateAdminHandler)
+			admin.GET("/users", adminHandlers.ListAdminsHandler)
+			admin.GET("/users/:id", adminHandlers.GetAdminHandler)
+			admin.PUT("/users/:id", adminHandlers.UpdateAdminHandler)
+			admin.DELETE("/users/:id", adminHandlers.DeleteAdminHandler)
+			admin.PUT("/users/:id/password", adminHandlers.ChangePasswordHandler)
 		}
 
 		gitCreds := api.Group("/credentials")

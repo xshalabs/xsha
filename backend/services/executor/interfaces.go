@@ -13,7 +13,6 @@ type DockerExecutor interface {
 	StopAndRemoveContainer(containerID string) error
 }
 
-
 type WorkspaceCleaner interface {
 	CleanupOnFailure(taskID uint, workspacePath string) error
 	CleanupOnCancel(taskID uint, workspacePath string) error

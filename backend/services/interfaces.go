@@ -18,6 +18,18 @@ type LoginLogService interface {
 	CleanOldLogs(days int) error
 }
 
+type AdminService interface {
+	CreateAdmin(username, password, email, createdBy string) (*database.Admin, error)
+	GetAdmin(id uint) (*database.Admin, error)
+	GetAdminByUsername(username string) (*database.Admin, error)
+	ListAdmins(username *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error)
+	UpdateAdmin(id uint, updates map[string]interface{}) error
+	DeleteAdmin(id uint) error
+	ChangePassword(id uint, newPassword string) error
+	ValidateCredentials(username, password string) (*database.Admin, error)
+	InitializeDefaultAdmin() error
+}
+
 type GitCredentialService interface {
 	CreateCredential(name, description, credType, username string, secretData map[string]string, createdBy string) (*database.GitCredential, error)
 	GetCredential(id uint) (*database.GitCredential, error)

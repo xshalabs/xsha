@@ -1,0 +1,125 @@
+package repository
+
+import (
+	"time"
+	"xsha-backend/database"
+	"xsha-backend/utils"
+
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+)
+
+type adminRepository struct {
+	db *gorm.DB
+}
+
+func NewAdminRepository(db *gorm.DB) AdminRepository {
+	return &adminRepository{db: db}
+}
+
+func (r *adminRepository) Create(admin *database.Admin) error {
+	return r.db.Create(admin).Error
+}
+
+func (r *adminRepository) GetByID(id uint) (*database.Admin, error) {
+	var admin database.Admin
+	err := r.db.First(&admin, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &admin, nil
+}
+
+func (r *adminRepository) GetByUsername(username string) (*database.Admin, error) {
+	var admin database.Admin
+	err := r.db.Where("username = ?", username).First(&admin).Error
+	if err != nil {
+		return nil, err
+	}
+	return &admin, nil
+}
+
+func (r *adminRepository) List(username *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error) {
+	var admins []database.Admin
+	var total int64
+
+	query := r.db.Model(&database.Admin{})
+
+	if username != nil && *username != "" {
+		query = query.Where("username LIKE ?", "%"+*username+"%")
+	}
+
+	if isActive != nil {
+		query = query.Where("is_active = ?", *isActive)
+	}
+
+	// Count total records
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Apply pagination and fetch records
+	offset := (page - 1) * pageSize
+	err := query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&admins).Error
+	return admins, total, err
+}
+
+func (r *adminRepository) Update(admin *database.Admin) error {
+	return r.db.Save(admin).Error
+}
+
+func (r *adminRepository) Delete(id uint) error {
+	return r.db.Delete(&database.Admin{}, id).Error
+}
+
+func (r *adminRepository) UpdateLastLogin(username, ip string) error {
+	now := time.Now()
+	return r.db.Model(&database.Admin{}).
+		Where("username = ?", username).
+		Updates(map[string]interface{}{
+			"last_login_at": &now,
+			"last_login_ip": ip,
+		}).Error
+}
+
+func (r *adminRepository) CountAdmins() (int64, error) {
+	var count int64
+	err := r.db.Model(&database.Admin{}).Where("is_active = ?", true).Count(&count).Error
+	return count, err
+}
+
+func (r *adminRepository) InitializeDefaultAdmin() error {
+	// Check if any admin exists
+	count, err := r.CountAdmins()
+	if err != nil {
+		return err
+	}
+
+	if count > 0 {
+		utils.Info("Admin users already exist, skipping default admin creation")
+		return nil
+	}
+
+	// Create default admin with xshauser/xshapass
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte("xshapass"), bcrypt.DefaultCost)
+	if err != nil {
+		utils.Error("Failed to hash default admin password", "error", err)
+		return err
+	}
+
+	defaultAdmin := &database.Admin{
+		Username:     "xshauser",
+		PasswordHash: string(passwordHash),
+		Email:        "",
+		IsActive:     true,
+		CreatedBy:    "system",
+	}
+
+	if err := r.Create(defaultAdmin); err != nil {
+		utils.Error("Failed to create default admin user", "error", err)
+		return err
+	}
+
+	utils.Info("Default admin user created successfully", "username", "xshauser")
+	return nil
+}

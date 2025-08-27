@@ -38,6 +38,20 @@ type LoginLog struct {
 	LoginTime time.Time      `gorm:"not null;index" json:"login_time"`
 }
 
+type Admin struct {
+	ID           uint           `gorm:"primarykey" json:"id"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+	Username     string         `gorm:"uniqueIndex;not null" json:"username"`
+	PasswordHash string         `gorm:"not null" json:"-"`
+	Email        string         `gorm:"default:''" json:"email"`
+	IsActive     bool           `gorm:"not null;default:true" json:"is_active"`
+	LastLoginAt  *time.Time     `json:"last_login_at"`
+	LastLoginIP  string         `gorm:"default:''" json:"last_login_ip"`
+	CreatedBy    string         `gorm:"not null;default:'system'" json:"created_by"`
+}
+
 type GitCredentialType string
 
 const (

@@ -135,28 +135,12 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		sortOrder   int
 	}{
 		{
-			key:         "admin_user",
-			value:       "xshauser",
-			description: "Administrator username for system login",
-			category:    "auth",
-			formType:    string(database.ConfigFormTypeInput),
-			sortOrder:   10,
-		},
-		{
-			key:         "admin_password",
-			value:       "xshapass",
-			description: "Administrator password for system login",
-			category:    "auth",
-			formType:    string(database.ConfigFormTypePassword),
-			sortOrder:   20,
-		},
-		{
 			key:         "dev_environment_images",
 			value:       string(devEnvImagesJSON),
 			description: "Development environment image configuration, defines available Docker images and their corresponding environment images",
 			category:    "dev_environment",
 			formType:    string(database.ConfigFormTypeTextarea),
-			sortOrder:   30,
+			sortOrder:   10,
 		},
 		{
 			key:         "git_proxy_enabled",
@@ -164,7 +148,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			description: "Enable or disable HTTP proxy for Git operations",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeSwitch),
-			sortOrder:   40,
+			sortOrder:   20,
 		},
 		{
 			key:         "git_proxy_http",
@@ -172,7 +156,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			description: "HTTP proxy URL for Git operations (e.g., http://proxy.example.com:8080)",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
-			sortOrder:   50,
+			sortOrder:   30,
 		},
 		{
 			key:         "git_proxy_https",
@@ -180,7 +164,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			description: "HTTPS proxy URL for Git operations (e.g., https://proxy.example.com:8080)",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
-			sortOrder:   60,
+			sortOrder:   40,
 		},
 		{
 			key:         "git_proxy_no_proxy",
@@ -188,7 +172,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			description: "Comma-separated list of domains to bypass proxy (e.g., localhost,127.0.0.1,.local)",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
-			sortOrder:   70,
+			sortOrder:   50,
 		},
 		{
 			key:         "git_clone_timeout",
@@ -196,7 +180,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			description: "Timeout for Git clone operations (e.g., 5m, 300s)",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
-			sortOrder:   80,
+			sortOrder:   60,
 		},
 		{
 			key:         "git_ssl_verify",
@@ -204,7 +188,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			description: "Enable or disable SSL verification for Git operations",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeSwitch),
-			sortOrder:   90,
+			sortOrder:   70,
 		},
 		{
 			key:         "docker_timeout",
@@ -212,7 +196,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			description: "Timeout for Docker execution operations (e.g., 120m, 7200s)",
 			category:    "docker",
 			formType:    string(database.ConfigFormTypeInput),
-			sortOrder:   100,
+			sortOrder:   80,
 		},
 	}
 

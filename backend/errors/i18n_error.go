@@ -102,4 +102,15 @@ var (
 	ErrFilePathEmpty      = &I18nError{Key: "validation.required"}
 	ErrWorkspacePathEmpty = &I18nError{Key: "task.workspace_path_empty"}
 	ErrNoCommitHash       = &I18nError{Key: "taskConversation.no_commit_hash"}
+
+	// Admin errors
+	ErrAdminUsernameRequired = &I18nError{Key: "admin.username_required"}
+	ErrAdminUsernameInvalid  = &I18nError{Key: "admin.username_invalid"}
+	ErrAdminUsernameExists   = &I18nError{Key: "admin.username_exists"}
+	ErrAdminPasswordRequired = &I18nError{Key: "admin.password_required"}
+	ErrAdminPasswordInvalid  = &I18nError{Key: "admin.password_invalid"}
+	ErrAdminNotFound         = &I18nError{Key: "admin.not_found"}
+	ErrAdminInactive         = &I18nError{Key: "admin.inactive"}
+	ErrInvalidCredentials    = &I18nError{Key: "admin.invalid_credentials"}
+	ErrCannotDeleteLastAdmin = &I18nError{Key: "admin.cannot_delete_last"}
 )
