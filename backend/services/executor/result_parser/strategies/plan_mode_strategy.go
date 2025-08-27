@@ -124,18 +124,21 @@ func (s *PlanModeStrategy) Parse(ctx context.Context, logs string) (map[string]i
 
 // extractJSONFromLine 从单行日志中提取JSON
 func (s *PlanModeStrategy) extractJSONFromLine(line string) string {
-	// 检查是否整行都是JSON
+	// 查找 "STDOUT: " 的位置
+	idx := strings.Index(line, "STDOUT: ")
+	if idx != -1 {
+		// 提取 STDOUT: 后面的内容
+		jsonStr := strings.TrimSpace(line[idx+8:])
+		// 验证是否以 { 开头并以 } 结尾
+		if strings.HasPrefix(jsonStr, "{") && strings.HasSuffix(jsonStr, "}") {
+			return jsonStr
+		}
+	}
+	
+	// 如果没有 STDOUT: 前缀，检查整行是否为 JSON
 	trimmedLine := strings.TrimSpace(line)
 	if strings.HasPrefix(trimmedLine, "{") && strings.HasSuffix(trimmedLine, "}") {
 		return trimmedLine
-	}
-	
-	// 尝试从带前缀的行中提取JSON
-	if strings.Contains(line, `"type":"assistant"`) {
-		start := strings.Index(line, "{")
-		if start != -1 {
-			return line[start:]
-		}
 	}
 	
 	return ""

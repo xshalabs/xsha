@@ -4,41 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"regexp"
 	"strings"
 )
 
 // JSONStrategy JSON解析策略
 type JSONStrategy struct {
-	patterns []*regexp.Regexp
 	name     string
 	priority int
 }
 
 // NewJSONStrategy 创建JSON解析策略
-func NewJSONStrategy(patterns ...string) *JSONStrategy {
-	strategy := &JSONStrategy{
+func NewJSONStrategy() *JSONStrategy {
+	return &JSONStrategy{
 		name:     "json",
 		priority: 1, // 高优先级
 	}
-	
-	// 使用默认模式如果没有提供
-	if len(patterns) == 0 {
-		patterns = []string{
-			`^(?:\[\d{2}:\d{2}:\d{2}\]\s*)?(?:\w+:\s*)?(\{.*\})\s*$`,
-			`^(\{.*\})$`,
-			`(?i)(?:info|debug|warn|error):\s*(\{.*\})`,
-		}
-	}
-	
-	// 编译正则表达式
-	for _, pattern := range patterns {
-		if regex, err := regexp.Compile(pattern); err == nil {
-			strategy.patterns = append(strategy.patterns, regex)
-		}
-	}
-	
-	return strategy
 }
 
 // Name 返回策略名称
@@ -133,15 +113,18 @@ func (s *JSONStrategy) Parse(ctx context.Context, logs string) (map[string]inter
 
 // extractJSONFromLine 从单行日志中提取JSON
 func (s *JSONStrategy) extractJSONFromLine(line string) string {
-	// 尝试所有正则表达式模式
-	for _, pattern := range s.patterns {
-		matches := pattern.FindStringSubmatch(line)
-		if len(matches) >= 2 {
-			return matches[1]
+	// 查找 "STDOUT: " 的位置
+	idx := strings.Index(line, "STDOUT: ")
+	if idx != -1 {
+		// 提取 STDOUT: 后面的内容
+		jsonStr := strings.TrimSpace(line[idx+8:])
+		// 验证是否以 { 开头并以 } 结尾
+		if strings.HasPrefix(jsonStr, "{") && strings.HasSuffix(jsonStr, "}") {
+			return jsonStr
 		}
 	}
 	
-	// 如果没有匹配，检查是否整行都是JSON
+	// 如果没有 STDOUT: 前缀，检查整行是否为 JSON
 	trimmedLine := strings.TrimSpace(line)
 	if strings.HasPrefix(trimmedLine, "{") && strings.HasSuffix(trimmedLine, "}") {
 		return trimmedLine
