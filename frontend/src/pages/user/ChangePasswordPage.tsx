@@ -5,11 +5,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { ArrowLeft, Lock } from 'lucide-react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { apiService } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import {
   Form,
   FormControl,
@@ -33,6 +34,7 @@ import {
   FormCardHeader,
   FormCardTitle,
 } from '@/components/forms/form-card';
+import { FormCardGroup } from '@/components/forms/form-sheet';
 
 const formSchema = z.object({
   current_password: z
@@ -84,123 +86,121 @@ export default function ChangePasswordPage() {
     }
   };
 
-  const handleCancel = () => {
-    navigate(-1);
-  };
-
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+    <SectionGroup>
       <Section>
         <SectionHeader>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCancel}
-              className="h-8 w-8 p-0"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <SectionTitle className="flex items-center gap-2">
-                <Lock className="h-5 w-5" />
-                {t('user.changePasswordPage.title')}
-              </SectionTitle>
-              <SectionDescription>
-                {t('user.changePasswordPage.description')}
-              </SectionDescription>
-            </div>
-          </div>
+          <SectionTitle>{t('user.changePasswordPage.title')}</SectionTitle>
+          <SectionDescription>
+            {t('user.changePasswordPage.description')}
+          </SectionDescription>
         </SectionHeader>
+        <form onSubmit={form.handleSubmit(handleSubmit)}>
+          <FormCardGroup>
+            <FormCard>
+              <FormCardHeader>
+                <FormCardTitle>{t('user.changePasswordPage.formTitle')}</FormCardTitle>
+                <FormCardDescription>
+                  {t('user.changePasswordPage.formDescription')}
+                </FormCardDescription>
+              </FormCardHeader>
+              <FormCardContent className="space-y-6">
+                <Form {...form}>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="current_password"
+                      className="text-sm font-medium"
+                    >
+                      {t('user.changePasswordPage.currentPassword')}
+                    </Label>
+                    <FormField
+                      control={form.control}
+                      name="current_password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              id="current_password"
+                              type="password"
+                              placeholder={t('user.changePasswordPage.currentPasswordPlaceholder')}
+                              disabled={loading}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-        <SectionGroup>
-          <FormCard>
-            <FormCardHeader>
-              <FormCardTitle>{t('user.changePasswordPage.formTitle')}</FormCardTitle>
-              <FormCardDescription>
-                {t('user.changePasswordPage.formDescription')}
-              </FormCardDescription>
-            </FormCardHeader>
+                  <Separator />
 
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)}>
-                <FormCardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="current_password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('user.changePasswordPage.currentPassword')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="password"
-                            placeholder={t('user.changePasswordPage.currentPasswordPlaceholder')}
-                            disabled={loading}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new_password"
+                      className="text-sm font-medium"
+                    >
+                      {t('user.changePasswordPage.newPassword')}
+                    </Label>
+                    <FormField
+                      control={form.control}
+                      name="new_password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              id="new_password"
+                              type="password"
+                              placeholder={t('user.changePasswordPage.newPasswordPlaceholder')}
+                              disabled={loading}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="new_password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('user.changePasswordPage.newPassword')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="password"
-                            placeholder={t('user.changePasswordPage.newPasswordPlaceholder')}
-                            disabled={loading}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <Separator />
 
-                  <FormField
-                    control={form.control}
-                    name="confirm_password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('user.changePasswordPage.confirmPassword')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="password"
-                            placeholder={t('user.changePasswordPage.confirmPasswordPlaceholder')}
-                            disabled={loading}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </FormCardContent>
-
-                <FormCardFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCancel}
-                    disabled={loading}
-                  >
-                    {t('common.cancel')}
-                  </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? t('user.changePasswordPage.changing') : t('user.changePasswordPage.submit')}
-                  </Button>
-                </FormCardFooter>
-              </form>
-            </Form>
-          </FormCard>
-        </SectionGroup>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="confirm_password"
+                      className="text-sm font-medium"
+                    >
+                      {t('user.changePasswordPage.confirmPassword')}
+                    </Label>
+                    <FormField
+                      control={form.control}
+                      name="confirm_password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              id="confirm_password"
+                              type="password"
+                              placeholder={t('user.changePasswordPage.confirmPasswordPlaceholder')}
+                              disabled={loading}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </Form>
+              </FormCardContent>
+              <FormCardFooter>
+                <Button type="submit" disabled={loading}>
+                  {loading ? t('user.changePasswordPage.changing') : t('user.changePasswordPage.submit')}
+                </Button>
+              </FormCardFooter>
+            </FormCard>
+          </FormCardGroup>
+        </form>
       </Section>
-    </div>
+    </SectionGroup>
   );
 }
