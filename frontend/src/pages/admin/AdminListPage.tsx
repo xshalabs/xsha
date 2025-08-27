@@ -13,7 +13,6 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { CreateAdminDialog } from '@/components/admin/CreateAdminDialog';
 import { UpdateAdminDialog } from '@/components/admin/UpdateAdminDialog';
 import { ChangePasswordDialog } from '@/components/admin/ChangePasswordDialog';
-import { DeleteAdminDialog } from '@/components/admin/DeleteAdminDialog';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { DataTablePaginationServer } from '@/components/ui/data-table/data-table-pagination-server';
@@ -59,7 +58,6 @@ export default function AdminListPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [changePasswordDialogOpen, setChangePasswordDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
 
   const loadAdminsData = useCallback(
@@ -266,17 +264,10 @@ export default function AdminListPage() {
 
   const handleDelete = useCallback(
     async (admin: Admin) => {
-      try {
-        // Delete logic will be handled by the QuickActions component
-        // This should not be called directly, but kept for consistency
-        setSelectedAdmin(admin);
-        setDeleteDialogOpen(true);
-      } catch (error) {
-        // Re-throw error to let QuickActions handle the user notification
-        throw error;
-      }
+      await adminApi.deleteAdmin(admin.id);
+      await loadAdminsData(currentPage, columnFilters, sorting, false);
     },
-    []
+    [loadAdminsData, currentPage, columnFilters, sorting]
   );
 
   const handleCreateSuccess = () => {
@@ -295,11 +286,6 @@ export default function AdminListPage() {
     setSelectedAdmin(null);
   };
 
-  const handleDeleteSuccess = () => {
-    setDeleteDialogOpen(false);
-    setSelectedAdmin(null);
-    loadAdminsData(currentPage, columnFilters, sorting, false);
-  };
 
   const columns = useMemo(
     () =>
@@ -365,12 +351,6 @@ export default function AdminListPage() {
             onOpenChange={setChangePasswordDialogOpen}
             admin={selectedAdmin}
             onSuccess={handleChangePasswordSuccess}
-          />
-          <DeleteAdminDialog
-            open={deleteDialogOpen}
-            onOpenChange={setDeleteDialogOpen}
-            admin={selectedAdmin}
-            onSuccess={handleDeleteSuccess}
           />
         </>
       )}

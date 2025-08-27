@@ -11,7 +11,7 @@ interface AdminColumnsProps {
   t: TFunction;
   onEdit: (admin: Admin) => void;
   onChangePassword: (admin: Admin) => void;
-  onDelete: (admin: Admin) => void;
+  onDelete: (admin: Admin) => Promise<void>;
 }
 
 export const createAdminColumns = ({
