@@ -117,11 +117,6 @@ func (s *aiTaskExecutorService) ProcessPendingConversations() error {
 		return fmt.Errorf("failed to get pending conversations: %v", err)
 	}
 
-	utils.Info("Found pending conversations to process",
-		"count", len(conversations),
-		"running", s.executionManager.GetRunningCount(),
-		"maxConcurrency", s.executionManager.maxConcurrency)
-
 	var wg sync.WaitGroup
 	processedCount := 0
 	skippedCount := 0
@@ -152,7 +147,6 @@ func (s *aiTaskExecutorService) ProcessPendingConversations() error {
 
 	wg.Wait()
 
-	utils.Info("Batch conversation processing completed", "processed", processedCount, "skipped", skippedCount)
 	return nil
 }
 
