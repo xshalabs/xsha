@@ -167,8 +167,6 @@ export default function SettingsPage() {
 
   const getConfigLabel = (config: SystemConfig) => {
     const configKeyMap = {
-      admin_user: t("systemConfig.admin_user"),
-      admin_password: t("systemConfig.admin_password"),
       dev_environment_images: t("systemConfig.dev_environment_images"),
       git_proxy_enabled: t("systemConfig.git_proxy_enabled"),
       git_proxy_http: t("systemConfig.git_proxy_http"),
@@ -184,8 +182,6 @@ export default function SettingsPage() {
 
   const getConfigDescription = (config: SystemConfig) => {
     const configDescMap = {
-      admin_user: t("systemConfig.admin_user_desc"),
-      admin_password: t("systemConfig.admin_password_desc"),
       dev_environment_images: t(
         "systemConfig.dev_environment_images_description"
       ),
@@ -203,7 +199,6 @@ export default function SettingsPage() {
 
   const getCategoryName = (category: string) => {
     const categoryMap = {
-      auth: t("systemConfig.categories.auth"),
       dev_environment: t("systemConfig.categories.devEnvironment"),
       git: t("systemConfig.categories.git"),
     } as const;
@@ -213,7 +208,6 @@ export default function SettingsPage() {
 
   const getCategoryDescription = (category: string) => {
     const descMap = {
-      auth: t("systemConfig.categoryDescriptions.auth"),
       dev_environment: t("systemConfig.categoryDescriptions.devEnvironment"),
       git: t("systemConfig.categoryDescriptions.git"),
     } as const;

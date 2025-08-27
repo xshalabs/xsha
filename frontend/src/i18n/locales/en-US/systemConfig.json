@@ -16,17 +16,11 @@
   "no_proxy_placeholder": "e.g., localhost,127.0.0.1,.local",
   "update_success": "Configuration updated successfully",
   "categories": {
-    "auth": "Authentication",
     "devEnvironment": "Development Environment",
     "git": "Git Configuration"
   },
   "categoryDescriptions": {
-    "auth": "Manage authentication and user access settings",
     "devEnvironment": "Configure development environment images and settings",
     "git": "Configure Git proxy and network settings"
-  },
-  "admin_user": "Administrator Username",
-  "admin_user_desc": "Administrator username for system login",
-  "admin_password": "Administrator Password",
-  "admin_password_desc": "Administrator password for system login"
+  }
 } 

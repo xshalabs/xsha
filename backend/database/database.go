@@ -130,6 +130,11 @@ func runMigrations(db *gorm.DB, cfg *config.Config) error {
 		return fmt.Errorf("dev environment session dir migration failed: %v", err)
 	}
 
+	// Run admin credentials system config removal migration
+	if err := runRemoveAdminCredentialsSystemConfigMigration(db); err != nil {
+		return fmt.Errorf("admin credentials system config removal migration failed: %v", err)
+	}
+
 	utils.Info("Custom migrations completed successfully")
 	return nil
 }
