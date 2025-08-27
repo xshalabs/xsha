@@ -6,6 +6,7 @@
   },
   "table": {
     "username": "Username",
+    "name": "Name",
     "email": "Email",
     "status": "Status",
     "lastLogin": "Last Login",
@@ -16,6 +17,7 @@
   "fields": {
     "username": "Username",
     "password": "Password",
+    "name": "Name",
     "email": "Email",
     "status": "Status",
     "statusDescription": "Enable or disable this admin account",
@@ -25,6 +27,7 @@
   "placeholders": {
     "username": "Enter username (letters, numbers, underscore only)",
     "password": "Enter password (minimum 6 characters)",
+    "name": "Enter full name",
     "email": "Enter email address (optional)",
     "newPassword": "Enter new password",
     "confirmPassword": "Confirm new password"

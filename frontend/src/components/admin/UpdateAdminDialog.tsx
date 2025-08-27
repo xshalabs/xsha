@@ -30,6 +30,10 @@ const formSchema = z.object({
     .min(3, 'Username must be at least 3 characters')
     .max(50, 'Username must be at most 50 characters')
     .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers and underscores'),
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must be at most 100 characters'),
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
   is_active: z.boolean(),
 });
@@ -56,6 +60,7 @@ export function UpdateAdminDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       username: '',
+      name: '',
       email: '',
       is_active: true,
     },
@@ -66,6 +71,7 @@ export function UpdateAdminDialog({
     if (admin) {
       form.reset({
         username: admin.username,
+        name: admin.name,
         email: admin.email || '',
         is_active: admin.is_active,
       });
@@ -77,6 +83,7 @@ export function UpdateAdminDialog({
       setLoading(true);
       await adminApi.updateAdmin(admin.id, {
         username: data.username !== admin.username ? data.username : undefined,
+        name: data.name !== admin.name ? data.name : undefined,
         email: data.email !== admin.email ? data.email : undefined,
         is_active: data.is_active !== admin.is_active ? data.is_active : undefined,
       });
@@ -118,6 +125,24 @@ export function UpdateAdminDialog({
                     <Input
                       {...field}
                       placeholder={t('admin.placeholders.username')}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('admin.fields.name')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder={t('admin.placeholders.name')}
                       disabled={loading}
                     />
                   </FormControl>

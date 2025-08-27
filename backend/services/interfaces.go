@@ -21,7 +21,7 @@ type LoginLogService interface {
 }
 
 type AdminService interface {
-	CreateAdmin(username, password, email, createdBy string) (*database.Admin, error)
+	CreateAdmin(username, password, name, email, createdBy string) (*database.Admin, error)
 	GetAdmin(id uint) (*database.Admin, error)
 	GetAdminByUsername(username string) (*database.Admin, error)
 	ListAdmins(username *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error)

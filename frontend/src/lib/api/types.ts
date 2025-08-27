@@ -26,6 +26,7 @@ export interface Admin {
   created_at: string;
   updated_at: string;
   username: string;
+  name: string;
   email: string;
   is_active: boolean;
   last_login_at?: string;
@@ -36,11 +37,13 @@ export interface Admin {
 export interface CreateAdminRequest {
   username: string;
   password: string;
+  name: string;
   email?: string;
 }
 
 export interface UpdateAdminRequest {
   username?: string;
+  name?: string;
   email?: string;
   is_active?: boolean;
 }

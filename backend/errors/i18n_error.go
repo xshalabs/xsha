@@ -109,6 +109,8 @@ var (
 	ErrAdminUsernameExists   = &I18nError{Key: "admin.username_exists"}
 	ErrAdminPasswordRequired = &I18nError{Key: "admin.password_required"}
 	ErrAdminPasswordInvalid  = &I18nError{Key: "admin.password_invalid"}
+	ErrAdminNameRequired     = &I18nError{Key: "admin.name_required"}
+	ErrAdminNameInvalid      = &I18nError{Key: "admin.name_invalid"}
 	ErrAdminNotFound         = &I18nError{Key: "admin.not_found"}
 	ErrAdminInactive         = &I18nError{Key: "admin.inactive"}
 	ErrInvalidCredentials    = &I18nError{Key: "admin.invalid_credentials"}

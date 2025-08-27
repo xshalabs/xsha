@@ -27,9 +27,9 @@ func (s *adminService) SetAuthService(authService AuthService) {
 	s.authService = authService
 }
 
-func (s *adminService) CreateAdmin(username, password, email, createdBy string) (*database.Admin, error) {
+func (s *adminService) CreateAdmin(username, password, name, email, createdBy string) (*database.Admin, error) {
 	// Validate input
-	if err := s.validateAdminData(username, password); err != nil {
+	if err := s.validateAdminData(username, password, name); err != nil {
 		return nil, err
 	}
 
@@ -51,6 +51,7 @@ func (s *adminService) CreateAdmin(username, password, email, createdBy string) 
 	admin := &database.Admin{
 		Username:     username,
 		PasswordHash: string(passwordHash),
+		Name:         name,
 		Email:        email,
 		IsActive:     true,
 		CreatedBy:    createdBy,
@@ -110,6 +111,15 @@ func (s *adminService) UpdateAdmin(id uint, updates map[string]interface{}) erro
 				return appErrors.ErrAdminUsernameExists
 			}
 			admin.Username = usernameStr
+		}
+	}
+
+	if name, ok := updates["name"]; ok {
+		if nameStr, ok := name.(string); ok {
+			if err := s.validateName(nameStr); err != nil {
+				return err
+			}
+			admin.Name = nameStr
 		}
 	}
 
@@ -231,11 +241,14 @@ func (s *adminService) InitializeDefaultAdmin() error {
 }
 
 // validateAdminData validates admin creation data
-func (s *adminService) validateAdminData(username, password string) error {
+func (s *adminService) validateAdminData(username, password, name string) error {
 	if err := s.validateUsername(username); err != nil {
 		return err
 	}
-	return s.validatePassword(password)
+	if err := s.validatePassword(password); err != nil {
+		return err
+	}
+	return s.validateName(name)
 }
 
 // validateUsername validates admin username
@@ -270,6 +283,21 @@ func (s *adminService) validatePassword(password string) error {
 	}
 	if len(password) > 128 {
 		return appErrors.ErrAdminPasswordInvalid
+	}
+	return nil
+}
+
+// validateName validates admin name
+func (s *adminService) validateName(name string) error {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return appErrors.ErrAdminNameRequired
+	}
+	if len(name) < 2 {
+		return appErrors.ErrAdminNameInvalid
+	}
+	if len(name) > 100 {
+		return appErrors.ErrAdminNameInvalid
 	}
 	return nil
 }

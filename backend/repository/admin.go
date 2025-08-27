@@ -110,6 +110,7 @@ func (r *adminRepository) InitializeDefaultAdmin() error {
 	defaultAdmin := &database.Admin{
 		Username:     "xshauser",
 		PasswordHash: string(passwordHash),
+		Name:         "XSha Administrator",
 		Email:        "",
 		IsActive:     true,
 		CreatedBy:    "system",

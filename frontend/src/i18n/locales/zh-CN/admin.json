@@ -6,6 +6,7 @@
   },
   "table": {
     "username": "用户名",
+    "name": "姓名",
     "email": "邮箱",
     "status": "状态",
     "lastLogin": "最后登录",
@@ -16,6 +17,7 @@
   "fields": {
     "username": "用户名",
     "password": "密码",
+    "name": "姓名",
     "email": "邮箱",
     "status": "状态",
     "statusDescription": "启用或禁用此管理员账户",
@@ -25,6 +27,7 @@
   "placeholders": {
     "username": "请输入用户名（仅支持字母、数字、下划线）",
     "password": "请输入密码（最少6位字符）",
+    "name": "请输入真实姓名",
     "email": "请输入邮箱地址（可选）",
     "newPassword": "请输入新密码",
     "confirmPassword": "请确认新密码"

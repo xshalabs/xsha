@@ -151,6 +151,8 @@
   "admin.username_exists": "Username already exists",
   "admin.password_required": "Password is required",
   "admin.password_invalid": "Password is invalid (6-128 characters)",
+  "admin.name_required": "Name is required",
+  "admin.name_invalid": "Name is invalid (2-100 characters)",
   "admin.not_found": "Admin user not found",
   "admin.inactive": "Admin user is inactive",
   "admin.invalid_credentials": "Invalid username or password",

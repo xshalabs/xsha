@@ -151,6 +151,8 @@
   "admin.username_exists": "用户名已存在",
   "admin.password_required": "密码是必需的",
   "admin.password_invalid": "密码无效（6-128个字符）",
+  "admin.name_required": "姓名是必需的",
+  "admin.name_invalid": "姓名无效（2-100个字符）",
   "admin.not_found": "管理员用户不存在",
   "admin.inactive": "管理员用户未激活",
   "admin.invalid_credentials": "用户名或密码错误",

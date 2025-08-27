@@ -32,6 +32,17 @@ export const createAdminColumns = ({
     enableHiding: false,
   },
   {
+    accessorKey: "name",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title={t("admin.table.name")} />
+    ),
+    cell: ({ row }) => (
+      <div className="font-medium">{row.getValue("name")}</div>
+    ),
+    enableSorting: true,
+    enableHiding: false,
+  },
+  {
     accessorKey: "email",
     header: t("admin.table.email"),
     cell: ({ row }) => {

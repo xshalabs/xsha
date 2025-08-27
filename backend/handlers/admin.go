@@ -27,7 +27,7 @@ func NewAdminHandlers(adminService services.AdminService) *AdminHandlers {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param adminData body object{username=string,password=string,email=string} true "Admin user information"
+// @Param adminData body object{username=string,password=string,name=string,email=string} true "Admin user information"
 // @Success 200 {object} object{message=string,admin=object} "Admin created successfully"
 // @Failure 400 {object} object{error=string} "Request parameter error"
 // @Failure 500 {object} object{error=string} "Internal server error"
@@ -38,6 +38,7 @@ func (h *AdminHandlers) CreateAdminHandler(c *gin.Context) {
 	var adminData struct {
 		Username string `json:"username" binding:"required"`
 		Password string `json:"password" binding:"required"`
+		Name     string `json:"name" binding:"required"`
 		Email    string `json:"email"`
 	}
 
@@ -57,7 +58,7 @@ func (h *AdminHandlers) CreateAdminHandler(c *gin.Context) {
 		return
 	}
 
-	admin, err := h.adminService.CreateAdmin(adminData.Username, adminData.Password, adminData.Email, createdBy.(string))
+	admin, err := h.adminService.CreateAdmin(adminData.Username, adminData.Password, adminData.Name, adminData.Email, createdBy.(string))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.MapErrorToI18nKey(err, lang),
@@ -181,7 +182,7 @@ func (h *AdminHandlers) ListAdminsHandler(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Admin ID"
-// @Param adminData body object{username=string,email=string,is_active=boolean} true "Admin update information"
+// @Param adminData body object{username=string,name=string,email=string,is_active=boolean} true "Admin update information"
 // @Success 200 {object} object{message=string} "Admin updated successfully"
 // @Failure 400 {object} object{error=string} "Request parameter error"
 // @Failure 404 {object} object{error=string} "Admin not found"

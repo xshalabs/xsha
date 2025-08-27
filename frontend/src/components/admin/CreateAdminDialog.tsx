@@ -33,6 +33,10 @@ const formSchema = z.object({
     .string()
     .min(6, 'Password must be at least 6 characters')
     .max(128, 'Password must be at most 128 characters'),
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must be at most 100 characters'),
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
 });
 
@@ -57,6 +61,7 @@ export function CreateAdminDialog({
     defaultValues: {
       username: '',
       password: '',
+      name: '',
       email: '',
     },
   });
@@ -67,6 +72,7 @@ export function CreateAdminDialog({
       await adminApi.createAdmin({
         username: data.username,
         password: data.password,
+        name: data.name,
         email: data.email || undefined,
       });
       toast.success(t('admin.messages.createSuccess'));
@@ -111,6 +117,24 @@ export function CreateAdminDialog({
                     <Input
                       {...field}
                       placeholder={t('admin.placeholders.username')}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('admin.fields.name')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder={t('admin.placeholders.name')}
                       disabled={loading}
                     />
                   </FormControl>

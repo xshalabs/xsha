@@ -45,6 +45,7 @@ type Admin struct {
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
 	Username     string         `gorm:"uniqueIndex;not null" json:"username"`
 	PasswordHash string         `gorm:"not null" json:"-"`
+	Name         string         `gorm:"not null;default:'Admin User'" json:"name"`
 	Email        string         `gorm:"default:''" json:"email"`
 	IsActive     bool           `gorm:"not null;default:true" json:"is_active"`
 	LastLoginAt  *time.Time     `json:"last_login_at"`
