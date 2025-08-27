@@ -9,6 +9,7 @@ import (
 	"xsha-backend/database"
 	"xsha-backend/repository"
 	"xsha-backend/services"
+	"xsha-backend/services/executor/result_parser"
 	"xsha-backend/utils"
 )
 
@@ -26,7 +27,7 @@ type aiTaskExecutorService struct {
 
 	executionManager *ExecutionManager
 	dockerExecutor   DockerExecutor
-	resultParser     ResultParser
+	resultParser     result_parser.Parser
 	workspaceCleaner WorkspaceCleaner
 	stateManager     ConversationStateManager
 
@@ -86,7 +87,7 @@ func NewAITaskExecutorServiceWithManager(
 		executionManager = NewExecutionManager(maxConcurrency)
 	}
 	dockerExecutor := NewDockerExecutor(cfg, logAppender, systemConfigService)
-	resultParser := NewResultParser(taskConvResultRepo, taskConvResultService, taskService)
+	resultParser := result_parser.NewResultParser(taskConvResultRepo, taskConvResultService, taskService)
 	workspaceCleaner := NewWorkspaceCleaner(workspaceManager)
 	stateManager := NewConversationStateManager(taskConvRepo, execLogRepo)
 
@@ -115,11 +116,6 @@ func (s *aiTaskExecutorService) ProcessPendingConversations() error {
 	if err != nil {
 		return fmt.Errorf("failed to get pending conversations: %v", err)
 	}
-
-	utils.Info("Found pending conversations to process",
-		"count", len(conversations),
-		"running", s.executionManager.GetRunningCount(),
-		"maxConcurrency", s.executionManager.maxConcurrency)
 
 	var wg sync.WaitGroup
 	processedCount := 0
@@ -151,7 +147,6 @@ func (s *aiTaskExecutorService) ProcessPendingConversations() error {
 
 	wg.Wait()
 
-	utils.Info("Batch conversation processing completed", "processed", processedCount, "skipped", skippedCount)
 	return nil
 }
 

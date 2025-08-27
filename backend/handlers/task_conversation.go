@@ -459,8 +459,6 @@ func (h *TaskConversationHandlers) StreamConversationLogs(c *gin.Context) {
 		return
 	}
 
-	utils.Info("Started log streaming", "conversationID", conversationID)
-
 	// Send initial connection message
 	c.SSEvent("connected", gin.H{
 		"conversation_id": conversationID,
@@ -472,12 +470,10 @@ func (h *TaskConversationHandlers) StreamConversationLogs(c *gin.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			utils.Info("Log streaming cancelled by client", "conversationID", conversationID)
 			return
 		case logLine, ok := <-logChan:
 			if !ok {
 				// Log channel closed, conversation finished
-				utils.Info("Log streaming completed", "conversationID", conversationID)
 				c.SSEvent("finished", gin.H{
 					"conversation_id": conversationID,
 					"timestamp":       time.Now().Unix(),
@@ -497,7 +493,6 @@ func (h *TaskConversationHandlers) StreamConversationLogs(c *gin.Context) {
 			if !ok {
 				continue
 			}
-
 			utils.Error("Error during log streaming", "conversationID", conversationID, "error", streamErr)
 			c.SSEvent("error", gin.H{
 				"message":   fmt.Sprintf("Log streaming error: %v", streamErr),

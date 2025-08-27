@@ -21,18 +21,24 @@ interface TaskFormDescriptionProps {
   onExecutionTimeChange: (time: Date | undefined) => void;
   model: string;
   onModelChange: (model: string) => void;
+  isPlanMode?: boolean;
+  onPlanModeChange: (isPlanMode: boolean) => void;
   selectedEnvironment?: DevEnvironment;
   error?: string;
   disabled?: boolean;
   // Inline controls state
   isTimePickerOpen: boolean;
   isModelSelectorOpen: boolean;
+  isPlanModeSelectorOpen: boolean;
   timePickerRef: React.RefObject<HTMLDivElement | null>;
   modelSelectorRef: React.RefObject<HTMLDivElement | null>;
+  planModeSelectorRef: React.RefObject<HTMLDivElement | null>;
   onTimePickerToggle: () => void;
   onModelSelectorToggle: () => void;
+  onPlanModeSelectorToggle: () => void;
   onTimePickerClose: () => void;
   onModelSelectorClose: () => void;
+  onPlanModeSelectorClose: () => void;
 }
 
 export function TaskFormDescription({
@@ -48,17 +54,23 @@ export function TaskFormDescription({
   onExecutionTimeChange,
   model,
   onModelChange,
+  isPlanMode,
+  onPlanModeChange,
   selectedEnvironment,
   error,
   disabled,
   isTimePickerOpen,
   isModelSelectorOpen,
+  isPlanModeSelectorOpen,
   timePickerRef,
   modelSelectorRef,
+  planModeSelectorRef,
   onTimePickerToggle,
   onModelSelectorToggle,
+  onPlanModeSelectorToggle,
   onTimePickerClose,
   onModelSelectorClose,
+  onPlanModeSelectorClose,
 }: TaskFormDescriptionProps) {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -101,16 +113,22 @@ export function TaskFormDescription({
           onExecutionTimeChange={onExecutionTimeChange}
           model={model}
           onModelChange={onModelChange}
+          isPlanMode={isPlanMode}
+          onPlanModeChange={onPlanModeChange}
           selectedEnvironment={selectedEnvironment}
           disabled={disabled}
           isTimePickerOpen={isTimePickerOpen}
           isModelSelectorOpen={isModelSelectorOpen}
+          isPlanModeSelectorOpen={isPlanModeSelectorOpen}
           timePickerRef={timePickerRef}
           modelSelectorRef={modelSelectorRef}
+          planModeSelectorRef={planModeSelectorRef}
           onTimePickerToggle={onTimePickerToggle}
           onModelSelectorToggle={onModelSelectorToggle}
+          onPlanModeSelectorToggle={onPlanModeSelectorToggle}
           onTimePickerClose={onTimePickerClose}
           onModelSelectorClose={onModelSelectorClose}
+          onPlanModeSelectorClose={onPlanModeSelectorClose}
         />
         
         {/* Hidden file input */}

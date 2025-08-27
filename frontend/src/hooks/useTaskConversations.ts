@@ -12,6 +12,7 @@ export function useTaskConversations(task: Task | null) {
   const [newMessage, setNewMessage] = useState("");
   const [executionTime, setExecutionTime] = useState<Date | undefined>(undefined);
   const [model, setModel] = useState("default");
+  const [isPlanMode, setIsPlanMode] = useState(false);
   const [sending, setSending] = useState(false);
   const [expandedConversations, setExpandedConversations] = useState<Set<number>>(new Set());
 
@@ -39,8 +40,20 @@ export function useTaskConversations(task: Task | null) {
     try {
       // Prepare env_params based on task environment
       let envParams = "{}";
-      if (task.dev_environment?.type === "claude-code" && model !== "default") {
-        envParams = JSON.stringify({ model });
+      if (task.dev_environment?.type === "claude-code") {
+        const params: { model?: string; is_plan_mode?: boolean } = {};
+        
+        if (model && model !== "default") {
+          params.model = model;
+        }
+        
+        if (isPlanMode === true) {
+          params.is_plan_mode = isPlanMode;
+        }
+        
+        if (Object.keys(params).length > 0) {
+          envParams = JSON.stringify(params);
+        }
       }
 
       await apiService.taskConversations.create({
@@ -55,6 +68,7 @@ export function useTaskConversations(task: Task | null) {
       setNewMessage("");
       setExecutionTime(undefined);
       setModel("default");
+      setIsPlanMode(false);
       await loadConversations();
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -96,6 +110,14 @@ export function useTaskConversations(task: Task | null) {
     return content.split("\n").length > 3 || content.length > 150;
   };
 
+  // Wrapped setIsPlanMode that automatically sets model to opus when plan mode is enabled
+  const handleSetIsPlanMode = useCallback((isPlan: boolean) => {
+    setIsPlanMode(isPlan);
+    if (isPlan) {
+      setModel("opus");
+    }
+  }, []);
+
   // Reset state when task changes
   useEffect(() => {
     if (task) {
@@ -103,6 +125,7 @@ export function useTaskConversations(task: Task | null) {
       setNewMessage("");
       setExecutionTime(undefined);
       setModel("default");
+      setIsPlanMode(false);
       setSending(false);
       setExpandedConversations(new Set());
       loadConversations();
@@ -118,6 +141,8 @@ export function useTaskConversations(task: Task | null) {
     setExecutionTime,
     model,
     setModel,
+    isPlanMode,
+    setIsPlanMode: handleSetIsPlanMode,
     sending,
     expandedConversations,
     loadConversations,

@@ -246,8 +246,9 @@ const (
 type ResultSubtype string
 
 const (
-	ResultSubtypeSuccess ResultSubtype = "success"
-	ResultSubtypeError   ResultSubtype = "error"
+	ResultSubtypeSuccess  ResultSubtype = "success"
+	ResultSubtypeError    ResultSubtype = "error"
+	ResultSubtypePlanMode ResultSubtype = "plan_mode"
 )
 
 type TaskConversationResult struct {

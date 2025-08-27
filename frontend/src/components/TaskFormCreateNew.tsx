@@ -36,6 +36,7 @@ export function TaskFormCreateNew({
     execution_time: undefined,
     include_branches: true,
     model: "default",
+    is_plan_mode: false,
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -48,13 +49,17 @@ export function TaskFormCreateNew({
   const {
     isTimePickerOpen,
     isModelSelectorOpen,
+    isPlanModeSelectorOpen,
     timePickerRef,
     modelSelectorRef,
+    planModeSelectorRef,
     handleTimePickerToggle,
     handleModelSelectorToggle,
+    handlePlanModeSelectorToggle,
     closeTimePickerManual,
     closeModelSelectorManual,
-  } = useInlineControls();
+    closePlanModeSelectorManual,
+  } = useInlineControls(formData.is_plan_mode);
 
   const { 
     availableBranches, 
@@ -68,7 +73,7 @@ export function TaskFormCreateNew({
   // Define handleChange first before using it in callbacks
   const handleChange = useCallback((
     field: keyof TaskFormData,
-    value: string | number | Date | undefined
+    value: string | number | Date | boolean | undefined
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -157,6 +162,15 @@ export function TaskFormCreateNew({
     closeModelSelectorManual();
   }, [handleChange, closeModelSelectorManual]);
 
+  const handlePlanModeChange = useCallback((isPlanMode: boolean) => {
+    handleChange("is_plan_mode", isPlanMode);
+    // When enabling plan mode, automatically set model to opus
+    if (isPlanMode) {
+      handleChange("model", "opus");
+    }
+    closePlanModeSelectorManual();
+  }, [handleChange, closePlanModeSelectorManual]);
+
   const handleFileSelect = useCallback(() => {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     fileInput?.click();
@@ -201,17 +215,23 @@ export function TaskFormCreateNew({
           onExecutionTimeChange={handleTimeChange}
           model={formData.model || "default"}
           onModelChange={handleModelChange}
+          isPlanMode={formData.is_plan_mode}
+          onPlanModeChange={handlePlanModeChange}
           selectedEnvironment={selectedEnvironment}
           error={errors.requirement_desc}
           disabled={submitting}
           isTimePickerOpen={isTimePickerOpen}
           isModelSelectorOpen={isModelSelectorOpen}
+          isPlanModeSelectorOpen={isPlanModeSelectorOpen}
           timePickerRef={timePickerRef}
           modelSelectorRef={modelSelectorRef}
+          planModeSelectorRef={planModeSelectorRef}
           onTimePickerToggle={handleTimePickerToggle}
           onModelSelectorToggle={handleModelSelectorToggle}
+          onPlanModeSelectorToggle={handlePlanModeSelectorToggle}
           onTimePickerClose={closeTimePickerManual}
           onModelSelectorClose={closeModelSelectorManual}
+          onPlanModeSelectorClose={closePlanModeSelectorManual}
         />
       </div>
 

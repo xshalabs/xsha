@@ -13,10 +13,6 @@ type DockerExecutor interface {
 	StopAndRemoveContainer(containerID string) error
 }
 
-type ResultParser interface {
-	ParseAndCreate(conv *database.TaskConversation, execLog *database.TaskExecutionLog)
-	ParseFromLogs(executionLogs string) (map[string]interface{}, error)
-}
 
 type WorkspaceCleaner interface {
 	CleanupOnFailure(taskID uint, workspacePath string) error
