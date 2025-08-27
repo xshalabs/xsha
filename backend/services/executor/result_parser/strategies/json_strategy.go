@@ -1,7 +1,6 @@
 package strategies
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
@@ -90,39 +89,27 @@ func (s *JSONStrategy) Parse(ctx context.Context, logs string) (map[string]inter
 		return nil, errors.New("empty logs")
 	}
 	
-	// 使用上下文监控超时
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
+	lines := strings.Split(logs, "\n")
+	
+	// 限制处理的行数（优化性能），只查看最后1000行
+	maxLines := 1000
+	startIndex := 0
+	if len(lines) > maxLines {
+		startIndex = len(lines) - maxLines
 	}
 	
-	// 使用scanner进行流式处理
-	scanner := bufio.NewScanner(strings.NewReader(logs))
-	lines := make([]string, 0)
-	
-	// 收集所有非空行
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line != "" {
-			lines = append(lines, line)
-		}
-		
-		// 检查上下文取消
+	// 从末尾开始查找有效的JSON结果
+	for i := len(lines) - 1; i >= startIndex; i-- {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		default:
 		}
-	}
-	
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-	
-	// 从末尾开始查找有效的JSON结果
-	for i := len(lines) - 1; i >= 0; i-- {
-		line := lines[i]
+		
+		line := strings.TrimSpace(lines[i])
+		if line == "" {
+			continue
+		}
 		
 		jsonStr := s.extractJSONFromLine(line)
 		if jsonStr == "" {
@@ -138,41 +125,11 @@ func (s *JSONStrategy) Parse(ctx context.Context, logs string) (map[string]inter
 		if s.isValidResultJSON(result) {
 			return result, nil
 		}
-		
-		// 检查上下文取消
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
 	}
 	
 	return nil, errors.New("no valid result JSON found")
 }
 
-// SupportsBatch 支持批量解析
-func (s *JSONStrategy) SupportsBatch() bool {
-	return true
-}
-
-// ParseBatch 批量解析
-func (s *JSONStrategy) ParseBatch(ctx context.Context, logEntries []string) ([]map[string]interface{}, error) {
-	results := make([]map[string]interface{}, 0, len(logEntries))
-	
-	for _, logs := range logEntries {
-		select {
-		case <-ctx.Done():
-			return results, ctx.Err()
-		default:
-		}
-		
-		if result, err := s.Parse(ctx, logs); err == nil {
-			results = append(results, result)
-		}
-	}
-	
-	return results, nil
-}
 
 // extractJSONFromLine 从单行日志中提取JSON
 func (s *JSONStrategy) extractJSONFromLine(line string) string {
@@ -269,62 +226,3 @@ func (s *JSONStrategy) isPlanModeResult(data map[string]interface{}) bool {
 	return false
 }
 
-// OptimizedJSONStrategy 优化的JSON解析策略
-type OptimizedJSONStrategy struct {
-	*JSONStrategy
-	maxLines int
-}
-
-// NewOptimizedJSONStrategy 创建优化的JSON解析策略
-func NewOptimizedJSONStrategy(maxLines int, patterns ...string) *OptimizedJSONStrategy {
-	base := NewJSONStrategy(patterns...)
-	return &OptimizedJSONStrategy{
-		JSONStrategy: base,
-		maxLines:     maxLines,
-	}
-}
-
-// Parse 优化的解析方法，限制处理的行数
-func (s *OptimizedJSONStrategy) Parse(ctx context.Context, logs string) (map[string]interface{}, error) {
-	if logs == "" {
-		return nil, errors.New("empty logs")
-	}
-	
-	lines := strings.Split(logs, "\n")
-	
-	// 限制处理的行数，从末尾开始
-	startIndex := 0
-	if len(lines) > s.maxLines {
-		startIndex = len(lines) - s.maxLines
-	}
-	
-	// 从末尾开始查找
-	for i := len(lines) - 1; i >= startIndex; i-- {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
-		
-		line := strings.TrimSpace(lines[i])
-		if line == "" {
-			continue
-		}
-		
-		jsonStr := s.extractJSONFromLine(line)
-		if jsonStr == "" {
-			continue
-		}
-		
-		var result map[string]interface{}
-		if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
-			continue
-		}
-		
-		if s.isValidResultJSON(result) {
-			return result, nil
-		}
-	}
-	
-	return nil, errors.New("no valid result JSON found")
-}

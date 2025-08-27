@@ -98,13 +98,22 @@ func TestPlanModeDetection(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Test the containsPlanMode helper function indirectly through strategy selection
-			factory := NewDefaultStrategyFactory(DefaultConfig())
-			strategy := factory.GetBestStrategy(tt.logs)
+			// Test plan mode detection by checking if we get plan_mode subtype
+			parser := NewDefaultParser(nil, nil, nil)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
 			
-			isPlanMode := (strategy.Name() == "plan_mode")
+			result, err := parser.ParseFromLogsWithContext(ctx, tt.logs)
+			
+			isPlanMode := false
+			if err == nil && result != nil {
+				if subtypeVal, ok := result["subtype"].(string); ok && subtypeVal == "plan_mode" {
+					isPlanMode = true
+				}
+			}
+			
 			if isPlanMode != tt.expected {
-				t.Errorf("Expected plan mode detection: %v, got: %v (strategy: %s)", tt.expected, isPlanMode, strategy.Name())
+				t.Errorf("Expected plan mode detection: %v, got: %v", tt.expected, isPlanMode)
 			}
 		})
 	}

@@ -27,7 +27,7 @@ type aiTaskExecutorService struct {
 
 	executionManager *ExecutionManager
 	dockerExecutor   DockerExecutor
-	resultParser     result_parser.ResultParser
+	resultParser     result_parser.Parser
 	workspaceCleaner WorkspaceCleaner
 	stateManager     ConversationStateManager
 

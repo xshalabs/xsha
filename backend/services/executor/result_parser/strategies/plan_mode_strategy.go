@@ -1,7 +1,6 @@
 package strategies
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
@@ -79,32 +78,21 @@ func (s *PlanModeStrategy) Parse(ctx context.Context, logs string) (map[string]i
 	default:
 	}
 	
-	// 使用scanner进行流式处理
-	scanner := bufio.NewScanner(strings.NewReader(logs))
-	lines := make([]string, 0)
+	lines := strings.Split(logs, "\n")
 	
-	// 收集所有非空行
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line != "" {
-			lines = append(lines, line)
-		}
-		
-		// 检查上下文取消
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
-	}
-	
-	if err := scanner.Err(); err != nil {
-		return nil, err
+	// 限制处理的行数，只查看最后1000行
+	maxLines := 1000
+	startIndex := 0
+	if len(lines) > maxLines {
+		startIndex = len(lines) - maxLines
 	}
 	
 	// 从末尾开始查找有效的计划模式结果
-	for i := len(lines) - 1; i >= 0; i-- {
-		line := lines[i]
+	for i := len(lines) - 1; i >= startIndex; i-- {
+		line := strings.TrimSpace(lines[i])
+		if line == "" {
+			continue
+		}
 		
 		jsonStr := s.extractJSONFromLine(line)
 		if jsonStr == "" {
@@ -128,41 +116,11 @@ func (s *PlanModeStrategy) Parse(ctx context.Context, logs string) (map[string]i
 		}
 		
 		return result, nil
-		
-		// 检查上下文取消
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
 	}
 	
 	return nil, errors.New("no valid plan mode result JSON found")
 }
 
-// SupportsBatch 支持批量解析
-func (s *PlanModeStrategy) SupportsBatch() bool {
-	return true
-}
-
-// ParseBatch 批量解析
-func (s *PlanModeStrategy) ParseBatch(ctx context.Context, logEntries []string) ([]map[string]interface{}, error) {
-	results := make([]map[string]interface{}, 0, len(logEntries))
-	
-	for _, logs := range logEntries {
-		select {
-		case <-ctx.Done():
-			return results, ctx.Err()
-		default:
-		}
-		
-		if result, err := s.Parse(ctx, logs); err == nil {
-			results = append(results, result)
-		}
-	}
-	
-	return results, nil
-}
 
 // extractJSONFromLine 从单行日志中提取JSON
 func (s *PlanModeStrategy) extractJSONFromLine(line string) string {
