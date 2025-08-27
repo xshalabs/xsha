@@ -61,6 +61,33 @@ func AuthMiddlewareWithService(authService services.AuthService, cfg *config.Con
 			return
 		}
 
+		// Check if admin is still active
+		isActive, err := authService.CheckAdminStatus(claims.Username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": i18n.T(lang, "auth.server_error"),
+			})
+			c.Abort()
+			return
+		}
+
+		if !isActive {
+			// Add token to blacklist with reason "admin_deactivated"
+			go func() {
+				if blacklistErr := authService.Logout(token, claims.Username, c.ClientIP(), c.GetHeader("User-Agent")); blacklistErr != nil {
+					utils.Error("Failed to blacklist token for deactivated admin",
+						"username", claims.Username,
+						"error", blacklistErr.Error(),
+					)
+				}
+			}()
+
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": i18n.T(lang, "auth.admin_deactivated"),
+			})
+			c.Abort()
+			return
+		}
 
 		c.Set("username", claims.Username)
 		c.Next()

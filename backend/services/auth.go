@@ -195,3 +195,11 @@ func (s *authService) CleanExpiredTokens() error {
 	return s.tokenRepo.CleanExpired()
 }
 
+func (s *authService) CheckAdminStatus(username string) (bool, error) {
+	admin, err := s.adminRepo.GetByUsername(username)
+	if err != nil {
+		return false, err
+	}
+	return admin.IsActive, nil
+}
+
