@@ -66,16 +66,17 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 		panic(fmt.Sprintf("Unsupported database type: %s", cfg.DatabaseType))
 	}
 
-	if err := db.AutoMigrate(&Migration{}, &TokenBlacklist{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}); err != nil {
-		return nil, err
-	}
-	utils.Info("Database table migration completed")
-
-	// Run custom migrations
+	// Run custom migrations first (including TokenBlacklist structure changes)
 	if err := runMigrations(db, cfg); err != nil {
 		utils.Error("Failed to run custom migrations", "error", err)
 		return nil, err
 	}
+
+	// AutoMigrate all tables (TokenBlacklist is handled by custom migration)
+	if err := db.AutoMigrate(&Migration{}, &TokenBlacklist{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}); err != nil {
+		return nil, err
+	}
+	utils.Info("Database table migration completed")
 
 	return &DatabaseManager{db: db}, nil
 }
@@ -133,6 +134,11 @@ func runMigrations(db *gorm.DB, cfg *config.Config) error {
 	// Run admin credentials system config removal migration
 	if err := runRemoveAdminCredentialsSystemConfigMigration(db); err != nil {
 		return fmt.Errorf("admin credentials system config removal migration failed: %v", err)
+	}
+
+	// Run token blacklist token ID migration
+	if err := runTokenBlacklistTokenIDMigration(db); err != nil {
+		return fmt.Errorf("token blacklist token ID migration failed: %v", err)
 	}
 
 	utils.Info("Custom migrations completed successfully")

@@ -19,7 +19,7 @@ type TokenBlacklist struct {
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Token     string         `gorm:"uniqueIndex;not null" json:"token"`
+	TokenID   string         `gorm:"uniqueIndex;not null" json:"token_id"`
 	ExpiresAt time.Time      `gorm:"not null" json:"expires_at"`
 	Username  string         `gorm:"not null" json:"username"`
 	Reason    string         `gorm:"default:'logout'" json:"reason"`

@@ -11,8 +11,6 @@ type AuthService interface {
 	Logout(token, username, clientIP, userAgent string) error
 	IsTokenBlacklisted(token string) (bool, error)
 	CleanExpiredTokens() error
-	InvalidateUserSessions(username string) error
-	IsUserDeactivated(username string) (bool, error)
 }
 
 type LoginLogService interface {

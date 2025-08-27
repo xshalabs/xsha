@@ -125,6 +125,7 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 }
 
 func (s *authService) Logout(token, username, clientIP, userAgent string) error {
+	// Get token expiration
 	expiresAt, err := utils.GetTokenExpiration(token, s.config.JWTSecret)
 	if err != nil {
 		go func() {
@@ -139,7 +140,22 @@ func (s *authService) Logout(token, username, clientIP, userAgent string) error 
 		return err
 	}
 
-	err = s.tokenRepo.Add(token, username, expiresAt, "logout")
+	// Get token ID
+	tokenID, err := utils.GetTokenID(token, s.config.JWTSecret)
+	if err != nil {
+		go func() {
+			if logErr := s.operationLogService.LogLogout(username, clientIP, userAgent, false, err.Error()); logErr != nil {
+				utils.Error("Failed to record admin operation log for logout failure",
+					"username", username,
+					"client_ip", clientIP,
+					"error", logErr.Error(),
+				)
+			}
+		}()
+		return err
+	}
+
+	err = s.tokenRepo.Add(tokenID, username, expiresAt, "logout")
 
 	go func() {
 		logoutSuccess := err == nil
@@ -168,17 +184,14 @@ func (s *authService) Logout(token, username, clientIP, userAgent string) error 
 }
 
 func (s *authService) IsTokenBlacklisted(token string) (bool, error) {
-	return s.tokenRepo.IsBlacklisted(token)
+	tokenID, err := utils.GetTokenID(token, s.config.JWTSecret)
+	if err != nil {
+		return false, err
+	}
+	return s.tokenRepo.IsBlacklisted(tokenID)
 }
 
 func (s *authService) CleanExpiredTokens() error {
 	return s.tokenRepo.CleanExpired()
 }
 
-func (s *authService) InvalidateUserSessions(username string) error {
-	return s.tokenRepo.InvalidateAllUserTokens(username, "admin_deactivated")
-}
-
-func (s *authService) IsUserDeactivated(username string) (bool, error) {
-	return s.tokenRepo.IsUserDeactivated(username)
-}
