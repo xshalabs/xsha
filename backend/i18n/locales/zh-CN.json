@@ -16,6 +16,8 @@
   "auth.server_error": "服务器内部错误",
   "user.get_info_error": "无法获取用户信息",
   "user.authenticated": "已认证",
+  "user.current_password_incorrect": "当前密码不正确",
+  "user.password_change_success": "密码修改成功",
   "common.internal_error": "内部服务器错误",
   "common.success": "操作成功",
   "common.invalid_id": "无效的ID",

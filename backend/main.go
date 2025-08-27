@@ -108,7 +108,7 @@ func main() {
 	schedulerManager := scheduler.NewSchedulerManager(taskProcessor, cfg.SchedulerIntervalDuration)
 
 	// Initialize handlers
-	authHandlers := handlers.NewAuthHandlers(authService, loginLogService)
+	authHandlers := handlers.NewAuthHandlers(authService, loginLogService, adminService)
 	adminHandlers := handlers.NewAdminHandlers(adminService)
 	adminOperationLogHandlers := handlers.NewAdminOperationLogHandlers(adminOperationLogService)
 	gitCredHandlers := handlers.NewGitCredentialHandlers(gitCredService)

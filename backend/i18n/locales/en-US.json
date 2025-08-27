@@ -16,6 +16,8 @@
   "auth.server_error": "Internal server error",
   "user.get_info_error": "Unable to get user information",
   "user.authenticated": "Authenticated",
+  "user.current_password_incorrect": "Current password is incorrect",
+  "user.password_change_success": "Password changed successfully",
   "common.internal_error": "Internal server error",
   "common.success": "Operation successful",
   "common.invalid_id": "Invalid ID",

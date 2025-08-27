@@ -11,6 +11,7 @@ export type {
   CreateAdminRequest,
   UpdateAdminRequest,
   ChangePasswordRequest,
+  ChangeOwnPasswordRequest,
   AdminListResponse,
   AdminResponse,
   CreateAdminResponse,
@@ -48,6 +49,7 @@ export const apiService = {
   login: authApi.login,
   logout: authApi.logout,
   getCurrentUser: authApi.getCurrentUser,
+  changeOwnPassword: authApi.changeOwnPassword,
   healthCheck: authApi.healthCheck,
 
   admin: adminApi,

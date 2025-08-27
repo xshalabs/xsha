@@ -1,0 +1,19 @@
+{
+  "changePassword": "修改密码",
+  "changePasswordPage": {
+    "title": "修改密码",
+    "description": "更新您的账户密码以保持账户安全",
+    "formTitle": "密码更新",
+    "formDescription": "输入您的当前密码并选择一个新的安全密码",
+    "currentPassword": "当前密码",
+    "currentPasswordPlaceholder": "请输入当前密码",
+    "newPassword": "新密码",
+    "newPasswordPlaceholder": "请输入新密码",
+    "confirmPassword": "确认新密码",
+    "confirmPasswordPlaceholder": "请确认您的新密码",
+    "submit": "修改密码",
+    "changing": "修改密码中...",
+    "success": "密码修改成功",
+    "error": "密码修改失败"
+  }
+}

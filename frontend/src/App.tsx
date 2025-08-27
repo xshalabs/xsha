@@ -22,6 +22,7 @@ import EnvironmentListPage from "@/pages/environments/EnvironmentListPage";
 import CredentialListPage from "@/pages/credentials/CredentialListPage";
 import SettingsPage from "@/pages/settings/Settings";
 import AdminListPage from "@/pages/admin/AdminListPage";
+import ChangePasswordPage from "@/pages/user/ChangePasswordPage";
 
 import "./App.css";
 
@@ -149,6 +150,17 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <AdminListPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/user/change-password"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ChangePasswordPage />
                   </Layout>
                 </ProtectedRoute>
               }

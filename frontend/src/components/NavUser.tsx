@@ -1,4 +1,4 @@
-import { ChevronsUpDown, LogOut, Languages } from "lucide-react";
+import { ChevronsUpDown, LogOut, Languages, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -44,6 +44,10 @@ export function NavUser() {
   const handleLanguageChange = (languageCode: string) => {
     i18n.changeLanguage(languageCode);
     localStorage.setItem(STORAGE_KEYS.language, languageCode);
+  };
+
+  const handleChangePassword = () => {
+    navigate("/user/change-password");
   };
 
   if (!user) {
@@ -119,6 +123,11 @@ export function NavUser() {
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
             </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleChangePassword}>
+              <Lock />
+              {t("user.changePassword")}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />

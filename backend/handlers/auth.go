@@ -14,12 +14,14 @@ import (
 type AuthHandlers struct {
 	authService     services.AuthService
 	loginLogService services.LoginLogService
+	adminService    services.AdminService
 }
 
-func NewAuthHandlers(authService services.AuthService, loginLogService services.LoginLogService) *AuthHandlers {
+func NewAuthHandlers(authService services.AuthService, loginLogService services.LoginLogService, adminService services.AdminService) *AuthHandlers {
 	return &AuthHandlers{
 		authService:     authService,
 		loginLogService: loginLogService,
+		adminService:    adminService,
 	}
 }
 
@@ -226,5 +228,72 @@ func (h *AuthHandlers) GetLoginLogsHandler(c *gin.Context) {
 		"page":        page,
 		"page_size":   pageSize,
 		"total_pages": totalPages,
+	})
+}
+
+// ChangeOwnPasswordHandler allows user to change their own password
+// @Summary Change own password
+// @Description Allow authenticated user to change their own password
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param passwordData body object{current_password=string,new_password=string} true "Password change data"
+// @Success 200 {object} object{message=string} "Password changed successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 401 {object} object{error=string} "Current password incorrect"
+// @Failure 500 {object} object{error=string} "Failed to change password"
+// @Router /user/change-password [put]
+func (h *AuthHandlers) ChangeOwnPasswordHandler(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "user.get_info_error"),
+		})
+		return
+	}
+
+	var passwordData struct {
+		CurrentPassword string `json:"current_password" binding:"required"`
+		NewPassword     string `json:"new_password" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&passwordData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
+		})
+		return
+	}
+
+	// Get user by username to get their ID
+	admin, err := h.adminService.GetAdminByUsername(username.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "user.get_info_error"),
+		})
+		return
+	}
+
+	// Verify current password
+	_, err = h.adminService.ValidateCredentials(username.(string), passwordData.CurrentPassword)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": i18n.T(lang, "user.current_password_incorrect"),
+		})
+		return
+	}
+
+	// Change password using existing service
+	if err := h.adminService.ChangePassword(admin.ID, passwordData.NewPassword); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "user.password_change_success"),
 	})
 }

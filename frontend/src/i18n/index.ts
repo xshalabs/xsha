@@ -19,6 +19,7 @@ const loadModularTranslations = async (locale: string) => {
       taskConversations,
       gitDiff,
       systemConfig,
+      user,
     ] = await Promise.all([
       import(`./locales/${locale}/common.json`),
       import(`./locales/${locale}/auth.json`),
@@ -34,6 +35,7 @@ const loadModularTranslations = async (locale: string) => {
       import(`./locales/${locale}/taskConversations.json`),
       import(`./locales/${locale}/gitDiff.json`),
       import(`./locales/${locale}/systemConfig.json`),
+      import(`./locales/${locale}/user.json`),
     ]);
 
     return {
@@ -51,6 +53,7 @@ const loadModularTranslations = async (locale: string) => {
       taskConversations: taskConversations.default,
       gitDiff: gitDiff.default,
       systemConfig: systemConfig.default,
+      user: user.default,
     };
   } catch (error) {
     console.error(`Failed to load translations for locale: ${locale}`, error);

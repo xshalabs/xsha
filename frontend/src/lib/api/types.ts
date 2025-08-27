@@ -52,6 +52,11 @@ export interface ChangePasswordRequest {
   new_password: string;
 }
 
+export interface ChangeOwnPasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
 export interface AdminListResponse {
   message: string;
   admins: Admin[];
