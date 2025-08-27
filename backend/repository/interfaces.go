@@ -9,6 +9,8 @@ type TokenBlacklistRepository interface {
 	Add(token string, username string, expiresAt time.Time, reason string) error
 	IsBlacklisted(token string) (bool, error)
 	CleanExpired() error
+	InvalidateAllUserTokens(username string, reason string) error
+	IsUserDeactivated(username string) (bool, error)
 }
 
 type LoginLogRepository interface {

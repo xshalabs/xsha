@@ -11,6 +11,7 @@
   "auth.unauthorized_with_details": "未授权访问: %s",
   "auth.invalid_token_with_details": "无效的token: %s",
   "auth.token_blacklisted": "token已失效，请重新登录",
+  "auth.account_deactivated": "您的账户已被停用，请联系管理员",
   "auth.server_error": "服务器内部错误",
   "user.get_info_error": "无法获取用户信息",
   "user.authenticated": "已认证",

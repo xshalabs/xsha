@@ -13,13 +13,18 @@ import (
 )
 
 type adminService struct {
-	adminRepo repository.AdminRepository
+	adminRepo   repository.AdminRepository
+	authService AuthService
 }
 
 func NewAdminService(adminRepo repository.AdminRepository) AdminService {
 	return &adminService{
 		adminRepo: adminRepo,
 	}
+}
+
+func (s *adminService) SetAuthService(authService AuthService) {
+	s.authService = authService
 }
 
 func (s *adminService) CreateAdmin(username, password, email, createdBy string) (*database.Admin, error) {
@@ -86,6 +91,10 @@ func (s *adminService) UpdateAdmin(id uint, updates map[string]interface{}) erro
 		return fmt.Errorf("failed to get admin: %v", err)
 	}
 
+	// Track if admin is being deactivated
+	var isBeingDeactivated bool
+	originallyActive := admin.IsActive
+
 	// Apply updates
 	if username, ok := updates["username"]; ok {
 		if usernameStr, ok := username.(string); ok {
@@ -112,11 +121,37 @@ func (s *adminService) UpdateAdmin(id uint, updates map[string]interface{}) erro
 
 	if isActive, ok := updates["is_active"]; ok {
 		if isActiveBool, ok := isActive.(bool); ok {
+			// Check if admin is being deactivated
+			if originallyActive && !isActiveBool {
+				isBeingDeactivated = true
+			}
 			admin.IsActive = isActiveBool
 		}
 	}
 
-	return s.adminRepo.Update(admin)
+	// Update the admin first
+	if err := s.adminRepo.Update(admin); err != nil {
+		return err
+	}
+
+	// If admin was deactivated and we have authService, invalidate all their sessions
+	if isBeingDeactivated && s.authService != nil {
+		// Use the original username in case it was changed
+		usernameToInvalidate := admin.Username
+		if username, ok := updates["username"]; ok {
+			if usernameStr, ok := username.(string); ok {
+				// If username was changed, we need to invalidate sessions for the new username
+				usernameToInvalidate = usernameStr
+			}
+		}
+		
+		if err := s.authService.InvalidateUserSessions(usernameToInvalidate); err != nil {
+			// Log the error but don't fail the admin update
+			fmt.Printf("Warning: Failed to invalidate sessions for deactivated admin %s: %v\n", usernameToInvalidate, err)
+		}
+	}
+
+	return nil
 }
 
 func (s *adminService) DeleteAdmin(id uint) error {

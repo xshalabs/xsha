@@ -61,6 +61,24 @@ func AuthMiddlewareWithService(authService services.AuthService, cfg *config.Con
 			return
 		}
 
+		// Check if the user has been deactivated
+		isDeactivated, err := authService.IsUserDeactivated(claims.Username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": i18n.T(lang, "auth.server_error"),
+			})
+			c.Abort()
+			return
+		}
+
+		if isDeactivated {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": i18n.T(lang, "auth.account_deactivated"),
+			})
+			c.Abort()
+			return
+		}
+
 		c.Set("username", claims.Username)
 		c.Next()
 	}

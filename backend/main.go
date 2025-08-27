@@ -69,6 +69,9 @@ func main() {
 	adminOperationLogService := services.NewAdminOperationLogService(adminOperationLogRepo)
 	adminService := services.NewAdminService(adminRepo)
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, adminService, adminRepo, cfg)
+	
+	// Set up circular dependency - adminService needs authService for session invalidation
+	adminService.SetAuthService(authService)
 	gitCredService := services.NewGitCredentialService(gitCredRepo, projectRepo, cfg)
 	systemConfigService := services.NewSystemConfigService(systemConfigRepo)
 	dashboardService := services.NewDashboardService(dashboardRepo)

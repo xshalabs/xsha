@@ -11,6 +11,8 @@ type AuthService interface {
 	Logout(token, username, clientIP, userAgent string) error
 	IsTokenBlacklisted(token string) (bool, error)
 	CleanExpiredTokens() error
+	InvalidateUserSessions(username string) error
+	IsUserDeactivated(username string) (bool, error)
 }
 
 type LoginLogService interface {
@@ -28,6 +30,7 @@ type AdminService interface {
 	ChangePassword(id uint, newPassword string) error
 	ValidateCredentials(username, password string) (*database.Admin, error)
 	InitializeDefaultAdmin() error
+	SetAuthService(authService AuthService)
 }
 
 type GitCredentialService interface {

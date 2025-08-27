@@ -11,6 +11,7 @@
   "auth.unauthorized_with_details": "Unauthorized access: %s",
   "auth.invalid_token_with_details": "Invalid token: %s",
   "auth.token_blacklisted": "Token has been invalidated, please login again",
+  "auth.account_deactivated": "Your account has been deactivated, please contact administrator",
   "auth.server_error": "Internal server error",
   "user.get_info_error": "Unable to get user information",
   "user.authenticated": "Authenticated",

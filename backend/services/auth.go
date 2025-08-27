@@ -174,3 +174,11 @@ func (s *authService) IsTokenBlacklisted(token string) (bool, error) {
 func (s *authService) CleanExpiredTokens() error {
 	return s.tokenRepo.CleanExpired()
 }
+
+func (s *authService) InvalidateUserSessions(username string) error {
+	return s.tokenRepo.InvalidateAllUserTokens(username, "admin_deactivated")
+}
+
+func (s *authService) IsUserDeactivated(username string) (bool, error) {
+	return s.tokenRepo.IsUserDeactivated(username)
+}
