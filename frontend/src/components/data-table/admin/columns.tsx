@@ -55,7 +55,15 @@ export const createAdminColumns = ({
       );
     },
     filterFn: (row, id, value) => {
-      return value === "all" || row.getValue(id) === (value === "active");
+      // value 是一个数组，如 ["active"] 或 ["inactive"] 或 ["active", "inactive"]
+      if (!Array.isArray(value) || value.length === 0) {
+        return true; // 没有筛选时显示所有
+      }
+      
+      const isActive = row.getValue(id) as boolean;
+      
+      // 检查当前行的状态是否在选中的值中
+      return value.includes(isActive ? "active" : "inactive");
     },
   },
   {
