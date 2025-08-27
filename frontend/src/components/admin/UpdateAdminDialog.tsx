@@ -77,7 +77,7 @@ export function UpdateAdminDialog({
       setLoading(true);
       await adminApi.updateAdmin(admin.id, {
         username: data.username !== admin.username ? data.username : undefined,
-        email: data.email !== admin.email ? data.email || undefined : undefined,
+        email: data.email !== admin.email ? data.email : undefined,
         is_active: data.is_active !== admin.is_active ? data.is_active : undefined,
       });
       toast.success(t('admin.messages.updateSuccess'));
