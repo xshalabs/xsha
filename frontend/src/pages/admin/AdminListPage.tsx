@@ -63,7 +63,7 @@ export default function AdminListPage() {
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
 
   const loadAdminsData = useCallback(
-    async (page: number, filters: ColumnFiltersState, sortingState: SortingState, updateUrl = true) => {
+    async (page: number, filters: ColumnFiltersState, sortingState: SortingState, shouldDebounce = true, updateUrl = true) => {
       // Create a unique request key for deduplication
       const requestKey = JSON.stringify({ page, filters, sortingState, updateUrl });
 
@@ -75,8 +75,26 @@ export default function AdminListPage() {
         return;
       }
 
-      isRequestInProgress.current = true;
-      lastRequestRef.current = requestKey;
+      if (shouldDebounce) {
+        // Debounce to prevent rapid duplicate requests
+        const debounceTimer = setTimeout(async () => {
+          if (lastRequestRef.current === requestKey) {
+            return; // Request was cancelled
+          }
+          
+          lastRequestRef.current = requestKey;
+          await executeRequest();
+        }, 500); // Increased delay to prevent rapid duplicate requests
+
+        // Store timer for potential cleanup
+        return () => clearTimeout(debounceTimer);
+      } else {
+        lastRequestRef.current = requestKey;
+        await executeRequest();
+      }
+
+      async function executeRequest() {
+        isRequestInProgress.current = true;
 
       try {
         setLoading(true);
@@ -91,9 +109,14 @@ export default function AdminListPage() {
         filters.forEach((filter) => {
           if (filter.id === "username" && filter.value) {
             apiParams.username = filter.value as string;
-          } else if (filter.id === "is_active" && filter.value !== undefined) {
-            if (filter.value !== "all") {
-              apiParams.is_active = filter.value === "active";
+          } else if (filter.id === "is_active" && Array.isArray(filter.value) && filter.value.length > 0) {
+            // Handle faceted filter with array values
+            if (filter.value.length === 1) {
+              // Single selection
+              apiParams.is_active = filter.value[0] === "active";
+            } else if (filter.value.length === 2) {
+              // Both active and inactive selected, don't filter
+              // apiParams.is_active remains undefined
             }
           }
         });
@@ -113,8 +136,15 @@ export default function AdminListPage() {
 
           // Add filter parameters
           filters.forEach((filter) => {
-            if (filter.value && filter.value !== "all") {
-              params.set(filter.id, String(filter.value));
+            if (filter.value) {
+              if (filter.id === "username" && typeof filter.value === "string" && filter.value.trim()) {
+                params.set(filter.id, filter.value);
+              } else if (filter.id === "is_active" && Array.isArray(filter.value) && filter.value.length > 0) {
+                // Only set parameter if not both values are selected (which means no filter)
+                if (filter.value.length === 1) {
+                  params.set(filter.id, filter.value[0]);
+                }
+              }
             }
           });
 
@@ -140,6 +170,7 @@ export default function AdminListPage() {
             lastRequestRef.current = "";
           }
         }, 500);
+        }
       }
     },
     [pageSize, setSearchParams, t]
@@ -160,8 +191,8 @@ export default function AdminListPage() {
       initialFilters.push({ id: "username", value: usernameParam });
     }
 
-    if (statusParam && statusParam !== "all") {
-      initialFilters.push({ id: "is_active", value: statusParam });
+    if (statusParam) {
+      initialFilters.push({ id: "is_active", value: [statusParam] });
     }
 
     const initialPage = pageParam ? parseInt(pageParam, 10) : 1;
@@ -173,7 +204,7 @@ export default function AdminListPage() {
     setSorting(initialSorting);
 
     // Load initial data using the unified function
-    loadAdminsData(initialPage, initialFilters, initialSorting, false).then(() => {
+    loadAdminsData(initialPage, initialFilters, initialSorting, false, false).then(() => {
       setIsInitialized(true);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -250,13 +281,13 @@ export default function AdminListPage() {
 
   const handleCreateSuccess = () => {
     setCreateDialogOpen(false);
-    loadAdminsData(currentPage, columnFilters, sorting);
+    loadAdminsData(currentPage, columnFilters, sorting, false);
   };
 
   const handleUpdateSuccess = () => {
     setUpdateDialogOpen(false);
     setSelectedAdmin(null);
-    loadAdminsData(currentPage, columnFilters, sorting);
+    loadAdminsData(currentPage, columnFilters, sorting, false);
   };
 
   const handleChangePasswordSuccess = () => {
@@ -267,7 +298,7 @@ export default function AdminListPage() {
   const handleDeleteSuccess = () => {
     setDeleteDialogOpen(false);
     setSelectedAdmin(null);
-    loadAdminsData(currentPage, columnFilters, sorting);
+    loadAdminsData(currentPage, columnFilters, sorting, false);
   };
 
   const columns = useMemo(

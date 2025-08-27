@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DataTableFacetedFilter } from "@/components/ui/data-table/data-table-faceted-filter";
 import type { Admin } from "@/lib/api";
 
 export interface AdminDataTableToolbarProps {
@@ -49,7 +49,7 @@ export function AdminDataTableToolbar({
         table.getColumn("username")?.setFilterValue(searchValue || undefined);
         isUserInput.current = false;
       }
-    }, 300); // 300ms debounce
+    }, 500); // 500ms debounce for consistency with operation logs
 
     return () => clearTimeout(debounceTimer);
   }, [searchValue, table]);
@@ -59,24 +59,15 @@ export function AdminDataTableToolbar({
     isUserInput.current = true;
   };
 
-  const handleStatusFilterChange = (value: string) => {
-    const column = table.getColumn("is_active");
-    if (value === "all") {
-      column?.setFilterValue(undefined);
-    } else {
-      column?.setFilterValue(value);
-    }
-  };
-
-  const getCurrentStatusFilter = () => {
-    const value = table.getColumn("is_active")?.getFilterValue();
-    if (value === undefined || value === "all") return "all";
-    return value === true ? "active" : "inactive";
-  };
+  // Status filter options for faceted filter
+  const statusOptions = [
+    { label: t("admin.filters.active"), value: "active" },
+    { label: t("admin.filters.inactive"), value: "inactive" },
+  ];
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2">
+    <div className="flex flex-col space-y-4">
+      <div className="flex flex-1 items-center space-x-2 flex-wrap gap-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -86,19 +77,13 @@ export function AdminDataTableToolbar({
             className="h-8 w-[150px] lg:w-[250px] pl-10"
           />
         </div>
-        <Select 
-          value={getCurrentStatusFilter()} 
-          onValueChange={handleStatusFilterChange}
-        >
-          <SelectTrigger className="h-8 w-[150px]">
-            <SelectValue placeholder={t("admin.filters.status")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("admin.filters.allStatus")}</SelectItem>
-            <SelectItem value="active">{t("admin.filters.active")}</SelectItem>
-            <SelectItem value="inactive">{t("admin.filters.inactive")}</SelectItem>
-          </SelectContent>
-        </Select>
+        {table.getColumn("is_active") && (
+          <DataTableFacetedFilter
+            column={table.getColumn("is_active")}
+            title={t("admin.filters.status")}
+            options={statusOptions}
+          />
+        )}
         {isFiltered && (
           <Button
             variant="ghost"

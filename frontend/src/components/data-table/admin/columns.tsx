@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Edit, Key, Trash2 } from "lucide-react";
+import { Edit, Key } from "lucide-react";
 import type { TFunction } from "i18next";
 import { QuickActions } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
