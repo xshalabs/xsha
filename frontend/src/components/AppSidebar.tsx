@@ -55,11 +55,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/environments",
             icon: Container,
           },
-          {
-            title: t("navigation.settings"),
-            url: "/settings",
-            icon: Cog,
-          },
         ],
       },
       {
@@ -89,6 +84,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title: t("navigation.admin.users"),
             url: "/admin",
             icon: Users,
+          },
+          {
+            title: t("navigation.settings"),
+            url: "/settings",
+            icon: Cog,
           },
         ],
       },
