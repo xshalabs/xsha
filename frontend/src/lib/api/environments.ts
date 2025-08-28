@@ -5,7 +5,6 @@ import type {
   UpdateDevEnvironmentRequest,
   DevEnvironmentDetailResponse,
   DevEnvironmentListResponse,
-  DevEnvironmentVarsResponse,
   DevEnvironmentListParams,
   DevEnvironmentImageConfig,
 } from "@/types/dev-environment";
@@ -58,21 +57,6 @@ export const devEnvironmentsApi = {
     });
   },
 
-  getEnvVars: async (id: number): Promise<DevEnvironmentVarsResponse> => {
-    return request<DevEnvironmentVarsResponse>(
-      `/environments/${id}/env-vars`
-    );
-  },
-
-  updateEnvVars: async (
-    id: number,
-    envVars: Record<string, string>
-  ): Promise<{ message: string }> => {
-    return request<{ message: string }>(`/environments/${id}/env-vars`, {
-      method: "PUT",
-      body: JSON.stringify(envVars),
-    });
-  },
 
   getAvailableImages: async (): Promise<{
     images: DevEnvironmentImageConfig[];
@@ -82,9 +66,4 @@ export const devEnvironmentsApi = {
     );
   },
 
-  getStats: async (): Promise<{ stats: Record<string, any> }> => {
-    return request<{ stats: Record<string, any> }>(
-      "/environments/stats"
-    );
-  },
 };

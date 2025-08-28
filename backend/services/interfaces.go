@@ -80,11 +80,9 @@ type DevEnvironmentService interface {
 	UpdateEnvironment(id uint, updates map[string]interface{}) error
 	DeleteEnvironment(id uint) error
 	ValidateEnvVars(envVars map[string]string) error
-	GetEnvironmentVars(id uint) (map[string]string, error)
 	UpdateEnvironmentVars(id uint, envVars map[string]string) error
 	ValidateResourceLimits(cpuLimit float64, memoryLimit int64) error
 	GetAvailableEnvironmentImages() ([]map[string]interface{}, error)
-	GetStats() (map[string]interface{}, error)
 }
 
 type TaskService interface {

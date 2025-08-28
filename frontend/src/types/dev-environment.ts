@@ -58,9 +58,6 @@ export interface DevEnvironmentListResponse {
   total_pages: number;
 }
 
-export interface DevEnvironmentVarsResponse {
-  env_vars: Record<string, string>;
-}
 
 export interface DevEnvironmentListParams {
   page?: number;

@@ -155,26 +155,6 @@ func (s *devEnvironmentService) ValidateEnvVars(envVars map[string]string) error
 	return nil
 }
 
-func (s *devEnvironmentService) GetEnvironmentVars(id uint) (map[string]string, error) {
-	env, err := s.repo.GetByID(id)
-	if err != nil {
-		return nil, err
-	}
-
-	var envVars map[string]string
-	if env.EnvVars != "" {
-		if err := json.Unmarshal([]byte(env.EnvVars), &envVars); err != nil {
-			return nil, fmt.Errorf("failed to parse environment variables: %v", err)
-		}
-	}
-
-	if envVars == nil {
-		envVars = make(map[string]string)
-	}
-
-	return envVars, nil
-}
-
 func (s *devEnvironmentService) UpdateEnvironmentVars(id uint, envVars map[string]string) error {
 	env, err := s.repo.GetByID(id)
 	if err != nil {
@@ -285,6 +265,3 @@ func (s *devEnvironmentService) getAbsoluteSessionPath(relativePath string) stri
 	return filepath.Join(s.config.DevSessionsDir, relativePath)
 }
 
-func (s *devEnvironmentService) GetStats() (map[string]interface{}, error) {
-	return s.repo.GetStats()
-}
