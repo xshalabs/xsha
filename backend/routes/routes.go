@@ -16,7 +16,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskConvResultHandlers *handlers.TaskConversationResultHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, staticFiles *embed.FS) {
+func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, staticFiles *embed.FS) {
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
 
@@ -120,21 +120,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			attachments.DELETE("/:id", attachmentHandlers.DeleteAttachment)
 		}
 
-		results := api.Group("/conversation-results")
-		{
-			results.GET("", taskConvResultHandlers.ListResultsByTaskID)
-			results.GET("/by-project", taskConvResultHandlers.ListResultsByProjectID)
-			results.GET("/:id", taskConvResultHandlers.GetResult)
-			results.GET("/by-conversation/:conversation_id", taskConvResultHandlers.GetResultByConversationID)
-			results.PUT("/:id", taskConvResultHandlers.UpdateResult)
-			results.DELETE("/:id", taskConvResultHandlers.DeleteResult)
-		}
-
-		stats := api.Group("/stats")
-		{
-			stats.GET("/tasks/:task_id", taskConvResultHandlers.GetTaskStats)
-			stats.GET("/projects/:project_id", taskConvResultHandlers.GetProjectStats)
-		}
 
 		api.GET("/task-conversations/:conversationId/execution-log", taskExecLogHandlers.GetExecutionLog)
 		api.POST("/task-conversations/:conversationId/execution/cancel", taskExecLogHandlers.CancelExecution)
