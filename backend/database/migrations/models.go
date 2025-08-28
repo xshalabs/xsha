@@ -37,3 +37,12 @@ type SystemConfig struct {
 	CreatedAt   time.Time `gorm:"column:created_at;not null" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"column:updated_at;not null" json:"updated_at"`
 }
+
+// Project represents a project in the system
+type Project struct {
+	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	CreatedBy string    `gorm:"column:created_by" json:"created_by"`
+	AdminID   *uint     `gorm:"column:admin_id" json:"admin_id"`
+	CreatedAt time.Time `gorm:"column:created_at;not null" json:"created_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at;not null" json:"updated_at"`
+}

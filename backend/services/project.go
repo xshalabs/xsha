@@ -36,7 +36,7 @@ func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository
 	}
 }
 
-func (s *projectService) CreateProject(name, description, systemPrompt, repoURL, protocol string, credentialID *uint, createdBy string) (*database.Project, error) {
+func (s *projectService) CreateProject(name, description, systemPrompt, repoURL, protocol string, credentialID *uint, adminID *uint, createdBy string) (*database.Project, error) {
 	if err := s.validateProjectData(name, repoURL, protocol); err != nil {
 		return nil, err
 	}
@@ -61,6 +61,7 @@ func (s *projectService) CreateProject(name, description, systemPrompt, repoURL,
 		RepoURL:      repoURL,
 		Protocol:     protocolType,
 		CredentialID: credentialID,
+		AdminID:      adminID,
 		CreatedBy:    createdBy,
 	}
 

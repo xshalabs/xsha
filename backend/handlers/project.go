@@ -65,6 +65,15 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		return
 	}
 
+	adminIDVal, adminExists := c.Get("admin_id")
+	if !adminExists {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "auth.unauthorized"),
+		})
+		return
+	}
+	adminID := adminIDVal.(uint)
+
 	var req CreateProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -75,7 +84,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 
 	project, err := h.projectService.CreateProject(
 		req.Name, req.Description, req.SystemPrompt, req.RepoURL, req.Protocol,
-		req.CredentialID, username.(string),
+		req.CredentialID, &adminID, username.(string),
 	)
 	if err != nil {
 		helper := i18n.NewHelper(lang)

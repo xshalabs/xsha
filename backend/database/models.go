@@ -104,6 +104,8 @@ type Project struct {
 	CredentialID *uint           `gorm:"index" json:"credential_id"`
 	Credential   *GitCredential  `gorm:"foreignKey:CredentialID" json:"credential"`
 
+	AdminID   *uint  `gorm:"index" json:"admin_id"`
+	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 
