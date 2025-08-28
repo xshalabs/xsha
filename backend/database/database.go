@@ -146,6 +146,11 @@ func runMigrations(db *gorm.DB, cfg *config.Config) error {
 		return fmt.Errorf("task conversation attachment admin ID migration failed: %v", err)
 	}
 
+	// Run admin operation log admin ID migration
+	if err := runAdminOperationLogAdminIDMigration(db); err != nil {
+		return fmt.Errorf("admin operation log admin ID migration failed: %v", err)
+	}
+
 	utils.Info("Custom migrations completed successfully")
 	return nil
 }

@@ -57,14 +57,14 @@ type ProjectService interface {
 }
 
 type AdminOperationLogService interface {
-	LogOperation(username, operation, resource, resourceID, description, details string,
+	LogOperation(username string, adminID *uint, operation, resource, resourceID, description, details string,
 		success bool, errorMsg, ip, userAgent, method, path string) error
-	LogCreate(username, resource, resourceID, description, ip, userAgent, path string, success bool, errorMsg string) error
-	LogUpdate(username, resource, resourceID, description, ip, userAgent, path string, success bool, errorMsg string) error
-	LogDelete(username, resource, resourceID, description, ip, userAgent, path string, success bool, errorMsg string) error
-	LogRead(username, resource, resourceID, description, ip, userAgent, path string) error
-	LogLogin(username, ip, userAgent string, success bool, errorMsg string) error
-	LogLogout(username, ip, userAgent string, success bool, errorMsg string) error
+	LogCreate(username string, adminID *uint, resource, resourceID, description, ip, userAgent, path string, success bool, errorMsg string) error
+	LogUpdate(username string, adminID *uint, resource, resourceID, description, ip, userAgent, path string, success bool, errorMsg string) error
+	LogDelete(username string, adminID *uint, resource, resourceID, description, ip, userAgent, path string, success bool, errorMsg string) error
+	LogRead(username string, adminID *uint, resource, resourceID, description, ip, userAgent, path string) error
+	LogLogin(username string, adminID *uint, ip, userAgent string, success bool, errorMsg string) error
+	LogLogout(username string, adminID *uint, ip, userAgent string, success bool, errorMsg string) error
 	GetLogs(username string, operation *database.AdminOperationType, resource string,
 		success *bool, startTime, endTime *time.Time, page, pageSize int) ([]database.AdminOperationLog, int64, error)
 	GetLog(id uint) (*database.AdminOperationLog, error)

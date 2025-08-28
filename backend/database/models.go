@@ -125,6 +125,8 @@ type AdminOperationLog struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
 	Username string `gorm:"not null;index" json:"username"`
+	AdminID  *uint  `gorm:"index" json:"admin_id"`
+	Admin    *Admin `gorm:"foreignKey:AdminID" json:"admin"`
 
 	Operation   AdminOperationType `gorm:"not null;index" json:"operation"`
 	Resource    string             `gorm:"not null;index" json:"resource"`
