@@ -32,6 +32,12 @@ export interface TaskConversation {
   execution_time?: string; // ISO 8601 date string
   commit_hash: string;
   env_params: string; // JSON string containing environment parameters
+  admin_id?: number;
+  admin?: {
+    id: number;
+    username: string;
+    name: string;
+  };
   created_by: string;
   created_at: string;
   updated_at: string;

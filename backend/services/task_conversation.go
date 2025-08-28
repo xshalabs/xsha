@@ -31,7 +31,7 @@ func NewTaskConversationService(repo repository.TaskConversationRepository, task
 	}
 }
 
-func (s *taskConversationService) CreateConversation(taskID uint, content, createdBy string) (*database.TaskConversation, error) {
+func (s *taskConversationService) CreateConversation(taskID uint, content, createdBy string, adminID *uint) (*database.TaskConversation, error) {
 	if err := s.ValidateConversationData(taskID, content); err != nil {
 		return nil, err
 	}
@@ -57,6 +57,7 @@ func (s *taskConversationService) CreateConversation(taskID uint, content, creat
 		TaskID:    taskID,
 		Content:   strings.TrimSpace(content),
 		Status:    database.ConversationStatusPending,
+		AdminID:   adminID,
 		CreatedBy: createdBy,
 	}
 
@@ -68,7 +69,7 @@ func (s *taskConversationService) CreateConversation(taskID uint, content, creat
 	return conversation, nil
 }
 
-func (s *taskConversationService) CreateConversationWithExecutionTime(taskID uint, content, createdBy string, executionTime *time.Time, envParams string) (*database.TaskConversation, error) {
+func (s *taskConversationService) CreateConversationWithExecutionTime(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, adminID *uint) (*database.TaskConversation, error) {
 	if err := s.ValidateConversationData(taskID, content); err != nil {
 		return nil, err
 	}
@@ -101,6 +102,7 @@ func (s *taskConversationService) CreateConversationWithExecutionTime(taskID uin
 		Status:        database.ConversationStatusPending,
 		ExecutionTime: executionTime,
 		EnvParams:     envParams,
+		AdminID:       adminID,
 		CreatedBy:     createdBy,
 	}
 
@@ -112,7 +114,7 @@ func (s *taskConversationService) CreateConversationWithExecutionTime(taskID uin
 	return conversation, nil
 }
 
-func (s *taskConversationService) CreateConversationWithExecutionTimeAndAttachments(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, attachmentIDs []uint) (*database.TaskConversation, error) {
+func (s *taskConversationService) CreateConversationWithExecutionTimeAndAttachments(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, attachmentIDs []uint, adminID *uint) (*database.TaskConversation, error) {
 	if err := s.ValidateConversationData(taskID, content); err != nil {
 		return nil, err
 	}
@@ -159,6 +161,7 @@ func (s *taskConversationService) CreateConversationWithExecutionTimeAndAttachme
 		Status:        database.ConversationStatusPending,
 		ExecutionTime: executionTime,
 		EnvParams:     envParams,
+		AdminID:       adminID,
 		CreatedBy:     createdBy,
 	}
 

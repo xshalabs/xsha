@@ -240,6 +240,8 @@ type TaskConversation struct {
 	// EnvParams 环境参数，如model等参数的JSON存储
 	EnvParams string `gorm:"type:text;default:'{}'" json:"env_params"`
 
+	AdminID   *uint  `gorm:"index" json:"admin_id"`
+	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 

@@ -63,6 +63,18 @@ func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 		return
 	}
 
+	adminIDInterface, adminExists := c.Get("admin_id")
+	if !adminExists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+
+	adminID, ok := adminIDInterface.(uint)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+
 	var req CreateConversationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error())})
@@ -73,9 +85,9 @@ func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 	var err error
 
 	if len(req.AttachmentIDs) > 0 {
-		conversation, err = h.conversationService.CreateConversationWithExecutionTimeAndAttachments(req.TaskID, req.Content, username.(string), req.ExecutionTime, req.EnvParams, req.AttachmentIDs)
+		conversation, err = h.conversationService.CreateConversationWithExecutionTimeAndAttachments(req.TaskID, req.Content, username.(string), req.ExecutionTime, req.EnvParams, req.AttachmentIDs, &adminID)
 	} else {
-		conversation, err = h.conversationService.CreateConversationWithExecutionTime(req.TaskID, req.Content, username.(string), req.ExecutionTime, req.EnvParams)
+		conversation, err = h.conversationService.CreateConversationWithExecutionTime(req.TaskID, req.Content, username.(string), req.ExecutionTime, req.EnvParams, &adminID)
 	}
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})

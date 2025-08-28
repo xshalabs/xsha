@@ -76,6 +76,18 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 		return
 	}
 
+	adminIDInterface, adminExists := c.Get("admin_id")
+	if !adminExists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+
+	adminID, ok := adminIDInterface.(uint)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+
 	var req CreateTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -99,6 +111,7 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 				req.ExecutionTime,
 				req.EnvParams,
 				req.AttachmentIDs,
+				&adminID,
 			)
 		} else {
 			_, err = h.conversationService.CreateConversationWithExecutionTime(
@@ -107,6 +120,7 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 				username.(string),
 				req.ExecutionTime,
 				req.EnvParams,
+				&adminID,
 			)
 		}
 		if err != nil {
