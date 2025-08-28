@@ -37,27 +37,3 @@ type SystemConfig struct {
 	CreatedAt   time.Time `gorm:"column:created_at;not null" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"column:updated_at;not null" json:"updated_at"`
 }
-
-// TaskConversationAttachment represents an attachment in a task conversation
-type TaskConversationAttachment struct {
-	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
-	CreatedBy string    `gorm:"column:created_by" json:"created_by"`
-	AdminID   *uint     `gorm:"column:admin_id" json:"admin_id"`
-	CreatedAt time.Time `gorm:"column:created_at;not null" json:"created_at"`
-	UpdatedAt time.Time `gorm:"column:updated_at;not null" json:"updated_at"`
-}
-
-// AdminOperationLog represents an admin operation log entry
-type AdminOperationLog struct {
-	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
-	Username  string    `gorm:"column:username" json:"username"`
-	AdminID   *uint     `gorm:"column:admin_id" json:"admin_id"`
-	CreatedAt time.Time `gorm:"column:created_at;not null" json:"created_at"`
-	UpdatedAt time.Time `gorm:"column:updated_at;not null" json:"updated_at"`
-}
-
-// Admin represents an admin user
-type Admin struct {
-	ID       uint   `gorm:"primaryKey;autoIncrement" json:"id"`
-	Username string `gorm:"column:username;unique;not null" json:"username"`
-}
