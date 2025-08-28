@@ -202,4 +202,3 @@ func (s *authService) CheckAdminStatus(username string) (bool, error) {
 	}
 	return admin.IsActive, nil
 }
-

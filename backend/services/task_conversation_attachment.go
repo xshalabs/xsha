@@ -26,7 +26,7 @@ func NewTaskConversationAttachmentService(repo repository.TaskConversationAttach
 	}
 }
 
-func (s *taskConversationAttachmentService) UploadAttachment(fileName, originalName, contentType string, fileSize int64, filePath string, attachmentType database.AttachmentType, createdBy string) (*database.TaskConversationAttachment, error) {
+func (s *taskConversationAttachmentService) UploadAttachment(fileName, originalName, contentType string, fileSize int64, filePath string, attachmentType database.AttachmentType, adminID uint, createdBy string) (*database.TaskConversationAttachment, error) {
 	// Validate file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return nil, appErrors.NewI18nError("attachment.file_not_found", "File does not exist")
@@ -41,6 +41,7 @@ func (s *taskConversationAttachmentService) UploadAttachment(fileName, originalN
 		ContentType:    contentType,
 		Type:           attachmentType,
 		SortOrder:      0, // Will be set when associating with conversation
+		AdminID:        &adminID,
 		CreatedBy:      createdBy,
 	}
 

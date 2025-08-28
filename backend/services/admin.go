@@ -92,7 +92,6 @@ func (s *adminService) UpdateAdmin(id uint, updates map[string]interface{}) erro
 		return fmt.Errorf("failed to get admin: %v", err)
 	}
 
-
 	// Apply updates
 	if username, ok := updates["username"]; ok {
 		if usernameStr, ok := username.(string); ok {

@@ -18,7 +18,6 @@ func (r *taskConversationResultRepository) Create(result *database.TaskConversat
 	return r.db.Create(result).Error
 }
 
-
 func (r *taskConversationResultRepository) ExistsByConversationID(conversationID uint) (bool, error) {
 	var count int64
 	err := r.db.Model(&database.TaskConversationResult{}).

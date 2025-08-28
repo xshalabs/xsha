@@ -344,5 +344,7 @@ type TaskConversationAttachment struct {
 	// Metadata for ordering and referencing in content
 	SortOrder int `gorm:"not null;default:0" json:"sort_order"`
 
+	AdminID   *uint  `gorm:"index" json:"admin_id"`
+	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }

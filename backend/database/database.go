@@ -141,6 +141,11 @@ func runMigrations(db *gorm.DB, cfg *config.Config) error {
 		return fmt.Errorf("token blacklist token ID migration failed: %v", err)
 	}
 
+	// Run task conversation attachment admin ID migration
+	if err := runTaskConversationAttachmentAdminIDMigration(db); err != nil {
+		return fmt.Errorf("task conversation attachment admin ID migration failed: %v", err)
+	}
+
 	utils.Info("Custom migrations completed successfully")
 	return nil
 }

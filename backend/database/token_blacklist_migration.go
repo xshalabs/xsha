@@ -28,7 +28,7 @@ func runTokenBlacklistTokenIDMigration(db *gorm.DB) error {
 		// Check if the token column exists (old structure)
 		if db.Migrator().HasColumn(&TokenBlacklist{}, "token") {
 			utils.Info("Found token_blacklists table with old structure, recreating...")
-			
+
 			// Clear all existing entries since they can't be converted
 			result := db.Delete(&TokenBlacklist{}, "1 = 1")
 			if result.Error != nil {

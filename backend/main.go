@@ -69,7 +69,7 @@ func main() {
 	adminOperationLogService := services.NewAdminOperationLogService(adminOperationLogRepo)
 	adminService := services.NewAdminService(adminRepo)
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, adminService, adminRepo, cfg)
-	
+
 	// Set up circular dependency - adminService needs authService for session invalidation
 	adminService.SetAuthService(authService)
 	gitCredService := services.NewGitCredentialService(gitCredRepo, projectRepo, cfg)
@@ -163,7 +163,7 @@ func main() {
 	}
 
 	// Setup routes - Pass all handler instances including static files
-	routes.SetupRoutes(r, cfg, authService, authHandlers, adminHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskExecLogHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
+	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskExecLogHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

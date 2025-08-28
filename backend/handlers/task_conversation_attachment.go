@@ -50,6 +50,17 @@ func (h *TaskConversationAttachmentHandlers) UploadAttachment(c *gin.Context) {
 		return
 	}
 
+	adminIDInterface, exists := c.Get("admin_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+	adminID, ok := adminIDInterface.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
+		return
+	}
+
 	// Get uploaded file
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
@@ -102,6 +113,7 @@ func (h *TaskConversationAttachmentHandlers) UploadAttachment(c *gin.Context) {
 		header.Size,
 		filePath,
 		attachmentType,
+		adminID,
 		username.(string),
 	)
 	if err != nil {

@@ -144,7 +144,6 @@ func (s *taskConversationResultService) handleRegularResult(result *database.Tas
 	}
 }
 
-
 func (s *taskConversationResultService) ValidateResultData(resultData map[string]interface{}) error {
 	if typeVal, ok := resultData["type"].(string); !ok || typeVal == "" {
 		return errors.New("type is required")

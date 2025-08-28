@@ -40,8 +40,6 @@ func (r *tokenBlacklistRepository) IsBlacklisted(tokenID string) (bool, error) {
 	return count > 0, nil
 }
 
-
 func (r *tokenBlacklistRepository) CleanExpired() error {
 	return r.db.Where("expires_at < ?", utils.Now()).Delete(&database.TokenBlacklist{}).Error
 }
-

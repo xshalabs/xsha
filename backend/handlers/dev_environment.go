@@ -293,7 +293,6 @@ func (h *DevEnvironmentHandlers) DeleteEnvironment(c *gin.Context) {
 	})
 }
 
-
 // GetAvailableImages gets available environment images
 // @Summary Get available environment images
 // @Description Get available environment images from system configuration
@@ -318,4 +317,3 @@ func (h *DevEnvironmentHandlers) GetAvailableImages(c *gin.Context) {
 		"images": images,
 	})
 }
-

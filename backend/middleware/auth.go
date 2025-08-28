@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddlewareWithService(authService services.AuthService, cfg *config.Config) gin.HandlerFunc {
+func AuthMiddlewareWithService(authService services.AuthService, adminService services.AdminService, cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		lang := GetLangFromContext(c)
 
@@ -89,7 +89,21 @@ func AuthMiddlewareWithService(authService services.AuthService, cfg *config.Con
 			return
 		}
 
+		// Get admin details to set admin_id in context
+		admin, err := adminService.GetAdminByUsername(claims.Username)
+		if err != nil {
+			utils.Error("Failed to get admin details for context",
+				"username", claims.Username,
+				"error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": i18n.T(lang, "auth.server_error"),
+			})
+			c.Abort()
+			return
+		}
+
 		c.Set("username", claims.Username)
+		c.Set("admin_id", admin.ID)
 		c.Next()
 	}
 }

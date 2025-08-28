@@ -69,4 +69,3 @@ func (r *devEnvironmentRepository) Update(env *database.DevEnvironment) error {
 func (r *devEnvironmentRepository) Delete(id uint) error {
 	return r.db.Where("id = ?", id).Delete(&database.DevEnvironment{}).Error
 }
-

@@ -264,4 +264,3 @@ func (s *devEnvironmentService) getAbsoluteSessionPath(relativePath string) stri
 
 	return filepath.Join(s.config.DevSessionsDir, relativePath)
 }
-
