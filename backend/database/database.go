@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 	"xsha-backend/config"
+	"xsha-backend/database/migrations"
 	"xsha-backend/utils"
 
 	"github.com/glebarez/sqlite"
@@ -121,39 +122,15 @@ func GetDB() *gorm.DB {
 func runMigrations(db *gorm.DB, cfg *config.Config) error {
 	utils.Info("Running custom migrations")
 
-	// Run workspace relative paths migration
-	if err := runWorkspaceRelativePathsMigration(db, cfg.WorkspaceBaseDir); err != nil {
-		return fmt.Errorf("workspace relative paths migration failed: %v", err)
+	// Use the new migration manager to run migrations
+	migrationManager := migrations.NewMigrationManager(db, cfg)
+	if err := migrationManager.RunAll(); err != nil {
+		return fmt.Errorf("migration manager failed: %v", err)
 	}
 
-	// Run dev environment session dir relative paths migration
-	if err := runDevEnvironmentSessionDirMigration(db, cfg.DevSessionsDir); err != nil {
-		return fmt.Errorf("dev environment session dir migration failed: %v", err)
-	}
-
-	// Run admin credentials system config removal migration
-	if err := runRemoveAdminCredentialsSystemConfigMigration(db); err != nil {
-		return fmt.Errorf("admin credentials system config removal migration failed: %v", err)
-	}
-
-	// Run token blacklist token ID migration
+	// Run token blacklist token ID migration (keeping this separate as it's already in its own file)
 	if err := runTokenBlacklistTokenIDMigration(db); err != nil {
 		return fmt.Errorf("token blacklist token ID migration failed: %v", err)
-	}
-
-	// Run task conversation attachment admin ID migration
-	if err := runTaskConversationAttachmentAdminIDMigration(db); err != nil {
-		return fmt.Errorf("task conversation attachment admin ID migration failed: %v", err)
-	}
-
-	// Run admin operation log admin ID migration
-	if err := runAdminOperationLogAdminIDMigration(db); err != nil {
-		return fmt.Errorf("admin operation log admin ID migration failed: %v", err)
-	}
-
-	// Run dev environment admin ID migration
-	if err := runDevEnvironmentAdminIDMigration(db); err != nil {
-		return fmt.Errorf("dev environment admin ID migration failed: %v", err)
 	}
 
 	utils.Info("Custom migrations completed successfully")
