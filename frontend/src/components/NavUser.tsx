@@ -28,7 +28,7 @@ import { SUPPORTED_LANGUAGES, STORAGE_KEYS } from "@/lib/constants";
 export function NavUser() {
   const { isMobile } = useSidebar();
   const { t, i18n } = useTranslation();
-  const { user, logout } = useAuth();
+  const { user, name, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -73,7 +73,7 @@ export function NavUser() {
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user}</span>
-                <span className="truncate text-xs">Admin</span>
+                <span className="truncate text-xs">{name || "Admin"}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -94,7 +94,7 @@ export function NavUser() {
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user}</span>
-                  <span className="truncate text-xs">Admin</span>
+                  <span className="truncate text-xs">{name || "Admin"}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

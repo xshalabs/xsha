@@ -6,6 +6,7 @@ import { handleApiError } from "@/lib/errors";
 
 interface AuthContextType {
   user: string | null;
+  name: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
@@ -29,6 +30,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -42,11 +44,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const response: UserResponse = await apiService.getCurrentUser();
       setUser(response.user);
+      setName(response.name);
       setIsAuthenticated(true);
     } catch (error) {
       console.error("Auth check failed:", handleApiError(error));
       setIsAuthenticated(false);
       setUser(null);
+      setName(null);
       tokenManager.removeToken();
     } finally {
       setIsLoading(false);
@@ -62,6 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       setIsAuthenticated(false);
       setUser(null);
+      setName(null);
       throw new Error(handleApiError(error));
     } finally {
       setIsLoading(false);
@@ -77,6 +82,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsAuthenticated(false);
       setUser(null);
+      setName(null);
       setIsLoading(false);
     }
   };
@@ -87,6 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value: AuthContextType = {
     user,
+    name,
     isAuthenticated,
     isLoading,
     login,

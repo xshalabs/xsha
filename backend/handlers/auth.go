@@ -130,7 +130,7 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} object{username=string} "User information"
+// @Success 200 {object} object{username=string,name=string} "User information"
 // @Failure 500 {object} object{error=string} "Failed to get user information"
 // @Router /user/current [get]
 func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
@@ -144,8 +144,18 @@ func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
 		return
 	}
 
+	// Get admin info to retrieve the name
+	admin, err := h.adminService.GetAdminByUsername(username.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "user.get_info_error"),
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"user":          username,
+		"name":          admin.Name,
 		"authenticated": true,
 		"message":       i18n.T(lang, "user.authenticated"),
 	})

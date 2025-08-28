@@ -11,6 +11,7 @@ export interface LoginResponse {
 
 export interface UserResponse {
   user: string;
+  name: string;
   authenticated: boolean;
   message: string;
 }
