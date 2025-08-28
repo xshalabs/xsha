@@ -64,6 +64,14 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 		return
 	}
 
+	adminID, exists := c.Get("admin_id")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "auth.unauthorized"),
+		})
+		return
+	}
+
 	var req CreateEnvironmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -78,7 +86,7 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 
 	env, err := h.devEnvService.CreateEnvironment(
 		req.Name, req.Description, req.SystemPrompt, req.Type, req.DockerImage,
-		req.CPULimit, req.MemoryLimit, req.EnvVars, username.(string),
+		req.CPULimit, req.MemoryLimit, req.EnvVars, adminID.(uint), username.(string),
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{

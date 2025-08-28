@@ -29,7 +29,7 @@ func NewDevEnvironmentService(repo repository.DevEnvironmentRepository, taskRepo
 	}
 }
 
-func (s *devEnvironmentService) CreateEnvironment(name, description, systemPrompt, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, createdBy string) (*database.DevEnvironment, error) {
+func (s *devEnvironmentService) CreateEnvironment(name, description, systemPrompt, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, adminID uint, createdBy string) (*database.DevEnvironment, error) {
 	if err := s.validateEnvironmentData(name, envType, cpuLimit, memoryLimit); err != nil {
 		return nil, err
 	}
@@ -67,6 +67,7 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, systemPromp
 		MemoryLimit:  memoryLimit,
 		EnvVars:      string(envVarsJSON),
 		SessionDir:   sessionDir,
+		AdminID:      &adminID,
 		CreatedBy:    createdBy,
 	}
 

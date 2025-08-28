@@ -151,6 +151,11 @@ func runMigrations(db *gorm.DB, cfg *config.Config) error {
 		return fmt.Errorf("admin operation log admin ID migration failed: %v", err)
 	}
 
+	// Run dev environment admin ID migration
+	if err := runDevEnvironmentAdminIDMigration(db); err != nil {
+		return fmt.Errorf("dev environment admin ID migration failed: %v", err)
+	}
+
 	utils.Info("Custom migrations completed successfully")
 	return nil
 }
