@@ -61,6 +61,15 @@ func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 		return
 	}
 
+	adminIDInterface, exists := c.Get("admin_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": i18n.T(lang, "auth.unauthorized"),
+		})
+		return
+	}
+	adminID := adminIDInterface.(uint)
+
 	var req CreateCredentialRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -71,7 +80,7 @@ func (h *GitCredentialHandlers) CreateCredential(c *gin.Context) {
 
 	credential, err := h.gitCredService.CreateCredential(
 		req.Name, req.Description, req.Type, req.Username,
-		req.SecretData, username.(string),
+		req.SecretData, username.(string), &adminID,
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{

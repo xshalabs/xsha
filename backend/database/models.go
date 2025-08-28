@@ -77,6 +77,8 @@ type GitCredential struct {
 	PrivateKey   string `gorm:"type:text" json:"-"`
 	PublicKey    string `gorm:"type:text" json:"public_key"`
 
+	AdminID   *uint  `gorm:"index" json:"admin_id"`
+	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 

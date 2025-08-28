@@ -13,6 +13,7 @@ export interface GitCredential {
   description: string;
   type: GitCredentialType;
   username: string;
+  admin_id?: number;
   created_by: string;
   public_key?: string;
   created_at: string;
