@@ -114,18 +114,6 @@ type TaskExecutionLogRepository interface {
 
 type TaskConversationResultRepository interface {
 	Create(result *database.TaskConversationResult) error
-	GetByID(id uint) (*database.TaskConversationResult, error)
-	GetByConversationID(conversationID uint) (*database.TaskConversationResult, error)
-	Update(result *database.TaskConversationResult) error
-	Delete(id uint) error
-
-	ListByTaskID(taskID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error)
-	ListByProjectID(projectID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error)
-
-	GetSuccessRate(taskID uint) (float64, error)
-	GetTotalCost(taskID uint) (float64, error)
-	GetAverageDuration(taskID uint) (float64, error)
-
 	ExistsByConversationID(conversationID uint) (bool, error)
 	DeleteByConversationID(conversationID uint) error
 	GetLatestByTaskID(taskID uint) (*database.TaskConversationResult, error)
