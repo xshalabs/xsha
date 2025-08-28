@@ -10,6 +10,7 @@ export interface Task {
   workspace_path: string;
   project_id: number;
   dev_environment_id?: number;
+  admin_id?: number;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -24,6 +25,11 @@ export interface Task {
     name: string;
     type: string;
     status: string;
+  };
+  admin?: {
+    id: number;
+    name: string;
+    username: string;
   };
 }
 

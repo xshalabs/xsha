@@ -213,6 +213,8 @@ type Task struct {
 	DevEnvironmentID *uint           `gorm:"index" json:"dev_environment_id"`
 	DevEnvironment   *DevEnvironment `gorm:"foreignKey:DevEnvironmentID" json:"dev_environment"`
 
+	AdminID   *uint  `gorm:"index" json:"admin_id"`
+	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 
 	Conversations       []TaskConversation `gorm:"foreignKey:TaskID" json:"conversations"`

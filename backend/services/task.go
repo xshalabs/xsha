@@ -44,7 +44,7 @@ func NewTaskService(repo repository.TaskRepository, projectRepo repository.Proje
 	}
 }
 
-func (s *taskService) CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint, createdBy string) (*database.Task, error) {
+func (s *taskService) CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint, adminID *uint, createdBy string) (*database.Task, error) {
 	if err := s.ValidateTaskData(title, startBranch, projectID); err != nil {
 		return nil, err
 	}
@@ -71,6 +71,7 @@ func (s *taskService) CreateTask(title, startBranch string, projectID uint, devE
 		Status:           database.TaskStatusTodo,
 		ProjectID:        projectID,
 		DevEnvironmentID: devEnvironmentID,
+		AdminID:          adminID,
 		CreatedBy:        createdBy,
 	}
 

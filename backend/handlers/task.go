@@ -94,7 +94,7 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 		return
 	}
 
-	task, err := h.taskService.CreateTask(req.Title, req.StartBranch, req.ProjectID, req.DevEnvironmentID, username.(string))
+	task, err := h.taskService.CreateTask(req.Title, req.StartBranch, req.ProjectID, req.DevEnvironmentID, &adminID, username.(string))
 	if err != nil {
 		helper := i18n.NewHelper(lang)
 		helper.ErrorResponseFromError(c, http.StatusBadRequest, err)
