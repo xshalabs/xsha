@@ -118,15 +118,6 @@ type TaskConversationService interface {
 
 type TaskConversationResultService interface {
 	CreateResult(conversationID uint, resultData map[string]interface{}) (*database.TaskConversationResult, error)
-	GetResult(id uint) (*database.TaskConversationResult, error)
-	GetResultByConversationID(conversationID uint) (*database.TaskConversationResult, error)
-	UpdateResult(id uint, updates map[string]interface{}) error
-	DeleteResult(id uint) error
-	ListResultsByTaskID(taskID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error)
-	ListResultsByProjectID(projectID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error)
-	GetTaskStats(taskID uint) (map[string]interface{}, error)
-	GetProjectStats(projectID uint) (map[string]interface{}, error)
-	ExistsForConversation(conversationID uint) (bool, error)
 	ValidateResultData(resultData map[string]interface{}) error
 }
 
