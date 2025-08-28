@@ -63,6 +63,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await apiService.login({ username, password });
       setUser(response.user);
       setIsAuthenticated(true);
+      
+      // Fetch current user information to get complete user details including name
+      const userInfo = await apiService.getCurrentUser();
+      setName(userInfo.name);
     } catch (error) {
       setIsAuthenticated(false);
       setUser(null);
