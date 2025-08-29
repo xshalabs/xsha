@@ -177,6 +177,7 @@ type AdminAvatarService interface {
 	GetAvatarByUUID(uuid string) (*database.AdminAvatar, error)
 	GetAvatarByAdminID(adminID uint) (*database.AdminAvatar, error)
 	UpdateAdminAvatar(adminID uint, avatarID uint) error
+	UpdateAdminAvatarByUUID(avatarUUID string, adminID uint) error
 	GetAvatarStorageDir() string
 	GenerateAvatarFileName(originalName string) string
 }

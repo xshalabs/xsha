@@ -99,8 +99,8 @@ export function AvatarUploadDialog({
       setUploading(true);
       const response = await adminApi.uploadAvatar(selectedFile);
       
-      // Update admin's avatar
-      await adminApi.updateAdminAvatar(admin.id, response.data.id);
+      // Update admin's avatar using avatar UUID
+      await adminApi.updateAdminAvatar(response.data.uuid, admin.id);
       
       toast.success(t('admin.avatar.uploadSuccess'));
       clearSelection();

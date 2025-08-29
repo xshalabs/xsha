@@ -56,7 +56,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			admin.PUT("/users/:id", adminHandlers.UpdateAdminHandler)
 			admin.DELETE("/users/:id", adminHandlers.DeleteAdminHandler)
 			admin.PUT("/users/:id/password", adminHandlers.ChangePasswordHandler)
-			admin.PUT("/users/:id/avatar", adminAvatarHandlers.UpdateAdminAvatarHandler)
+			admin.PUT("/avatar/:uuid", adminAvatarHandlers.UpdateAdminAvatarHandler)
 
 			// Admin avatar management
 			admin.POST("/avatar/upload", adminAvatarHandlers.UploadAvatarHandler)

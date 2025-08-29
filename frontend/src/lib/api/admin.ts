@@ -83,11 +83,11 @@ export const adminApi = {
     });
   },
 
-  // Update admin's avatar
-  updateAdminAvatar: async (adminId: number, avatarId: number): Promise<{ message: string }> => {
-    return request<{ message: string }>(`/admin/users/${adminId}/avatar`, {
+  // Update admin's avatar by avatar UUID
+  updateAdminAvatar: async (avatarUuid: string, adminId: number): Promise<{ message: string }> => {
+    return request<{ message: string }>(`/admin/avatar/${avatarUuid}`, {
       method: 'PUT',
-      body: JSON.stringify({ avatar_id: avatarId }),
+      body: JSON.stringify({ admin_id: adminId }),
     });
   },
 };

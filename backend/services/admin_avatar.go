@@ -15,16 +15,16 @@ import (
 )
 
 type adminAvatarService struct {
-	repo       repository.AdminAvatarRepository
-	adminRepo  repository.AdminRepository
-	config     *config.Config
+	repo      repository.AdminAvatarRepository
+	adminRepo repository.AdminRepository
+	config    *config.Config
 }
 
 func NewAdminAvatarService(repo repository.AdminAvatarRepository, adminRepo repository.AdminRepository, cfg *config.Config) AdminAvatarService {
 	return &adminAvatarService{
-		repo:       repo,
-		adminRepo:  adminRepo,
-		config:     cfg,
+		repo:      repo,
+		adminRepo: adminRepo,
+		config:    cfg,
 	}
 }
 
@@ -89,6 +89,24 @@ func (s *adminAvatarService) UpdateAdminAvatar(adminID uint, avatarID uint) erro
 
 	// Update admin's avatar_id
 	admin.AvatarID = &avatarID
+	return s.adminRepo.Update(admin)
+}
+
+func (s *adminAvatarService) UpdateAdminAvatarByUUID(avatarUUID string, adminID uint) error {
+	// Get avatar by UUID
+	avatar, err := s.repo.GetByUUID(avatarUUID)
+	if err != nil {
+		return appErrors.NewI18nError("avatar.not_found", "Avatar not found")
+	}
+
+	// Get admin
+	admin, err := s.adminRepo.GetByID(adminID)
+	if err != nil {
+		return err
+	}
+
+	// Update admin's avatar_id
+	admin.AvatarID = &avatar.ID
 	return s.adminRepo.Update(admin)
 }
 

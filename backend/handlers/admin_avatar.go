@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"xsha-backend/i18n"
 	"xsha-backend/middleware"
@@ -187,51 +186,43 @@ func (h *AdminAvatarHandlers) PreviewAvatarHandler(c *gin.Context) {
 	c.File(avatar.FilePath)
 }
 
-// UpdateAdminAvatarHandler updates admin's avatar
+// UpdateAdminAvatarHandler updates admin's avatar by avatar UUID
 // @Summary Update admin avatar
-// @Description Update administrator's avatar by setting avatar ID
+// @Description Update administrator's avatar by avatar UUID
 // @Tags Admin Management
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Admin ID"
-// @Param avatarData body object{avatar_id=uint} true "Avatar ID information"
+// @Param uuid path string true "Avatar UUID"
+// @Param adminData body object{admin_id=uint} true "Admin ID information"
 // @Success 200 {object} object{message=string} "Avatar updated successfully"
 // @Failure 400 {object} object{error=string} "Request parameter error"
 // @Failure 404 {object} object{error=string} "Admin or avatar not found"
-// @Router /admin/users/{id}/avatar [put]
+// @Router /admin/avatar/{uuid} [put]
 func (h *AdminAvatarHandlers) UpdateAdminAvatarHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	idParam := c.Param("id")
-	adminID, err := strconv.ParseUint(idParam, 10, 32)
-	if err != nil {
+	uuid := c.Param("uuid")
+	if uuid == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_id"),
+			"error": i18n.T(lang, "avatar.invalid_uuid"),
 		})
 		return
 	}
 
-	var avatarData struct {
-		AvatarID uint `json:"avatar_id" binding:"required"`
+	var adminData struct {
+		AdminID uint `json:"admin_id" binding:"required"`
 	}
 
-	if err := c.ShouldBindJSON(&avatarData); err != nil {
+	if err := c.ShouldBindJSON(&adminData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
 		})
 		return
 	}
 
-	// Verify avatar exists
-	_, err = h.avatarService.GetAvatar(avatarData.AvatarID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "avatar.not_found")})
-		return
-	}
-
-	// Update admin's avatar
-	if err := h.avatarService.UpdateAdminAvatar(uint(adminID), avatarData.AvatarID); err != nil {
+	// Update admin's avatar using UUID
+	if err := h.avatarService.UpdateAdminAvatarByUUID(uuid, adminData.AdminID); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
 	}
