@@ -13,6 +13,7 @@ interface AdminColumnsProps {
   onEdit: (admin: Admin) => void;
   onChangePassword: (admin: Admin) => void;
   onDelete: (admin: Admin) => Promise<void>;
+  onAvatarClick?: (admin: Admin) => void;
 }
 
 export const createAdminColumns = ({
@@ -20,6 +21,7 @@ export const createAdminColumns = ({
   onEdit,
   onChangePassword,
   onDelete,
+  onAvatarClick,
 }: AdminColumnsProps): ColumnDef<Admin>[] => [
   {
     accessorKey: "username",
@@ -35,6 +37,7 @@ export const createAdminColumns = ({
             name={admin.name}
             avatar={admin.avatar}
             size="sm"
+            onClick={onAvatarClick ? () => onAvatarClick(admin) : undefined}
           />
           <div className="font-medium">{row.getValue("username")}</div>
         </div>

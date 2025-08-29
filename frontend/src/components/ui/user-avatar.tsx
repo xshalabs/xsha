@@ -10,6 +10,7 @@ interface UserAvatarProps {
   avatar?: AdminAvatar;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  onClick?: () => void;
 }
 
 const sizeClasses = {
@@ -23,7 +24,8 @@ export function UserAvatar({
   name, 
   avatar,
   size = 'md',
-  className 
+  className,
+  onClick
 }: UserAvatarProps) {
   // Generate initials from user or name
   const getInitials = () => {
@@ -56,7 +58,15 @@ export function UserAvatar({
   const avatarUrl = getAvatarUrl();
 
   return (
-    <Avatar className={cn(sizeClasses[size], "rounded-lg", className)}>
+    <Avatar 
+      className={cn(
+        sizeClasses[size], 
+        "rounded-lg", 
+        onClick && "cursor-pointer hover:opacity-80 transition-opacity",
+        className
+      )}
+      onClick={onClick}
+    >
       <AvatarImage src={avatarUrl} alt={name || user || 'User'} />
       <AvatarFallback className="rounded-lg">
         {initials}

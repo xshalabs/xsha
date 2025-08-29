@@ -21,10 +21,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { UserAvatar } from '@/components/ui/user-avatar';
 import { adminApi, type Admin } from '@/lib/api';
 import { toast } from 'sonner';
-import { Upload, X } from 'lucide-react';
 
 const formSchema = z.object({
   username: z
@@ -57,9 +55,6 @@ export function UpdateAdminDialog({
 }: UpdateAdminDialogProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string>('');
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -80,63 +75,9 @@ export function UpdateAdminDialog({
         email: admin.email || '',
         is_active: admin.is_active,
       });
-      setAvatarFile(null);
-      setAvatarPreview('');
     }
   }, [admin, form]);
 
-  // Handle avatar file selection and auto-upload
-  const handleAvatarSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error(t('admin.avatar.unsupportedFormat'));
-      return;
-    }
-
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error(t('admin.avatar.fileTooLarge'));
-      return;
-    }
-
-    setAvatarFile(file);
-    
-    // Create preview URL
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setAvatarPreview(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    // Auto-upload after validation
-    try {
-      setUploadingAvatar(true);
-      const response = await adminApi.uploadAvatar(file);
-      
-      // Update admin's avatar
-      await adminApi.updateAdminAvatar(admin.id, response.data.id);
-      
-      toast.success(t('admin.avatar.uploadSuccess'));
-      setAvatarFile(null);
-      setAvatarPreview('');
-      onSuccess(); // Refresh the admin data
-    } catch (error: any) {
-      console.error('Failed to upload avatar:', error);
-      toast.error(error.message || t('admin.avatar.uploadFailed'));
-    } finally {
-      setUploadingAvatar(false);
-    }
-  };
-
-
-  // Clear selected avatar
-  const handleClearAvatar = () => {
-    setAvatarFile(null);
-    setAvatarPreview('');
-  };
 
   const handleSubmit = async (data: FormData) => {
     try {
@@ -175,74 +116,6 @@ export function UpdateAdminDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            {/* Avatar Upload Section */}
-            <div className="space-y-4">
-              <div className="text-sm font-medium">{t('admin.avatar.title')}</div>
-              <div className="flex items-center space-x-4">
-                <UserAvatar 
-                  user={admin.username}
-                  name={admin.name}
-                  avatar={admin.avatar}
-                  size="lg"
-                />
-                <div className="flex-1 space-y-2">
-                  {!avatarFile ? (
-                    <>
-                      <input
-                        type="file"
-                        id="avatar-upload"
-                        accept="image/*"
-                        onChange={handleAvatarSelect}
-                        className="hidden"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => document.getElementById('avatar-upload')?.click()}
-                        disabled={loading || uploadingAvatar}
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        {t('admin.avatar.upload')}
-                      </Button>
-                    </>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <img 
-                          src={avatarPreview} 
-                          alt="Preview" 
-                          className="h-12 w-12 rounded-lg object-cover"
-                        />
-                        <div className="flex-1">
-                          <p className="text-sm text-muted-foreground">
-                            {avatarFile.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {(avatarFile.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                          {uploadingAvatar && (
-                            <p className="text-xs text-blue-600">
-                              {t('admin.avatar.uploading')}
-                            </p>
-                          )}
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleClearAvatar}
-                          disabled={uploadingAvatar}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
             <FormField
               control={form.control}
               name="username"

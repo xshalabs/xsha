@@ -13,6 +13,7 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { CreateAdminDialog } from '@/components/admin/CreateAdminDialog';
 import { UpdateAdminDialog } from '@/components/admin/UpdateAdminDialog';
 import { ChangePasswordDialog } from '@/components/admin/ChangePasswordDialog';
+import { AvatarUploadDialog } from '@/components/admin/AvatarUploadDialog';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { DataTablePaginationServer } from '@/components/ui/data-table/data-table-pagination-server';
@@ -58,6 +59,7 @@ export default function AdminListPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [changePasswordDialogOpen, setChangePasswordDialogOpen] = useState(false);
+  const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
 
   const loadAdminsData = useCallback(
@@ -262,6 +264,14 @@ export default function AdminListPage() {
     []
   );
 
+  const handleAvatarClick = useCallback(
+    (admin: Admin) => {
+      setSelectedAdmin(admin);
+      setAvatarDialogOpen(true);
+    },
+    []
+  );
+
   const handleDelete = useCallback(
     async (admin: Admin) => {
       await adminApi.deleteAdmin(admin.id);
@@ -286,6 +296,12 @@ export default function AdminListPage() {
     setSelectedAdmin(null);
   };
 
+  const handleAvatarUploadSuccess = () => {
+    setAvatarDialogOpen(false);
+    setSelectedAdmin(null);
+    loadAdminsData(currentPage, columnFilters, sorting, false);
+  };
+
 
   const columns = useMemo(
     () =>
@@ -294,8 +310,9 @@ export default function AdminListPage() {
         onEdit: handleEdit,
         onChangePassword: handleChangePassword,
         onDelete: handleDelete,
+        onAvatarClick: handleAvatarClick,
       }),
-    [t, handleEdit, handleChangePassword, handleDelete]
+    [t, handleEdit, handleChangePassword, handleDelete, handleAvatarClick]
   );
 
   return (
@@ -351,6 +368,12 @@ export default function AdminListPage() {
             onOpenChange={setChangePasswordDialogOpen}
             admin={selectedAdmin}
             onSuccess={handleChangePasswordSuccess}
+          />
+          <AvatarUploadDialog
+            open={avatarDialogOpen}
+            onOpenChange={setAvatarDialogOpen}
+            admin={selectedAdmin}
+            onSuccess={handleAvatarUploadSuccess}
           />
         </>
       )}
