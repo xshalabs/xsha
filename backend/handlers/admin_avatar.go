@@ -104,13 +104,13 @@ func (h *AdminAvatarHandlers) UploadAvatarHandler(c *gin.Context) {
 		return
 	}
 
-	// Create avatar record
+	// Create avatar record with relative path (just the filename)
 	avatar, err := h.avatarService.UploadAvatar(
 		fileName,
 		header.Filename,
 		contentType,
 		header.Size,
-		filePath,
+		fileName, // Store relative path (just filename) instead of full path
 		adminID,
 		username.(string),
 	)
@@ -118,13 +118,6 @@ func (h *AdminAvatarHandlers) UploadAvatarHandler(c *gin.Context) {
 		// Clean up file if database operation failed
 		os.Remove(filePath)
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
-		return
-	}
-
-	// Update admin's avatar_id
-	if err := h.avatarService.UpdateAdminAvatar(adminID, avatar.ID); err != nil {
-		utils.Error("Failed to update admin avatar", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
 		return
 	}
 
@@ -171,8 +164,11 @@ func (h *AdminAvatarHandlers) PreviewAvatarHandler(c *gin.Context) {
 		return
 	}
 
+	// Construct full file path from relative path
+	fullFilePath := h.avatarService.GetFullAvatarPath(avatar.FilePath)
+
 	// Check if file exists
-	if _, err := os.Stat(avatar.FilePath); os.IsNotExist(err) {
+	if _, err := os.Stat(fullFilePath); os.IsNotExist(err) {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "avatar.file_not_found")})
 		return
 	}
@@ -183,7 +179,7 @@ func (h *AdminAvatarHandlers) PreviewAvatarHandler(c *gin.Context) {
 	c.Header("Cache-Control", "public, max-age=3600") // Cache for 1 hour
 
 	// Serve file inline
-	c.File(avatar.FilePath)
+	c.File(fullFilePath)
 }
 
 // UpdateAdminAvatarHandler updates admin's avatar by avatar UUID

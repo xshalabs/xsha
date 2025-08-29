@@ -173,11 +173,9 @@ type TaskConversationAttachmentService interface {
 
 type AdminAvatarService interface {
 	UploadAvatar(fileName, originalName, contentType string, fileSize int64, filePath string, adminID uint, createdBy string) (*database.AdminAvatar, error)
-	GetAvatar(id uint) (*database.AdminAvatar, error)
 	GetAvatarByUUID(uuid string) (*database.AdminAvatar, error)
-	GetAvatarByAdminID(adminID uint) (*database.AdminAvatar, error)
-	UpdateAdminAvatar(adminID uint, avatarID uint) error
 	UpdateAdminAvatarByUUID(avatarUUID string, adminID uint) error
 	GetAvatarStorageDir() string
 	GenerateAvatarFileName(originalName string) string
+	GetFullAvatarPath(relativePath string) string
 }

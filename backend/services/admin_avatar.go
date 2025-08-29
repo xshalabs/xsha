@@ -9,7 +9,6 @@ import (
 	"xsha-backend/database"
 	appErrors "xsha-backend/errors"
 	"xsha-backend/repository"
-	"xsha-backend/utils"
 
 	"github.com/google/uuid"
 )
@@ -29,26 +28,14 @@ func NewAdminAvatarService(repo repository.AdminAvatarRepository, adminRepo repo
 }
 
 func (s *adminAvatarService) UploadAvatar(fileName, originalName, contentType string, fileSize int64, filePath string, adminID uint, createdBy string) (*database.AdminAvatar, error) {
-	// Validate file exists
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+	// Validate file exists - construct full path from relative path
+	fullFilePath := s.GetFullAvatarPath(filePath)
+	if _, err := os.Stat(fullFilePath); os.IsNotExist(err) {
 		return nil, appErrors.NewI18nError("avatar.file_not_found", "File does not exist")
 	}
 
 	// Generate UUID for secure access
 	avatarUUID := uuid.New().String()
-
-	// Check if admin already has an avatar
-	existingAvatar, err := s.repo.GetByAdminID(adminID)
-	if err == nil && existingAvatar != nil {
-		// Delete old avatar file
-		if err := os.Remove(existingAvatar.FilePath); err != nil {
-			utils.Warn("Failed to delete old avatar file", "filePath", existingAvatar.FilePath, "error", err)
-		}
-		// Delete old avatar record
-		if err := s.repo.Delete(existingAvatar.ID); err != nil {
-			utils.Warn("Failed to delete old avatar record", "avatarID", existingAvatar.ID, "error", err)
-		}
-	}
 
 	avatar := &database.AdminAvatar{
 		UUID:         avatarUUID,
@@ -68,28 +55,8 @@ func (s *adminAvatarService) UploadAvatar(fileName, originalName, contentType st
 	return avatar, nil
 }
 
-func (s *adminAvatarService) GetAvatar(id uint) (*database.AdminAvatar, error) {
-	return s.repo.GetByID(id)
-}
-
 func (s *adminAvatarService) GetAvatarByUUID(uuid string) (*database.AdminAvatar, error) {
 	return s.repo.GetByUUID(uuid)
-}
-
-func (s *adminAvatarService) GetAvatarByAdminID(adminID uint) (*database.AdminAvatar, error) {
-	return s.repo.GetByAdminID(adminID)
-}
-
-func (s *adminAvatarService) UpdateAdminAvatar(adminID uint, avatarID uint) error {
-	// Get admin
-	admin, err := s.adminRepo.GetByID(adminID)
-	if err != nil {
-		return err
-	}
-
-	// Update admin's avatar_id
-	admin.AvatarID = &avatarID
-	return s.adminRepo.Update(admin)
 }
 
 func (s *adminAvatarService) UpdateAdminAvatarByUUID(avatarUUID string, adminID uint) error {
@@ -119,4 +86,8 @@ func (s *adminAvatarService) GenerateAvatarFileName(originalName string) string 
 	// Generate unique timestamp-based filename
 	timestamp := time.Now().UnixNano()
 	return fmt.Sprintf("avatar_%d%s", timestamp, ext)
+}
+
+func (s *adminAvatarService) GetFullAvatarPath(relativePath string) string {
+	return filepath.Join(s.config.AvatarsDir, relativePath)
 }
