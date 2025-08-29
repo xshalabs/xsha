@@ -85,8 +85,8 @@ export function UpdateAdminDialog({
     }
   }, [admin, form]);
 
-  // Handle avatar file selection
-  const handleAvatarSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle avatar file selection and auto-upload
+  const handleAvatarSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -110,15 +110,11 @@ export function UpdateAdminDialog({
       setAvatarPreview(e.target?.result as string);
     };
     reader.readAsDataURL(file);
-  };
 
-  // Handle avatar upload
-  const handleAvatarUpload = async () => {
-    if (!avatarFile) return;
-
+    // Auto-upload after validation
     try {
       setUploadingAvatar(true);
-      const response = await adminApi.uploadAvatar(avatarFile);
+      const response = await adminApi.uploadAvatar(file);
       
       // Update admin's avatar
       await adminApi.updateAdminAvatar(admin.id, response.data.id);
@@ -134,6 +130,7 @@ export function UpdateAdminDialog({
       setUploadingAvatar(false);
     }
   };
+
 
   // Clear selected avatar
   const handleClearAvatar = () => {
@@ -224,6 +221,11 @@ export function UpdateAdminDialog({
                           <p className="text-xs text-muted-foreground">
                             {(avatarFile.size / 1024 / 1024).toFixed(2)} MB
                           </p>
+                          {uploadingAvatar && (
+                            <p className="text-xs text-blue-600">
+                              {t('admin.avatar.uploading')}
+                            </p>
+                          )}
                         </div>
                         <Button
                           type="button"
@@ -235,14 +237,6 @@ export function UpdateAdminDialog({
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={handleAvatarUpload}
-                        disabled={uploadingAvatar}
-                      >
-                        {uploadingAvatar ? t('admin.avatar.uploading') : t('admin.avatar.confirm')}
-                      </Button>
                     </div>
                   )}
                 </div>

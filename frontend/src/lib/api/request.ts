@@ -12,7 +12,8 @@ export const request = async <T>(
 
   const config: RequestInit = {
     headers: {
-      "Content-Type": "application/json",
+      // Don't set Content-Type for FormData - let browser handle it
+      ...(!(options.body instanceof FormData) && { "Content-Type": "application/json" }),
       "Accept-Language": currentLanguage,
       ...(token && { Authorization: `Bearer ${token}` }),
       ...options.headers,
