@@ -4,6 +4,7 @@ import type { TFunction } from "i18next";
 import { QuickActions } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { formatDateTime } from "@/lib/utils";
 import type { Admin } from "@/lib/api";
 
@@ -25,9 +26,20 @@ export const createAdminColumns = ({
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={t("admin.table.username")} />
     ),
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("username")}</div>
-    ),
+    cell: ({ row }) => {
+      const admin = row.original;
+      return (
+        <div className="flex items-center space-x-3">
+          <UserAvatar 
+            user={admin.username}
+            name={admin.name}
+            avatar={admin.avatar}
+            size="sm"
+          />
+          <div className="font-medium">{row.getValue("username")}</div>
+        </div>
+      );
+    },
     enableSorting: true,
     enableHiding: false,
   },
