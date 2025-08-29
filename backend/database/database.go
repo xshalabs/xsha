@@ -74,7 +74,7 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 	}
 
 	// AutoMigrate all tables (TokenBlacklist is handled by custom migration)
-	if err := db.AutoMigrate(&Migration{}, &TokenBlacklist{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}); err != nil {
+	if err := db.AutoMigrate(&Migration{}, &TokenBlacklist{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}, &AdminAvatar{}); err != nil {
 		return nil, err
 	}
 	utils.Info("Database table migration completed")
