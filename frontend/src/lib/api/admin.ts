@@ -5,7 +5,8 @@ import type {
   ChangePasswordRequest,
   AdminListResponse,
   AdminResponse,
-  CreateAdminResponse
+  CreateAdminResponse,
+  AvatarUploadResponse
 } from './types';
 
 export const adminApi = {
@@ -68,6 +69,25 @@ export const adminApi = {
     return request<{ message: string }>(`/admin/users/${id}/password`, {
       method: 'PUT',
       body: JSON.stringify(data),
+    });
+  },
+
+  // Upload avatar
+  uploadAvatar: async (file: File): Promise<AvatarUploadResponse> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return request<AvatarUploadResponse>('/admin/avatar/upload', {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
+  // Update admin's avatar
+  updateAdminAvatar: async (adminId: number, avatarId: number): Promise<{ message: string }> => {
+    return request<{ message: string }>(`/admin/users/${adminId}/avatar`, {
+      method: 'PUT',
+      body: JSON.stringify({ avatar_id: avatarId }),
     });
   },
 };

@@ -144,3 +144,12 @@ type TaskConversationAttachmentRepository interface {
 	Delete(id uint) error
 	DeleteByConversationID(conversationID uint) error
 }
+
+type AdminAvatarRepository interface {
+	Create(avatar *database.AdminAvatar) error
+	GetByID(id uint) (*database.AdminAvatar, error)
+	GetByUUID(uuid string) (*database.AdminAvatar, error)
+	GetByAdminID(adminID uint) (*database.AdminAvatar, error)
+	Update(avatar *database.AdminAvatar) error
+	Delete(id uint) error
+}

@@ -39,6 +39,7 @@ type Config struct {
 	WorkspaceBaseDir          string
 	DevSessionsDir            string
 	AttachmentsDir            string
+	AvatarsDir                string
 	MaxConcurrentTasks        int
 
 	LogLevel  LogLevel
@@ -77,6 +78,7 @@ func Load() *Config {
 		WorkspaceBaseDir:   getEnv("XSHA_WORKSPACE_BASE_DIR", "_data/workspaces"),
 		DevSessionsDir:     getEnv("XSHA_DEV_SESSIONS_DIR", "_data/sessions"),
 		AttachmentsDir:     getEnv("XSHA_ATTACHMENTS_DIR", "_data/attachments"),
+		AvatarsDir:         getEnv("XSHA_AVATARS_DIR", "_data/avatars"),
 		MaxConcurrentTasks: getEnvInt("XSHA_MAX_CONCURRENT_TASKS", 8),
 		LogLevel:           LogLevel(getEnv("XSHA_LOG_LEVEL", defaultLogLevel)),
 		LogFormat:          LogFormat(getEnv("XSHA_LOG_FORMAT", defaultLogFormat)),
@@ -96,6 +98,7 @@ func Load() *Config {
 	config.WorkspaceBaseDir = normalizeConfigPath(config.WorkspaceBaseDir)
 	config.DevSessionsDir = normalizeConfigPath(config.DevSessionsDir)
 	config.AttachmentsDir = normalizeConfigPath(config.AttachmentsDir)
+	config.AvatarsDir = normalizeConfigPath(config.AvatarsDir)
 
 	return config
 }

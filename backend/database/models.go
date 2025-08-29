@@ -50,6 +50,8 @@ type Admin struct {
 	IsActive     bool           `gorm:"not null;default:true" json:"is_active"`
 	LastLoginAt  *time.Time     `json:"last_login_at"`
 	LastLoginIP  string         `gorm:"default:''" json:"last_login_ip"`
+	AvatarID     *uint          `gorm:"index" json:"avatar_id"`
+	Avatar       *AdminAvatar   `gorm:"foreignKey:ID;references:AvatarID" json:"avatar,omitempty"`
 	CreatedBy    string         `gorm:"not null;default:'system'" json:"created_by"`
 }
 
@@ -359,4 +361,20 @@ type TaskConversationAttachment struct {
 	AdminID   *uint  `gorm:"index" json:"admin_id"`
 	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
+}
+
+type AdminAvatar struct {
+	ID           uint           `gorm:"primarykey" json:"id"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+	UUID         string         `gorm:"uniqueIndex;not null" json:"uuid"`
+	FileName     string         `gorm:"not null" json:"file_name"`
+	OriginalName string         `gorm:"not null" json:"original_name"`
+	FilePath     string         `gorm:"not null" json:"file_path"`
+	FileSize     int64          `gorm:"not null" json:"file_size"`
+	ContentType  string         `gorm:"not null" json:"content_type"`
+	AdminID      *uint          `gorm:"index" json:"admin_id"`
+	Admin        *Admin         `gorm:"foreignKey:AdminID" json:"admin"`
+	CreatedBy    string         `gorm:"not null;index" json:"created_by"`
 }

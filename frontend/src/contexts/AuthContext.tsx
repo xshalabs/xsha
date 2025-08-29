@@ -2,11 +2,13 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { apiService, tokenManager } from "@/lib/api/index";
 import type { UserResponse } from "@/lib/api/index";
+import type { AdminAvatar } from "@/lib/api/types";
 import { handleApiError } from "@/lib/errors";
 
 interface AuthContextType {
   user: string | null;
   name: string | null;
+  avatar: AdminAvatar | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
@@ -31,6 +33,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<AdminAvatar | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -45,12 +48,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response: UserResponse = await apiService.getCurrentUser();
       setUser(response.user);
       setName(response.name);
+      setAvatar(response.avatar || null);
       setIsAuthenticated(true);
     } catch (error) {
       console.error("Auth check failed:", handleApiError(error));
       setIsAuthenticated(false);
       setUser(null);
       setName(null);
+      setAvatar(null);
       tokenManager.removeToken();
     } finally {
       setIsLoading(false);
@@ -64,13 +69,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(response.user);
       setIsAuthenticated(true);
       
-      // Fetch current user information to get complete user details including name
+      // Fetch current user information to get complete user details including name and avatar
       const userInfo = await apiService.getCurrentUser();
       setName(userInfo.name);
+      setAvatar(userInfo.avatar || null);
     } catch (error) {
       setIsAuthenticated(false);
       setUser(null);
       setName(null);
+      setAvatar(null);
       throw new Error(handleApiError(error));
     } finally {
       setIsLoading(false);
@@ -87,6 +94,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAuthenticated(false);
       setUser(null);
       setName(null);
+      setAvatar(null);
       setIsLoading(false);
     }
   };
@@ -98,6 +106,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     user,
     name,
+    avatar,
     isAuthenticated,
     isLoading,
     login,

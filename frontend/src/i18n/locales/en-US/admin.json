@@ -80,5 +80,16 @@
     "deleteFailed": "Failed to delete admin user",
     "passwordChangeFailed": "Failed to change password",
     "cannotDeleteSystemAdmin": "Cannot delete system-created admin accounts"
+  },
+  "avatar": {
+    "title": "Avatar",
+    "upload": "Upload Avatar",
+    "change": "Change Avatar", 
+    "uploading": "Uploading...",
+    "confirm": "Upload",
+    "uploadSuccess": "Avatar uploaded successfully",
+    "uploadFailed": "Avatar upload failed",
+    "fileTooLarge": "File too large (max 5MB)",
+    "unsupportedFormat": "Only image files are supported (JPG, PNG, GIF, WebP)"
   }
 }

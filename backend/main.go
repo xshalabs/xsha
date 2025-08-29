@@ -52,6 +52,7 @@ func main() {
 	tokenRepo := repository.NewTokenBlacklistRepository(dbManager.GetDB())
 	loginLogRepo := repository.NewLoginLogRepository(dbManager.GetDB())
 	adminRepo := repository.NewAdminRepository(dbManager.GetDB())
+	adminAvatarRepo := repository.NewAdminAvatarRepository(dbManager.GetDB())
 	adminOperationLogRepo := repository.NewAdminOperationLogRepository(dbManager.GetDB())
 	gitCredRepo := repository.NewGitCredentialRepository(dbManager.GetDB())
 	projectRepo := repository.NewProjectRepository(dbManager.GetDB())
@@ -68,6 +69,7 @@ func main() {
 	loginLogService := services.NewLoginLogService(loginLogRepo)
 	adminOperationLogService := services.NewAdminOperationLogService(adminOperationLogRepo)
 	adminService := services.NewAdminService(adminRepo)
+	adminAvatarService := services.NewAdminAvatarService(adminAvatarRepo, adminRepo, cfg)
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, adminService, adminRepo, cfg)
 
 	// Set up circular dependency - adminService needs authService for session invalidation
@@ -110,6 +112,7 @@ func main() {
 	// Initialize handlers
 	authHandlers := handlers.NewAuthHandlers(authService, loginLogService, adminService)
 	adminHandlers := handlers.NewAdminHandlers(adminService)
+	adminAvatarHandlers := handlers.NewAdminAvatarHandlers(adminAvatarService, adminService)
 	adminOperationLogHandlers := handlers.NewAdminOperationLogHandlers(adminOperationLogService)
 	gitCredHandlers := handlers.NewGitCredentialHandlers(gitCredService)
 	projectHandlers := handlers.NewProjectHandlers(projectService)
@@ -142,6 +145,13 @@ func main() {
 	}
 	utils.Info("Attachment storage directory initialized", "directory", cfg.AttachmentsDir)
 
+	// Create avatar storage directory
+	if err := os.MkdirAll(cfg.AvatarsDir, 0755); err != nil {
+		utils.Error("Failed to create avatar storage directory", "directory", cfg.AvatarsDir, "error", err)
+		os.Exit(1)
+	}
+	utils.Info("Avatar storage directory initialized", "directory", cfg.AvatarsDir)
+
 	// Create workspace base directory
 	if err := os.MkdirAll(cfg.WorkspaceBaseDir, 0755); err != nil {
 		utils.Error("Failed to create workspace base directory", "directory", cfg.WorkspaceBaseDir, "error", err)
@@ -163,7 +173,7 @@ func main() {
 	}
 
 	// Setup routes - Pass all handler instances including static files
-	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskExecLogHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
+	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, adminAvatarHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskExecLogHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

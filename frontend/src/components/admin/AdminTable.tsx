@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -78,7 +79,17 @@ export function AdminTable({
             ) : (
               admins.map((admin) => (
                 <TableRow key={admin.id}>
-                  <TableCell className="font-medium">{admin.username}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-3">
+                      <UserAvatar 
+                        user={admin.username}
+                        name={admin.name}
+                        avatar={admin.avatar}
+                        size="sm"
+                      />
+                      <div className="font-medium">{admin.username}</div>
+                    </div>
+                  </TableCell>
                   <TableCell>{admin.email || '-'}</TableCell>
                   <TableCell>
                     <Badge variant={admin.is_active ? 'default' : 'secondary'}>

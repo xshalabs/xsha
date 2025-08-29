@@ -170,3 +170,13 @@ type TaskConversationAttachmentService interface {
 	ReplaceAttachmentTagsWithPaths(content string, attachments []database.TaskConversationAttachment, workspacePath string) string
 	CleanupWorkspaceAttachments(workspacePath string) error
 }
+
+type AdminAvatarService interface {
+	UploadAvatar(fileName, originalName, contentType string, fileSize int64, filePath string, adminID uint, createdBy string) (*database.AdminAvatar, error)
+	GetAvatar(id uint) (*database.AdminAvatar, error)
+	GetAvatarByUUID(uuid string) (*database.AdminAvatar, error)
+	GetAvatarByAdminID(adminID uint) (*database.AdminAvatar, error)
+	UpdateAdminAvatar(adminID uint, avatarID uint) error
+	GetAvatarStorageDir() string
+	GenerateAvatarFileName(originalName string) string
+}

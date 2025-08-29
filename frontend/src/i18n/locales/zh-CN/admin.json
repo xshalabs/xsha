@@ -80,5 +80,16 @@
     "deleteFailed": "删除管理员用户失败",
     "passwordChangeFailed": "修改密码失败",
     "cannotDeleteSystemAdmin": "不能删除系统创建的管理员账户"
+  },
+  "avatar": {
+    "title": "头像",
+    "upload": "上传头像",
+    "change": "更换头像",
+    "uploading": "上传中...",
+    "confirm": "上传",
+    "uploadSuccess": "头像上传成功",
+    "uploadFailed": "头像上传失败",
+    "fileTooLarge": "文件过大（最大5MB）",
+    "unsupportedFormat": "仅支持图片文件（JPG、PNG、GIF、WebP）"
   }
 }

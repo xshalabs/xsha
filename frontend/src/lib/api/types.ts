@@ -14,11 +14,22 @@ export interface UserResponse {
   name: string;
   authenticated: boolean;
   message: string;
+  avatar?: AdminAvatar;
 }
 
 export interface ApiErrorResponse {
   error: string;
   details?: string;
+}
+
+// Avatar types
+export interface AdminAvatar {
+  id: number;
+  uuid: string;
+  original_name: string;
+  file_size: number;
+  content_type: string;
+  created_at: string;
 }
 
 // Admin types
@@ -33,6 +44,8 @@ export interface Admin {
   last_login_at?: string;
   last_login_ip?: string;
   created_by: string;
+  avatar_id?: number;
+  avatar?: AdminAvatar;
 }
 
 export interface CreateAdminRequest {
@@ -76,4 +89,20 @@ export interface CreateAdminResponse {
   admin: Admin;
 }
 
+// Avatar API types
+export interface AvatarUploadResponse {
+  message: string;
+  data: {
+    id: number;
+    uuid: string;
+    original_name: string;
+    file_size: number;
+    content_type: string;
+    preview_url: string;
+    created_at: string;
+  };
+}
 
+export interface UpdateAvatarRequest {
+  avatar_id: number;
+}

@@ -23,7 +23,7 @@ func (r *adminRepository) Create(admin *database.Admin) error {
 
 func (r *adminRepository) GetByID(id uint) (*database.Admin, error) {
 	var admin database.Admin
-	err := r.db.First(&admin, id).Error
+	err := r.db.Preload("Avatar").First(&admin, id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (r *adminRepository) GetByID(id uint) (*database.Admin, error) {
 
 func (r *adminRepository) GetByUsername(username string) (*database.Admin, error) {
 	var admin database.Admin
-	err := r.db.Where("username = ?", username).First(&admin).Error
+	err := r.db.Preload("Avatar").Where("username = ?", username).First(&admin).Error
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (r *adminRepository) List(username *string, isActive *bool, page, pageSize 
 
 	// Apply pagination and fetch records
 	offset := (page - 1) * pageSize
-	err := query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&admins).Error
+	err := query.Preload("Avatar").Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&admins).Error
 	return admins, total, err
 }
 
