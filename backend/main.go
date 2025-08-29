@@ -110,7 +110,7 @@ func main() {
 	schedulerManager := scheduler.NewSchedulerManager(taskProcessor, cfg.SchedulerIntervalDuration)
 
 	// Initialize handlers
-	authHandlers := handlers.NewAuthHandlers(authService, loginLogService, adminService)
+	authHandlers := handlers.NewAuthHandlers(authService, loginLogService, adminService, adminAvatarService)
 	adminHandlers := handlers.NewAdminHandlers(adminService)
 	adminAvatarHandlers := handlers.NewAdminAvatarHandlers(adminAvatarService, adminService)
 	adminOperationLogHandlers := handlers.NewAdminOperationLogHandlers(adminOperationLogService)

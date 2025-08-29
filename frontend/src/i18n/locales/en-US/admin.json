@@ -33,7 +33,6 @@
     "confirmPassword": "Confirm new password"
   },
   "filters": {
-    "searchUsername": "Search by username...",
     "status": "Status",
     "allStatus": "All Status",
     "active": "Active",

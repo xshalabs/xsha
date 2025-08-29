@@ -39,14 +39,16 @@ func (r *adminRepository) GetByUsername(username string) (*database.Admin, error
 	return &admin, nil
 }
 
-func (r *adminRepository) List(username *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error) {
+func (r *adminRepository) List(search *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error) {
 	var admins []database.Admin
 	var total int64
 
 	query := r.db.Model(&database.Admin{})
 
-	if username != nil && *username != "" {
-		query = query.Where("username LIKE ?", "%"+*username+"%")
+	if search != nil && *search != "" {
+		searchPattern := "%" + *search + "%"
+		query = query.Where("username LIKE ? OR name LIKE ? OR email LIKE ?",
+			searchPattern, searchPattern, searchPattern)
 	}
 
 	if isActive != nil {

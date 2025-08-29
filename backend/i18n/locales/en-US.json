@@ -18,6 +18,7 @@
   "user.authenticated": "Authenticated",
   "user.current_password_incorrect": "Current password is incorrect",
   "user.password_change_success": "Password changed successfully",
+  "user.avatar_update_success": "Avatar updated successfully",
   "common.internal_error": "Internal server error",
   "common.success": "Operation successful",
   "common.invalid_id": "Invalid ID",

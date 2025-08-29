@@ -39,6 +39,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 	{
 		api.GET("/user/current", authHandlers.CurrentUserHandler)
 		api.PUT("/user/change-password", authHandlers.ChangeOwnPasswordHandler)
+		api.PUT("/user/update-avatar", authHandlers.UpdateOwnAvatarHandler)
 		api.POST("/auth/logout", authHandlers.LogoutHandler)
 
 		admin := api.Group("/admin")

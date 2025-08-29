@@ -107,9 +107,7 @@ export default function AdminListPage() {
 
         // Handle column filters
         filters.forEach((filter) => {
-          if (filter.id === "username" && filter.value) {
-            apiParams.username = filter.value as string;
-          } else if (filter.id === "is_active" && Array.isArray(filter.value) && filter.value.length > 0) {
+          if (filter.id === "is_active" && Array.isArray(filter.value) && filter.value.length > 0) {
             // Handle faceted filter with array values
             if (filter.value.length === 1) {
               // Single selection
@@ -137,9 +135,7 @@ export default function AdminListPage() {
           // Add filter parameters
           filters.forEach((filter) => {
             if (filter.value) {
-              if (filter.id === "username" && typeof filter.value === "string" && filter.value.trim()) {
-                params.set(filter.id, filter.value);
-              } else if (filter.id === "is_active" && Array.isArray(filter.value) && filter.value.length > 0) {
+              if (filter.id === "is_active" && Array.isArray(filter.value) && filter.value.length > 0) {
                 // Only set parameter if not both values are selected (which means no filter)
                 if (filter.value.length === 1) {
                   params.set(filter.id, filter.value[0]);
@@ -181,15 +177,10 @@ export default function AdminListPage() {
 
   // Initialize from URL parameters
   useEffect(() => {
-    const usernameParam = searchParams.get("username");
     const statusParam = searchParams.get("is_active");
     const pageParam = searchParams.get("page");
 
     const initialFilters: ColumnFiltersState = [];
-
-    if (usernameParam) {
-      initialFilters.push({ id: "username", value: usernameParam });
-    }
 
     if (statusParam) {
       initialFilters.push({ id: "is_active", value: [statusParam] });

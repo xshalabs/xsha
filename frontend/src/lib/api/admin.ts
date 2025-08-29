@@ -12,14 +12,18 @@ import type {
 export const adminApi = {
   // Get all admins with pagination and filtering
   getAdmins: async (params?: {
-    username?: string;
+    search?: string;
+    username?: string; // kept for backward compatibility
     is_active?: boolean;
     page?: number;
     page_size?: number;
   }): Promise<AdminListResponse> => {
     const searchParams = new URLSearchParams();
     
-    if (params?.username) {
+    // Use 'search' parameter if available, fallback to 'username' for backward compatibility
+    if (params?.search) {
+      searchParams.append('search', params.search);
+    } else if (params?.username) {
       searchParams.append('username', params.username);
     }
     if (params?.is_active !== undefined) {

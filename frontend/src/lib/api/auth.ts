@@ -6,6 +6,7 @@ import type {
   LoginResponse,
   UserResponse,
   ChangeOwnPasswordRequest,
+  UpdateOwnAvatarRequest,
 } from "./types";
 
 export const authApi = {
@@ -78,6 +79,13 @@ export const authApi = {
       // Re-throw the error to be handled by the calling component
       throw error;
     }
+  },
+
+  updateOwnAvatar: async (data: UpdateOwnAvatarRequest): Promise<{ message: string }> => {
+    return request<{ message: string }>("/user/update-avatar", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
   },
 
 };

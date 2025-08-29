@@ -23,7 +23,7 @@ type AdminService interface {
 	CreateAdmin(username, password, name, email, createdBy string) (*database.Admin, error)
 	GetAdmin(id uint) (*database.Admin, error)
 	GetAdminByUsername(username string) (*database.Admin, error)
-	ListAdmins(username *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error)
+	ListAdmins(search *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error)
 	UpdateAdmin(id uint, updates map[string]interface{}) error
 	DeleteAdmin(id uint) error
 	ChangePassword(id uint, newPassword string) error

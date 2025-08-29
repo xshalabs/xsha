@@ -129,7 +129,7 @@ func (h *AdminHandlers) ListAdminsHandler(c *gin.Context) {
 	// Parse query parameters
 	page := 1
 	pageSize := 20
-	var username *string
+	var search *string
 	var isActive *bool
 
 	if p := c.Query("page"); p != "" {
@@ -144,8 +144,11 @@ func (h *AdminHandlers) ListAdminsHandler(c *gin.Context) {
 		}
 	}
 
-	if u := c.Query("username"); u != "" {
-		username = &u
+	// Support both 'search' parameter and legacy 'username' parameter for backward compatibility
+	if s := c.Query("search"); s != "" {
+		search = &s
+	} else if u := c.Query("username"); u != "" {
+		search = &u
 	}
 
 	if ia := c.Query("is_active"); ia != "" {
@@ -154,7 +157,7 @@ func (h *AdminHandlers) ListAdminsHandler(c *gin.Context) {
 		}
 	}
 
-	admins, total, err := h.adminService.ListAdmins(username, isActive, page, pageSize)
+	admins, total, err := h.adminService.ListAdmins(search, isActive, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "common.internal_error"),

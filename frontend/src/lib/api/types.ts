@@ -71,6 +71,10 @@ export interface ChangeOwnPasswordRequest {
   new_password: string;
 }
 
+export interface UpdateOwnAvatarRequest {
+  avatar_uuid: string;
+}
+
 export interface AdminListResponse {
   message: string;
   admins: Admin[];

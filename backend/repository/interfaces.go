@@ -21,7 +21,7 @@ type AdminRepository interface {
 	Create(admin *database.Admin) error
 	GetByID(id uint) (*database.Admin, error)
 	GetByUsername(username string) (*database.Admin, error)
-	List(username *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error)
+	List(search *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error)
 	Update(admin *database.Admin) error
 	Delete(id uint) error
 	UpdateLastLogin(username, ip string) error

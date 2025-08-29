@@ -15,13 +15,15 @@ type AuthHandlers struct {
 	authService     services.AuthService
 	loginLogService services.LoginLogService
 	adminService    services.AdminService
+	avatarService   services.AdminAvatarService
 }
 
-func NewAuthHandlers(authService services.AuthService, loginLogService services.LoginLogService, adminService services.AdminService) *AuthHandlers {
+func NewAuthHandlers(authService services.AuthService, loginLogService services.LoginLogService, adminService services.AdminService, avatarService services.AdminAvatarService) *AuthHandlers {
 	return &AuthHandlers{
 		authService:     authService,
 		loginLogService: loginLogService,
 		adminService:    adminService,
+		avatarService:   avatarService,
 	}
 }
 
@@ -306,5 +308,70 @@ func (h *AuthHandlers) ChangeOwnPasswordHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": i18n.T(lang, "user.password_change_success"),
+	})
+}
+
+// UpdateOwnAvatarHandler allows user to update their own avatar
+// @Summary Update own avatar
+// @Description Allow authenticated user to update their own avatar
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param avatarData body object{avatar_uuid=string} true "Avatar update data"
+// @Success 200 {object} object{message=string} "Avatar updated successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 404 {object} object{error=string} "Avatar not found"
+// @Router /user/update-avatar [put]
+func (h *AuthHandlers) UpdateOwnAvatarHandler(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "user.get_info_error"),
+		})
+		return
+	}
+
+	adminIDInterface, exists := c.Get("admin_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+	_, ok := adminIDInterface.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
+		return
+	}
+
+	var avatarData struct {
+		AvatarUUID string `json:"avatar_uuid" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&avatarData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
+		})
+		return
+	}
+
+	// Get admin service from handler dependencies
+	admin, err := h.adminService.GetAdminByUsername(username.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "user.get_info_error"),
+		})
+		return
+	}
+
+	// Update admin's avatar using avatar service
+	if err := h.avatarService.UpdateAdminAvatarByUUID(avatarData.AvatarUUID, admin.ID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "user.avatar_update_success"),
 	})
 }

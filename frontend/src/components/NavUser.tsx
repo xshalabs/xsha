@@ -1,4 +1,4 @@
-import { ChevronsUpDown, LogOut, Languages, Lock } from "lucide-react";
+import { ChevronsUpDown, LogOut, Languages, Lock, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -48,6 +48,10 @@ export function NavUser() {
 
   const handleChangePassword = () => {
     navigate("/user/change-password");
+  };
+
+  const handleUpdateAvatar = () => {
+    navigate("/user/update-avatar");
   };
 
   if (!user) {
@@ -122,6 +126,10 @@ export function NavUser() {
               </DropdownMenuSub>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleUpdateAvatar}>
+              <User />
+              {t("user.updateAvatar")}
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleChangePassword}>
               <Lock />
               {t("user.changePassword")}

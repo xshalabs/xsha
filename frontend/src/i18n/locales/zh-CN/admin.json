@@ -33,7 +33,6 @@
     "confirmPassword": "请确认新密码"
   },
   "filters": {
-    "searchUsername": "按用户名搜索...",
     "status": "状态",
     "allStatus": "全部状态",
     "active": "启用",
