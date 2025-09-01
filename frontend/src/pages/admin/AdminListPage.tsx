@@ -30,7 +30,7 @@ import { adminApi, type Admin } from '@/lib/api';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { logError } from '@/lib/errors';
+import { logError, handleApiError } from '@/lib/errors';
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 export default function AdminListPage() {
@@ -156,7 +156,7 @@ export default function AdminListPage() {
         }
       } catch (error) {
         console.error('Failed to load admins:', error);
-        toast.error(t('admin.errors.loadFailed'));
+        toast.error(handleApiError(error));
         logError(error as Error, "Failed to load admins");
       } finally {
         setLoading(false);

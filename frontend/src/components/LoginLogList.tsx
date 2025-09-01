@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { apiService } from "@/lib/api/index";
-import { logError } from "@/lib/errors";
+import { logError, handleApiError } from "@/lib/errors";
+import { toast } from "sonner";
 import { formatDateToLocal } from "@/lib/utils";
 import { formatDateRangeForAPI } from "@/lib/timezone";
 import { useTranslation } from "react-i18next";
@@ -165,6 +166,7 @@ export const LoginLogList: React.FC = () => {
         } catch (err: any) {
           logError(err, "Failed to load login logs");
           console.error("Failed to load login logs:", err);
+          toast.error(handleApiError(err));
         } finally {
           setLoading(false);
           // Clear the request tracking after a short delay

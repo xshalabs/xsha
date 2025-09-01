@@ -13,6 +13,7 @@
   "auth.token_blacklisted": "Token has been invalidated, please login again",
   "auth.account_deactivated": "Your account has been deactivated, please contact administrator",
   "auth.admin_deactivated": "Your admin account has been deactivated and you have been logged out",
+  "auth.insufficient_permissions": "Insufficient permissions to access this resource",
   "auth.server_error": "Internal server error",
   "user.get_info_error": "Unable to get user information",
   "user.authenticated": "Authenticated",
