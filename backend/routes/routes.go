@@ -53,11 +53,9 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 
 			// Admin user management
 			admin.POST("/users", adminHandlers.CreateAdminHandler)
-			admin.POST("/users/with-role", adminHandlers.CreateAdminWithRoleHandler)
 			admin.GET("/users", adminHandlers.ListAdminsHandler)
 			admin.GET("/users/:id", adminHandlers.GetAdminHandler)
 			admin.PUT("/users/:id", adminHandlers.UpdateAdminHandler)
-			admin.PUT("/users/:id/role", adminHandlers.UpdateAdminRoleHandler)
 			admin.DELETE("/users/:id", adminHandlers.DeleteAdminHandler)
 			admin.PUT("/users/:id/password", adminHandlers.ChangePasswordHandler)
 			admin.PUT("/avatar/:uuid", adminAvatarHandlers.UpdateAdminAvatarHandler)
