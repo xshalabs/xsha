@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { formatDateTime } from "@/lib/utils";
-import type { Admin } from "@/lib/api";
+import type { Admin, AdminRole } from "@/lib/api";
 
 interface AdminColumnsProps {
   t: TFunction;
@@ -14,6 +14,11 @@ interface AdminColumnsProps {
   onChangePassword: (admin: Admin) => void;
   onDelete: (admin: Admin) => Promise<void>;
   onAvatarClick?: (admin: Admin) => void;
+  permissions?: {
+    canEditAdmin: (username?: string) => boolean;
+    canChangeAdminPassword: (username?: string, role?: AdminRole) => boolean;
+    canDeleteAdmin: (role?: AdminRole, createdBy?: string) => boolean;
+  };
 }
 
 export const createAdminColumns = ({
@@ -22,6 +27,7 @@ export const createAdminColumns = ({
   onChangePassword,
   onDelete,
   onAvatarClick,
+  permissions,
 }: AdminColumnsProps): ColumnDef<Admin>[] => [
   {
     accessorKey: "username",
@@ -67,6 +73,27 @@ export const createAdminColumns = ({
           {email || "-"}
         </div>
       );
+    },
+  },
+  {
+    accessorKey: "role",
+    header: t("admin.table.role"),
+    cell: ({ row }) => {
+      const role = row.getValue("role") as string;
+      const roleVariant = role === 'super_admin' ? 'destructive' : 
+                         role === 'admin' ? 'default' : 'secondary';
+      return (
+        <Badge variant={roleVariant}>
+          {t(`admin.roles.${role}`)}
+        </Badge>
+      );
+    },
+    filterFn: (row, id, value) => {
+      if (!Array.isArray(value) || value.length === 0) {
+        return true;
+      }
+      const role = row.getValue(id) as string;
+      return value.includes(role);
     },
   },
   {
@@ -147,23 +174,34 @@ export const createAdminColumns = ({
     cell: ({ row }) => {
       const admin = row.original;
 
-      const actions = [
-        {
+      const actions = [];
+
+      // Edit action - check permission
+      if (!permissions || permissions.canEditAdmin(admin.username)) {
+        actions.push({
           id: "edit",
           label: t("common.edit"),
           icon: Edit,
           onClick: () => onEdit(admin),
-        },
-        {
+        });
+      }
+
+      // Change password action - check permission
+      if (!permissions || permissions.canChangeAdminPassword(admin.username, admin.role)) {
+        actions.push({
           id: "changePassword",
           label: t("admin.actions.changePassword"),
           icon: Key,
           onClick: () => onChangePassword(admin),
-        },
-      ];
+        });
+      }
 
-      // Only allow deletion if not created by system
-      const deleteAction = admin.created_by !== 'system' ? {
+      // Delete action - check permission and system constraint
+      const canDelete = permissions 
+        ? permissions.canDeleteAdmin(admin.role, admin.created_by)
+        : admin.created_by !== 'system';
+
+      const deleteAction = canDelete ? {
         title: admin.username,
         confirmationValue: admin.username,
         submitAction: async () => {

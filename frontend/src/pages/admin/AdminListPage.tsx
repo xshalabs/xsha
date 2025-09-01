@@ -27,6 +27,7 @@ import {
 import { createAdminColumns } from '@/components/data-table/admin/columns';
 import { AdminDataTableToolbar } from '@/components/data-table/admin/data-table-toolbar';
 import { adminApi, type Admin } from '@/lib/api';
+import { usePermissions } from '@/hooks/usePermissions';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { logError } from '@/lib/errors';
@@ -37,6 +38,7 @@ export default function AdminListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { setItems } = useBreadcrumb();
   const { setActions } = usePageActions();
+  const permissions = usePermissions();
   
   usePageTitle('admin.pageTitle.list');
 
@@ -221,12 +223,15 @@ export default function AdminListPage() {
       setCreateDialogOpen(true);
     };
 
-    setActions(
+    // Only show create button if user has permission
+    const createButton = permissions.canCreateAdmin ? (
       <Button onClick={handleCreateNew} size="sm">
         <Plus className="h-4 w-4 mr-2" />
         {t('admin.actions.create')}
       </Button>
-    );
+    ) : null;
+
+    setActions(createButton);
 
     // Clear breadcrumb items (we're at the root level)
     setItems([]);
@@ -236,7 +241,7 @@ export default function AdminListPage() {
       setActions(null);
       setItems([]);
     };
-  }, [setActions, setItems, t]);
+  }, [setActions, setItems, t, permissions.canCreateAdmin]);
 
   // Handle admin actions
   const handleEdit = useCallback(
@@ -302,8 +307,13 @@ export default function AdminListPage() {
         onChangePassword: handleChangePassword,
         onDelete: handleDelete,
         onAvatarClick: handleAvatarClick,
+        permissions: {
+          canEditAdmin: permissions.canEditAdmin,
+          canChangeAdminPassword: permissions.canChangeAdminPassword,
+          canDeleteAdmin: permissions.canDeleteAdmin,
+        },
       }),
-    [t, handleEdit, handleChangePassword, handleDelete, handleAvatarClick]
+    [t, handleEdit, handleChangePassword, handleDelete, handleAvatarClick, permissions]
   );
 
   return (

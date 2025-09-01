@@ -21,7 +21,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { adminApi, type Admin } from '@/lib/api';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { adminApi, type Admin, type AdminRole } from '@/lib/api';
+import { usePermissions } from '@/hooks/usePermissions';
 import { toast } from 'sonner';
 
 const formSchema = z.object({
@@ -36,6 +38,7 @@ const formSchema = z.object({
     .max(100, 'Name must be at most 100 characters'),
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
   is_active: z.boolean(),
+  role: z.enum(['super_admin', 'admin', 'developer']).optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -55,6 +58,7 @@ export function UpdateAdminDialog({
 }: UpdateAdminDialogProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+  const permissions = usePermissions();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -63,6 +67,7 @@ export function UpdateAdminDialog({
       name: '',
       email: '',
       is_active: true,
+      role: 'admin',
     },
   });
 
@@ -74,6 +79,7 @@ export function UpdateAdminDialog({
         name: admin.name,
         email: admin.email || '',
         is_active: admin.is_active,
+        role: admin.role,
       });
     }
   }, [admin, form]);
@@ -87,6 +93,7 @@ export function UpdateAdminDialog({
         name: data.name !== admin.name ? data.name : undefined,
         email: data.email !== admin.email ? data.email : undefined,
         is_active: data.is_active !== admin.is_active ? data.is_active : undefined,
+        role: data.role !== admin.role ? data.role as AdminRole : undefined,
       });
       toast.success(t('admin.messages.updateSuccess'));
       onSuccess();
@@ -170,6 +177,37 @@ export function UpdateAdminDialog({
                 </FormItem>
               )}
             />
+
+            {permissions.canManageAdminRole() && 
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('admin.fields.role')}</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger disabled={loading}>
+                          <SelectValue placeholder={t('admin.placeholders.role')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="admin">
+                          {t('admin.roles.admin')}
+                        </SelectItem>
+                        <SelectItem value="developer">
+                          {t('admin.roles.developer')}
+                        </SelectItem>
+                        <SelectItem value="super_admin">
+                          {t('admin.roles.super_admin')}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            }
 
             <FormField
               control={form.control}

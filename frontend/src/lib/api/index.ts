@@ -8,6 +8,8 @@ export type {
   UserResponse,
   ApiErrorResponse,
   Admin,
+  AdminRole,
+  AdminAvatar,
   CreateAdminRequest,
   UpdateAdminRequest,
   ChangePasswordRequest,
@@ -16,6 +18,7 @@ export type {
   AdminListResponse,
   AdminResponse,
   CreateAdminResponse,
+  AvatarUploadResponse,
 } from "./types";
 
 import { authApi } from "./auth";

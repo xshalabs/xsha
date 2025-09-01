@@ -22,9 +22,23 @@ export function AdminDataTableToolbar({
     { label: t("admin.filters.inactive"), value: "inactive" },
   ];
 
+  // Role filter options
+  const roleOptions = [
+    { label: t("admin.roles.super_admin"), value: "super_admin" },
+    { label: t("admin.roles.admin"), value: "admin" },
+    { label: t("admin.roles.developer"), value: "developer" },
+  ];
+
   return (
     <div className="flex flex-col space-y-4">
       <div className="flex flex-1 items-center space-x-2 flex-wrap gap-2">
+        {table.getColumn("role") && (
+          <DataTableFacetedFilter
+            column={table.getColumn("role")}
+            title={t("admin.filters.role")}
+            options={roleOptions}
+          />
+        )}
         {table.getColumn("is_active") && (
           <DataTableFacetedFilter
             column={table.getColumn("is_active")}

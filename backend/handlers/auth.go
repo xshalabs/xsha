@@ -132,7 +132,7 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} object{username=string,name=string,avatar=object} "User information"
+// @Success 200 {object} object{username=string,name=string,role=string,avatar=object} "User information"
 // @Failure 500 {object} object{error=string} "Failed to get user information"
 // @Router /user/current [get]
 func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
@@ -158,6 +158,7 @@ func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"user":          username,
 		"name":          admin.Name,
+		"role":          admin.Role,
 		"avatar":        admin.Avatar,
 		"authenticated": true,
 		"message":       i18n.T(lang, "user.authenticated"),

@@ -6,7 +6,8 @@ import type {
   AdminListResponse,
   AdminResponse,
   CreateAdminResponse,
-  AvatarUploadResponse
+  AvatarUploadResponse,
+  RoleListResponse
 } from './types';
 
 export const adminApi = {
@@ -93,5 +94,10 @@ export const adminApi = {
       method: 'PUT',
       body: JSON.stringify({ admin_id: adminId }),
     });
+  },
+
+  // Get available roles
+  getRoles: async (): Promise<RoleListResponse> => {
+    return request<RoleListResponse>('/admin/roles');
   },
 };
