@@ -9,8 +9,8 @@ interface GitCredentialColumnsProps {
   onEdit: (credential: GitCredential) => void;
   onDelete: (id: number) => void;
   t: (key: string) => string;
-  canEditCredential: (createdBy?: string) => boolean;
-  canDeleteCredential: (createdBy?: string) => boolean;
+  canEditCredential: (resourceAdminId?: number) => boolean;
+  canDeleteCredential: (resourceAdminId?: number) => boolean;
 }
 
 export const createGitCredentialColumns = ({
@@ -110,7 +110,7 @@ export const createGitCredentialColumns = ({
       const credential = row.original;
 
       // Only show edit action if user has permission
-      const actions = canEditCredential(credential.created_by) ? [
+      const actions = canEditCredential(credential.admin_id) ? [
         {
           id: "edit",
           label: t("gitCredentials.edit"),
@@ -120,7 +120,7 @@ export const createGitCredentialColumns = ({
       ] : [];
 
       // Only show delete action if user has permission
-      const deleteAction = canDeleteCredential(credential.created_by) ? {
+      const deleteAction = canDeleteCredential(credential.admin_id) ? {
         title: credential.name,
         confirmationValue: credential.name,
         submitAction: async () => {

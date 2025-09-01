@@ -7,6 +7,7 @@ import { handleApiError } from "@/lib/errors";
 
 interface AuthContextType {
   user: string | null;
+  adminId: number | null;
   name: string | null;
   avatar: AdminAvatar | null;
   role: AdminRole | null;
@@ -33,6 +34,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<string | null>(null);
+  const [adminId, setAdminId] = useState<number | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [avatar, setAvatar] = useState<AdminAvatar | null>(null);
   const [role, setRole] = useState<AdminRole | null>(null);
@@ -49,6 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const response: UserResponse = await apiService.getCurrentUser();
       setUser(response.user);
+      setAdminId(response.admin_id);
       setName(response.name);
       setAvatar(response.avatar || null);
       setRole(response.role);
@@ -57,6 +60,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error("Auth check failed:", handleApiError(error));
       setIsAuthenticated(false);
       setUser(null);
+      setAdminId(null);
       setName(null);
       setAvatar(null);
       setRole(null);
@@ -75,12 +79,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Fetch current user information to get complete user details including name, avatar, and role
       const userInfo = await apiService.getCurrentUser();
+      setAdminId(userInfo.admin_id);
       setName(userInfo.name);
       setAvatar(userInfo.avatar || null);
       setRole(userInfo.role);
     } catch (error) {
       setIsAuthenticated(false);
       setUser(null);
+      setAdminId(null);
       setName(null);
       setAvatar(null);
       setRole(null);
@@ -99,6 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsAuthenticated(false);
       setUser(null);
+      setAdminId(null);
       setName(null);
       setAvatar(null);
       setRole(null);
@@ -112,6 +119,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value: AuthContextType = {
     user,
+    adminId,
     name,
     avatar,
     role,

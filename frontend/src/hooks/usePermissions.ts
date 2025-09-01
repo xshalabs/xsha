@@ -5,11 +5,11 @@ import type { AdminRole } from '@/lib/api/types';
 export interface PermissionConfig {
   allowedRoles: AdminRole[];
   requireOwnership?: boolean;
-  resourceOwnerId?: string;
+  resourceOwnerAdminId?: number;
 }
 
 export const usePermissions = () => {
-  const { role, user } = useAuth();
+  const { role, user, adminId } = useAuth();
 
   const hasRole = useCallback((allowedRoles: AdminRole[]): boolean => {
     if (!role) return false;
@@ -23,8 +23,8 @@ export const usePermissions = () => {
     }
 
     // If ownership is required, check if user is the owner
-    if (config.requireOwnership && config.resourceOwnerId) {
-      return user === config.resourceOwnerId;
+    if (config.requireOwnership && config.resourceOwnerAdminId !== undefined) {
+      return adminId === config.resourceOwnerAdminId;
     }
 
     return true;
@@ -101,25 +101,25 @@ export const usePermissions = () => {
     [hasRole]
   );
 
-  const canEditProject = (projectOwnerUsername?: string) => {
+  const canEditProject = (resourceAdminId?: number) => {
     // Super admin can edit any project
     if (isSuperAdmin) return true;
     
     // Admin can edit their own projects
     if (role === 'admin') {
-      return projectOwnerUsername === user;
+      return resourceAdminId === adminId;
     }
     
     return false;
   };
 
-  const canDeleteProject = (projectOwnerUsername?: string) => {
+  const canDeleteProject = (resourceAdminId?: number) => {
     // Super admin can delete any project
     if (isSuperAdmin) return true;
     
     // Admin can delete their own projects
     if (role === 'admin') {
-      return projectOwnerUsername === user;
+      return resourceAdminId === adminId;
     }
     
     return false;
@@ -131,25 +131,25 @@ export const usePermissions = () => {
     [hasRole]
   );
 
-  const canEditCredential = (credentialOwnerUsername?: string) => {
+  const canEditCredential = (resourceAdminId?: number) => {
     // Super admin can edit any credential
     if (isSuperAdmin) return true;
     
     // Admin can edit their own credentials
     if (role === 'admin') {
-      return credentialOwnerUsername === user;
+      return resourceAdminId === adminId;
     }
     
     return false;
   };
 
-  const canDeleteCredential = (credentialOwnerUsername?: string) => {
+  const canDeleteCredential = (resourceAdminId?: number) => {
     // Super admin can delete any credential
     if (isSuperAdmin) return true;
     
     // Admin can delete their own credentials
     if (role === 'admin') {
-      return credentialOwnerUsername === user;
+      return resourceAdminId === adminId;
     }
     
     return false;
@@ -161,25 +161,25 @@ export const usePermissions = () => {
     [hasRole]
   );
 
-  const canEditEnvironment = (environmentOwnerUsername?: string) => {
+  const canEditEnvironment = (resourceAdminId?: number) => {
     // Super admin can edit any environment
     if (isSuperAdmin) return true;
     
     // Admin can edit their own environments
     if (role === 'admin') {
-      return environmentOwnerUsername === user;
+      return resourceAdminId === adminId;
     }
     
     return false;
   };
 
-  const canDeleteEnvironment = (environmentOwnerUsername?: string) => {
+  const canDeleteEnvironment = (resourceAdminId?: number) => {
     // Super admin can delete any environment
     if (isSuperAdmin) return true;
     
     // Admin can delete their own environments
     if (role === 'admin') {
-      return environmentOwnerUsername === user;
+      return resourceAdminId === adminId;
     }
     
     return false;
@@ -188,21 +188,21 @@ export const usePermissions = () => {
   // Task permissions
   const canCreateTask = useMemo(() => true, []); // All roles can create tasks
 
-  const canEditTask = (taskOwnerUsername?: string) => {
+  const canEditTask = (resourceAdminId?: number) => {
     // Super admin can edit any task
     if (isSuperAdmin) return true;
     
     // Users can edit their own tasks
-    return taskOwnerUsername === user;
+    return resourceAdminId === adminId;
   };
 
-  const canDeleteTask = (taskOwnerUsername?: string) => {
+  const canDeleteTask = (resourceAdminId?: number) => {
     // Super admin can delete any task
     if (isSuperAdmin) return true;
     
     // Admin can delete their own tasks
     if (role === 'admin') {
-      return taskOwnerUsername === user;
+      return resourceAdminId === adminId;
     }
     
     // Developer cannot delete tasks
@@ -212,20 +212,20 @@ export const usePermissions = () => {
   // Conversation permissions (same as task permissions)
   const canCreateConversation = useMemo(() => true, []); // All roles can create conversations
 
-  const canEditConversation = (conversationOwnerUsername?: string) => {
+  const canEditConversation = (resourceAdminId?: number) => {
     // Super admin can edit any conversation
     if (isSuperAdmin) return true;
     
     // Users can edit their own conversations
-    return conversationOwnerUsername === user;
+    return resourceAdminId === adminId;
   };
 
-  const canDeleteConversation = (conversationOwnerUsername?: string) => {
+  const canDeleteConversation = (resourceAdminId?: number) => {
     // Super admin can delete any conversation
     if (isSuperAdmin) return true;
     
     // Users can delete their own conversations
-    return conversationOwnerUsername === user;
+    return resourceAdminId === adminId;
   };
 
   // System access permissions

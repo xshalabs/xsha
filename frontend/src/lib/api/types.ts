@@ -11,6 +11,7 @@ export interface LoginResponse {
 
 export interface UserResponse {
   user: string;
+  admin_id: number;
   name: string;
   authenticated: boolean;
   message: string;

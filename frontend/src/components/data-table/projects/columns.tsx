@@ -15,8 +15,8 @@ interface ProjectColumnsProps {
   onEdit: (project: Project) => void;
   onDelete: (id: number) => void;
   onKanban: (project: Project) => void;
-  canEditProject: (createdBy?: string) => boolean;
-  canDeleteProject: (createdBy?: string) => boolean;
+  canEditProject: (resourceAdminId?: number) => boolean;
+  canDeleteProject: (resourceAdminId?: number) => boolean;
 }
 
 export const createProjectColumns = ({
@@ -149,7 +149,7 @@ export const createProjectColumns = ({
           onClick: () => onKanban(project),
         },
         // Only show edit action if user has permission
-        ...(canEditProject(project.created_by) ? [{
+        ...(canEditProject(project.admin_id) ? [{
           id: "edit",
           label: t("common.edit"),
           icon: Edit,
@@ -158,7 +158,7 @@ export const createProjectColumns = ({
       ];
 
       // Only show delete action if user has permission
-      const deleteAction = canDeleteProject(project.created_by) ? {
+      const deleteAction = canDeleteProject(project.admin_id) ? {
         title: project.name,
         confirmationValue: project.name,
         submitAction: async () => {

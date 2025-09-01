@@ -14,6 +14,7 @@ export interface Project {
   repo_url: string;
   protocol: GitProtocolType;
   credential_id?: number;
+  admin_id?: number;
   created_by: string;
   created_at: string;
   updated_at: string;

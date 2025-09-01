@@ -8,8 +8,8 @@ interface DevEnvironmentColumnsProps {
   onEdit: (environment: DevEnvironmentDisplay) => void;
   onDelete: (id: number) => void;
   t: (key: string) => string;
-  canEditEnvironment: (createdBy?: string) => boolean;
-  canDeleteEnvironment: (createdBy?: string) => boolean;
+  canEditEnvironment: (resourceAdminId?: number) => boolean;
+  canDeleteEnvironment: (resourceAdminId?: number) => boolean;
 }
 
 export const createDevEnvironmentColumns = ({
@@ -105,7 +105,7 @@ export const createDevEnvironmentColumns = ({
       const environment = row.original;
 
       // Only show edit action if user has permission
-      const actions = canEditEnvironment(environment.created_by) ? [
+      const actions = canEditEnvironment(environment.admin_id) ? [
         {
           id: "edit",
           label: t("devEnvironments.edit"),
@@ -115,7 +115,7 @@ export const createDevEnvironmentColumns = ({
       ] : [];
 
       // Only show delete action if user has permission
-      const deleteAction = canDeleteEnvironment(environment.created_by) ? {
+      const deleteAction = canDeleteEnvironment(environment.admin_id) ? {
         title: environment.name,
         confirmationValue: environment.name,
         submitAction: async () => {

@@ -157,6 +157,7 @@ func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"user":          username,
+		"admin_id":      admin.ID,
 		"name":          admin.Name,
 		"role":          admin.Role,
 		"avatar":        admin.Avatar,

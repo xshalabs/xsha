@@ -12,6 +12,7 @@ export interface DevEnvironment {
   cpu_limit: number;
   memory_limit: number;
   env_vars: string;
+  admin_id?: number;
   created_by: string;
 }
 
