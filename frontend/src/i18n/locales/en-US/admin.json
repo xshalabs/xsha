@@ -8,6 +8,7 @@
     "username": "Username",
     "name": "Name",
     "email": "Email",
+    "role": "Role",
     "status": "Status",
     "lastLogin": "Last Login",
     "createdBy": "Created By",
@@ -19,6 +20,7 @@
     "password": "Password",
     "name": "Name",
     "email": "Email",
+    "role": "Role",
     "status": "Status",
     "statusDescription": "Enable or disable this admin account",
     "newPassword": "New Password",
@@ -29,14 +31,21 @@
     "password": "Enter password (minimum 6 characters)",
     "name": "Enter full name",
     "email": "Enter email address (optional)",
+    "role": "Select role",
     "newPassword": "Enter new password",
     "confirmPassword": "Confirm new password"
   },
   "filters": {
+    "role": "Role",
     "status": "Status",
     "allStatus": "All Status",
     "active": "Active",
     "inactive": "Inactive"
+  },
+  "roles": {
+    "super_admin": "Super Admin",
+    "admin": "Admin",
+    "developer": "Developer"
   },
   "status": {
     "active": "Active",
