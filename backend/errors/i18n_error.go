@@ -104,16 +104,17 @@ var (
 	ErrNoCommitHash       = &I18nError{Key: "taskConversation.no_commit_hash"}
 
 	// Admin errors
-	ErrAdminUsernameRequired   = &I18nError{Key: "admin.username_required"}
-	ErrAdminUsernameInvalid    = &I18nError{Key: "admin.username_invalid"}
-	ErrAdminUsernameExists     = &I18nError{Key: "admin.username_exists"}
-	ErrAdminPasswordRequired   = &I18nError{Key: "admin.password_required"}
-	ErrAdminPasswordInvalid    = &I18nError{Key: "admin.password_invalid"}
-	ErrAdminNameRequired       = &I18nError{Key: "admin.name_required"}
-	ErrAdminNameInvalid        = &I18nError{Key: "admin.name_invalid"}
-	ErrAdminNotFound           = &I18nError{Key: "admin.not_found"}
-	ErrAdminInactive           = &I18nError{Key: "admin.inactive"}
-	ErrInvalidCredentials      = &I18nError{Key: "admin.invalid_credentials"}
-	ErrCannotDeleteLastAdmin   = &I18nError{Key: "admin.cannot_delete_last"}
-	ErrCannotDeleteSystemAdmin = &I18nError{Key: "admin.cannot_delete_system"}
+	ErrAdminUsernameRequired      = &I18nError{Key: "admin.username_required"}
+	ErrAdminUsernameInvalid       = &I18nError{Key: "admin.username_invalid"}
+	ErrAdminUsernameExists        = &I18nError{Key: "admin.username_exists"}
+	ErrAdminPasswordRequired      = &I18nError{Key: "admin.password_required"}
+	ErrAdminPasswordInvalid       = &I18nError{Key: "admin.password_invalid"}
+	ErrAdminNameRequired          = &I18nError{Key: "admin.name_required"}
+	ErrAdminNameInvalid           = &I18nError{Key: "admin.name_invalid"}
+	ErrAdminNotFound              = &I18nError{Key: "admin.not_found"}
+	ErrAdminInactive              = &I18nError{Key: "admin.inactive"}
+	ErrInvalidCredentials         = &I18nError{Key: "admin.invalid_credentials"}
+	ErrCannotDeleteLastAdmin      = &I18nError{Key: "admin.cannot_delete_last"}
+	ErrCannotDeleteSystemAdmin    = &I18nError{Key: "admin.cannot_delete_system"}
+	ErrCannotRemoveLastSuperAdmin = &I18nError{Key: "admin.cannot_remove_last_super_admin"}
 )

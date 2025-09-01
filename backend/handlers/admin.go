@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"xsha-backend/database"
 	"xsha-backend/i18n"
 	"xsha-backend/middleware"
 	"xsha-backend/services"
@@ -303,5 +304,133 @@ func (h *AdminHandlers) ChangePasswordHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": i18n.T(lang, "admin.password_change_success"),
+	})
+}
+
+// UpdateAdminRoleHandler updates admin user role
+// @Summary Update admin role
+// @Description Update administrator user role
+// @Tags Admin Management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Admin ID"
+// @Param roleData body object{role=string} true "New role (super_admin|admin|developer)"
+// @Success 200 {object} object{message=string} "Role updated successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 404 {object} object{error=string} "Admin not found"
+// @Router /admin/users/{id}/role [put]
+func (h *AdminHandlers) UpdateAdminRoleHandler(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_id"),
+		})
+		return
+	}
+
+	var roleData struct {
+		Role string `json:"role" binding:"required,oneof=super_admin admin developer"`
+	}
+
+	if err := c.ShouldBindJSON(&roleData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
+		})
+		return
+	}
+
+	role := database.AdminRole(roleData.Role)
+	if err := h.adminService.UpdateAdminRole(uint(id), role); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "admin.role_update_success"),
+	})
+}
+
+// GetAvailableRolesHandler returns available admin roles
+// @Summary Get available roles
+// @Description Get list of available administrator roles
+// @Tags Admin Management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} object{roles=[]string} "Available roles"
+// @Router /admin/roles [get]
+func (h *AdminHandlers) GetAvailableRolesHandler(c *gin.Context) {
+	roles := h.adminService.GetAvailableRoles()
+	
+	roleNames := make([]string, len(roles))
+	for i, role := range roles {
+		roleNames[i] = string(role)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"roles": roleNames,
+	})
+}
+
+// CreateAdminWithRoleHandler creates admin with specific role
+// @Summary Create admin with role
+// @Description Create a new administrator user with specific role
+// @Tags Admin Management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param adminData body object{username=string,password=string,name=string,email=string,role=string} true "Admin user information with role"
+// @Success 200 {object} object{message=string,admin=object} "Admin created successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 500 {object} object{error=string} "Internal server error"
+// @Router /admin/users/with-role [post]
+func (h *AdminHandlers) CreateAdminWithRoleHandler(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	var adminData struct {
+		Username string `json:"username" binding:"required"`
+		Password string `json:"password" binding:"required"`
+		Name     string `json:"name" binding:"required"`
+		Email    string `json:"email"`
+		Role     string `json:"role" binding:"required,oneof=super_admin admin developer"`
+	}
+
+	if err := c.ShouldBindJSON(&adminData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
+		})
+		return
+	}
+
+	currentUsername := c.GetString("username")
+	role := database.AdminRole(adminData.Role)
+	
+	admin, err := h.adminService.CreateAdminWithRole(
+		adminData.Username, 
+		adminData.Password, 
+		adminData.Name, 
+		adminData.Email, 
+		role,
+		currentUsername,
+	)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	// Hide password hash
+	admin.PasswordHash = ""
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "admin.create_success"),
+		"admin":   admin,
 	})
 }

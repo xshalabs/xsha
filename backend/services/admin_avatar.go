@@ -73,8 +73,10 @@ func (s *adminAvatarService) UpdateAdminAvatarByUUID(avatarUUID string, adminID 
 	}
 
 	// Update admin's avatar_id
-	admin.AvatarID = &avatar.ID
-	return s.adminRepo.Update(admin)
+	updates := map[string]interface{}{
+		"avatar_id": &avatar.ID,
+	}
+	return s.adminRepo.Update(admin.ID, updates)
 }
 
 func (s *adminAvatarService) GetAvatarStorageDir() string {

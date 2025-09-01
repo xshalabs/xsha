@@ -104,6 +104,8 @@ func AuthMiddlewareWithService(authService services.AuthService, adminService se
 
 		c.Set("username", claims.Username)
 		c.Set("admin_id", admin.ID)
+		c.Set("admin", admin)
+		c.Set("adminService", adminService)
 		c.Next()
 	}
 }

@@ -43,6 +43,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		api.POST("/auth/logout", authHandlers.LogoutHandler)
 
 		admin := api.Group("/admin")
+		admin.Use(middleware.RequireSuperAdmin())
 		{
 			admin.GET("/login-logs", authHandlers.GetLoginLogsHandler)
 
@@ -52,15 +53,20 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 
 			// Admin user management
 			admin.POST("/users", adminHandlers.CreateAdminHandler)
+			admin.POST("/users/with-role", adminHandlers.CreateAdminWithRoleHandler)
 			admin.GET("/users", adminHandlers.ListAdminsHandler)
 			admin.GET("/users/:id", adminHandlers.GetAdminHandler)
 			admin.PUT("/users/:id", adminHandlers.UpdateAdminHandler)
+			admin.PUT("/users/:id/role", adminHandlers.UpdateAdminRoleHandler)
 			admin.DELETE("/users/:id", adminHandlers.DeleteAdminHandler)
 			admin.PUT("/users/:id/password", adminHandlers.ChangePasswordHandler)
 			admin.PUT("/avatar/:uuid", adminAvatarHandlers.UpdateAdminAvatarHandler)
 
 			// Admin avatar management
 			admin.POST("/avatar/upload", adminAvatarHandlers.UploadAvatarHandler)
+			
+			// Role management
+			admin.GET("/roles", adminHandlers.GetAvailableRolesHandler)
 		}
 
 		// Avatar preview (public endpoint, no auth required)
@@ -68,24 +74,24 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 
 		gitCreds := api.Group("/credentials")
 		{
-			gitCreds.POST("", gitCredHandlers.CreateCredential)
+			gitCreds.POST("", middleware.RequireAdminOrSuperAdmin(), gitCredHandlers.CreateCredential)
 			gitCreds.GET("", gitCredHandlers.ListCredentials)
 			gitCreds.GET("/:id", gitCredHandlers.GetCredential)
-			gitCreds.PUT("/:id", gitCredHandlers.UpdateCredential)
-			gitCreds.DELETE("/:id", gitCredHandlers.DeleteCredential)
+			gitCreds.PUT("/:id", middleware.RequirePermission("credential", "update"), gitCredHandlers.UpdateCredential)
+			gitCreds.DELETE("/:id", middleware.RequirePermission("credential", "delete"), gitCredHandlers.DeleteCredential)
 		}
 
 		projects := api.Group("/projects")
 		{
-			projects.POST("", projectHandlers.CreateProject)
+			projects.POST("", middleware.RequireAdminOrSuperAdmin(), projectHandlers.CreateProject)
 			projects.GET("", projectHandlers.ListProjects)
 			projects.POST("/parse-url", projectHandlers.ParseRepositoryURL)
 			projects.POST("/branches", projectHandlers.FetchRepositoryBranches)
 			projects.POST("/validate-access", projectHandlers.ValidateRepositoryAccess)
 			projects.GET("/credentials", projectHandlers.GetCompatibleCredentials)
 			projects.GET("/:id", projectHandlers.GetProject)
-			projects.PUT("/:id", projectHandlers.UpdateProject)
-			projects.DELETE("/:id", projectHandlers.DeleteProject)
+			projects.PUT("/:id", middleware.RequirePermission("project", "update"), projectHandlers.UpdateProject)
+			projects.DELETE("/:id", middleware.RequirePermission("project", "delete"), projectHandlers.DeleteProject)
 			projects.GET("/:id/kanban", taskHandlers.GetKanbanTasks)
 		}
 
@@ -94,10 +100,10 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			tasks.POST("", taskHandlers.CreateTask)
 			tasks.GET("", taskHandlers.ListTasks)
 			tasks.GET("/:id", taskHandlers.GetTask)
-			tasks.PUT("/:id", taskHandlers.UpdateTask)
-			tasks.PUT("/:id/status", taskHandlers.UpdateTaskStatus)
+			tasks.PUT("/:id", middleware.RequirePermission("task", "update"), taskHandlers.UpdateTask)
+			tasks.PUT("/:id/status", middleware.RequirePermission("task", "update"), taskHandlers.UpdateTaskStatus)
 			tasks.PUT("/batch/status", taskHandlers.BatchUpdateTaskStatus)
-			tasks.DELETE("/:id", taskHandlers.DeleteTask)
+			tasks.DELETE("/:id", middleware.RequirePermission("task", "delete"), taskHandlers.DeleteTask)
 			tasks.GET("/:id/git-diff", taskHandlers.GetTaskGitDiff)
 			tasks.GET("/:id/git-diff/file", taskHandlers.GetTaskGitDiffFile)
 			tasks.POST("/:id/push", taskHandlers.PushTaskBranch)
@@ -110,8 +116,8 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			conversations.GET("/latest", taskConvHandlers.GetLatestConversation)
 			conversations.GET("/:id", taskConvHandlers.GetConversation)
 			conversations.GET("/:id/details", taskConvHandlers.GetConversationDetails)
-			conversations.PUT("/:id", taskConvHandlers.UpdateConversation)
-			conversations.DELETE("/:id", taskConvHandlers.DeleteConversation)
+			conversations.PUT("/:id", middleware.RequirePermission("conversation", "update"), taskConvHandlers.UpdateConversation)
+			conversations.DELETE("/:id", middleware.RequirePermission("conversation", "delete"), taskConvHandlers.DeleteConversation)
 			conversations.GET("/:id/git-diff", taskConvHandlers.GetConversationGitDiff)
 			conversations.GET("/:id/git-diff/file", taskConvHandlers.GetConversationGitDiffFile)
 			conversations.GET("/:id/logs/stream", taskConvHandlers.StreamConversationLogs)
@@ -134,15 +140,16 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 
 		devEnvs := api.Group("/environments")
 		{
-			devEnvs.POST("", devEnvHandlers.CreateEnvironment)
+			devEnvs.POST("", middleware.RequireAdminOrSuperAdmin(), devEnvHandlers.CreateEnvironment)
 			devEnvs.GET("", devEnvHandlers.ListEnvironments)
 			devEnvs.GET("/available-images", devEnvHandlers.GetAvailableImages)
 			devEnvs.GET("/:id", devEnvHandlers.GetEnvironment)
-			devEnvs.PUT("/:id", devEnvHandlers.UpdateEnvironment)
-			devEnvs.DELETE("/:id", devEnvHandlers.DeleteEnvironment)
+			devEnvs.PUT("/:id", middleware.RequirePermission("environment", "update"), devEnvHandlers.UpdateEnvironment)
+			devEnvs.DELETE("/:id", middleware.RequirePermission("environment", "delete"), devEnvHandlers.DeleteEnvironment)
 		}
 
 		systemConfigs := api.Group("/settings")
+		systemConfigs.Use(middleware.RequireSuperAdmin())
 		{
 			systemConfigs.GET("", systemConfigHandlers.ListAllConfigs)
 			systemConfigs.PUT("", systemConfigHandlers.BatchUpdateConfigs)

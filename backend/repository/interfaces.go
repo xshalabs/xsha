@@ -22,10 +22,11 @@ type AdminRepository interface {
 	GetByID(id uint) (*database.Admin, error)
 	GetByUsername(username string) (*database.Admin, error)
 	List(search *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error)
-	Update(admin *database.Admin) error
+	Update(id uint, updates map[string]interface{}) error
 	Delete(id uint) error
 	UpdateLastLogin(username, ip string) error
 	CountAdmins() (int64, error)
+	CountActiveAdminsByRole(role database.AdminRole) (int64, error)
 	InitializeDefaultAdmin() error
 }
 

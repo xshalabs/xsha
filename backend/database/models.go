@@ -38,6 +38,14 @@ type LoginLog struct {
 	LoginTime time.Time      `gorm:"not null;index" json:"login_time"`
 }
 
+type AdminRole string
+
+const (
+	AdminRoleSuperAdmin AdminRole = "super_admin"
+	AdminRoleAdmin      AdminRole = "admin"
+	AdminRoleDeveloper  AdminRole = "developer"
+)
+
 type Admin struct {
 	ID           uint           `gorm:"primarykey" json:"id"`
 	CreatedAt    time.Time      `json:"created_at"`
@@ -47,6 +55,7 @@ type Admin struct {
 	PasswordHash string         `gorm:"not null" json:"-"`
 	Name         string         `gorm:"not null;default:'Admin User'" json:"name"`
 	Email        string         `gorm:"default:''" json:"email"`
+	Role         AdminRole      `gorm:"not null;default:'admin';index" json:"role"`
 	IsActive     bool           `gorm:"not null;default:true" json:"is_active"`
 	LastLoginAt  *time.Time     `json:"last_login_at"`
 	LastLoginIP  string         `gorm:"default:''" json:"last_login_ip"`

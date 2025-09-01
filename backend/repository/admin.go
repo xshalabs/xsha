@@ -66,8 +66,8 @@ func (r *adminRepository) List(search *string, isActive *bool, page, pageSize in
 	return admins, total, err
 }
 
-func (r *adminRepository) Update(admin *database.Admin) error {
-	return r.db.Save(admin).Error
+func (r *adminRepository) Update(id uint, updates map[string]interface{}) error {
+	return r.db.Model(&database.Admin{}).Where("id = ?", id).Updates(updates).Error
 }
 
 func (r *adminRepository) Delete(id uint) error {
@@ -114,6 +114,7 @@ func (r *adminRepository) InitializeDefaultAdmin() error {
 		PasswordHash: string(passwordHash),
 		Name:         "XSha Administrator",
 		Email:        "",
+		Role:         database.AdminRoleSuperAdmin,
 		IsActive:     true,
 		CreatedBy:    "system",
 	}
@@ -125,4 +126,11 @@ func (r *adminRepository) InitializeDefaultAdmin() error {
 
 	utils.Info("Default admin user created successfully", "username", "xshauser")
 	return nil
+}
+
+// CountActiveAdminsByRole counts active admins by specific role
+func (r *adminRepository) CountActiveAdminsByRole(role database.AdminRole) (int64, error) {
+	var count int64
+	err := r.db.Model(&database.Admin{}).Where("is_active = ? AND role = ?", true, role).Count(&count).Error
+	return count, err
 }

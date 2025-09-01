@@ -40,6 +40,7 @@ func (m *MigrationManager) registerMigrations() {
 		&WorkspaceRelativePathsMigration{},
 		&DevEnvironmentSessionDirMigration{},
 		&RemoveAdminCredentialsMigration{},
+		&AddAdminRoleMigration{},
 	}
 }
 

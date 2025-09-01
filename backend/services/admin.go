@@ -28,6 +28,11 @@ func (s *adminService) SetAuthService(authService AuthService) {
 }
 
 func (s *adminService) CreateAdmin(username, password, name, email, createdBy string) (*database.Admin, error) {
+	// Default to admin role for backward compatibility
+	return s.CreateAdminWithRole(username, password, name, email, database.AdminRoleAdmin, createdBy)
+}
+
+func (s *adminService) CreateAdminWithRole(username, password, name, email string, role database.AdminRole, createdBy string) (*database.Admin, error) {
 	// Validate input
 	if err := s.validateAdminData(username, password, name); err != nil {
 		return nil, err
@@ -53,6 +58,7 @@ func (s *adminService) CreateAdmin(username, password, name, email, createdBy st
 		PasswordHash: string(passwordHash),
 		Name:         name,
 		Email:        email,
+		Role:         role,
 		IsActive:     true,
 		CreatedBy:    createdBy,
 	}
@@ -132,7 +138,7 @@ func (s *adminService) UpdateAdmin(id uint, updates map[string]interface{}) erro
 	}
 
 	// Update the admin first
-	if err := s.adminRepo.Update(admin); err != nil {
+	if err := s.adminRepo.Update(admin.ID, updates); err != nil {
 		return err
 	}
 
@@ -189,8 +195,10 @@ func (s *adminService) ChangePassword(id uint, newPassword string) error {
 		return fmt.Errorf("failed to hash password: %v", err)
 	}
 
-	admin.PasswordHash = string(passwordHash)
-	return s.adminRepo.Update(admin)
+	updates := map[string]interface{}{
+		"password_hash": string(passwordHash),
+	}
+	return s.adminRepo.Update(admin.ID, updates)
 }
 
 func (s *adminService) ValidateCredentials(username, password string) (*database.Admin, error) {
@@ -279,4 +287,163 @@ func (s *adminService) validateName(name string) error {
 		return appErrors.ErrAdminNameInvalid
 	}
 	return nil
+}
+
+// UpdateAdminRole updates admin role
+func (s *adminService) UpdateAdminRole(id uint, role database.AdminRole) error {
+	admin, err := s.adminRepo.GetByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return appErrors.ErrAdminNotFound
+		}
+		return fmt.Errorf("failed to get admin: %v", err)
+	}
+
+	// Check if there would be no super_admin left
+	if admin.Role == database.AdminRoleSuperAdmin && role != database.AdminRoleSuperAdmin {
+		count, err := s.adminRepo.CountActiveAdminsByRole(database.AdminRoleSuperAdmin)
+		if err != nil {
+			return fmt.Errorf("failed to count super admins: %v", err)
+		}
+		if count <= 1 {
+			return appErrors.ErrCannotRemoveLastSuperAdmin
+		}
+	}
+
+	updates := map[string]interface{}{
+		"role": role,
+	}
+
+	return s.adminRepo.Update(id, updates)
+}
+
+// HasPermission checks if admin has permission for specific resource and action
+func (s *adminService) HasPermission(admin *database.Admin, resource, action string, resourceOwnerID uint) bool {
+	// Super admin has all permissions
+	if admin.Role == database.AdminRoleSuperAdmin {
+		return true
+	}
+
+	// Check permission based on role and resource
+	switch resource {
+	case "admin":
+		return admin.Role == database.AdminRoleSuperAdmin
+	case "system_config":
+		return admin.Role == database.AdminRoleSuperAdmin
+	case "operation_log":
+		return admin.Role == database.AdminRoleSuperAdmin
+	case "project":
+		return s.checkProjectPermission(admin, action, resourceOwnerID)
+	case "task":
+		return s.checkTaskPermission(admin, action, resourceOwnerID)
+	case "conversation":
+		return s.checkConversationPermission(admin, action, resourceOwnerID)
+	case "credential":
+		return s.checkCredentialPermission(admin, action, resourceOwnerID)
+	case "environment":
+		return s.checkEnvironmentPermission(admin, action, resourceOwnerID)
+	default:
+		return false
+	}
+}
+
+// CanAccessResource is an alias for HasPermission
+func (s *adminService) CanAccessResource(admin *database.Admin, resource string, action string, resourceOwnerID uint) bool {
+	return s.HasPermission(admin, resource, action, resourceOwnerID)
+}
+
+// GetAvailableRoles returns all available admin roles
+func (s *adminService) GetAvailableRoles() []database.AdminRole {
+	return []database.AdminRole{
+		database.AdminRoleSuperAdmin,
+		database.AdminRoleAdmin,
+		database.AdminRoleDeveloper,
+	}
+}
+
+// Helper methods for specific resource permissions
+
+func (s *adminService) checkProjectPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
+	switch action {
+	case "create":
+		return admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin
+	case "read":
+		return true // All roles can read projects
+	case "update", "delete":
+		if admin.Role == database.AdminRoleSuperAdmin {
+			return true
+		}
+		return admin.Role == database.AdminRoleAdmin && admin.ID == resourceOwnerID
+	default:
+		return false
+	}
+}
+
+func (s *adminService) checkTaskPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
+	switch action {
+	case "create", "execute":
+		return true // All roles can create and execute tasks
+	case "read":
+		return true // All roles can read tasks
+	case "update":
+		if admin.Role == database.AdminRoleSuperAdmin {
+			return true
+		}
+		return admin.ID == resourceOwnerID // Only owner can update
+	case "delete":
+		if admin.Role == database.AdminRoleSuperAdmin {
+			return true
+		}
+		return admin.Role == database.AdminRoleAdmin && admin.ID == resourceOwnerID
+	default:
+		return false
+	}
+}
+
+func (s *adminService) checkConversationPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
+	switch action {
+	case "create", "execute":
+		return true // All roles can create and execute conversations
+	case "read":
+		return true // All roles can read conversations
+	case "update", "delete":
+		if admin.Role == database.AdminRoleSuperAdmin {
+			return true
+		}
+		return admin.ID == resourceOwnerID // Only owner can update/delete
+	default:
+		return false
+	}
+}
+
+func (s *adminService) checkCredentialPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
+	switch action {
+	case "create":
+		return admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin
+	case "read":
+		return true // All roles can read credentials (masked)
+	case "update", "delete":
+		if admin.Role == database.AdminRoleSuperAdmin {
+			return true
+		}
+		return admin.Role == database.AdminRoleAdmin && admin.ID == resourceOwnerID
+	default:
+		return false
+	}
+}
+
+func (s *adminService) checkEnvironmentPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
+	switch action {
+	case "create":
+		return admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin
+	case "read":
+		return true // All roles can read environments
+	case "update", "delete":
+		if admin.Role == database.AdminRoleSuperAdmin {
+			return true
+		}
+		return admin.Role == database.AdminRoleAdmin && admin.ID == resourceOwnerID
+	default:
+		return false
+	}
 }
