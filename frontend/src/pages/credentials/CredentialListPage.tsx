@@ -43,6 +43,7 @@ import type {
   GitCredentialListParams,
 } from "@/types/credentials";
 import { Plus, Save } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 
 const CredentialListPage: React.FC = () => {
@@ -50,6 +51,7 @@ const CredentialListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { setItems } = useBreadcrumb();
   const { setActions } = usePageActions();
+  const { canCreateCredential, canEditCredential, canDeleteCredential } = usePermissions();
 
   const [credentials, setCredentials] = useState<GitCredential[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,12 +93,17 @@ const CredentialListPage: React.FC = () => {
       setIsCreateSheetOpen(true);
     };
 
-    setActions(
-      <Button onClick={handleCreateNew} size="sm">
-        <Plus className="h-4 w-4 mr-2" />
-        {t("gitCredentials.create")}
-      </Button>
-    );
+    // Only show create button if user has permission
+    if (canCreateCredential) {
+      setActions(
+        <Button onClick={handleCreateNew} size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          {t("gitCredentials.create")}
+        </Button>
+      );
+    } else {
+      setActions(null);
+    }
 
     // Clear breadcrumb items (we're at root level)
     setItems([]);
@@ -106,7 +113,7 @@ const CredentialListPage: React.FC = () => {
       setActions(null);
       setItems([]);
     };
-  }, [setActions, setItems, t]);
+  }, [setActions, setItems, t, canCreateCredential]);
 
   const loadCredentialsData = useCallback(
     async (page: number, filters: ColumnFiltersState, updateUrl = true) => {
@@ -319,8 +326,10 @@ const CredentialListPage: React.FC = () => {
         onEdit: handleEdit,
         onDelete: handleDelete,
         t: (key: string) => t(key),
+        canEditCredential,
+        canDeleteCredential,
       }),
-    [handleEdit, handleDelete, t]
+    [handleEdit, handleDelete, t, canEditCredential, canDeleteCredential]
   );
 
 

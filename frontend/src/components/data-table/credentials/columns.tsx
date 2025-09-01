@@ -9,12 +9,16 @@ interface GitCredentialColumnsProps {
   onEdit: (credential: GitCredential) => void;
   onDelete: (id: number) => void;
   t: (key: string) => string;
+  canEditCredential: (createdBy?: string) => boolean;
+  canDeleteCredential: (createdBy?: string) => boolean;
 }
 
 export const createGitCredentialColumns = ({
   onEdit,
   onDelete,
   t,
+  canEditCredential,
+  canDeleteCredential,
 }: GitCredentialColumnsProps): ColumnDef<GitCredential>[] => [
   {
     accessorKey: "name",
@@ -105,22 +109,24 @@ export const createGitCredentialColumns = ({
     cell: ({ row }) => {
       const credential = row.original;
 
-      const actions = [
+      // Only show edit action if user has permission
+      const actions = canEditCredential(credential.created_by) ? [
         {
           id: "edit",
           label: t("gitCredentials.edit"),
           icon: Edit,
           onClick: () => onEdit(credential),
         },
-      ];
+      ] : [];
 
-      const deleteAction = {
+      // Only show delete action if user has permission
+      const deleteAction = canDeleteCredential(credential.created_by) ? {
         title: credential.name,
         confirmationValue: credential.name,
         submitAction: async () => {
           await onDelete(credential.id);
         },
-      };
+      } : undefined;
 
       return (
         <QuickActions 

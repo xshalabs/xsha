@@ -8,12 +8,16 @@ interface DevEnvironmentColumnsProps {
   onEdit: (environment: DevEnvironmentDisplay) => void;
   onDelete: (id: number) => void;
   t: (key: string) => string;
+  canEditEnvironment: (createdBy?: string) => boolean;
+  canDeleteEnvironment: (createdBy?: string) => boolean;
 }
 
 export const createDevEnvironmentColumns = ({
   onEdit,
   onDelete,
   t,
+  canEditEnvironment,
+  canDeleteEnvironment,
 }: DevEnvironmentColumnsProps): ColumnDef<DevEnvironmentDisplay>[] => [
   {
     accessorKey: "name",
@@ -100,22 +104,24 @@ export const createDevEnvironmentColumns = ({
     cell: ({ row }) => {
       const environment = row.original;
 
-      const actions = [
+      // Only show edit action if user has permission
+      const actions = canEditEnvironment(environment.created_by) ? [
         {
           id: "edit",
           label: t("devEnvironments.edit"),
           icon: Edit,
           onClick: () => onEdit(environment),
         },
-      ];
+      ] : [];
 
-      const deleteAction = {
+      // Only show delete action if user has permission
+      const deleteAction = canDeleteEnvironment(environment.created_by) ? {
         title: environment.name,
         confirmationValue: environment.name,
         submitAction: async () => {
           await onDelete(environment.id);
         },
-      };
+      } : undefined;
 
       return (
         <QuickActions 

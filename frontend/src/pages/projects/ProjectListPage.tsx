@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { Plus, Save } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { usePermissions } from "@/hooks/usePermissions";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import {
@@ -50,6 +51,7 @@ const ProjectListPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { canCreateProject, canEditProject, canDeleteProject } = usePermissions();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -245,12 +247,17 @@ const ProjectListPage: React.FC = () => {
       setIsCreateSheetOpen(true);
     };
 
-    setActions(
-      <Button onClick={handleCreateNew} size="sm">
-        <Plus className="h-4 w-4 mr-2" />
-        {t("projects.create")}
-      </Button>
-    );
+    // Only show create button if user has permission
+    if (canCreateProject) {
+      setActions(
+        <Button onClick={handleCreateNew} size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          {t("projects.create")}
+        </Button>
+      );
+    } else {
+      setActions(null);
+    }
 
     // Clear breadcrumb items (we're at the root level)
     setItems([]);
@@ -260,7 +267,7 @@ const ProjectListPage: React.FC = () => {
       setActions(null);
       setItems([]);
     };
-  }, [setActions, setItems, t]);
+  }, [setActions, setItems, t, canCreateProject]);
 
   const handleEdit = useCallback(
     (project: Project) => {
@@ -348,8 +355,10 @@ const ProjectListPage: React.FC = () => {
         onEdit: handleEdit,
         onDelete: handleDelete,
         onKanban: handleKanban,
+        canEditProject,
+        canDeleteProject,
       }),
-    [t, handleEdit, handleDelete, handleKanban]
+    [t, handleEdit, handleDelete, handleKanban, canEditProject, canDeleteProject]
   );
 
   return (

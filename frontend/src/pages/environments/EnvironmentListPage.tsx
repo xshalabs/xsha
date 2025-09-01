@@ -14,6 +14,7 @@ import { toast } from "sonner";
 
 import { Plus, Save } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { usePermissions } from "@/hooks/usePermissions";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 
@@ -51,6 +52,7 @@ const EnvironmentListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { setItems } = useBreadcrumb();
   const { setActions } = usePageActions();
+  const { canCreateEnvironment, canEditEnvironment, canDeleteEnvironment } = usePermissions();
   
   usePageTitle(t("navigation.environments"));
 
@@ -72,12 +74,17 @@ const EnvironmentListPage: React.FC = () => {
       setIsCreateSheetOpen(true);
     };
 
-    setActions(
-      <Button onClick={handleCreateNew} size="sm">
-        <Plus className="h-4 w-4 mr-2" />
-        {t("devEnvironments.create")}
-      </Button>
-    );
+    // Only show create button if user has permission
+    if (canCreateEnvironment) {
+      setActions(
+        <Button onClick={handleCreateNew} size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          {t("devEnvironments.create")}
+        </Button>
+      );
+    } else {
+      setActions(null);
+    }
 
     // Clear breadcrumb items (we're at the root level)
     setItems([]);
@@ -87,7 +94,7 @@ const EnvironmentListPage: React.FC = () => {
       setActions(null);
       setItems([]);
     };
-  }, [setActions, setItems, t]);
+  }, [setActions, setItems, t, canCreateEnvironment]);
 
   const [environments, setEnvironments] = useState<DevEnvironmentDisplay[]>([]);
   const [loading, setLoading] = useState(true);
@@ -301,8 +308,10 @@ const EnvironmentListPage: React.FC = () => {
         onEdit: handleEditEnvironment,
         onDelete: handleDeleteEnvironment,
         t,
+        canEditEnvironment,
+        canDeleteEnvironment,
       }),
-    [handleEditEnvironment, handleDeleteEnvironment, t]
+    [handleEditEnvironment, handleDeleteEnvironment, t, canEditEnvironment, canDeleteEnvironment]
   );
 
   // Initialize from URL on component mount (only once)

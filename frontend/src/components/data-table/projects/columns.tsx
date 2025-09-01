@@ -15,6 +15,8 @@ interface ProjectColumnsProps {
   onEdit: (project: Project) => void;
   onDelete: (id: number) => void;
   onKanban: (project: Project) => void;
+  canEditProject: (createdBy?: string) => boolean;
+  canDeleteProject: (createdBy?: string) => boolean;
 }
 
 export const createProjectColumns = ({
@@ -22,6 +24,8 @@ export const createProjectColumns = ({
   onEdit,
   onDelete,
   onKanban,
+  canEditProject,
+  canDeleteProject,
 }: ProjectColumnsProps): ColumnDef<Project>[] => [
   {
     accessorKey: "name",
@@ -144,21 +148,23 @@ export const createProjectColumns = ({
           icon: Columns,
           onClick: () => onKanban(project),
         },
-        {
+        // Only show edit action if user has permission
+        ...(canEditProject(project.created_by) ? [{
           id: "edit",
           label: t("common.edit"),
           icon: Edit,
           onClick: () => onEdit(project),
-        },
+        }] : []),
       ];
 
-      const deleteAction = {
+      // Only show delete action if user has permission
+      const deleteAction = canDeleteProject(project.created_by) ? {
         title: project.name,
         confirmationValue: project.name,
         submitAction: async () => {
           await onDelete(project.id);
         },
-      };
+      } : undefined;
 
       return (
         <QuickActions 
