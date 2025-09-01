@@ -20,14 +20,15 @@ func NewDashboardHandlers(dashboardService services.DashboardService) *Dashboard
 	}
 }
 
-// GetDashboardStats gets dashboard statistics
+// GetDashboardStats gets dashboard statistics (Super Admin Only)
 // @Summary Get dashboard statistics
-// @Description Get aggregated system statistics for dashboard
+// @Description Get aggregated system statistics for dashboard. Only accessible by super administrators.
 // @Tags Dashboard
 // @Accept json
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} object{stats=map[string]interface{}} "Dashboard statistics"
+// @Failure 403 {object} map[string]interface{} "Insufficient permissions"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /dashboard/stats [get]
 func (h *DashboardHandlers) GetDashboardStats(c *gin.Context) {

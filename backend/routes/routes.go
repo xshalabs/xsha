@@ -155,7 +155,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 
 		dashboard := api.Group("/dashboard")
 		{
-			dashboard.GET("/stats", dashboardHandlers.GetDashboardStats)
+			dashboard.GET("/stats", middleware.RequireSuperAdmin(), dashboardHandlers.GetDashboardStats)
 			dashboard.GET("/recent-tasks", dashboardHandlers.GetRecentTasks)
 		}
 	}
