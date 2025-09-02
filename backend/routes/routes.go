@@ -138,7 +138,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 
 		devEnvs := api.Group("/environments")
 		{
-			devEnvs.POST("", middleware.RequireAdminOrSuperAdmin(), devEnvHandlers.CreateEnvironment)
+			devEnvs.POST("", middleware.RequirePermission("environment", "create"), devEnvHandlers.CreateEnvironment)
 			devEnvs.GET("", devEnvHandlers.ListEnvironments)
 			devEnvs.GET("/available-images", devEnvHandlers.GetAvailableImages)
 			devEnvs.GET("/:id", devEnvHandlers.GetEnvironment)

@@ -11,8 +11,10 @@ interface DevEnvironmentColumnsProps {
   onDelete: (id: number) => void;
   onAdminChanged: () => void;
   t: (key: string) => string;
-  canEditEnvironment: (resourceAdminId?: number) => boolean;
-  canDeleteEnvironment: (resourceAdminId?: number) => boolean;
+  canEditEnvironment: (resourceAdminId?: number, isEnvironmentAdmin?: boolean) => boolean;
+  canDeleteEnvironment: (resourceAdminId?: number, isEnvironmentAdmin?: boolean) => boolean;
+  canManageEnvironmentAdmins: (resourceAdminId?: number, isEnvironmentAdmin?: boolean) => boolean;
+  currentAdminId?: number;
 }
 
 export const createDevEnvironmentColumns = ({
@@ -22,7 +24,23 @@ export const createDevEnvironmentColumns = ({
   t,
   canEditEnvironment,
   canDeleteEnvironment,
-}: DevEnvironmentColumnsProps): ColumnDef<DevEnvironment>[] => [
+  canManageEnvironmentAdmins,
+  currentAdminId,
+}: DevEnvironmentColumnsProps): ColumnDef<DevEnvironment>[] => {
+  // Helper function to check if current user is an admin of the environment
+  const isEnvironmentAdmin = (environment: DevEnvironment): boolean => {
+    if (!currentAdminId) return false;
+    
+    // Check if user is in the admins array
+    const isInAdminsList = environment.admins?.some(admin => admin.id === currentAdminId) || false;
+    
+    // Check if user is the legacy admin_id owner
+    const isLegacyAdmin = environment.admin_id === currentAdminId;
+    
+    return isInAdminsList || isLegacyAdmin;
+  };
+
+  return [
   {
     accessorKey: "name",
     header: t("devEnvironments.table.name"),
@@ -111,7 +129,7 @@ export const createDevEnvironmentColumns = ({
       const actions = [];
 
       // Only show edit action if user has permission
-      if (canEditEnvironment(environment.admin_id)) {
+      if (canEditEnvironment(environment.admin_id, isEnvironmentAdmin(environment))) {
         actions.push({
           id: "edit",
           label: t("devEnvironments.edit"),
@@ -120,8 +138,9 @@ export const createDevEnvironmentColumns = ({
         });
       }
 
-      // Always show manage admins action (permissions will be handled inside the dialog)
-      actions.push({
+      // Only show manage admins action if user has permission
+      if (canManageEnvironmentAdmins(environment.admin_id, isEnvironmentAdmin(environment))) {
+        actions.push({
         id: "manage-admins",
         label: t("devEnvironments.admin.manage"),
         icon: UserCog,
@@ -132,9 +151,6 @@ export const createDevEnvironmentColumns = ({
             trigger={
               <DropdownMenuItem 
                 className="cursor-pointer"
-                onSelect={(event) => {
-                  event.preventDefault();
-                }}
               >
                 <UserCog className="mr-2 h-4 w-4" />
                 <span>{t("devEnvironments.admin.manage")}</span>
@@ -142,10 +158,11 @@ export const createDevEnvironmentColumns = ({
             }
           />
         ),
-      });
+        });
+      }
 
       // Only show delete action if user has permission
-      const deleteAction = canDeleteEnvironment(environment.admin_id) ? {
+      const deleteAction = canDeleteEnvironment(environment.admin_id, isEnvironmentAdmin(environment)) ? {
         title: environment.name,
         confirmationValue: environment.name,
         submitAction: async () => {
@@ -163,4 +180,5 @@ export const createDevEnvironmentColumns = ({
     enableSorting: false,
     enableHiding: false,
   },
-];
+  ];
+};

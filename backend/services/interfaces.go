@@ -32,6 +32,7 @@ type AdminService interface {
 	ValidateCredentials(username, password string) (*database.Admin, error)
 	InitializeDefaultAdmin() error
 	SetAuthService(authService AuthService)
+	SetDevEnvironmentService(devEnvService DevEnvironmentService)
 	HasPermission(admin *database.Admin, resource, action string, resourceOwnerID uint) bool
 	CanAccessResource(admin *database.Admin, resource string, action string, resourceOwnerID uint) bool
 	GetAvailableRoles() []database.AdminRole

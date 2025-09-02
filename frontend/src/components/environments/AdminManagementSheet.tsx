@@ -124,9 +124,7 @@ export function AdminManagementSheet({
 
   return (
     <FormSheet open={open} onOpenChange={setOpen}>
-      {trigger && React.cloneElement(trigger as React.ReactElement, {
-        onClick: () => setOpen(true)
-      })}
+      {trigger}
       <FormSheetContent className="w-full sm:w-[600px] sm:max-w-[600px]">
         <FormSheetHeader className="border-b">
           <FormSheetTitle className="text-foreground font-semibold">

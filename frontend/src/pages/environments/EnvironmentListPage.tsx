@@ -52,7 +52,7 @@ const EnvironmentListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { setItems } = useBreadcrumb();
   const { setActions } = usePageActions();
-  const { canCreateEnvironment, canEditEnvironment, canDeleteEnvironment } = usePermissions();
+  const { canCreateEnvironment, canEditEnvironment, canDeleteEnvironment, canManageEnvironmentAdmins, adminId } = usePermissions();
   
   usePageTitle(t("navigation.environments"));
 
@@ -316,8 +316,10 @@ const EnvironmentListPage: React.FC = () => {
         t,
         canEditEnvironment,
         canDeleteEnvironment,
+        canManageEnvironmentAdmins,
+        currentAdminId: adminId || undefined,
       }),
-    [handleEditEnvironment, handleDeleteEnvironment, handleAdminChanged, t, canEditEnvironment, canDeleteEnvironment]
+    [handleEditEnvironment, handleDeleteEnvironment, handleAdminChanged, t, canEditEnvironment, canDeleteEnvironment, canManageEnvironmentAdmins, adminId]
   );
 
   // Initialize from URL on component mount (only once)
