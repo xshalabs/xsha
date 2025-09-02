@@ -392,3 +392,26 @@ type AdminAvatar struct {
 	Admin        *Admin         `gorm:"foreignKey:AdminID" json:"admin"`
 	CreatedBy    string         `gorm:"not null;index" json:"created_by"`
 }
+
+// AdminAvatarMinimal represents minimal avatar information for API responses
+type AdminAvatarMinimal struct {
+	UUID         string `json:"uuid"`
+	OriginalName string `json:"original_name"`
+}
+
+// AdminListResponse represents admin information for list API responses
+type AdminListResponse struct {
+	ID           uint                `json:"id"`
+	CreatedAt    time.Time           `json:"created_at"`
+	UpdatedAt    time.Time           `json:"updated_at"`
+	Username     string              `json:"username"`
+	Name         string              `json:"name"`
+	Email        string              `json:"email"`
+	Role         AdminRole           `json:"role"`
+	IsActive     bool                `json:"is_active"`
+	LastLoginAt  *time.Time          `json:"last_login_at"`
+	LastLoginIP  string              `json:"last_login_ip"`
+	AvatarID     *uint               `json:"avatar_id"`
+	Avatar       *AdminAvatarMinimal `json:"avatar,omitempty"`
+	CreatedBy    string              `json:"created_by"`
+}

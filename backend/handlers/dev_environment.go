@@ -334,7 +334,7 @@ type AddAdminToEnvironmentRequest struct {
 
 // @Description Environment admins response
 type EnvironmentAdminsResponse struct {
-	Admins []database.Admin `json:"admins"`
+	Admins []database.AdminListResponse `json:"admins"`
 }
 
 // GetEnvironmentAdmins gets all admins for a specific environment
@@ -368,8 +368,10 @@ func (h *DevEnvironmentHandlers) GetEnvironmentAdmins(c *gin.Context) {
 		return
 	}
 
+	// Transform to list response with minimal avatar data
+	adminResponses := database.ToAdminListResponses(admins)
 	c.JSON(http.StatusOK, EnvironmentAdminsResponse{
-		Admins: admins,
+		Admins: adminResponses,
 	})
 }
 

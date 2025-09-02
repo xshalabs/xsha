@@ -131,7 +131,9 @@ func (r *devEnvironmentRepository) RemoveAdmin(envID, adminID uint) error {
 func (r *devEnvironmentRepository) GetAdmins(envID uint) ([]database.Admin, error) {
 	var admins []database.Admin
 	err := r.db.Table("admins").
-		Preload("Avatar").
+		Preload("Avatar", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, uuid, original_name")
+		}).
 		Joins("JOIN dev_environment_admins dea ON admins.id = dea.admin_id").
 		Where("dea.dev_environment_id = ?", envID).
 		Find(&admins).Error

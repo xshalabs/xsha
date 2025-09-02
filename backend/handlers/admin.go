@@ -176,11 +176,14 @@ func (h *AdminHandlers) ListAdminsHandler(c *gin.Context) {
 		return
 	}
 
+	// Transform to list response with minimal avatar data
+	adminResponses := database.ToAdminListResponses(admins)
+
 	totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":     i18n.T(lang, "admin.list_success"),
-		"admins":      admins,
+		"admins":      adminResponses,
 		"total":       total,
 		"page":        page,
 		"page_size":   pageSize,
