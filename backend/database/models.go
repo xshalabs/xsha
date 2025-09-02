@@ -415,3 +415,32 @@ type AdminListResponse struct {
 	Avatar       *AdminAvatarMinimal `json:"avatar,omitempty"`
 	CreatedBy    string              `json:"created_by"`
 }
+
+// MinimalAdminResponse represents minimal admin information for environment list responses
+type MinimalAdminResponse struct {
+	ID       uint                `json:"id"`
+	Username string              `json:"username"`
+	Name     string              `json:"name"`
+	Email    string              `json:"email"`
+	Avatar   *AdminAvatarMinimal `json:"avatar,omitempty"`
+}
+
+// EnvironmentListItemResponse represents environment information with minimal admin data for list responses
+type EnvironmentListItemResponse struct {
+	ID           uint                   `json:"id"`
+	CreatedAt    time.Time              `json:"created_at"`
+	UpdatedAt    time.Time              `json:"updated_at"`
+	Name         string                 `json:"name"`
+	Description  string                 `json:"description"`
+	SystemPrompt string                 `json:"system_prompt"`
+	Type         string                 `json:"type"`
+	DockerImage  string                 `json:"docker_image"`
+	CPULimit     float64                `json:"cpu_limit"`
+	MemoryLimit  int64                  `json:"memory_limit"`
+	EnvVars      string                 `json:"env_vars"`
+	SessionDir   string                 `json:"session_dir"`
+	AdminID      *uint                  `json:"admin_id"`
+	Admin        *MinimalAdminResponse  `json:"admin,omitempty"`
+	Admins       []MinimalAdminResponse `json:"admins,omitempty"`
+	CreatedBy    string                 `json:"created_by"`
+}

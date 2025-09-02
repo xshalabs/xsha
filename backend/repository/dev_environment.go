@@ -64,7 +64,20 @@ func (r *devEnvironmentRepository) List(name *string, dockerImage *string, page,
 	}
 
 	offset := (page - 1) * pageSize
-	if err := query.Preload("Admins").Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&environments).Error; err != nil {
+	if err := query.
+		Preload("Admin", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, username, name, email, avatar_id").
+				Preload("Avatar", func(db *gorm.DB) *gorm.DB {
+					return db.Select("id, uuid, original_name")
+				})
+		}).
+		Preload("Admins", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, username, name, email, avatar_id").
+				Preload("Avatar", func(db *gorm.DB) *gorm.DB {
+					return db.Select("id, uuid, original_name")
+				})
+		}).
+		Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&environments).Error; err != nil {
 		return nil, 0, err
 	}
 
@@ -98,7 +111,20 @@ func (r *devEnvironmentRepository) ListByAdminAccess(adminID uint, name *string,
 
 	// Get the actual results
 	offset := (page - 1) * pageSize
-	if err := baseQuery.Group("dev_environments.id").Preload("Admins").Order("dev_environments.created_at DESC").Offset(offset).Limit(pageSize).Find(&environments).Error; err != nil {
+	if err := baseQuery.Group("dev_environments.id").
+		Preload("Admin", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, username, name, email, avatar_id").
+				Preload("Avatar", func(db *gorm.DB) *gorm.DB {
+					return db.Select("id, uuid, original_name")
+				})
+		}).
+		Preload("Admins", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, username, name, email, avatar_id").
+				Preload("Avatar", func(db *gorm.DB) *gorm.DB {
+					return db.Select("id, uuid, original_name")
+				})
+		}).
+		Order("dev_environments.created_at DESC").Offset(offset).Limit(pageSize).Find(&environments).Error; err != nil {
 		return nil, 0, err
 	}
 

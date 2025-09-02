@@ -207,9 +207,12 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 
 	totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
 
+	// Transform environments to minimal response structure
+	environmentResponses := database.ToEnvironmentListItemResponses(environments)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":      i18n.T(lang, "dev_environment.list_success"),
-		"environments": environments,
+		"environments": environmentResponses,
 		"total":        total,
 		"page":         page,
 		"page_size":    pageSize,
