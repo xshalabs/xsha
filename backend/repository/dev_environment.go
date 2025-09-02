@@ -111,7 +111,7 @@ func (r *devEnvironmentRepository) ListByAdminAccess(adminID uint, name *string,
 
 	// Get the actual results
 	offset := (page - 1) * pageSize
-	if err := baseQuery.Group("dev_environments.id").
+	if err := baseQuery.Select("dev_environments.*").Group("dev_environments.id").
 		Preload("Admin", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id, username, name, email, avatar_id").
 				Preload("Avatar", func(db *gorm.DB) *gorm.DB {
