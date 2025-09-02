@@ -176,7 +176,28 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 		dockerImage = &di
 	}
 
-	environments, total, err := h.devEnvService.ListEnvironments(name, dockerImage, page, pageSize)
+	// Get admin from context
+	admin := middleware.GetAdminFromContext(c)
+	if admin == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": i18n.T(lang, "auth.unauthorized"),
+		})
+		return
+	}
+
+	var environments []database.DevEnvironment
+	var total int64
+	var err error
+
+	// Check if user is super admin
+	if admin.Role == database.AdminRoleSuperAdmin {
+		// Super admin can see all environments
+		environments, total, err = h.devEnvService.ListEnvironments(name, dockerImage, page, pageSize)
+	} else {
+		// Regular admin can only see environments they have access to
+		environments, total, err = h.devEnvService.ListEnvironmentsByAdminAccess(admin.ID, name, dockerImage, page, pageSize)
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "dev_environment.list_failed"),

@@ -75,26 +75,30 @@ func (r *devEnvironmentRepository) ListByAdminAccess(adminID uint, name *string,
 	var environments []database.DevEnvironment
 	var total int64
 
-	// Query environments where the admin has access through many-to-many relationship or is the legacy admin_id
-	query := r.db.Model(&database.DevEnvironment{}).
+	// Base query for filtering
+	baseQuery := r.db.Model(&database.DevEnvironment{}).
 		Joins("LEFT JOIN dev_environment_admins dea ON dev_environments.id = dea.dev_environment_id").
 		Where("dea.admin_id = ? OR dev_environments.admin_id = ?", adminID, adminID)
 
 	if name != nil && *name != "" {
-		query = query.Where("dev_environments.name LIKE ?", "%"+*name+"%")
+		baseQuery = baseQuery.Where("dev_environments.name LIKE ?", "%"+*name+"%")
 	}
 
 	if dockerImage != nil && *dockerImage != "" {
-		query = query.Where("dev_environments.docker_image LIKE ?", "%"+*dockerImage+"%")
+		baseQuery = baseQuery.Where("dev_environments.docker_image LIKE ?", "%"+*dockerImage+"%")
 	}
 
-	// Count distinct environments
-	if err := query.Group("dev_environments.id").Count(&total).Error; err != nil {
+	// Count distinct environments using a subquery to avoid GROUP BY issues
+	countQuery := r.db.Model(&database.DevEnvironment{}).
+		Where("id IN (?)", baseQuery.Select("DISTINCT dev_environments.id"))
+	
+	if err := countQuery.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
+	// Get the actual results
 	offset := (page - 1) * pageSize
-	if err := query.Group("dev_environments.id").Preload("Admins").Order("dev_environments.created_at DESC").Offset(offset).Limit(pageSize).Find(&environments).Error; err != nil {
+	if err := baseQuery.Group("dev_environments.id").Preload("Admins").Order("dev_environments.created_at DESC").Offset(offset).Limit(pageSize).Find(&environments).Error; err != nil {
 		return nil, 0, err
 	}
 
