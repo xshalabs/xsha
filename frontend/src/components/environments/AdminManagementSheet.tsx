@@ -23,11 +23,11 @@ import { Plus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
-import type { DevEnvironmentDisplay } from "@/types/dev-environment";
+import type { DevEnvironment } from "@/types/dev-environment";
 import type { Admin } from "@/lib/api/types";
 
 interface AdminManagementSheetProps {
-  environment: DevEnvironmentDisplay;
+  environment: DevEnvironment;
   trigger?: React.ReactNode;
   onAdminChanged?: () => void;
 }

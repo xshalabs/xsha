@@ -8,12 +8,12 @@
   "invalid_id": "Invalid environment ID",
   "create_success": "Environment created successfully",
   "update_success": "Environment updated successfully",
+  "fetch_details_failed": "Failed to fetch environment details",
   "table": {
     "name": "Name",
     "description": "Description",
     "cpu": "CPU",
     "memory": "Memory",
-    "env_vars": "Env Vars",
     "admins": "Admins",
     "created": "Created",
     "no_description": "No description",

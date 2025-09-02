@@ -13,15 +13,13 @@ export interface DevEnvironment {
   docker_image: string;
   cpu_limit: number;
   memory_limit: number;
-  env_vars: string;
   admin_id?: number;
   created_by: string;
   admins?: Admin[];
 }
 
-export interface DevEnvironmentDisplay
-  extends Omit<DevEnvironment, "env_vars"> {
-  env_vars_map: Record<string, string>;
+export interface DevEnvironmentDisplay extends DevEnvironment {
+  env_vars_map?: Record<string, string>;
 }
 
 export interface CreateDevEnvironmentRequest {
@@ -49,8 +47,12 @@ export interface CreateDevEnvironmentResponse {
   environment: DevEnvironment;
 }
 
+export interface DevEnvironmentWithVars extends DevEnvironment {
+  env_vars: string;
+}
+
 export interface DevEnvironmentDetailResponse {
-  environment: DevEnvironment;
+  environment: DevEnvironmentWithVars;
 }
 
 export interface DevEnvironmentListResponse {

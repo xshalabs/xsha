@@ -79,7 +79,6 @@ func ToEnvironmentListItemResponse(env DevEnvironment) EnvironmentListItemRespon
 		DockerImage:  env.DockerImage,
 		CPULimit:     env.CPULimit,
 		MemoryLimit:  env.MemoryLimit,
-		EnvVars:      env.EnvVars,
 		SessionDir:   env.SessionDir,
 		AdminID:      env.AdminID,
 		CreatedBy:    env.CreatedBy,

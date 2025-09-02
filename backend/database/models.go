@@ -437,7 +437,6 @@ type EnvironmentListItemResponse struct {
 	DockerImage  string                 `json:"docker_image"`
 	CPULimit     float64                `json:"cpu_limit"`
 	MemoryLimit  int64                  `json:"memory_limit"`
-	EnvVars      string                 `json:"env_vars"`
 	SessionDir   string                 `json:"session_dir"`
 	AdminID      *uint                  `json:"admin_id"`
 	Admin        *MinimalAdminResponse  `json:"admin,omitempty"`

@@ -4,10 +4,10 @@ import { QuickActions } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { AdminManagementSheet } from "@/components/environments/AdminManagementSheet";
-import type { DevEnvironmentDisplay } from "@/types/dev-environment";
+import type { DevEnvironment } from "@/types/dev-environment";
 
 interface DevEnvironmentColumnsProps {
-  onEdit: (environment: DevEnvironmentDisplay) => void;
+  onEdit: (environment: DevEnvironment) => void;
   onDelete: (id: number) => void;
   onAdminChanged: () => void;
   t: (key: string) => string;
@@ -22,7 +22,7 @@ export const createDevEnvironmentColumns = ({
   t,
   canEditEnvironment,
   canDeleteEnvironment,
-}: DevEnvironmentColumnsProps): ColumnDef<DevEnvironmentDisplay>[] => [
+}: DevEnvironmentColumnsProps): ColumnDef<DevEnvironment>[] => [
   {
     accessorKey: "name",
     header: t("devEnvironments.table.name"),
@@ -70,19 +70,6 @@ export const createDevEnvironmentColumns = ({
       return (
         <Badge variant="secondary">
           {formatMemory(memory)}
-        </Badge>
-      );
-    },
-  },
-  {
-    id: "env_vars_count",
-    header: t("devEnvironments.table.env_vars"),
-    cell: ({ row }) => {
-      const envVarsMap = row.original.env_vars_map || {};
-      const count = Object.keys(envVarsMap).length;
-      return (
-        <Badge variant="outline">
-          {count}
         </Badge>
       );
     },
