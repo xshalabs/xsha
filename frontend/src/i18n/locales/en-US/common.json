@@ -77,6 +77,7 @@
     "desc": "Desc",
     "hide": "Hide"
   },
+  "add": "Add",
   "table": {
     "noResults": "No data available",
     "selected": "selected",

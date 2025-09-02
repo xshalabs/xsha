@@ -1,3 +1,5 @@
+import type { Admin, AdminAvatar } from "@/lib/api/types";
+
 export type DevEnvironmentType = string;
 
 export interface DevEnvironment {
@@ -14,6 +16,7 @@ export interface DevEnvironment {
   env_vars: string;
   admin_id?: number;
   created_by: string;
+  admins?: Admin[];
 }
 
 export interface DevEnvironmentDisplay
@@ -85,4 +88,22 @@ export interface ResourceUsageStats {
 export interface EnvironmentStats {
   by_type: Record<DevEnvironmentType, number>;
   resource_usage: ResourceUsageStats;
+}
+
+// Admin management types
+export interface AddAdminToEnvironmentRequest {
+  admin_id: number;
+}
+
+export interface EnvironmentAdminsResponse {
+  admins: Admin[];
+}
+
+export interface AdminInfo {
+  id: number;
+  username: string;
+  name: string;
+  email: string;
+  avatar_id?: number;
+  avatar?: AdminAvatar;
 }

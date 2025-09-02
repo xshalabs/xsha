@@ -1,12 +1,15 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Edit } from "lucide-react";
+import { Edit, UserCog } from "lucide-react";
 import { QuickActions } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { AdminManagementSheet } from "@/components/environments/AdminManagementSheet";
 import type { DevEnvironmentDisplay } from "@/types/dev-environment";
 
 interface DevEnvironmentColumnsProps {
   onEdit: (environment: DevEnvironmentDisplay) => void;
   onDelete: (id: number) => void;
+  onAdminChanged: () => void;
   t: (key: string) => string;
   canEditEnvironment: (resourceAdminId?: number) => boolean;
   canDeleteEnvironment: (resourceAdminId?: number) => boolean;
@@ -15,6 +18,7 @@ interface DevEnvironmentColumnsProps {
 export const createDevEnvironmentColumns = ({
   onEdit,
   onDelete,
+  onAdminChanged,
   t,
   canEditEnvironment,
   canDeleteEnvironment,
@@ -84,6 +88,19 @@ export const createDevEnvironmentColumns = ({
     },
   },
   {
+    id: "admin_count",
+    header: t("devEnvironments.table.admins"),
+    cell: ({ row }) => {
+      const admins = row.original.admins || [];
+      const count = admins.length;
+      return (
+        <Badge variant="secondary">
+          {count} {count === 1 ? t("devEnvironments.table.admin") : t("devEnvironments.table.admins")}
+        </Badge>
+      );
+    },
+  },
+  {
     accessorKey: "created_at",
     header: t("devEnvironments.table.created"),
     cell: ({ row }) => {
@@ -104,15 +121,41 @@ export const createDevEnvironmentColumns = ({
     cell: ({ row }) => {
       const environment = row.original;
 
+      const actions = [];
+
       // Only show edit action if user has permission
-      const actions = canEditEnvironment(environment.admin_id) ? [
-        {
+      if (canEditEnvironment(environment.admin_id)) {
+        actions.push({
           id: "edit",
           label: t("devEnvironments.edit"),
           icon: Edit,
           onClick: () => onEdit(environment),
-        },
-      ] : [];
+        });
+      }
+
+      // Always show manage admins action (permissions will be handled inside the dialog)
+      actions.push({
+        id: "manage-admins",
+        label: t("devEnvironments.admin.manage"),
+        icon: UserCog,
+        render: () => (
+          <AdminManagementSheet
+            environment={environment}
+            onAdminChanged={onAdminChanged}
+            trigger={
+              <DropdownMenuItem 
+                className="cursor-pointer"
+                onSelect={(event) => {
+                  event.preventDefault();
+                }}
+              >
+                <UserCog className="mr-2 h-4 w-4" />
+                <span>{t("devEnvironments.admin.manage")}</span>
+              </DropdownMenuItem>
+            }
+          />
+        ),
+      });
 
       // Only show delete action if user has permission
       const deleteAction = canDeleteEnvironment(environment.admin_id) ? {

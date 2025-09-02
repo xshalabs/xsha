@@ -81,13 +81,21 @@ type AdminOperationLogService interface {
 type DevEnvironmentService interface {
 	CreateEnvironment(name, description, systemPrompt, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, adminID uint, createdBy string) (*database.DevEnvironment, error)
 	GetEnvironment(id uint) (*database.DevEnvironment, error)
+	GetEnvironmentWithAdmins(id uint) (*database.DevEnvironment, error)
 	ListEnvironments(name *string, dockerImage *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
+	ListEnvironmentsByAdminAccess(adminID uint, name *string, dockerImage *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
 	UpdateEnvironment(id uint, updates map[string]interface{}) error
 	DeleteEnvironment(id uint) error
 	ValidateEnvVars(envVars map[string]string) error
 	UpdateEnvironmentVars(id uint, envVars map[string]string) error
 	ValidateResourceLimits(cpuLimit float64, memoryLimit int64) error
 	GetAvailableEnvironmentImages() ([]map[string]interface{}, error)
+	
+	// Admin management methods
+	AddAdminToEnvironment(envID, adminID uint) error
+	RemoveAdminFromEnvironment(envID, adminID uint) error
+	GetEnvironmentAdmins(envID uint) ([]database.Admin, error)
+	CanAdminAccessEnvironment(envID, adminID uint) (bool, error)
 }
 
 type TaskService interface {

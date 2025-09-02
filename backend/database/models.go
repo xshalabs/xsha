@@ -179,8 +179,13 @@ type DevEnvironment struct {
 	EnvVars    string `gorm:"type:text" json:"env_vars"`
 	SessionDir string `gorm:"type:text" json:"session_dir"`
 
+	// Legacy single admin relationship (for backward compatibility)
 	AdminID   *uint  `gorm:"index" json:"admin_id"`
 	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+	
+	// Many-to-many relationship for environment admins
+	Admins    []Admin `gorm:"many2many:dev_environment_admins;" json:"admins,omitempty"`
+	
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 

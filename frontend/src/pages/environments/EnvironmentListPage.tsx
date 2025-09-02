@@ -302,16 +302,22 @@ const EnvironmentListPage: React.FC = () => {
     setEditingEnvironment(null);
   };
 
+  const handleAdminChanged = useCallback(() => {
+    // Refresh the environments list when admin assignments change
+    loadEnvironmentsData(currentPage, columnFilters, false);
+  }, [currentPage, columnFilters, loadEnvironmentsData]);
+
   const columns = useMemo(
     () =>
       createDevEnvironmentColumns({
         onEdit: handleEditEnvironment,
         onDelete: handleDeleteEnvironment,
+        onAdminChanged: handleAdminChanged,
         t,
         canEditEnvironment,
         canDeleteEnvironment,
       }),
-    [handleEditEnvironment, handleDeleteEnvironment, t, canEditEnvironment, canDeleteEnvironment]
+    [handleEditEnvironment, handleDeleteEnvironment, handleAdminChanged, t, canEditEnvironment, canDeleteEnvironment]
   );
 
   // Initialize from URL on component mount (only once)
