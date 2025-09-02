@@ -31,13 +31,10 @@ export const createDevEnvironmentColumns = ({
   const isEnvironmentAdmin = (environment: DevEnvironment): boolean => {
     if (!currentAdminId) return false;
     
-    // Check if user is in the admins array
-    const isInAdminsList = environment.admins?.some(admin => admin.id === currentAdminId) || false;
-    
     // Check if user is the legacy admin_id owner
     const isLegacyAdmin = environment.admin_id === currentAdminId;
     
-    return isInAdminsList || isLegacyAdmin;
+    return isLegacyAdmin;
   };
 
   return [
