@@ -33,16 +33,12 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 
 	api := r.Group("/api/v1")
 	api.Use(middleware.AuthMiddlewareWithService(authService, adminService, cfg))
-
 	api.Use(middleware.OperationLogMiddleware(operationLogHandlers.OperationLogService))
-
 	{
 		api.GET("/user/current", authHandlers.CurrentUserHandler)
 		api.PUT("/user/change-password", authHandlers.ChangeOwnPasswordHandler)
 		api.PUT("/user/update-avatar", authHandlers.UpdateOwnAvatarHandler)
 		api.POST("/auth/logout", authHandlers.LogoutHandler)
-
-		// Admin list endpoint (requires authentication but not admin role)
 		api.GET("/admins", adminHandlers.PublicListAdminsHandler)
 
 		admin := api.Group("/admin")
@@ -62,8 +58,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			admin.DELETE("/users/:id", adminHandlers.DeleteAdminHandler)
 			admin.PUT("/users/:id/password", adminHandlers.ChangePasswordHandler)
 			admin.PUT("/avatar/:uuid", adminAvatarHandlers.UpdateAdminAvatarHandler)
-
-			// Admin avatar management
 			admin.POST("/avatar/upload", adminAvatarHandlers.UploadAvatarHandler)
 
 			// Role management
