@@ -104,7 +104,7 @@ func (r *devEnvironmentRepository) ListByAdminAccess(adminID uint, name *string,
 	// Count distinct environments using a subquery to avoid GROUP BY issues
 	countQuery := r.db.Model(&database.DevEnvironment{}).
 		Where("id IN (?)", baseQuery.Select("DISTINCT dev_environments.id"))
-	
+
 	if err := countQuery.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
@@ -149,12 +149,12 @@ func (r *devEnvironmentRepository) AddAdmin(envID, adminID uint) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// If relationship doesn't exist, create it
 	if count == 0 {
 		return r.db.Exec("INSERT INTO dev_environment_admins (dev_environment_id, admin_id) VALUES (?, ?)", envID, adminID).Error
 	}
-	
+
 	return nil
 }
 
@@ -174,19 +174,17 @@ func (r *devEnvironmentRepository) GetAdmins(envID uint) ([]database.Admin, erro
 		Joins("JOIN dev_environment_admins dea ON admins.id = dea.admin_id").
 		Where("dea.dev_environment_id = ?", envID).
 		Find(&admins).Error
-	
+
 	return admins, err
 }
 
 // IsAdminForEnvironment checks if an admin has access to a specific environment
 func (r *devEnvironmentRepository) IsAdminForEnvironment(envID, adminID uint) (bool, error) {
 	var count int64
-	
-	// Check both many-to-many relationship and legacy admin_id
+
 	err := r.db.Table("dev_environments").
-		Joins("LEFT JOIN dev_environment_admins dea ON dev_environments.id = dea.dev_environment_id").
-		Where("dev_environments.id = ? AND (dea.admin_id = ? OR dev_environments.admin_id = ?)", envID, adminID, adminID).
+		Where("dev_environments.id = ? AND dev_environments.admin_id = ?", envID, adminID, adminID).
 		Count(&count).Error
-	
+
 	return count > 0, err
 }

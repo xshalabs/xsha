@@ -13,9 +13,9 @@ import (
 )
 
 type adminService struct {
-	adminRepo      repository.AdminRepository
-	authService    AuthService
-	devEnvService  DevEnvironmentService
+	adminRepo     repository.AdminRepository
+	authService   AuthService
+	devEnvService DevEnvironmentService
 }
 
 func NewAdminService(adminRepo repository.AdminRepository) AdminService {
