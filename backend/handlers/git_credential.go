@@ -193,9 +193,11 @@ func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 
 	totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
 
+	credentialResponses := database.ToCredentialListItemResponses(credentials)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":     i18n.T(lang, "common.success"),
-		"credentials": credentials,
+		"credentials": credentialResponses,
 		"total":       total,
 		"page":        page,
 		"page_size":   pageSize,
@@ -332,8 +334,10 @@ func (h *GitCredentialHandlers) GetCredentialAdmins(c *gin.Context) {
 		return
 	}
 
+	// Transform to list response with minimal avatar data
+	adminResponses := database.ToAdminListResponses(admins)
 	c.JSON(http.StatusOK, gin.H{
-		"admins": admins,
+		"admins": adminResponses,
 	})
 }
 

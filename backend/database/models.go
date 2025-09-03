@@ -448,3 +448,18 @@ type EnvironmentListItemResponse struct {
 	Admins       []MinimalAdminResponse `json:"admins,omitempty"`
 	CreatedBy    string                 `json:"created_by"`
 }
+
+// CredentialListItemResponse represents credential information with minimal admin data for list responses
+type CredentialListItemResponse struct {
+	ID          uint                   `json:"id"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Type        GitCredentialType      `json:"type"`
+	Username    string                 `json:"username"`
+	AdminID     *uint                  `json:"admin_id"`
+	Admin       *MinimalAdminResponse  `json:"admin,omitempty"`
+	Admins      []MinimalAdminResponse `json:"admins,omitempty"`
+	CreatedBy   string                 `json:"created_by"`
+}
