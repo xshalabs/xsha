@@ -157,7 +157,7 @@ export function AdminManagementSheet({
 
   return (
     <FormSheet open={open} onOpenChange={setOpen}>
-      {trigger && React.cloneElement(trigger as React.ReactElement, {
+      {trigger && React.cloneElement(trigger as React.ReactElement<any>, {
         onClick: (e: React.MouseEvent) => {
           e.preventDefault();
           e.stopPropagation();
