@@ -78,6 +78,8 @@
     "confirm_add_title": "Confirm Add Administrator",
     "confirm_add_description": "Are you sure you want to add {{adminName}} as an administrator for {{environmentName}}?",
     "confirm_remove_title": "Confirm Remove Administrator", 
-    "confirm_remove_description": "Are you sure you want to remove {{adminName}} as an administrator from {{environmentName}}?"
+    "confirm_remove_description": "Are you sure you want to remove {{adminName}} as an administrator from {{environmentName}}?",
+    "creator": "Creator",
+    "cannot_remove_creator": "Cannot remove environment creator"
   }
 }

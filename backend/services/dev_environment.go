@@ -311,6 +311,11 @@ func (s *devEnvironmentService) RemoveAdminFromEnvironment(envID, adminID uint) 
 	if err != nil {
 		return appErrors.ErrDevEnvironmentNotFound
 	}
+	
+	// Check if trying to remove the primary admin
+	if env.AdminID != nil && *env.AdminID == adminID {
+		return appErrors.ErrCannotRemovePrimaryAdmin
+	}
 
 	// Check if admin is associated with the environment
 	isAdmin, err := s.repo.IsAdminForEnvironment(envID, adminID)

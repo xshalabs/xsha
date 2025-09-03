@@ -95,6 +95,8 @@
     "confirm_add_title": "确认添加管理员",
     "confirm_add_description": "您确定要将{{adminName}}添加为{{environmentName}}的管理员吗？",
     "confirm_remove_title": "确认移除管理员",
-    "confirm_remove_description": "您确定要将{{adminName}}从{{environmentName}}环境的管理员中移除吗？"
+    "confirm_remove_description": "您确定要将{{adminName}}从{{environmentName}}环境的管理员中移除吗？",
+    "creator": "创建者",
+    "cannot_remove_creator": "无法移除环境创建者"
   }
 }

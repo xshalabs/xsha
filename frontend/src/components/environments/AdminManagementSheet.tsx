@@ -32,7 +32,7 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { Plus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { apiService } from "@/lib/api/index";
-import { logError } from "@/lib/errors";
+import { logError, handleApiError } from "@/lib/errors";
 import type { DevEnvironment } from "@/types/dev-environment";
 import type { Admin } from "@/lib/api/types";
 
@@ -74,7 +74,7 @@ export function AdminManagementSheet({
       setEnvironmentAdmins(response.admins);
     } catch (error) {
       logError(error, "Failed to load environment admins");
-      toast.error(t("devEnvironments.admin.load_failed"));
+      toast.error(handleApiError(error));
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +86,7 @@ export function AdminManagementSheet({
       setAvailableAdmins(response.admins);
     } catch (error) {
       logError(error, "Failed to load available admins");
-      toast.error(t("admin.load_failed"));
+      toast.error(handleApiError(error));
     }
   };
 
@@ -111,7 +111,7 @@ export function AdminManagementSheet({
       await loadEnvironmentAdmins();
     } catch (error) {
       logError(error, "Failed to add admin to environment");
-      toast.error(t("devEnvironments.admin.add_failed"));
+      toast.error(handleApiError(error));
     } finally {
       setIsAddingAdmin(false);
     }
@@ -135,7 +135,7 @@ export function AdminManagementSheet({
       await loadEnvironmentAdmins();
     } catch (error) {
       logError(error, "Failed to remove admin from environment");
-      toast.error(t("devEnvironments.admin.remove_failed"));
+      toast.error(handleApiError(error));
     } finally {
       setIsRemovingAdmin(false);
     }
@@ -243,42 +243,56 @@ export function AdminManagementSheet({
             ) : (
               <ScrollArea className="flex-1">
                 <div className="space-y-2 pr-2">
-                  {environmentAdmins.map((admin) => (
-                    <div
-                      key={admin.id}
-                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <UserAvatar 
-                          user={admin.username}
-                          name={admin.name}
-                          avatar={admin.avatar}
-                          size="sm"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="font-medium truncate">{admin.name}</div>
-                          <div className="text-sm text-muted-foreground truncate">
-                            @{admin.username}
-                            {admin.email && ` • ${admin.email}`}
+                  {environmentAdmins.map((admin) => {
+                    const isPrimaryAdmin = environment.admin_id === admin.id;
+                    return (
+                      <div
+                        key={admin.id}
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <UserAvatar 
+                            user={admin.username}
+                            name={admin.name}
+                            avatar={admin.avatar}
+                            size="sm"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <div className="font-medium truncate">{admin.name}</div>
+                              {isPrimaryAdmin && (
+                                <Badge variant="secondary" className="text-xs shrink-0">
+                                  {t("devEnvironments.admin.creator")}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="text-sm text-muted-foreground truncate">
+                              @{admin.username}
+                              {admin.email && ` • ${admin.email}`}
+                            </div>
                           </div>
                         </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveAdmin(admin)}
+                          disabled={
+                            isPrimaryAdmin || 
+                            (isRemovingAdmin && adminToRemove?.id === admin.id)
+                          }
+                          className="shrink-0 text-destructive dark:text-white hover:text-destructive dark:hover:text-white hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title={isPrimaryAdmin ? t("devEnvironments.admin.cannot_remove_creator") : undefined}
+                        >
+                          {isRemovingAdmin && adminToRemove?.id === admin.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveAdmin(admin)}
-                        disabled={isRemovingAdmin && adminToRemove?.id === admin.id}
-                        className="shrink-0 text-destructive dark:text-white hover:text-destructive dark:hover:text-white hover:bg-destructive/10"
-                      >
-                        {isRemovingAdmin && adminToRemove?.id === admin.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </ScrollArea>
             )}
