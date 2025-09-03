@@ -183,7 +183,7 @@ func (r *devEnvironmentRepository) IsAdminForEnvironment(envID, adminID uint) (b
 	var count int64
 
 	err := r.db.Table("dev_environments").
-		Where("dev_environments.id = ? AND dev_environments.admin_id = ?", envID, adminID, adminID).
+		Where("dev_environments.id = ? AND dev_environments.admin_id = ?", envID, adminID).
 		Count(&count).Error
 
 	return count > 0, err
