@@ -68,7 +68,7 @@ export function AdminManagementSheet({
 
   const loadAvailableAdmins = async () => {
     try {
-      const response = await apiService.admin.getAdmins({ page: 1, page_size: 100 });
+      const response = await apiService.admin.getAdmins();
       setAvailableAdmins(response.admins);
     } catch (error) {
       logError(error, "Failed to load available admins");
@@ -124,7 +124,13 @@ export function AdminManagementSheet({
 
   return (
     <FormSheet open={open} onOpenChange={setOpen}>
-      {trigger}
+      {trigger && React.cloneElement(trigger as React.ReactElement, {
+        onClick: (e: React.MouseEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen(true);
+        }
+      })}
       <FormSheetContent className="w-full sm:w-[600px] sm:max-w-[600px]">
         <FormSheetHeader className="border-b">
           <FormSheetTitle className="text-foreground font-semibold">

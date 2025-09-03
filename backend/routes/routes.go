@@ -42,6 +42,9 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		api.PUT("/user/update-avatar", authHandlers.UpdateOwnAvatarHandler)
 		api.POST("/auth/logout", authHandlers.LogoutHandler)
 
+		// Admin list endpoint (requires authentication but not admin role)
+		api.GET("/admins", adminHandlers.PublicListAdminsHandler)
+
 		admin := api.Group("/admin")
 		admin.Use(middleware.RequireSuperAdmin())
 		{
