@@ -88,7 +88,7 @@ func main() {
 	// Initialize workspace manager
 	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir, gitCloneTimeout)
 	devEnvService := services.NewDevEnvironmentService(devEnvRepo, taskRepo, systemConfigService, cfg)
-	
+
 	// Set up circular dependencies - adminService needs devEnvService and gitCredService for permission checks
 	adminService.SetDevEnvironmentService(devEnvService)
 	adminService.SetGitCredentialService(gitCredService)

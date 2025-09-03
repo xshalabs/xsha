@@ -50,7 +50,7 @@ type GitCredentialService interface {
 	ListActiveCredentials(credType *database.GitCredentialType) ([]database.GitCredential, error)
 	DecryptCredentialSecret(credential *database.GitCredential, secretType string) (string, error)
 	ValidateCredentialData(credType string, data map[string]string) error
-	
+
 	// Admin management methods
 	AddAdminToCredential(credentialID, adminID uint) error
 	RemoveAdminFromCredential(credentialID, adminID uint) error
@@ -100,7 +100,7 @@ type DevEnvironmentService interface {
 	UpdateEnvironmentVars(id uint, envVars map[string]string) error
 	ValidateResourceLimits(cpuLimit float64, memoryLimit int64) error
 	GetAvailableEnvironmentImages() ([]map[string]interface{}, error)
-	
+
 	// Admin management methods
 	AddAdminToEnvironment(envID, adminID uint) error
 	RemoveAdminFromEnvironment(envID, adminID uint) error

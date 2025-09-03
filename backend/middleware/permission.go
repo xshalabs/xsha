@@ -138,7 +138,7 @@ func checkResourceOwnership(c *gin.Context, admin *database.Admin, resourceType 
 	// This would typically involve checking the database
 	// For now, we'll implement a basic check
 	// In a real implementation, you'd inject the appropriate service
-	
+
 	switch resourceType {
 	case "project":
 		// Check if admin owns this project

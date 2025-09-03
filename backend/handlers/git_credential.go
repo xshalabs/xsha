@@ -149,7 +149,6 @@ func (h *GitCredentialHandlers) GetCredential(c *gin.Context) {
 func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	// Parse query parameters
 	page := 1
 	pageSize := 20
 	var name *string
@@ -173,7 +172,18 @@ func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 		credType = &credTypeValue
 	}
 
-	credentials, total, err := h.gitCredService.ListCredentials(name, credType, page, pageSize)
+	admin := middleware.GetAdminFromContext(c)
+
+	var credentials []database.GitCredential
+	var total int64
+	var err error
+	if admin.Role == database.AdminRoleSuperAdmin {
+		// Super admin can see all credentials
+		credentials, total, err = h.gitCredService.ListCredentials(name, credType, page, pageSize)
+	} else {
+		// Regular admin and developer can only see credentials they have access to
+		credentials, total, err = h.gitCredService.ListCredentialsByAdminAccess(admin.ID, name, credType, page, pageSize)
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "common.internal_error"),

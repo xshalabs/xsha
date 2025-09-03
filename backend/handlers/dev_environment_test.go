@@ -46,8 +46,8 @@ func TestCreateEnvironment(t *testing.T) {
 					CPULimit:    1.0,
 					MemoryLimit: 512,
 				}
-				mockService.On("CreateEnvironment", 
-					"Test Environment", "Test description", "", "development", "ubuntu:20.04", 
+				mockService.On("CreateEnvironment",
+					"Test Environment", "Test description", "", "development", "ubuntu:20.04",
 					1.0, int64(512), map[string]string{"KEY": "value"}, uint(1), "testadmin").
 					Return(env, nil)
 			},
@@ -73,9 +73,9 @@ func TestCreateEnvironment(t *testing.T) {
 			},
 			setupAuth: true,
 			setupMock: func(mockService *mocks.MockDevEnvironmentService) {
-				mockService.On("CreateEnvironment", mock.AnythingOfType("string"), mock.AnythingOfType("string"), 
+				mockService.On("CreateEnvironment", mock.AnythingOfType("string"), mock.AnythingOfType("string"),
 					mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"),
-					mock.AnythingOfType("float64"), mock.AnythingOfType("int64"), mock.AnythingOfType("map[string]string"), 
+					mock.AnythingOfType("float64"), mock.AnythingOfType("int64"), mock.AnythingOfType("map[string]string"),
 					mock.AnythingOfType("uint"), mock.AnythingOfType("string")).
 					Return(nil, errors.New("service error"))
 			},
@@ -114,7 +114,7 @@ func TestCreateEnvironment(t *testing.T) {
 
 			// Verify response
 			assert.Equal(t, tt.expectedStatus, w.Code)
-			
+
 			response := testdata.AssertJSONResponse(w, tt.expectedStatus)
 			for _, key := range tt.expectedKeys {
 				assert.Contains(t, response, key)
@@ -186,7 +186,7 @@ func TestGetEnvironment(t *testing.T) {
 
 			// Verify response
 			assert.Equal(t, tt.expectedStatus, w.Code)
-			
+
 			response := testdata.AssertJSONResponse(w, tt.expectedStatus)
 			for _, key := range tt.expectedKeys {
 				assert.Contains(t, response, key)
@@ -253,7 +253,7 @@ func TestListEnvironments(t *testing.T) {
 			expectedKeys:   []string{"environments", "total"},
 		},
 		{
-			name: "service_error",
+			name:        "service_error",
 			queryParams: map[string]string{},
 			admin: &database.Admin{
 				ID:   1,
@@ -288,7 +288,7 @@ func TestListEnvironments(t *testing.T) {
 				}
 				queryString += key + "=" + value
 			}
-			
+
 			// Create a mock request with query parameters
 			url := "/environments"
 			if queryString != "" {
@@ -306,7 +306,7 @@ func TestListEnvironments(t *testing.T) {
 
 			// Verify response
 			assert.Equal(t, tt.expectedStatus, w.Code)
-			
+
 			response := testdata.AssertJSONResponse(w, tt.expectedStatus)
 			for _, key := range tt.expectedKeys {
 				assert.Contains(t, response, key)
@@ -409,7 +409,7 @@ func TestUpdateEnvironment(t *testing.T) {
 
 			// Verify response
 			assert.Equal(t, tt.expectedStatus, w.Code)
-			
+
 			response := testdata.AssertJSONResponse(w, tt.expectedStatus)
 			for _, key := range tt.expectedKeys {
 				assert.Contains(t, response, key)
@@ -476,7 +476,7 @@ func TestDeleteEnvironment(t *testing.T) {
 
 			// Verify response
 			assert.Equal(t, tt.expectedStatus, w.Code)
-			
+
 			response := testdata.AssertJSONResponse(w, tt.expectedStatus)
 			for _, key := range tt.expectedKeys {
 				assert.Contains(t, response, key)
@@ -536,7 +536,7 @@ func TestGetAvailableImages(t *testing.T) {
 
 			// Verify response
 			assert.Equal(t, tt.expectedStatus, w.Code)
-			
+
 			response := testdata.AssertJSONResponse(w, tt.expectedStatus)
 			for _, key := range tt.expectedKeys {
 				assert.Contains(t, response, key)
@@ -607,7 +607,7 @@ func TestGetEnvironmentAdmins(t *testing.T) {
 
 			// Verify response
 			assert.Equal(t, tt.expectedStatus, w.Code)
-			
+
 			response := testdata.AssertJSONResponse(w, tt.expectedStatus)
 			for _, key := range tt.expectedKeys {
 				assert.Contains(t, response, key)
@@ -696,7 +696,7 @@ func TestAddAdminToEnvironment(t *testing.T) {
 
 			// Verify response
 			assert.Equal(t, tt.expectedStatus, w.Code)
-			
+
 			response := testdata.AssertJSONResponse(w, tt.expectedStatus)
 			for _, key := range tt.expectedKeys {
 				assert.Contains(t, response, key)
@@ -779,7 +779,7 @@ func TestRemoveAdminFromEnvironment(t *testing.T) {
 
 			// Verify response
 			assert.Equal(t, tt.expectedStatus, w.Code)
-			
+
 			response := testdata.AssertJSONResponse(w, tt.expectedStatus)
 			for _, key := range tt.expectedKeys {
 				assert.Contains(t, response, key)
