@@ -69,13 +69,11 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 
 		gitCreds := api.Group("/credentials")
 		{
-			gitCreds.POST("", middleware.RequireAdminOrSuperAdmin(), gitCredHandlers.CreateCredential)
+			gitCreds.POST("", middleware.RequirePermission("credential", "create"), gitCredHandlers.CreateCredential)
 			gitCreds.GET("", gitCredHandlers.ListCredentials)
 			gitCreds.GET("/:id", gitCredHandlers.GetCredential)
 			gitCreds.PUT("/:id", middleware.RequirePermission("credential", "update"), gitCredHandlers.UpdateCredential)
 			gitCreds.DELETE("/:id", middleware.RequirePermission("credential", "delete"), gitCredHandlers.DeleteCredential)
-
-			// Admin management endpoints
 			gitCreds.GET("/:id/admins", middleware.RequirePermission("credential", "read"), gitCredHandlers.GetCredentialAdmins)
 			gitCreds.POST("/:id/admins", middleware.RequirePermission("credential", "update"), gitCredHandlers.AddCredentialAdmin)
 			gitCreds.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("credential", "update"), gitCredHandlers.RemoveCredentialAdmin)
