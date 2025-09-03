@@ -65,13 +65,7 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 		return
 	}
 
-	adminID, exists := c.Get("admin_id")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "auth.unauthorized"),
-		})
-		return
-	}
+	adminID, _ := c.Get("admin_id")
 
 	var req CreateEnvironmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
