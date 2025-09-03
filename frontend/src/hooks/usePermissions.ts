@@ -127,7 +127,7 @@ export const usePermissions = () => {
 
   // Git Credential permissions
   const canCreateCredential = useMemo(() => 
-    hasRole(['admin', 'super_admin']), 
+    hasRole(['developer', 'admin', 'super_admin']), 
     [hasRole]
   );
 
@@ -135,8 +135,8 @@ export const usePermissions = () => {
     // Super admin can edit any credential
     if (isSuperAdmin) return true;
     
-    // Admin can edit their own credentials
-    if (role === 'admin') {
+    // Admin and Developer can edit their own credentials
+    if (role === 'admin' || role === 'developer') {
       return resourceAdminId === adminId;
     }
     
@@ -147,8 +147,20 @@ export const usePermissions = () => {
     // Super admin can delete any credential
     if (isSuperAdmin) return true;
     
-    // Admin can delete their own credentials
-    if (role === 'admin') {
+    // Admin and Developer can delete their own credentials
+    if (role === 'admin' || role === 'developer') {
+      return resourceAdminId === adminId;
+    }
+    
+    return false;
+  };
+
+  const canManageCredentialAdmins = (resourceAdminId?: number) => {
+    // Super admin can manage any credential's admins
+    if (isSuperAdmin) return true;
+    
+    // Admin and Developer can manage admins of their own credentials
+    if (role === 'admin' || role === 'developer') {
       return resourceAdminId === adminId;
     }
     
@@ -282,6 +294,7 @@ export const usePermissions = () => {
     canCreateCredential,
     canEditCredential,
     canDeleteCredential,
+    canManageCredentialAdmins,
     // Environment permissions
     canCreateEnvironment,
     canEditEnvironment,

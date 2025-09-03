@@ -157,7 +157,7 @@ export function CredentialAdminManagementSheet({
 
   return (
     <FormSheet open={open} onOpenChange={setOpen}>
-      {trigger && React.cloneElement(trigger as React.ReactElement<unknown>, {
+      {trigger && React.cloneElement(trigger as React.ReactElement<{onClick?: (e: React.MouseEvent) => void}>, {
         onClick: (e: React.MouseEvent) => {
           e.preventDefault();
           e.stopPropagation();

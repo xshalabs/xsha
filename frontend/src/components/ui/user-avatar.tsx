@@ -4,10 +4,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import type { AdminAvatar } from "@/lib/api/types";
 
+// Support both full AdminAvatar and minimal avatar types
+type AvatarType = AdminAvatar | { uuid: string; original_name: string };
+
 interface UserAvatarProps {
   user?: string;
   name?: string;
-  avatar?: AdminAvatar;
+  avatar?: AvatarType;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   onClick?: () => void;

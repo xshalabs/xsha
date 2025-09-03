@@ -1,9 +1,10 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Edit, Key, Shield, User } from "lucide-react";
+import { Edit, Key, Shield, User, Users } from "lucide-react";
 import { QuickActions } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
 import type { GitCredential } from "@/types/credentials";
 import { GitCredentialType } from "@/types/credentials";
+import { CredentialAdminManagementSheet } from "@/components/credentials/CredentialAdminManagementSheet";
 
 interface GitCredentialColumnsProps {
   onEdit: (credential: GitCredential) => void;
@@ -11,6 +12,7 @@ interface GitCredentialColumnsProps {
   t: (key: string) => string;
   canEditCredential: (resourceAdminId?: number) => boolean;
   canDeleteCredential: (resourceAdminId?: number) => boolean;
+  canManageCredentialAdmins: (resourceAdminId?: number) => boolean;
 }
 
 export const createGitCredentialColumns = ({
@@ -19,6 +21,7 @@ export const createGitCredentialColumns = ({
   t,
   canEditCredential,
   canDeleteCredential,
+  canManageCredentialAdmins,
 }: GitCredentialColumnsProps): ColumnDef<GitCredential>[] => [
   {
     accessorKey: "name",
@@ -109,15 +112,38 @@ export const createGitCredentialColumns = ({
     cell: ({ row }) => {
       const credential = row.original;
 
-      // Only show edit action if user has permission
-      const actions = canEditCredential(credential.admin_id) ? [
-        {
+      // Build actions based on permissions
+      const actions = [];
+
+      // Add edit action if user has permission
+      if (canEditCredential(credential.admin_id)) {
+        actions.push({
           id: "edit",
           label: t("gitCredentials.edit"),
           icon: Edit,
           onClick: () => onEdit(credential),
-        },
-      ] : [];
+        });
+      }
+
+      // Add manage admins action if user has permission
+      if (canManageCredentialAdmins(credential.admin_id)) {
+        actions.push({
+          id: "manageAdmins",
+          label: t("gitCredentials.manageAdmins"),
+          icon: Users,
+          render: () => (
+            <CredentialAdminManagementSheet
+              credential={credential}
+              trigger={
+                <button className="flex items-center gap-2 w-full px-2 py-1.5 text-left text-sm hover:bg-accent rounded-sm">
+                  <Users className="h-4 w-4" />
+                  {t("gitCredentials.manageAdmins")}
+                </button>
+              }
+            />
+          ),
+        });
+      }
 
       // Only show delete action if user has permission
       const deleteAction = canDeleteCredential(credential.admin_id) ? {

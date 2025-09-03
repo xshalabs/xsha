@@ -51,7 +51,7 @@ const CredentialListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { setItems } = useBreadcrumb();
   const { setActions } = usePageActions();
-  const { canCreateCredential, canEditCredential, canDeleteCredential } = usePermissions();
+  const { canCreateCredential, canEditCredential, canDeleteCredential, canManageCredentialAdmins } = usePermissions();
 
   const [credentials, setCredentials] = useState<GitCredential[]>([]);
   const [loading, setLoading] = useState(true);
@@ -328,8 +328,9 @@ const CredentialListPage: React.FC = () => {
         t: (key: string) => t(key),
         canEditCredential,
         canDeleteCredential,
+        canManageCredentialAdmins,
       }),
-    [handleEdit, handleDelete, t, canEditCredential, canDeleteCredential]
+    [handleEdit, handleDelete, t, canEditCredential, canDeleteCredential, canManageCredentialAdmins]
   );
 
 
