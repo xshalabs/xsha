@@ -33,6 +33,7 @@ type AdminService interface {
 	InitializeDefaultAdmin() error
 	SetAuthService(authService AuthService)
 	SetDevEnvironmentService(devEnvService DevEnvironmentService)
+	SetGitCredentialService(gitCredService GitCredentialService)
 	HasPermission(admin *database.Admin, resource, action string, resourceOwnerID uint) bool
 	CanAccessResource(admin *database.Admin, resource string, action string, resourceOwnerID uint) bool
 	GetAvailableRoles() []database.AdminRole
@@ -41,12 +42,20 @@ type AdminService interface {
 type GitCredentialService interface {
 	CreateCredential(name, description, credType, username string, secretData map[string]string, createdBy string, adminID *uint) (*database.GitCredential, error)
 	GetCredential(id uint) (*database.GitCredential, error)
+	GetCredentialWithAdmins(id uint) (*database.GitCredential, error)
 	ListCredentials(name *string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
+	ListCredentialsByAdminAccess(adminID uint, name *string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
 	UpdateCredential(id uint, updates map[string]interface{}, secretData map[string]string) error
 	DeleteCredential(id uint) error
 	ListActiveCredentials(credType *database.GitCredentialType) ([]database.GitCredential, error)
 	DecryptCredentialSecret(credential *database.GitCredential, secretType string) (string, error)
 	ValidateCredentialData(credType string, data map[string]string) error
+	
+	// Admin management methods
+	AddAdminToCredential(credentialID, adminID uint) error
+	RemoveAdminFromCredential(credentialID, adminID uint) error
+	GetCredentialAdmins(credentialID uint) ([]database.Admin, error)
+	CanAdminAccessCredential(credentialID, adminID uint) (bool, error)
 }
 
 type ProjectService interface {

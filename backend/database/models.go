@@ -88,8 +88,13 @@ type GitCredential struct {
 	PrivateKey   string `gorm:"type:text" json:"-"`
 	PublicKey    string `gorm:"type:text" json:"public_key"`
 
+	// Legacy single admin relationship (for backward compatibility)
 	AdminID   *uint  `gorm:"index" json:"admin_id"`
 	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+	
+	// Many-to-many relationship for credential admins
+	Admins    []Admin `gorm:"many2many:git_credential_admins;" json:"admins,omitempty"`
+	
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 

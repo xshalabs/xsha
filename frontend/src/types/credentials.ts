@@ -14,10 +14,25 @@ export interface GitCredential {
   type: GitCredentialType;
   username: string;
   admin_id?: number;
+  admin?: MinimalAdminResponse;
+  admins?: MinimalAdminResponse[];
   created_by: string;
   public_key?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface MinimalAdminResponse {
+  id: number;
+  username: string;
+  name: string;
+  email: string;
+  avatar?: AdminAvatarMinimal;
+}
+
+export interface AdminAvatarMinimal {
+  uuid: string;
+  original_name: string;
 }
 
 export interface CreateGitCredentialRequest {
