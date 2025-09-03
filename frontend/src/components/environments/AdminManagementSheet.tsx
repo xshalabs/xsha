@@ -82,7 +82,7 @@ export function AdminManagementSheet({
 
   const loadAvailableAdmins = async () => {
     try {
-      const response = await apiService.admin.getAdmins();
+      const response = await apiService.admin.getV1Admins();
       setAvailableAdmins(response.admins);
     } catch (error) {
       logError(error, "Failed to load available admins");

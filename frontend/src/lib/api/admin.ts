@@ -100,4 +100,33 @@ export const adminApi = {
   getRoles: async (): Promise<RoleListResponse> => {
     return request<RoleListResponse>('/admin/roles');
   },
+
+  // Get all admins from v1 API endpoint
+  getV1Admins: async (params?: {
+    search?: string;
+    username?: string;
+    is_active?: boolean;
+    page?: number;
+    page_size?: number;
+  }): Promise<AdminListResponse> => {
+    const searchParams = new URLSearchParams();
+    
+    if (params?.search) {
+      searchParams.append('search', params.search);
+    } else if (params?.username) {
+      searchParams.append('username', params.username);
+    }
+    if (params?.is_active !== undefined) {
+      searchParams.append('is_active', params.is_active.toString());
+    }
+    if (params?.page) {
+      searchParams.append('page', params.page.toString());
+    }
+    if (params?.page_size) {
+      searchParams.append('page_size', params.page_size.toString());
+    }
+
+    const url = `/admins${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    return request<AdminListResponse>(url);
+  },
 };
