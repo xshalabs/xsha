@@ -80,30 +80,38 @@ func (r *gitCredentialRepository) GetByIDWithAdmins(id uint) (*database.GitCrede
 }
 
 func (r *gitCredentialRepository) ListByAdminAccess(adminID uint, name *string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error) {
-	var credentials []database.GitCredential
-	var total int64
-
-	// Base query for filtering
-	baseQuery := r.db.Model(&database.GitCredential{}).
+	// First, get credential IDs that the admin has access to
+	var credentialIDs []uint
+	
+	subQuery := r.db.Table("git_credentials").
+		Select("DISTINCT git_credentials.id").
 		Joins("LEFT JOIN git_credential_admins gca ON git_credentials.id = gca.git_credential_id").
 		Where("gca.admin_id = ? OR git_credentials.admin_id = ?", adminID, adminID)
-
+	
 	if name != nil && *name != "" {
-		baseQuery = baseQuery.Where("git_credentials.name LIKE ?", "%"+*name+"%")
+		subQuery = subQuery.Where("git_credentials.name LIKE ?", "%"+*name+"%")
 	}
 
 	if credType != nil {
-		baseQuery = baseQuery.Where("git_credentials.type = ?", *credType)
+		subQuery = subQuery.Where("git_credentials.type = ?", *credType)
 	}
-
-	// Count total distinct credentials
-	if err := baseQuery.Distinct("git_credentials.id").Count(&total).Error; err != nil {
+	
+	if err := subQuery.Pluck("id", &credentialIDs).Error; err != nil {
 		return nil, 0, err
 	}
 
-	// Get paginated results
+	if len(credentialIDs) == 0 {
+		return []database.GitCredential{}, 0, nil
+	}
+
+	// Count total
+	total := int64(len(credentialIDs))
+
+	// Get paginated results using the credential IDs
+	var credentials []database.GitCredential
 	offset := (page - 1) * pageSize
-	if err := baseQuery.
+	
+	query := r.db.Where("id IN ?", credentialIDs).
 		Preload("Admin", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id, username, name, email, avatar_id").
 				Preload("Avatar", func(db *gorm.DB) *gorm.DB {
@@ -116,8 +124,9 @@ func (r *gitCredentialRepository) ListByAdminAccess(adminID uint, name *string, 
 					return db.Select("id, uuid, original_name")
 				})
 		}).
-		Distinct("git_credentials.id").
-		Order("git_credentials.created_at DESC").Offset(offset).Limit(pageSize).Find(&credentials).Error; err != nil {
+		Order("created_at DESC").Offset(offset).Limit(pageSize)
+	
+	if err := query.Find(&credentials).Error; err != nil {
 		return nil, 0, err
 	}
 
