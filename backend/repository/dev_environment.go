@@ -141,20 +141,27 @@ func (r *devEnvironmentRepository) Delete(id uint) error {
 
 // AddAdmin adds an admin to the environment's admin list
 func (r *devEnvironmentRepository) AddAdmin(envID, adminID uint) error {
-	// Use GORM's Association mode to add the admin to the many-to-many relationship
-	env := &database.DevEnvironment{ID: envID}
-	admin := &database.Admin{ID: adminID}
+	// Check if the relationship already exists
+	var count int64
+	err := r.db.Table("dev_environment_admins").
+		Where("dev_environment_id = ? AND admin_id = ?", envID, adminID).
+		Count(&count).Error
+	if err != nil {
+		return err
+	}
 	
-	return r.db.Model(env).Association("Admins").Append(admin)
+	// If relationship doesn't exist, create it
+	if count == 0 {
+		return r.db.Exec("INSERT INTO dev_environment_admins (dev_environment_id, admin_id) VALUES (?, ?)", envID, adminID).Error
+	}
+	
+	return nil
 }
 
 // RemoveAdmin removes an admin from the environment's admin list
 func (r *devEnvironmentRepository) RemoveAdmin(envID, adminID uint) error {
-	// Use GORM's Association mode to remove the admin from the many-to-many relationship
-	env := &database.DevEnvironment{ID: envID}
-	admin := &database.Admin{ID: adminID}
-	
-	return r.db.Model(env).Association("Admins").Delete(admin)
+	// Use direct SQL to delete from the many-to-many relationship table
+	return r.db.Exec("DELETE FROM dev_environment_admins WHERE dev_environment_id = ? AND admin_id = ?", envID, adminID).Error
 }
 
 // GetAdmins retrieves all admins for a specific environment
