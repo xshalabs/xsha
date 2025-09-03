@@ -40,6 +40,7 @@ interface QuickActionsProps extends React.ComponentProps<typeof Button> {
     icon: LucideIcon;
     variant?: "default" | "destructive";
     onClick?: () => Promise<void> | void;
+    render?: () => React.ReactNode;
   }[];
   deleteAction?: {
     title: string;
@@ -121,19 +122,29 @@ export function QuickActions({
             <DropdownMenuGroup>
               {actions
                 .filter((item) => item.id !== "delete")
-                .map((item) => (
-                  <DropdownMenuItem
-                    key={item.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      item.onClick?.();
-                    }}
-                    className={item.variant === "destructive" ? "text-destructive" : ""}
-                  >
-                    <item.icon className="mr-2 h-4 w-4" />
-                    <span>{item.label}</span>
-                  </DropdownMenuItem>
-                ))}
+                .map((item) => {
+                  if (item.render) {
+                    return (
+                      <div key={item.id}>
+                        {item.render()}
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <DropdownMenuItem
+                      key={item.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        item.onClick?.();
+                      }}
+                      className={item.variant === "destructive" ? "text-destructive" : ""}
+                    >
+                      <item.icon className="mr-2 h-4 w-4" />
+                      <span>{item.label}</span>
+                    </DropdownMenuItem>
+                  );
+                })}
             </DropdownMenuGroup>
           )}
           {deleteAction && (

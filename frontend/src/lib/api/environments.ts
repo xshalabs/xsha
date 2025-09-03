@@ -7,6 +7,8 @@ import type {
   DevEnvironmentListResponse,
   DevEnvironmentListParams,
   DevEnvironmentImageConfig,
+  AddAdminToEnvironmentRequest,
+  EnvironmentAdminsResponse,
 } from "@/types/dev-environment";
 
 export const devEnvironmentsApi = {
@@ -63,6 +65,33 @@ export const devEnvironmentsApi = {
   }> => {
     return request<{ images: DevEnvironmentImageConfig[] }>(
       "/environments/available-images"
+    );
+  },
+
+  // Admin management methods
+  getAdmins: async (id: number): Promise<EnvironmentAdminsResponse> => {
+    return request<EnvironmentAdminsResponse>(`/environments/${id}/admins`);
+  },
+
+  addAdmin: async (
+    id: number,
+    data: AddAdminToEnvironmentRequest
+  ): Promise<{ message: string }> => {
+    return request<{ message: string }>(`/environments/${id}/admins`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  removeAdmin: async (
+    id: number,
+    adminId: number
+  ): Promise<{ message: string }> => {
+    return request<{ message: string }>(
+      `/environments/${id}/admins/${adminId}`,
+      {
+        method: "DELETE",
+      }
     );
   },
 

@@ -8,16 +8,18 @@
   "invalid_id": "Invalid environment ID",
   "create_success": "Environment created successfully",
   "update_success": "Environment updated successfully",
+  "fetch_details_failed": "Failed to fetch environment details",
   "table": {
     "name": "Name",
     "description": "Description",
     "cpu": "CPU",
     "memory": "Memory",
-    "env_vars": "Env Vars",
+    "admins": "Admins",
     "created": "Created",
     "no_description": "No description",
     "core": "core",
-    "cores": "cores"
+    "cores": "cores",
+    "admin": "admin"
   },
   "filters": {
     "name": "Environment Name",
@@ -58,5 +60,26 @@
     "empty_message": "No environment variables configured. Add one below.",
     "key_required": "Variable name cannot be empty",
     "key_exists": "Variable name already exists"
+  },
+  "admin": {
+    "manage": "Manage Admins",
+    "manage_title": "Manage Environment Administrators",
+    "manage_description": "Manage administrators for {{name}} environment",
+    "current_admins": "Current Administrators",
+    "no_admins": "No administrators assigned",
+    "add_admin": "Add Administrator",
+    "select_placeholder": "Select an administrator to add",
+    "select_admin": "Please select an administrator",
+    "load_failed": "Failed to load administrators",
+    "added_success": "Administrator added successfully",
+    "add_failed": "Failed to add administrator",
+    "removed_success": "{{name}} removed successfully",
+    "remove_failed": "Failed to remove administrator",
+    "confirm_add_title": "Confirm Add Administrator",
+    "confirm_add_description": "Are you sure you want to add {{adminName}} as an administrator for {{environmentName}}?",
+    "confirm_remove_title": "Confirm Remove Administrator", 
+    "confirm_remove_description": "Are you sure you want to remove {{adminName}} as an administrator from {{environmentName}}?",
+    "creator": "Creator",
+    "cannot_remove_creator": "Cannot remove environment creator"
   }
 }

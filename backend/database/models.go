@@ -179,8 +179,13 @@ type DevEnvironment struct {
 	EnvVars    string `gorm:"type:text" json:"env_vars"`
 	SessionDir string `gorm:"type:text" json:"session_dir"`
 
+	// Legacy single admin relationship (for backward compatibility)
 	AdminID   *uint  `gorm:"index" json:"admin_id"`
 	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+	
+	// Many-to-many relationship for environment admins
+	Admins    []Admin `gorm:"many2many:dev_environment_admins;" json:"admins,omitempty"`
+	
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 
@@ -386,4 +391,55 @@ type AdminAvatar struct {
 	AdminID      *uint          `gorm:"index" json:"admin_id"`
 	Admin        *Admin         `gorm:"foreignKey:AdminID" json:"admin"`
 	CreatedBy    string         `gorm:"not null;index" json:"created_by"`
+}
+
+// AdminAvatarMinimal represents minimal avatar information for API responses
+type AdminAvatarMinimal struct {
+	UUID         string `json:"uuid"`
+	OriginalName string `json:"original_name"`
+}
+
+// AdminListResponse represents admin information for list API responses
+type AdminListResponse struct {
+	ID           uint                `json:"id"`
+	CreatedAt    time.Time           `json:"created_at"`
+	UpdatedAt    time.Time           `json:"updated_at"`
+	Username     string              `json:"username"`
+	Name         string              `json:"name"`
+	Email        string              `json:"email"`
+	Role         AdminRole           `json:"role"`
+	IsActive     bool                `json:"is_active"`
+	LastLoginAt  *time.Time          `json:"last_login_at"`
+	LastLoginIP  string              `json:"last_login_ip"`
+	AvatarID     *uint               `json:"avatar_id"`
+	Avatar       *AdminAvatarMinimal `json:"avatar,omitempty"`
+	CreatedBy    string              `json:"created_by"`
+}
+
+// MinimalAdminResponse represents minimal admin information for environment list responses
+type MinimalAdminResponse struct {
+	ID       uint                `json:"id"`
+	Username string              `json:"username"`
+	Name     string              `json:"name"`
+	Email    string              `json:"email"`
+	Avatar   *AdminAvatarMinimal `json:"avatar,omitempty"`
+}
+
+// EnvironmentListItemResponse represents environment information with minimal admin data for list responses
+type EnvironmentListItemResponse struct {
+	ID           uint                   `json:"id"`
+	CreatedAt    time.Time              `json:"created_at"`
+	UpdatedAt    time.Time              `json:"updated_at"`
+	Name         string                 `json:"name"`
+	Description  string                 `json:"description"`
+	SystemPrompt string                 `json:"system_prompt"`
+	Type         string                 `json:"type"`
+	DockerImage  string                 `json:"docker_image"`
+	CPULimit     float64                `json:"cpu_limit"`
+	MemoryLimit  int64                  `json:"memory_limit"`
+	SessionDir   string                 `json:"session_dir"`
+	AdminID      *uint                  `json:"admin_id"`
+	Admin        *MinimalAdminResponse  `json:"admin,omitempty"`
+	Admins       []MinimalAdminResponse `json:"admins,omitempty"`
+	CreatedBy    string                 `json:"created_by"`
 }

@@ -33,14 +33,13 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 
 	api := r.Group("/api/v1")
 	api.Use(middleware.AuthMiddlewareWithService(authService, adminService, cfg))
-
 	api.Use(middleware.OperationLogMiddleware(operationLogHandlers.OperationLogService))
-
 	{
 		api.GET("/user/current", authHandlers.CurrentUserHandler)
 		api.PUT("/user/change-password", authHandlers.ChangeOwnPasswordHandler)
 		api.PUT("/user/update-avatar", authHandlers.UpdateOwnAvatarHandler)
 		api.POST("/auth/logout", authHandlers.LogoutHandler)
+		api.GET("/admins", adminHandlers.PublicListAdminsHandler)
 
 		admin := api.Group("/admin")
 		admin.Use(middleware.RequireSuperAdmin())
@@ -59,10 +58,8 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			admin.DELETE("/users/:id", adminHandlers.DeleteAdminHandler)
 			admin.PUT("/users/:id/password", adminHandlers.ChangePasswordHandler)
 			admin.PUT("/avatar/:uuid", adminAvatarHandlers.UpdateAdminAvatarHandler)
-
-			// Admin avatar management
 			admin.POST("/avatar/upload", adminAvatarHandlers.UploadAvatarHandler)
-			
+
 			// Role management
 			admin.GET("/roles", adminHandlers.GetAvailableRolesHandler)
 		}
@@ -138,12 +135,15 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 
 		devEnvs := api.Group("/environments")
 		{
-			devEnvs.POST("", middleware.RequireAdminOrSuperAdmin(), devEnvHandlers.CreateEnvironment)
+			devEnvs.POST("", middleware.RequirePermission("environment", "create"), devEnvHandlers.CreateEnvironment)
 			devEnvs.GET("", devEnvHandlers.ListEnvironments)
 			devEnvs.GET("/available-images", devEnvHandlers.GetAvailableImages)
 			devEnvs.GET("/:id", devEnvHandlers.GetEnvironment)
 			devEnvs.PUT("/:id", middleware.RequirePermission("environment", "update"), devEnvHandlers.UpdateEnvironment)
 			devEnvs.DELETE("/:id", middleware.RequirePermission("environment", "delete"), devEnvHandlers.DeleteEnvironment)
+			devEnvs.GET("/:id/admins", middleware.RequirePermission("environment", "read"), devEnvHandlers.GetEnvironmentAdmins)
+			devEnvs.POST("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.AddAdminToEnvironment)
+			devEnvs.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("environment", "update"), devEnvHandlers.RemoveAdminFromEnvironment)
 		}
 
 		systemConfigs := api.Group("/settings")

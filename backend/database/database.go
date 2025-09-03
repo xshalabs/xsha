@@ -67,17 +67,18 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 		panic(fmt.Sprintf("Unsupported database type: %s", cfg.DatabaseType))
 	}
 
-	// Run custom migrations first (including TokenBlacklist structure changes)
+	// AutoMigrate all tables first to create the base structure
+	if err := db.AutoMigrate(&Migration{}, &TokenBlacklist{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}, &AdminAvatar{}); err != nil {
+		return nil, err
+	}
+	utils.Info("Database table auto-migration completed")
+
+	// Run custom migrations after AutoMigrate (for data migrations and custom changes)
 	if err := runMigrations(db, cfg); err != nil {
 		utils.Error("Failed to run custom migrations", "error", err)
 		return nil, err
 	}
-
-	// AutoMigrate all tables (TokenBlacklist is handled by custom migration)
-	if err := db.AutoMigrate(&Migration{}, &TokenBlacklist{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}, &AdminAvatar{}); err != nil {
-		return nil, err
-	}
-	utils.Info("Database table migration completed")
+	utils.Info("Custom migrations completed")
 
 	return &DatabaseManager{db: db}, nil
 }

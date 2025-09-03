@@ -60,9 +60,11 @@ func (r *adminRepository) List(search *string, isActive *bool, page, pageSize in
 		return nil, 0, err
 	}
 
-	// Apply pagination and fetch records
+	// Apply pagination and fetch records with minimal avatar fields
 	offset := (page - 1) * pageSize
-	err := query.Preload("Avatar").Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&admins).Error
+	err := query.Preload("Avatar", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id, uuid, original_name")
+	}).Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&admins).Error
 	return admins, total, err
 }
 

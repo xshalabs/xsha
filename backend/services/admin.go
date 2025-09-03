@@ -13,8 +13,9 @@ import (
 )
 
 type adminService struct {
-	adminRepo   repository.AdminRepository
-	authService AuthService
+	adminRepo     repository.AdminRepository
+	authService   AuthService
+	devEnvService DevEnvironmentService
 }
 
 func NewAdminService(adminRepo repository.AdminRepository) AdminService {
@@ -25,6 +26,10 @@ func NewAdminService(adminRepo repository.AdminRepository) AdminService {
 
 func (s *adminService) SetAuthService(authService AuthService) {
 	s.authService = authService
+}
+
+func (s *adminService) SetDevEnvironmentService(devEnvService DevEnvironmentService) {
+	s.devEnvService = devEnvService
 }
 
 func (s *adminService) CreateAdmin(username, password, name, email, createdBy string) (*database.Admin, error) {
@@ -435,14 +440,28 @@ func (s *adminService) checkCredentialPermission(admin *database.Admin, action s
 func (s *adminService) checkEnvironmentPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
 	switch action {
 	case "create":
-		return admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin
+		// Developer, Admin and SuperAdmin can all create environments
+		return admin.Role == database.AdminRoleDeveloper || admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin
 	case "read":
 		return true // All roles can read environments
 	case "update", "delete":
 		if admin.Role == database.AdminRoleSuperAdmin {
 			return true
 		}
-		return admin.Role == database.AdminRoleAdmin && admin.ID == resourceOwnerID
+		// Admin and Developer can update/delete environments they have admin access to
+		if admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleDeveloper {
+			// resourceOwnerID is the environment ID, check if admin has access to this environment
+			if s.devEnvService != nil {
+				canAccess, err := s.devEnvService.CanAdminAccessEnvironment(resourceOwnerID, admin.ID)
+				if err != nil {
+					return false
+				}
+				return canAccess
+			}
+			// Fallback: if devEnvService is not set, deny access to prevent security issues
+			return false
+		}
+		return false
 	default:
 		return false
 	}

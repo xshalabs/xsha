@@ -157,29 +157,44 @@ export const usePermissions = () => {
 
   // Development Environment permissions
   const canCreateEnvironment = useMemo(() => 
-    hasRole(['admin', 'super_admin']), 
+    hasRole(['developer', 'admin', 'super_admin']), 
     [hasRole]
   );
 
-  const canEditEnvironment = (resourceAdminId?: number) => {
+  const canEditEnvironment = (resourceAdminId?: number, isEnvironmentAdmin?: boolean) => {
     // Super admin can edit any environment
     if (isSuperAdmin) return true;
     
-    // Admin can edit their own environments
-    if (role === 'admin') {
-      return resourceAdminId === adminId;
+    // Admin and Developer can edit environments they have admin access to
+    if (role === 'admin' || role === 'developer') {
+      // If isEnvironmentAdmin is explicitly provided, use it; otherwise fall back to resourceAdminId check
+      return isEnvironmentAdmin === true || resourceAdminId === adminId;
     }
     
     return false;
   };
 
-  const canDeleteEnvironment = (resourceAdminId?: number) => {
+  const canDeleteEnvironment = (resourceAdminId?: number, isEnvironmentAdmin?: boolean) => {
     // Super admin can delete any environment
     if (isSuperAdmin) return true;
     
-    // Admin can delete their own environments
-    if (role === 'admin') {
-      return resourceAdminId === adminId;
+    // Admin and Developer can delete environments they have admin access to
+    if (role === 'admin' || role === 'developer') {
+      // If isEnvironmentAdmin is explicitly provided, use it; otherwise fall back to resourceAdminId check
+      return isEnvironmentAdmin === true || resourceAdminId === adminId;
+    }
+    
+    return false;
+  };
+
+  const canManageEnvironmentAdmins = (resourceAdminId?: number, isEnvironmentAdmin?: boolean) => {
+    // Super admin can manage any environment's admins
+    if (isSuperAdmin) return true;
+    
+    // Admin and Developer can manage admins of environments they have admin access to
+    if (role === 'admin' || role === 'developer') {
+      // If isEnvironmentAdmin is explicitly provided, use it; otherwise fall back to resourceAdminId check
+      return isEnvironmentAdmin === true || resourceAdminId === adminId;
     }
     
     return false;
@@ -247,6 +262,7 @@ export const usePermissions = () => {
   return {
     role,
     user,
+    adminId,
     hasRole,
     hasPermission,
     isSuperAdmin,
@@ -270,6 +286,7 @@ export const usePermissions = () => {
     canCreateEnvironment,
     canEditEnvironment,
     canDeleteEnvironment,
+    canManageEnvironmentAdmins,
     // Task permissions
     canCreateTask,
     canEditTask,

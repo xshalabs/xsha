@@ -176,11 +176,14 @@ func (h *AdminHandlers) ListAdminsHandler(c *gin.Context) {
 		return
 	}
 
+	// Transform to list response with minimal avatar data
+	adminResponses := database.ToAdminListResponses(admins)
+
 	totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":     i18n.T(lang, "admin.list_success"),
-		"admins":      admins,
+		"admins":      adminResponses,
 		"total":       total,
 		"page":        page,
 		"page_size":   pageSize,
@@ -372,6 +375,34 @@ func (h *AdminHandlers) GetAvailableRolesHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"roles": roleNames,
+	})
+}
+
+// PublicListAdminsHandler lists admin users with authentication
+// @Summary List admin users (authenticated)
+// @Description Get list of all administrator users (requires authentication)
+// @Tags Admin Management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} object{admins=[]object} "Admin list"
+// @Failure 500 {object} object{error=string} "Failed to get admin list"
+// @Router /api/v1/admins [get]
+func (h *AdminHandlers) PublicListAdminsHandler(c *gin.Context) {
+	// Get all active admins
+	admins, _, err := h.adminService.ListAdmins(nil, nil, 1, 100)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get admin list",
+		})
+		return
+	}
+
+	// Transform to minimal response format
+	adminResponses := database.ToMinimalAdminResponses(admins)
+
+	c.JSON(http.StatusOK, gin.H{
+		"admins": adminResponses,
 	})
 }
 

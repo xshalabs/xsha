@@ -75,6 +75,10 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, systemPromp
 		return nil, err
 	}
 
+	if err := s.repo.AddAdmin(env.ID, adminID); err != nil {
+		utils.Error("Failed to add creator as admin to environment", "envID", env.ID, "adminID", adminID, "error", err)
+	}
+
 	return env, nil
 }
 
@@ -264,4 +268,55 @@ func (s *devEnvironmentService) getAbsoluteSessionPath(relativePath string) stri
 	}
 
 	return filepath.Join(s.config.DevSessionsDir, relativePath)
+}
+
+// GetEnvironmentWithAdmins retrieves an environment with its admin relationships preloaded
+func (s *devEnvironmentService) GetEnvironmentWithAdmins(id uint) (*database.DevEnvironment, error) {
+	return s.repo.GetByIDWithAdmins(id)
+}
+
+// ListEnvironmentsByAdminAccess lists environments that an admin has access to
+func (s *devEnvironmentService) ListEnvironmentsByAdminAccess(adminID uint, name *string, dockerImage *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
+	return s.repo.ListByAdminAccess(adminID, name, dockerImage, page, pageSize)
+}
+
+// AddAdminToEnvironment adds an admin to the environment's admin list
+func (s *devEnvironmentService) AddAdminToEnvironment(envID, adminID uint) error {
+	_, err := s.repo.GetByID(envID)
+	if err != nil {
+		return appErrors.ErrDevEnvironmentNotFound
+	}
+	return s.repo.AddAdmin(envID, adminID)
+}
+
+// RemoveAdminFromEnvironment removes an admin from the environment's admin list
+func (s *devEnvironmentService) RemoveAdminFromEnvironment(envID, adminID uint) error {
+	// Check if environment exists
+	env, err := s.repo.GetByID(envID)
+	if err != nil {
+		return appErrors.ErrDevEnvironmentNotFound
+	}
+
+	// Check if trying to remove the primary admin
+	if env.AdminID != nil && *env.AdminID == adminID {
+		return appErrors.ErrCannotRemovePrimaryAdmin
+	}
+
+	// Remove the admin from the environment
+	return s.repo.RemoveAdmin(envID, adminID)
+}
+
+// GetEnvironmentAdmins retrieves all admins for a specific environment
+func (s *devEnvironmentService) GetEnvironmentAdmins(envID uint) ([]database.Admin, error) {
+	_, err := s.repo.GetByID(envID)
+	if err != nil {
+		return nil, appErrors.ErrDevEnvironmentNotFound
+	}
+
+	return s.repo.GetAdmins(envID)
+}
+
+// CanAdminAccessEnvironment checks if an admin has access to a specific environment
+func (s *devEnvironmentService) CanAdminAccessEnvironment(envID, adminID uint) (bool, error) {
+	return s.repo.IsAdminForEnvironment(envID, adminID)
 }
