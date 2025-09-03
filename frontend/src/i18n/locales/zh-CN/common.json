@@ -78,6 +78,9 @@
     "hide": "隐藏"
   },
   "add": "添加",
+  "adding": "添加中...",
+  "remove": "移除",
+  "removing": "移除中...",
   "table": {
     "noResults": "暂无数据",
     "selected": "已选择",

@@ -91,6 +91,10 @@
     "added_success": "管理员添加成功",
     "add_failed": "添加管理员失败",
     "removed_success": "{{name}}移除成功",
-    "remove_failed": "移除管理员失败"
+    "remove_failed": "移除管理员失败",
+    "confirm_add_title": "确认添加管理员",
+    "confirm_add_description": "您确定要将{{adminName}}添加为{{environmentName}}的管理员吗？",
+    "confirm_remove_title": "确认移除管理员",
+    "confirm_remove_description": "您确定要将{{adminName}}从{{environmentName}}环境的管理员中移除吗？"
   }
 }

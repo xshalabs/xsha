@@ -78,6 +78,9 @@
     "hide": "Hide"
   },
   "add": "Add",
+  "adding": "Adding...",
+  "remove": "Remove",
+  "removing": "Removing...",
   "table": {
     "noResults": "No data available",
     "selected": "selected",

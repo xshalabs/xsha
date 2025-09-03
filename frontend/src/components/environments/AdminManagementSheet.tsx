@@ -10,6 +10,16 @@ import {
   FormSheetFooter,
 } from "@/components/forms/form-sheet";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -44,6 +54,10 @@ export function AdminManagementSheet({
   const [selectedAdminId, setSelectedAdminId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isAddingAdmin, setIsAddingAdmin] = useState(false);
+  const [isRemovingAdmin, setIsRemovingAdmin] = useState(false);
+  const [showAddConfirmDialog, setShowAddConfirmDialog] = useState(false);
+  const [showRemoveConfirmDialog, setShowRemoveConfirmDialog] = useState(false);
+  const [adminToRemove, setAdminToRemove] = useState<Admin | null>(null);
 
   // Load environment admins and available admins when sheet opens
   useEffect(() => {
@@ -76,12 +90,15 @@ export function AdminManagementSheet({
     }
   };
 
-  const handleAddAdmin = async () => {
+  const handleAddAdmin = () => {
     if (!selectedAdminId) {
       toast.error(t("devEnvironments.admin.select_admin"));
       return;
     }
+    setShowAddConfirmDialog(true);
+  };
 
+  const confirmAddAdmin = async () => {
     try {
       setIsAddingAdmin(true);
       await apiService.devEnvironments.addAdmin(environment.id, {
@@ -90,6 +107,7 @@ export function AdminManagementSheet({
 
       toast.success(t("devEnvironments.admin.added_success"));
       setSelectedAdminId("");
+      setShowAddConfirmDialog(false);
       await loadEnvironmentAdmins();
     } catch (error) {
       logError(error, "Failed to add admin to environment");
@@ -99,21 +117,36 @@ export function AdminManagementSheet({
     }
   };
 
-  const handleRemoveAdmin = async (adminId: number, adminName: string) => {
-    try {
-      await apiService.devEnvironments.removeAdmin(environment.id, adminId);
+  const handleRemoveAdmin = (admin: Admin) => {
+    setAdminToRemove(admin);
+    setShowRemoveConfirmDialog(true);
+  };
 
-      toast.success(t("devEnvironments.admin.removed_success", { name: adminName }));
+  const confirmRemoveAdmin = async () => {
+    if (!adminToRemove) return;
+
+    try {
+      setIsRemovingAdmin(true);
+      await apiService.devEnvironments.removeAdmin(environment.id, adminToRemove.id);
+
+      toast.success(t("devEnvironments.admin.removed_success", { name: adminToRemove.name }));
+      setShowRemoveConfirmDialog(false);
+      setAdminToRemove(null);
       await loadEnvironmentAdmins();
     } catch (error) {
       logError(error, "Failed to remove admin from environment");
       toast.error(t("devEnvironments.admin.remove_failed"));
+    } finally {
+      setIsRemovingAdmin(false);
     }
   };
 
   const handleClose = () => {
     setOpen(false);
     setSelectedAdminId("");
+    setShowAddConfirmDialog(false);
+    setShowRemoveConfirmDialog(false);
+    setAdminToRemove(null);
     onAdminChanged?.();
   };
 
@@ -234,10 +267,15 @@ export function AdminManagementSheet({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleRemoveAdmin(admin.id, admin.name)}
-                        className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleRemoveAdmin(admin)}
+                        disabled={isRemovingAdmin && adminToRemove?.id === admin.id}
+                        className="shrink-0 text-destructive dark:text-white hover:text-destructive dark:hover:text-white hover:bg-destructive/10"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {isRemovingAdmin && adminToRemove?.id === admin.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   ))}
@@ -253,6 +291,78 @@ export function AdminManagementSheet({
           </Button>
         </FormSheetFooter>
       </FormSheetContent>
+
+      {/* Add Admin Confirmation Dialog */}
+      <AlertDialog open={showAddConfirmDialog} onOpenChange={setShowAddConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("devEnvironments.admin.confirm_add_title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedAdminId && (
+                t("devEnvironments.admin.confirm_add_description", {
+                  adminName: availableAdmins.find(admin => admin.id.toString() === selectedAdminId)?.name,
+                  environmentName: environment.name
+                })
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isAddingAdmin}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmAddAdmin}
+              disabled={isAddingAdmin}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isAddingAdmin ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {t("common.adding")}
+                </>
+              ) : (
+                t("common.add")
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Remove Admin Confirmation Dialog */}
+      <AlertDialog open={showRemoveConfirmDialog} onOpenChange={setShowRemoveConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("devEnvironments.admin.confirm_remove_title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {adminToRemove && (
+                t("devEnvironments.admin.confirm_remove_description", {
+                  adminName: adminToRemove.name,
+                  environmentName: environment.name
+                })
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isRemovingAdmin}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmRemoveAdmin}
+              disabled={isRemovingAdmin}
+              className="bg-destructive text-destructive-foreground dark:text-white hover:bg-destructive/90"
+            >
+              {isRemovingAdmin ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {t("common.removing")}
+                </>
+              ) : (
+                t("common.remove")
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </FormSheet>
   );
 }
