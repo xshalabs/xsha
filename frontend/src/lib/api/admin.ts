@@ -37,7 +37,7 @@ export const adminApi = {
       searchParams.append('page_size', params.page_size.toString());
     }
 
-    const url = `/admins${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    const url = `/admin/users${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
     return request<AdminListResponse>(url);
   },
 
