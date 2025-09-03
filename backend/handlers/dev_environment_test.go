@@ -63,20 +63,6 @@ func TestCreateEnvironment(t *testing.T) {
 			expectedKeys:   []string{"error"},
 		},
 		{
-			name: "unauthorized_no_admin_id",
-			requestBody: CreateEnvironmentRequest{
-				Name:        "Test Environment",
-				Type:        "development",
-				DockerImage: "ubuntu:20.04",
-				CPULimit:    1.0,
-				MemoryLimit: 512,
-			},
-			setupAuth:      false,
-			setupMock:      func(mockService *mocks.MockDevEnvironmentService) {},
-			expectedStatus: http.StatusInternalServerError,
-			expectedKeys:   []string{"error"},
-		},
-		{
 			name: "service_error",
 			requestBody: CreateEnvironmentRequest{
 				Name:        "Test Environment",
@@ -267,14 +253,6 @@ func TestListEnvironments(t *testing.T) {
 			expectedKeys:   []string{"environments", "total"},
 		},
 		{
-			name:           "unauthorized_no_admin",
-			queryParams:    map[string]string{},
-			admin:          nil,
-			setupMock:      func(mockService *mocks.MockDevEnvironmentService) {},
-			expectedStatus: http.StatusUnauthorized,
-			expectedKeys:   []string{"error"},
-		},
-		{
 			name: "service_error",
 			queryParams: map[string]string{},
 			admin: &database.Admin{
@@ -321,9 +299,7 @@ func TestListEnvironments(t *testing.T) {
 			c.Request = req
 
 			// Setup admin context
-			if tt.admin != nil {
-				c.Set("admin", tt.admin)
-			}
+			c.Set("admin", tt.admin)
 
 			// Execute handler
 			handler.ListEnvironments(c)

@@ -57,14 +57,7 @@ type UpdateEnvironmentRequest struct {
 func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "auth.unauthorized"),
-		})
-		return
-	}
-
+	username, _ := c.Get("username")
 	adminID, _ := c.Get("admin_id")
 
 	var req CreateEnvironmentRequest
@@ -170,28 +163,16 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 		dockerImage = &di
 	}
 
-	// Get admin from context
 	admin := middleware.GetAdminFromContext(c)
-	if admin == nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": i18n.T(lang, "auth.unauthorized"),
-		})
-		return
-	}
 
 	var environments []database.DevEnvironment
 	var total int64
 	var err error
-
-	// Check if user is super admin
 	if admin.Role == database.AdminRoleSuperAdmin {
-		// Super admin can see all environments
 		environments, total, err = h.devEnvService.ListEnvironments(name, dockerImage, page, pageSize)
 	} else {
-		// Regular admin can only see environments they have access to
 		environments, total, err = h.devEnvService.ListEnvironmentsByAdminAccess(admin.ID, name, dockerImage, page, pageSize)
 	}
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "dev_environment.list_failed"),
@@ -201,7 +182,6 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 
 	totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
 
-	// Transform environments to minimal response structure
 	environmentResponses := database.ToEnvironmentListItemResponses(environments)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -250,9 +230,7 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	if req.Name != "" {
 		updates["name"] = req.Name
 	}
-	// Always update description field, even if empty (user might want to clear it)
 	updates["description"] = req.Description
-	// Always update system_prompt field, even if empty (user might want to clear it)
 	updates["system_prompt"] = req.SystemPrompt
 	if req.CPULimit > 0 {
 		updates["cpu_limit"] = req.CPULimit

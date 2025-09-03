@@ -75,9 +75,7 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, systemPromp
 		return nil, err
 	}
 
-	// Add the creator as an admin to the environment
 	if err := s.repo.AddAdmin(env.ID, adminID); err != nil {
-		// Log the error but don't fail the creation since the environment is already created
 		utils.Error("Failed to add creator as admin to environment", "envID", env.ID, "adminID", adminID, "error", err)
 	}
 
@@ -284,23 +282,10 @@ func (s *devEnvironmentService) ListEnvironmentsByAdminAccess(adminID uint, name
 
 // AddAdminToEnvironment adds an admin to the environment's admin list
 func (s *devEnvironmentService) AddAdminToEnvironment(envID, adminID uint) error {
-	// Check if environment exists
 	_, err := s.repo.GetByID(envID)
 	if err != nil {
 		return appErrors.ErrDevEnvironmentNotFound
 	}
-
-	// Check if admin is already associated with the environment
-	isAdmin, err := s.repo.IsAdminForEnvironment(envID, adminID)
-	if err != nil {
-		return fmt.Errorf("failed to check admin association: %v", err)
-	}
-
-	if isAdmin {
-		return appErrors.ErrAdminAlreadyAssigned
-	}
-
-	// Add the admin to the environment
 	return s.repo.AddAdmin(envID, adminID)
 }
 
@@ -323,7 +308,6 @@ func (s *devEnvironmentService) RemoveAdminFromEnvironment(envID, adminID uint) 
 
 // GetEnvironmentAdmins retrieves all admins for a specific environment
 func (s *devEnvironmentService) GetEnvironmentAdmins(envID uint) ([]database.Admin, error) {
-	// Check if environment exists
 	_, err := s.repo.GetByID(envID)
 	if err != nil {
 		return nil, appErrors.ErrDevEnvironmentNotFound
