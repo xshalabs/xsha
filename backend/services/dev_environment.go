@@ -311,47 +311,10 @@ func (s *devEnvironmentService) RemoveAdminFromEnvironment(envID, adminID uint) 
 	if err != nil {
 		return appErrors.ErrDevEnvironmentNotFound
 	}
-	
+
 	// Check if trying to remove the primary admin
 	if env.AdminID != nil && *env.AdminID == adminID {
 		return appErrors.ErrCannotRemovePrimaryAdmin
-	}
-
-	// Check if admin is associated with the environment
-	isAdmin, err := s.repo.IsAdminForEnvironment(envID, adminID)
-	if err != nil {
-		return fmt.Errorf("failed to check admin association: %v", err)
-	}
-
-	if !isAdmin {
-		return appErrors.ErrAdminNotAssigned
-	}
-
-	// Get current admins to ensure we don't remove the last admin
-	admins, err := s.repo.GetAdmins(envID)
-	if err != nil {
-		return fmt.Errorf("failed to get environment admins: %v", err)
-	}
-
-	// Count total admins (including legacy admin_id)
-	totalAdmins := len(admins)
-	if env.AdminID != nil {
-		// Check if the legacy admin is different from the many-to-many admins
-		legacyIsInList := false
-		for _, admin := range admins {
-			if admin.ID == *env.AdminID {
-				legacyIsInList = true
-				break
-			}
-		}
-		if !legacyIsInList {
-			totalAdmins++
-		}
-	}
-
-	// Prevent removing the last admin
-	if totalAdmins <= 1 {
-		return appErrors.ErrCannotRemoveLastAdmin
 	}
 
 	// Remove the admin from the environment
