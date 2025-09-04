@@ -34,7 +34,6 @@ export function ProjectFormSheet({
     credentials,
     handleInputChange,
     handleSubmit: onFormSubmit,
-    validateAccessAndFetchBranches,
   } = useProjectForm({ project, onSubmit });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,9 +41,6 @@ export function ProjectFormSheet({
     await onFormSubmit();
   };
 
-  const handleRetryValidation = () => {
-    validateAccessAndFetchBranches(formData.repo_url, formData.credential_id);
-  };
 
   return (
     <form id={formId} onSubmit={handleSubmit} className="my-4 space-y-6">
@@ -80,7 +76,6 @@ export function ProjectFormSheet({
           accessValidated={accessValidated}
           accessError={accessError}
           onChange={handleInputChange}
-          onRetryValidation={handleRetryValidation}
         />
       </div>
     </form>

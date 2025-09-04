@@ -107,9 +107,6 @@ func determineOperationInfo(method, path, id string) (operation, resource, resou
 		} else if strings.Contains(path, "/branches") {
 			operation = "read"
 			description = "get repository branches list"
-		} else if strings.Contains(path, "/validate-access") {
-			operation = "read"
-			description = "validate repository access"
 		} else {
 			description = "create " + getResourceDisplayName(resource)
 		}

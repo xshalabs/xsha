@@ -281,18 +281,6 @@ func (s *projectService) getGitProxyConfig() (*utils.GitProxyConfig, error) {
 	return s.systemConfigService.GetGitProxyConfig()
 }
 
-func (s *projectService) ValidateRepositoryAccess(repoURL string, credentialID *uint) error {
-	result, err := s.FetchRepositoryBranches(repoURL, credentialID)
-	if err != nil {
-		return err
-	}
-
-	if !result.CanAccess {
-		return fmt.Errorf(result.ErrorMessage)
-	}
-
-	return nil
-}
 
 func (s *projectService) validateProjectData(name, repoURL, protocol string) error {
 	if strings.TrimSpace(name) == "" {

@@ -68,7 +68,6 @@ type ProjectService interface {
 	ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint) error
 	GetCompatibleCredentials(protocol database.GitProtocolType) ([]database.GitCredential, error)
 	FetchRepositoryBranches(repoURL string, credentialID *uint) (*utils.GitAccessResult, error)
-	ValidateRepositoryAccess(repoURL string, credentialID *uint) error
 }
 
 type AdminOperationLogService interface {

@@ -457,48 +457,4 @@ func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 	})
 }
 
-// @Description Request parameters for validating Git repository access permissions
-type ValidateRepositoryAccessRequest struct {
-	RepoURL      string `json:"repo_url" binding:"required" example:"https://github.com/user/repo.git"`
-	CredentialID *uint  `json:"credential_id" example:"1"`
-}
 
-// @Summary Validate Git repository access permissions
-// @Description Validate whether the specified Git repository can be accessed using provided credentials
-// @Tags Project
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body ValidateRepositoryAccessRequest true "Repository information"
-// @Success 200 {object} object{message=string,can_access=bool} "Validation successful"
-// @Failure 400 {object} object{error=string} "Request parameter error or validation failed"
-// @Router /projects/validate-access [post]
-func (h *ProjectHandlers) ValidateRepositoryAccess(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	var req ValidateRepositoryAccessRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
-		})
-		return
-	}
-
-	err := h.projectService.ValidateRepositoryAccess(req.RepoURL, req.CredentialID)
-	if err != nil {
-		helper := i18n.NewHelper(lang)
-		response := gin.H{
-			"can_access": false,
-		}
-		if helper != nil {
-			response["error"] = helper.T("git.test_connection_failed")
-		}
-		c.JSON(http.StatusBadRequest, response)
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message":    i18n.T(lang, "project.access_validation_success"),
-		"can_access": true,
-	})
-}

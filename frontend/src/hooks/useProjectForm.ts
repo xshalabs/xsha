@@ -39,7 +39,7 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
   const [loading, setLoading] = useState(false);
   const [credentialsLoading, setCredentialsLoading] = useState(false);
   const [urlParsing, setUrlParsing] = useState(false);
-  const [credentialValidating, setCredentialValidating] = useState(false);
+  const [credentialValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [urlParseTimeout, setUrlParseTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -59,45 +59,6 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
     }
   }, []);
 
-  const validateAccessAndFetchBranches = useCallback(async (
-    repoUrl: string,
-    credentialId?: number
-  ) => {
-    if (!repoUrl.trim()) {
-      setAccessValidated(false);
-      setAccessError(null);
-      return;
-    }
-
-    try {
-      setCredentialValidating(true);
-      setAccessError(null);
-      setAccessValidated(false);
-
-      const validateResponse = await apiService.projects.validateAccess({
-        repo_url: repoUrl,
-        credential_id: credentialId,
-      });
-
-      if (!validateResponse.can_access) {
-        setAccessError(
-          validateResponse.error || t("projects.messages.accessFailed")
-        );
-        return;
-      }
-
-      setAccessValidated(true);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : t("projects.messages.validateAccessFailed");
-      setAccessError(errorMessage);
-      logError(error as Error, "Failed to validate repository access");
-    } finally {
-      setCredentialValidating(false);
-    }
-  }, [t]);
 
   const parseRepositoryUrl = useCallback(
     async (url: string) => {
@@ -259,16 +220,6 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
     }
   }, [formData.protocol, loadCredentials]);
 
-  useEffect(() => {
-    if (formData.repo_url && formData.credential_id) {
-      validateAccessAndFetchBranches(formData.repo_url, formData.credential_id);
-    } else if (formData.repo_url && !formData.credential_id) {
-      validateAccessAndFetchBranches(formData.repo_url);
-    } else {
-      setAccessValidated(false);
-      setAccessError(null);
-    }
-  }, [formData.repo_url, formData.credential_id, validateAccessAndFetchBranches]);
 
   useEffect(() => {
     return () => {
@@ -303,7 +254,6 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
     // Actions
     handleInputChange,
     handleSubmit,
-    validateAccessAndFetchBranches,
     parseRepositoryUrl,
   };
 }

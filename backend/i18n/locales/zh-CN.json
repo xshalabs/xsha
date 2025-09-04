@@ -61,7 +61,6 @@
   "project.update_success": "项目更新成功",
   "project.delete_success": "项目删除成功",
   "project.not_found": "项目不存在",
-  "project.access_validation_success": "仓库访问验证成功",
   "project.id_required": "项目ID是必填项",
   "project.delete_has_in_progress_tasks": "无法删除有进行中任务的项目",
   "project.incompatible_credential": "不兼容的凭据",

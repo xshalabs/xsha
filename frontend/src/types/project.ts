@@ -119,13 +119,3 @@ export interface FetchRepositoryBranchesResponse {
   };
 }
 
-export interface ValidateRepositoryAccessRequest {
-  repo_url: string;
-  credential_id?: number;
-}
-
-export interface ValidateRepositoryAccessResponse {
-  message: string;
-  can_access: boolean;
-  error?: string;
-}

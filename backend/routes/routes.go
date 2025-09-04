@@ -84,7 +84,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			projects.GET("", projectHandlers.ListProjects)
 			projects.POST("/parse-url", projectHandlers.ParseRepositoryURL)
 			projects.POST("/branches", projectHandlers.FetchRepositoryBranches)
-			projects.POST("/validate-access", projectHandlers.ValidateRepositoryAccess)
 			projects.GET("/credentials", projectHandlers.GetCompatibleCredentials)
 			projects.GET("/:id", projectHandlers.GetProject)
 			projects.PUT("/:id", middleware.RequirePermission("project", "update"), projectHandlers.UpdateProject)

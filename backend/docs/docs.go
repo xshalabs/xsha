@@ -15,6 +15,216 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/avatar/preview/{uuid}": {
+            "get": {
+                "description": "Preview avatar image by UUID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "image/*"
+                ],
+                "tags": [
+                    "Admin Avatar"
+                ],
+                "summary": "Preview avatar",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Avatar UUID",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Avatar image for preview",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Avatar not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/avatar/upload": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload an avatar image for administrator",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Avatar"
+                ],
+                "summary": "Upload avatar",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Avatar image to upload",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Avatar uploaded successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "object"
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request parameter error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication failed",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "413": {
+                        "description": "File too large",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/avatar/{uuid}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update administrator's avatar by avatar UUID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Management"
+                ],
+                "summary": "Update admin avatar",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Avatar UUID",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Admin ID information",
+                        "name": "adminData",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "admin_id": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Avatar updated successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request parameter error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Admin or avatar not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/admin/login-logs": {
             "get": {
                 "security": [
@@ -376,6 +586,42 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/roles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get list of available administrator roles",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Management"
+                ],
+                "summary": "Get available roles",
+                "responses": {
+                    "200": {
+                        "description": "Available roles",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "roles": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/admin/users": {
             "get": {
                 "security": [
@@ -469,7 +715,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create a new administrator user",
+                "description": "Create a new administrator user with optional role assignment",
                 "consumes": [
                     "application/json"
                 ],
@@ -482,7 +728,7 @@ const docTemplate = `{
                 "summary": "Create admin user",
                 "parameters": [
                     {
-                        "description": "Admin user information",
+                        "description": "Admin user information (role is optional, defaults to 'admin')",
                         "name": "adminData",
                         "in": "body",
                         "required": true,
@@ -496,6 +742,9 @@ const docTemplate = `{
                                     "type": "string"
                                 },
                                 "password": {
+                                    "type": "string"
+                                },
+                                "role": {
                                     "type": "string"
                                 },
                                 "username": {
@@ -614,7 +863,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update administrator user information",
+                "description": "Update administrator user information including role",
                 "consumes": [
                     "application/json"
                 ],
@@ -634,7 +883,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Admin update information",
+                        "description": "Admin update information (role: super_admin|admin|developer)",
                         "name": "adminData",
                         "in": "body",
                         "required": true,
@@ -648,6 +897,9 @@ const docTemplate = `{
                                     "type": "boolean"
                                 },
                                 "name": {
+                                    "type": "string"
+                                },
+                                "role": {
                                     "type": "string"
                                 },
                                 "username": {
@@ -822,6 +1074,53 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Admin not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admins": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get list of all administrator users (requires authentication)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Management"
+                ],
+                "summary": "List admin users (authenticated)",
+                "responses": {
+                    "200": {
+                        "description": "Admin list",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "admins": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get admin list",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1422,282 +1721,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/conversation-results": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get paginated list of conversation results for a specific task",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Task Conversation Results"
-                ],
-                "summary": "List results by task ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Task ID",
-                        "name": "task_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Page size (1-100)",
-                        "name": "page_size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Results retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "type": "object",
-                                    "properties": {
-                                        "page": {
-                                            "type": "integer"
-                                        },
-                                        "page_size": {
-                                            "type": "integer"
-                                        },
-                                        "results": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "total": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                },
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Request parameter error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/conversation-results/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get a conversation result by result ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Task Conversation Results"
-                ],
-                "summary": "Get conversation result",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Result ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Result retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "type": "object"
-                                },
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid result ID",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Result not found",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update specific fields of a conversation result",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Task Conversation Results"
-                ],
-                "summary": "Update conversation result",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Result ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Result update information",
-                        "name": "result",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.UpdateResultRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Result updated successfully",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Request parameter error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Delete a conversation result by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Task Conversation Results"
-                ],
-                "summary": "Delete conversation result",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Result ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Result deleted successfully",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Request parameter error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/conversations": {
             "get": {
                 "security": [
@@ -1940,73 +1963,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Conversation not found",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/conversations/{conversation_id}/result": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get a conversation result by conversation ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Task Conversation Results"
-                ],
-                "summary": "Get result by conversation ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Conversation ID",
-                        "name": "conversation_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Result retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "type": "object"
-                                },
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid conversation ID",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Result not found",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -2313,6 +2269,204 @@ const docTemplate = `{
                                 "error": {
                                     "type": "string"
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/conversations/{id}/execution-log": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detailed execution log of AI task by conversation ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Task Execution Log"
+                ],
+                "summary": "Get task conversation execution log",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/database.TaskExecutionLog"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/conversations/{id}/execution/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cancel AI task that is executing or pending",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Task Execution Log"
+                ],
+                "summary": "Cancel task execution",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/conversations/{id}/execution/retry": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retry failed or cancelled AI task",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Task Execution Log"
+                ],
+                "summary": "Retry task execution",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     }
@@ -2924,6 +3078,215 @@ const docTemplate = `{
                 }
             }
         },
+        "/credentials/{id}/admins": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all admins for a specific credential",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Git Credentials"
+                ],
+                "summary": "Get credential admins",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Credential ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Credential admins retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "admins": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid credential ID",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Credential not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add an admin to a credential",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Git Credentials"
+                ],
+                "summary": "Add admin to credential",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Credential ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Admin information",
+                        "name": "admin",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AddCredentialAdminRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Admin added to credential successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request parameter error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Credential not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/credentials/{id}/admins/{admin_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove an admin from a credential",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Git Credentials"
+                ],
+                "summary": "Remove admin from credential",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Credential ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Admin ID",
+                        "name": "admin_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Admin removed from credential successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request parameter error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Credential not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/dashboard/recent-tasks": {
             "get": {
                 "security": [
@@ -2990,7 +3353,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get aggregated system statistics for dashboard",
+                "description": "Get aggregated system statistics for dashboard. Only accessible by super administrators.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3012,6 +3375,13 @@ const docTemplate = `{
                                     "additionalProperties": true
                                 }
                             }
+                        }
+                    },
+                    "403": {
+                        "description": "Insufficient permissions",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "500": {
@@ -3333,6 +3703,196 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Delete failed",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/environments/{id}/admins": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all admins that have access to a specific environment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Development Environment"
+                ],
+                "summary": "Get environment admins",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Environment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Environment admins",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.EnvironmentAdminsResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Environment not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add an admin to the environment's admin list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Development Environment"
+                ],
+                "summary": "Add admin to environment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Environment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Admin information",
+                        "name": "admin",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AddAdminToEnvironmentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Admin added successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request parameter error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Environment not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/environments/{id}/admins/{admin_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove an admin from the environment's admin list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Development Environment"
+                ],
+                "summary": "Remove admin from environment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Environment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Admin ID",
+                        "name": "admin_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Admin removed successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request parameter error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Environment not found",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -3726,64 +4286,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/projects/validate-access": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Validate whether the specified Git repository can be accessed using provided credentials",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Project"
-                ],
-                "summary": "Validate Git repository access permissions",
-                "parameters": [
-                    {
-                        "description": "Repository information",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ValidateRepositoryAccessRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Validation successful",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "can_access": {
-                                    "type": "boolean"
-                                },
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Request parameter error or validation failed",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/projects/{id}": {
             "get": {
                 "security": [
@@ -4070,149 +4572,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/projects/{project_id}/conversation-results": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get paginated list of conversation results for a specific project",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Task Conversation Results"
-                ],
-                "summary": "List results by project ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Project ID",
-                        "name": "project_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Page size (1-100)",
-                        "name": "page_size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Results retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "type": "object",
-                                    "properties": {
-                                        "items": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "page": {
-                                            "type": "integer"
-                                        },
-                                        "page_size": {
-                                            "type": "integer"
-                                        },
-                                        "total": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                },
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Request parameter error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/projects/{project_id}/stats": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get conversation result statistics for a specific project",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Task Conversation Results"
-                ],
-                "summary": "Get project statistics",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Project ID",
-                        "name": "project_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Project statistics retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "type": "object"
-                                },
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Request parameter error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/settings": {
             "get": {
                 "security": [
@@ -4296,204 +4655,6 @@ const docTemplate = `{
                                 "error": {
                                     "type": "string"
                                 }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/task-conversations/{conversationId}/execution-log": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get detailed execution log of AI task by conversation ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Task Execution Log"
-                ],
-                "summary": "Get task conversation execution log",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Conversation ID",
-                        "name": "conversationId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/database.TaskExecutionLog"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/task-conversations/{conversationId}/execution/cancel": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Cancel AI task that is executing or pending",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Task Execution Log"
-                ],
-                "summary": "Cancel task execution",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Conversation ID",
-                        "name": "conversationId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/task-conversations/{conversationId}/execution/retry": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retry failed or cancelled AI task",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Task Execution Log"
-                ],
-                "summary": "Retry task execution",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Conversation ID",
-                        "name": "conversationId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
                             }
                         }
                     }
@@ -5398,62 +5559,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/tasks/{task_id}/stats": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get conversation result statistics for a specific task",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Task Conversation Results"
-                ],
-                "summary": "Get task statistics",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Task ID",
-                        "name": "task_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Task statistics retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "type": "object"
-                                },
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Request parameter error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/user/change-password": {
             "put": {
                 "security": [
@@ -5563,7 +5668,13 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "properties": {
+                                "avatar": {
+                                    "type": "object"
+                                },
                                 "name": {
+                                    "type": "string"
+                                },
+                                "role": {
                                     "type": "string"
                                 },
                                 "username": {
@@ -5585,9 +5696,233 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/update-avatar": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Allow authenticated user to update their own avatar",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update own avatar",
+                "parameters": [
+                    {
+                        "description": "Avatar update data",
+                        "name": "avatarData",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "avatar_uuid": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Avatar updated successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request parameter error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Avatar not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "database.Admin": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "$ref": "#/definitions/database.AdminAvatar"
+                },
+                "avatar_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "last_login_at": {
+                    "type": "string"
+                },
+                "last_login_ip": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/database.AdminRole"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.AdminAvatar": {
+            "type": "object",
+            "properties": {
+                "admin": {
+                    "$ref": "#/definitions/database.Admin"
+                },
+                "admin_id": {
+                    "type": "integer"
+                },
+                "content_type": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "file_name": {
+                    "type": "string"
+                },
+                "file_path": {
+                    "type": "string"
+                },
+                "file_size": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "original_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.AdminAvatarMinimal": {
+            "type": "object",
+            "properties": {
+                "original_name": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.AdminListResponse": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "$ref": "#/definitions/database.AdminAvatarMinimal"
+                },
+                "avatar_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "last_login_at": {
+                    "type": "string"
+                },
+                "last_login_ip": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/database.AdminRole"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.AdminRole": {
+            "type": "string",
+            "enum": [
+                "super_admin",
+                "admin",
+                "developer"
+            ],
+            "x-enum-varnames": [
+                "AdminRoleSuperAdmin",
+                "AdminRoleAdmin",
+                "AdminRoleDeveloper"
+            ]
+        },
         "database.ConversationStatus": {
             "type": "string",
             "enum": [
@@ -5608,6 +5943,20 @@ const docTemplate = `{
         "database.DevEnvironment": {
             "type": "object",
             "properties": {
+                "admin": {
+                    "$ref": "#/definitions/database.Admin"
+                },
+                "admin_id": {
+                    "description": "Legacy single admin relationship (for backward compatibility)",
+                    "type": "integer"
+                },
+                "admins": {
+                    "description": "Many-to-many relationship for environment admins",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Admin"
+                    }
+                },
                 "cpu_limit": {
                     "type": "number"
                 },
@@ -5652,6 +6001,20 @@ const docTemplate = `{
         "database.GitCredential": {
             "type": "object",
             "properties": {
+                "admin": {
+                    "$ref": "#/definitions/database.Admin"
+                },
+                "admin_id": {
+                    "description": "Legacy single admin relationship (for backward compatibility)",
+                    "type": "integer"
+                },
+                "admins": {
+                    "description": "Many-to-many relationship for credential admins",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Admin"
+                    }
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -5708,6 +6071,12 @@ const docTemplate = `{
         "database.Project": {
             "type": "object",
             "properties": {
+                "admin": {
+                    "$ref": "#/definitions/database.Admin"
+                },
+                "admin_id": {
+                    "type": "integer"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -5746,6 +6115,12 @@ const docTemplate = `{
         "database.Task": {
             "type": "object",
             "properties": {
+                "admin": {
+                    "$ref": "#/definitions/database.Admin"
+                },
+                "admin_id": {
+                    "type": "integer"
+                },
                 "conversation_count": {
                     "type": "integer"
                 },
@@ -5808,6 +6183,12 @@ const docTemplate = `{
         "database.TaskConversation": {
             "type": "object",
             "properties": {
+                "admin": {
+                    "$ref": "#/definitions/database.Admin"
+                },
+                "admin_id": {
+                    "type": "integer"
+                },
                 "commit_hash": {
                     "type": "string"
                 },
@@ -5894,6 +6275,31 @@ const docTemplate = `{
                 "TaskStatusDone",
                 "TaskStatusCancelled"
             ]
+        },
+        "handlers.AddAdminToEnvironmentRequest": {
+            "description": "Add admin to environment request",
+            "type": "object",
+            "required": [
+                "admin_id"
+            ],
+            "properties": {
+                "admin_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.AddCredentialAdminRequest": {
+            "description": "Request parameters for adding admin to credential",
+            "type": "object",
+            "required": [
+                "admin_id"
+            ],
+            "properties": {
+                "admin_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
         },
         "handlers.BatchUpdateConfigsRequest": {
             "type": "object",
@@ -6136,6 +6542,18 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.EnvironmentAdminsResponse": {
+            "description": "Environment admins response",
+            "type": "object",
+            "properties": {
+                "admins": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.AdminListResponse"
+                    }
+                }
+            }
+        },
         "handlers.FetchRepositoryBranchesRequest": {
             "description": "Request parameters for fetching Git repository branch list",
             "type": "object",
@@ -6337,16 +6755,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.UpdateResultRequest": {
-            "description": "Update result request",
-            "type": "object",
-            "properties": {
-                "updates": {
-                    "type": "object",
-                    "additionalProperties": true
-                }
-            }
-        },
         "handlers.UpdateTaskRequest": {
             "description": "Update task request",
             "type": "object",
@@ -6376,23 +6784,6 @@ const docTemplate = `{
                         "cancelled"
                     ],
                     "example": "in_progress"
-                }
-            }
-        },
-        "handlers.ValidateRepositoryAccessRequest": {
-            "description": "Request parameters for validating Git repository access permissions",
-            "type": "object",
-            "required": [
-                "repo_url"
-            ],
-            "properties": {
-                "credential_id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "repo_url": {
-                    "type": "string",
-                    "example": "https://github.com/user/repo.git"
                 }
             }
         }

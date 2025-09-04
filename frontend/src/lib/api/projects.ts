@@ -10,8 +10,6 @@ import type {
   ParseRepositoryURLResponse,
   FetchRepositoryBranchesRequest,
   FetchRepositoryBranchesResponse,
-  ValidateRepositoryAccessRequest,
-  ValidateRepositoryAccessResponse,
 } from "@/types/project";
 
 export const projectsApi = {
@@ -84,15 +82,4 @@ export const projectsApi = {
     });
   },
 
-  validateAccess: async (
-    data: ValidateRepositoryAccessRequest
-  ): Promise<ValidateRepositoryAccessResponse> => {
-    return request<ValidateRepositoryAccessResponse>(
-      "/projects/validate-access",
-      {
-        method: "POST",
-        body: JSON.stringify(data),
-      }
-    );
-  },
 };

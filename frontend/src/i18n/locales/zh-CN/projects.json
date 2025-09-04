@@ -23,8 +23,7 @@
     "updateSuccess": "项目更新成功",
     "updateFailed": "更新项目失败",
     "accessFailed": "仓库访问验证失败",
-    "fetchBranchesFailed": "获取仓库分支失败",
-    "validateAccessFailed": "验证仓库访问失败"
+    "fetchBranchesFailed": "获取仓库分支失败"
   },
   "placeholders": {
     "name": "输入项目名称",

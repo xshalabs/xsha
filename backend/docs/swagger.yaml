@@ -1,5 +1,107 @@
 basePath: /api/v1
 definitions:
+  database.Admin:
+    properties:
+      avatar:
+        $ref: '#/definitions/database.AdminAvatar'
+      avatar_id:
+        type: integer
+      created_at:
+        type: string
+      created_by:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      last_login_at:
+        type: string
+      last_login_ip:
+        type: string
+      name:
+        type: string
+      role:
+        $ref: '#/definitions/database.AdminRole'
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  database.AdminAvatar:
+    properties:
+      admin:
+        $ref: '#/definitions/database.Admin'
+      admin_id:
+        type: integer
+      content_type:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      file_name:
+        type: string
+      file_path:
+        type: string
+      file_size:
+        type: integer
+      id:
+        type: integer
+      original_name:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  database.AdminAvatarMinimal:
+    properties:
+      original_name:
+        type: string
+      uuid:
+        type: string
+    type: object
+  database.AdminListResponse:
+    properties:
+      avatar:
+        $ref: '#/definitions/database.AdminAvatarMinimal'
+      avatar_id:
+        type: integer
+      created_at:
+        type: string
+      created_by:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      last_login_at:
+        type: string
+      last_login_ip:
+        type: string
+      name:
+        type: string
+      role:
+        $ref: '#/definitions/database.AdminRole'
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  database.AdminRole:
+    enum:
+    - super_admin
+    - admin
+    - developer
+    type: string
+    x-enum-varnames:
+    - AdminRoleSuperAdmin
+    - AdminRoleAdmin
+    - AdminRoleDeveloper
   database.ConversationStatus:
     enum:
     - pending
@@ -16,6 +118,16 @@ definitions:
     - ConversationStatusCancelled
   database.DevEnvironment:
     properties:
+      admin:
+        $ref: '#/definitions/database.Admin'
+      admin_id:
+        description: Legacy single admin relationship (for backward compatibility)
+        type: integer
+      admins:
+        description: Many-to-many relationship for environment admins
+        items:
+          $ref: '#/definitions/database.Admin'
+        type: array
       cpu_limit:
         type: number
       created_at:
@@ -45,6 +157,16 @@ definitions:
     type: object
   database.GitCredential:
     properties:
+      admin:
+        $ref: '#/definitions/database.Admin'
+      admin_id:
+        description: Legacy single admin relationship (for backward compatibility)
+        type: integer
+      admins:
+        description: Many-to-many relationship for credential admins
+        items:
+          $ref: '#/definitions/database.Admin'
+        type: array
       created_at:
         type: string
       created_by:
@@ -84,6 +206,10 @@ definitions:
     - GitProtocolSSH
   database.Project:
     properties:
+      admin:
+        $ref: '#/definitions/database.Admin'
+      admin_id:
+        type: integer
       created_at:
         type: string
       created_by:
@@ -109,6 +235,10 @@ definitions:
     type: object
   database.Task:
     properties:
+      admin:
+        $ref: '#/definitions/database.Admin'
+      admin_id:
+        type: integer
       conversation_count:
         type: integer
       conversations:
@@ -150,6 +280,10 @@ definitions:
     type: object
   database.TaskConversation:
     properties:
+      admin:
+        $ref: '#/definitions/database.Admin'
+      admin_id:
+        type: integer
       commit_hash:
         type: string
       content:
@@ -210,6 +344,23 @@ definitions:
     - TaskStatusInProgress
     - TaskStatusDone
     - TaskStatusCancelled
+  handlers.AddAdminToEnvironmentRequest:
+    description: Add admin to environment request
+    properties:
+      admin_id:
+        type: integer
+    required:
+    - admin_id
+    type: object
+  handlers.AddCredentialAdminRequest:
+    description: Request parameters for adding admin to credential
+    properties:
+      admin_id:
+        example: 1
+        type: integer
+    required:
+    - admin_id
+    type: object
   handlers.BatchUpdateConfigsRequest:
     properties:
       configs:
@@ -381,6 +532,14 @@ definitions:
       task:
         $ref: '#/definitions/database.Task'
     type: object
+  handlers.EnvironmentAdminsResponse:
+    description: Environment admins response
+    properties:
+      admins:
+        items:
+          $ref: '#/definitions/database.AdminListResponse'
+        type: array
+    type: object
   handlers.FetchRepositoryBranchesRequest:
     description: Request parameters for fetching Git repository branch list
     properties:
@@ -522,13 +681,6 @@ definitions:
         example: Custom system prompt
         type: string
     type: object
-  handlers.UpdateResultRequest:
-    description: Update result request
-    properties:
-      updates:
-        additionalProperties: true
-        type: object
-    type: object
   handlers.UpdateTaskRequest:
     description: Update task request
     properties:
@@ -552,18 +704,6 @@ definitions:
     required:
     - status
     type: object
-  handlers.ValidateRepositoryAccessRequest:
-    description: Request parameters for validating Git repository access permissions
-    properties:
-      credential_id:
-        example: 1
-        type: integer
-      repo_url:
-        example: https://github.com/user/repo.git
-        type: string
-    required:
-    - repo_url
-    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -572,6 +712,139 @@ info:
   title: XSHA Backend API
   version: "1.0"
 paths:
+  /admin/avatar/{uuid}:
+    put:
+      consumes:
+      - application/json
+      description: Update administrator's avatar by avatar UUID
+      parameters:
+      - description: Avatar UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Admin ID information
+        in: body
+        name: adminData
+        required: true
+        schema:
+          properties:
+            admin_id:
+              type: integer
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Avatar updated successfully
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Request parameter error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Admin or avatar not found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update admin avatar
+      tags:
+      - Admin Management
+  /admin/avatar/preview/{uuid}:
+    get:
+      consumes:
+      - application/json
+      description: Preview avatar image by UUID
+      parameters:
+      - description: Avatar UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - image/*
+      responses:
+        "200":
+          description: Avatar image for preview
+          schema:
+            type: file
+        "400":
+          description: Invalid UUID
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Avatar not found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      summary: Preview avatar
+      tags:
+      - Admin Avatar
+  /admin/avatar/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload an avatar image for administrator
+      parameters:
+      - description: Avatar image to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Avatar uploaded successfully
+          schema:
+            properties:
+              data:
+                type: object
+              message:
+                type: string
+            type: object
+        "400":
+          description: Request parameter error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "401":
+          description: Authentication failed
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "413":
+          description: File too large
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload avatar
+      tags:
+      - Admin Avatar
   /admin/login-logs:
     get:
       consumes:
@@ -804,6 +1077,28 @@ paths:
       summary: Get operation statistics
       tags:
       - Admin Logs
+  /admin/roles:
+    get:
+      consumes:
+      - application/json
+      description: Get list of available administrator roles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Available roles
+          schema:
+            properties:
+              roles:
+                items:
+                  type: string
+                type: array
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get available roles
+      tags:
+      - Admin Management
   /admin/users:
     get:
       consumes:
@@ -863,9 +1158,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new administrator user
+      description: Create a new administrator user with optional role assignment
       parameters:
-      - description: Admin user information
+      - description: Admin user information (role is optional, defaults to 'admin')
         in: body
         name: adminData
         required: true
@@ -876,6 +1171,8 @@ paths:
             name:
               type: string
             password:
+              type: string
+            role:
               type: string
             username:
               type: string
@@ -993,14 +1290,14 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update administrator user information
+      description: Update administrator user information including role
       parameters:
       - description: Admin ID
         in: path
         name: id
         required: true
         type: integer
-      - description: Admin update information
+      - description: 'Admin update information (role: super_admin|admin|developer)'
         in: body
         name: adminData
         required: true
@@ -1011,6 +1308,8 @@ paths:
             is_active:
               type: boolean
             name:
+              type: string
+            role:
               type: string
             username:
               type: string
@@ -1091,6 +1390,35 @@ paths:
       security:
       - BearerAuth: []
       summary: Change admin password
+      tags:
+      - Admin Management
+  /api/v1/admins:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all administrator users (requires authentication)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Admin list
+          schema:
+            properties:
+              admins:
+                items:
+                  type: object
+                type: array
+            type: object
+        "500":
+          description: Failed to get admin list
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List admin users (authenticated)
       tags:
       - Admin Management
   /attachments:
@@ -1464,181 +1792,6 @@ paths:
       summary: User logout
       tags:
       - Authentication
-  /conversation-results:
-    get:
-      consumes:
-      - application/json
-      description: Get paginated list of conversation results for a specific task
-      parameters:
-      - description: Task ID
-        in: query
-        name: task_id
-        required: true
-        type: integer
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Page size (1-100)
-        in: query
-        name: page_size
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Results retrieved successfully
-          schema:
-            properties:
-              data:
-                properties:
-                  page:
-                    type: integer
-                  page_size:
-                    type: integer
-                  results:
-                    items:
-                      type: object
-                    type: array
-                  total:
-                    type: integer
-                type: object
-              message:
-                type: string
-            type: object
-        "400":
-          description: Request parameter error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: List results by task ID
-      tags:
-      - Task Conversation Results
-  /conversation-results/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete a conversation result by ID
-      parameters:
-      - description: Result ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Result deleted successfully
-          schema:
-            properties:
-              message:
-                type: string
-            type: object
-        "400":
-          description: Request parameter error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Delete conversation result
-      tags:
-      - Task Conversation Results
-    get:
-      consumes:
-      - application/json
-      description: Get a conversation result by result ID
-      parameters:
-      - description: Result ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Result retrieved successfully
-          schema:
-            properties:
-              data:
-                type: object
-              message:
-                type: string
-            type: object
-        "400":
-          description: Invalid result ID
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "404":
-          description: Result not found
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get conversation result
-      tags:
-      - Task Conversation Results
-    put:
-      consumes:
-      - application/json
-      description: Update specific fields of a conversation result
-      parameters:
-      - description: Result ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Result update information
-        in: body
-        name: result
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.UpdateResultRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Result updated successfully
-          schema:
-            properties:
-              message:
-                type: string
-            type: object
-        "400":
-          description: Request parameter error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Update conversation result
-      tags:
-      - Task Conversation Results
   /conversations:
     get:
       consumes:
@@ -1751,48 +1904,6 @@ paths:
       summary: Create task conversation
       tags:
       - Task Conversations
-  /conversations/{conversation_id}/result:
-    get:
-      consumes:
-      - application/json
-      description: Get a conversation result by conversation ID
-      parameters:
-      - description: Conversation ID
-        in: path
-        name: conversation_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Result retrieved successfully
-          schema:
-            properties:
-              data:
-                type: object
-              message:
-                type: string
-            type: object
-        "400":
-          description: Invalid conversation ID
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "404":
-          description: Result not found
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get result by conversation ID
-      tags:
-      - Task Conversation Results
   /conversations/{id}:
     delete:
       consumes:
@@ -1982,6 +2093,133 @@ paths:
       summary: Get conversation details
       tags:
       - Task Conversations
+  /conversations/{id}/execution-log:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed execution log of AI task by conversation ID
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/database.TaskExecutionLog'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get task conversation execution log
+      tags:
+      - Task Execution Log
+  /conversations/{id}/execution/cancel:
+    post:
+      consumes:
+      - application/json
+      description: Cancel AI task that is executing or pending
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cancel task execution
+      tags:
+      - Task Execution Log
+  /conversations/{id}/execution/retry:
+    post:
+      consumes:
+      - application/json
+      description: Retry failed or cancelled AI task
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Retry task execution
+      tags:
+      - Task Execution Log
   /conversations/{id}/git-diff:
     get:
       consumes:
@@ -2416,6 +2654,138 @@ paths:
       summary: Update Git credential
       tags:
       - Git Credentials
+  /credentials/{id}/admins:
+    get:
+      consumes:
+      - application/json
+      description: Get all admins for a specific credential
+      parameters:
+      - description: Credential ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Credential admins retrieved successfully
+          schema:
+            properties:
+              admins:
+                items:
+                  type: object
+                type: array
+            type: object
+        "400":
+          description: Invalid credential ID
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Credential not found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get credential admins
+      tags:
+      - Git Credentials
+    post:
+      consumes:
+      - application/json
+      description: Add an admin to a credential
+      parameters:
+      - description: Credential ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Admin information
+        in: body
+        name: admin
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AddCredentialAdminRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Admin added to credential successfully
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Request parameter error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Credential not found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add admin to credential
+      tags:
+      - Git Credentials
+  /credentials/{id}/admins/{admin_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove an admin from a credential
+      parameters:
+      - description: Credential ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Admin ID
+        in: path
+        name: admin_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Admin removed from credential successfully
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Request parameter error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Credential not found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Remove admin from credential
+      tags:
+      - Git Credentials
   /dashboard/recent-tasks:
     get:
       consumes:
@@ -2458,7 +2828,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get aggregated system statistics for dashboard
+      description: Get aggregated system statistics for dashboard. Only accessible
+        by super administrators.
       produces:
       - application/json
       responses:
@@ -2469,6 +2840,11 @@ paths:
               stats:
                 additionalProperties: true
                 type: object
+            type: object
+        "403":
+          description: Insufficient permissions
+          schema:
+            additionalProperties: true
             type: object
         "500":
           description: Internal server error
@@ -2658,6 +3034,126 @@ paths:
       security:
       - BearerAuth: []
       summary: Update environment
+      tags:
+      - Development Environment
+  /environments/{id}/admins:
+    get:
+      consumes:
+      - application/json
+      description: Get all admins that have access to a specific environment
+      parameters:
+      - description: Environment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Environment admins
+          schema:
+            $ref: '#/definitions/handlers.EnvironmentAdminsResponse'
+        "404":
+          description: Environment not found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get environment admins
+      tags:
+      - Development Environment
+    post:
+      consumes:
+      - application/json
+      description: Add an admin to the environment's admin list
+      parameters:
+      - description: Environment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Admin information
+        in: body
+        name: admin
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AddAdminToEnvironmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Admin added successfully
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Request parameter error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Environment not found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add admin to environment
+      tags:
+      - Development Environment
+  /environments/{id}/admins/{admin_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove an admin from the environment's admin list
+      parameters:
+      - description: Environment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Admin ID
+        in: path
+        name: admin_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Admin removed successfully
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Request parameter error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Environment not found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Remove admin from environment
       tags:
       - Development Environment
   /environments/available-images:
@@ -2988,97 +3484,6 @@ paths:
       summary: Get kanban tasks
       tags:
       - Tasks
-  /projects/{project_id}/conversation-results:
-    get:
-      consumes:
-      - application/json
-      description: Get paginated list of conversation results for a specific project
-      parameters:
-      - description: Project ID
-        in: query
-        name: project_id
-        required: true
-        type: integer
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Page size (1-100)
-        in: query
-        name: page_size
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Results retrieved successfully
-          schema:
-            properties:
-              data:
-                properties:
-                  items:
-                    items:
-                      type: object
-                    type: array
-                  page:
-                    type: integer
-                  page_size:
-                    type: integer
-                  total:
-                    type: integer
-                type: object
-              message:
-                type: string
-            type: object
-        "400":
-          description: Request parameter error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: List results by project ID
-      tags:
-      - Task Conversation Results
-  /projects/{project_id}/stats:
-    get:
-      consumes:
-      - application/json
-      description: Get conversation result statistics for a specific project
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Project statistics retrieved successfully
-          schema:
-            properties:
-              data:
-                type: object
-              message:
-                type: string
-            type: object
-        "400":
-          description: Request parameter error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get project statistics
-      tags:
-      - Task Conversation Results
   /projects/branches:
     post:
       consumes:
@@ -3197,43 +3602,6 @@ paths:
       summary: Parse repository URL
       tags:
       - Project
-  /projects/validate-access:
-    post:
-      consumes:
-      - application/json
-      description: Validate whether the specified Git repository can be accessed using
-        provided credentials
-      parameters:
-      - description: Repository information
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.ValidateRepositoryAccessRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Validation successful
-          schema:
-            properties:
-              can_access:
-                type: boolean
-              message:
-                type: string
-            type: object
-        "400":
-          description: Request parameter error or validation failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Validate Git repository access permissions
-      tags:
-      - Project
   /settings:
     get:
       consumes:
@@ -3289,133 +3657,6 @@ paths:
       summary: Batch update configurations
       tags:
       - System Configuration
-  /task-conversations/{conversationId}/execution-log:
-    get:
-      consumes:
-      - application/json
-      description: Get detailed execution log of AI task by conversation ID
-      parameters:
-      - description: Conversation ID
-        in: path
-        name: conversationId
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/database.TaskExecutionLog'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get task conversation execution log
-      tags:
-      - Task Execution Log
-  /task-conversations/{conversationId}/execution/cancel:
-    post:
-      consumes:
-      - application/json
-      description: Cancel AI task that is executing or pending
-      parameters:
-      - description: Conversation ID
-        in: path
-        name: conversationId
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Cancel task execution
-      tags:
-      - Task Execution Log
-  /task-conversations/{conversationId}/execution/retry:
-    post:
-      consumes:
-      - application/json
-      description: Retry failed or cancelled AI task
-      parameters:
-      - description: Conversation ID
-        in: path
-        name: conversationId
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Retry task execution
-      tags:
-      - Task Execution Log
   /tasks:
     get:
       consumes:
@@ -3948,41 +4189,6 @@ paths:
       summary: Update task status
       tags:
       - Tasks
-  /tasks/{task_id}/stats:
-    get:
-      consumes:
-      - application/json
-      description: Get conversation result statistics for a specific task
-      parameters:
-      - description: Task ID
-        in: path
-        name: task_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Task statistics retrieved successfully
-          schema:
-            properties:
-              data:
-                type: object
-              message:
-                type: string
-            type: object
-        "400":
-          description: Request parameter error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get task statistics
-      tags:
-      - Task Conversation Results
   /tasks/batch/status:
     put:
       consumes:
@@ -4091,7 +4297,11 @@ paths:
           description: User information
           schema:
             properties:
+              avatar:
+                type: object
               name:
+                type: string
+              role:
                 type: string
               username:
                 type: string
@@ -4106,6 +4316,50 @@ paths:
       security:
       - BearerAuth: []
       summary: Get current user information
+      tags:
+      - User
+  /user/update-avatar:
+    put:
+      consumes:
+      - application/json
+      description: Allow authenticated user to update their own avatar
+      parameters:
+      - description: Avatar update data
+        in: body
+        name: avatarData
+        required: true
+        schema:
+          properties:
+            avatar_uuid:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Avatar updated successfully
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Request parameter error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Avatar not found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update own avatar
       tags:
       - User
 securityDefinitions:

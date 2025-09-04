@@ -61,7 +61,6 @@
   "project.update_success": "Project updated successfully",
   "project.delete_success": "Project deleted successfully",
   "project.not_found": "Project not found",
-  "project.access_validation_success": "Repository access validation successful",
   "project.id_required": "Project ID is required",
   "project.delete_has_in_progress_tasks": "Cannot delete project with tasks in progress",
   "project.incompatible_credential": "Incompatible git credential",
