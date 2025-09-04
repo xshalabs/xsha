@@ -7,7 +7,6 @@ import type {
   CreateProjectRequest,
   UpdateProjectRequest,
   ProjectFormData,
-  GitProtocolType,
 } from "@/types/project";
 
 interface CredentialOption {
@@ -43,10 +42,15 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [accessError, setAccessError] = useState<string | null>(null);
 
-  const loadCredentials = useCallback(async (protocol: GitProtocolType) => {
+  const loadCredentials = useCallback(async (repoUrl: string) => {
+    if (!repoUrl.trim()) {
+      setCredentials([]);
+      return;
+    }
+
     try {
       setCredentialsLoading(true);
-      const response = await apiService.projects.getCompatibleCredentials(protocol);
+      const response = await apiService.projects.getCompatibleCredentials(repoUrl);
       setCredentials(response.credentials);
     } catch (error) {
       logError(error as Error, "Failed to load credentials");
@@ -165,10 +169,25 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
 
   // Effects
   useEffect(() => {
-    if (formData.protocol) {
-      loadCredentials(formData.protocol);
+    if (formData.repo_url && formData.repo_url.trim()) {
+      // Add debounce to prevent excessive API calls while user types
+      const timeoutId = setTimeout(() => {
+        loadCredentials(formData.repo_url);
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
+    } else {
+      // Clear credentials when repo_url is empty
+      setCredentials([]);
     }
-  }, [formData.protocol, loadCredentials]);
+  }, [formData.repo_url, loadCredentials]);
+
+  // Load credentials for edit mode on component mount
+  useEffect(() => {
+    if (isEdit && project && project.repo_url) {
+      loadCredentials(project.repo_url);
+    }
+  }, [isEdit, project, loadCredentials]);
 
 
 

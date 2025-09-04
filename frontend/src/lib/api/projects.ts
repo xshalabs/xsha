@@ -58,10 +58,10 @@ export const projectsApi = {
   },
 
   getCompatibleCredentials: async (
-    protocol: string
+    repoUrl: string
   ): Promise<CompatibleCredentialsResponse> => {
     return request<CompatibleCredentialsResponse>(
-      `/projects/credentials?protocol=${protocol}`
+      `/projects/credentials?repo_url=${encodeURIComponent(repoUrl)}`
     );
   },
 

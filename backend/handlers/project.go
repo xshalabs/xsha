@@ -324,27 +324,45 @@ func (h *ProjectHandlers) DeleteProject(c *gin.Context) {
 
 // GetCompatibleCredentials gets credential list compatible with protocol
 // @Summary Get compatible credentials
-// @Description Get Git credential list compatible with protocol type
+// @Description Get Git credential list compatible with protocol type, auto-detected from repo URL or specified protocol
 // @Tags Project
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param protocol query string true "Protocol type (https/ssh)"
+// @Param repo_url query string false "Repository URL for protocol auto-detection"
+// @Param protocol query string false "Protocol type (https/ssh) - fallback if repo_url not provided"
 // @Success 200 {object} object{message=string,credentials=[]object} "Get credential list successfully"
 // @Failure 400 {object} object{error=string} "Request parameter error"
 // @Router /projects/credentials [get]
 func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
+	repoURL := c.Query("repo_url")
 	protocol := c.Query("protocol")
-	if protocol == "" {
+
+	var protocolType database.GitProtocolType
+
+	if repoURL != "" {
+		// Auto-detect protocol from repository URL
+		urlInfo := utils.ParseGitURL(repoURL)
+		if urlInfo.IsValid {
+			protocolType = database.GitProtocolType(urlInfo.Protocol)
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": i18n.T(lang, "validation.invalid_repo_url"),
+			})
+			return
+		}
+	} else if protocol != "" {
+		// Use provided protocol as fallback
+		protocolType = database.GitProtocolType(protocol)
+	} else {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.required_protocol"),
+			"error": i18n.T(lang, "validation.required_repo_url_or_protocol"),
 		})
 		return
 	}
 
-	protocolType := database.GitProtocolType(protocol)
 	credentials, err := h.projectService.GetCompatibleCredentials(protocolType)
 	if err != nil {
 		helper := i18n.NewHelper(lang)
