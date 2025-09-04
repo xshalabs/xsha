@@ -122,8 +122,7 @@ func main() {
 	projectHandlers := handlers.NewProjectHandlers(projectService)
 	devEnvHandlers := handlers.NewDevEnvironmentHandlers(devEnvService)
 	taskHandlers := handlers.NewTaskHandlers(taskService, taskConvService, projectService)
-	taskConvHandlers := handlers.NewTaskConversationHandlers(taskConvService, logStreamingService)
-	taskExecLogHandlers := handlers.NewTaskExecutionLogHandlers(aiTaskExecutor)
+	taskConvHandlers := handlers.NewTaskConversationHandlers(taskConvService, logStreamingService, aiTaskExecutor)
 	taskConvAttachmentHandlers := handlers.NewTaskConversationAttachmentHandlers(taskConvAttachmentService)
 	systemConfigHandlers := handlers.NewSystemConfigHandlers(systemConfigService)
 	dashboardHandlers := handlers.NewDashboardHandlers(dashboardService)
@@ -177,7 +176,7 @@ func main() {
 	}
 
 	// Setup routes - Pass all handler instances including static files
-	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, adminAvatarHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskExecLogHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
+	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, adminAvatarHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

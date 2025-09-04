@@ -16,7 +16,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, adminService services.AdminService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, adminAvatarHandlers *handlers.AdminAvatarHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, staticFiles *embed.FS) {
+func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, adminService services.AdminService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, adminAvatarHandlers *handlers.AdminAvatarHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, staticFiles *embed.FS) {
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
 
@@ -108,8 +108,8 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 					conversations.GET("/:convId/git-diff", taskConvHandlers.GetConversationGitDiff)
 					conversations.GET("/:convId/git-diff/file", taskConvHandlers.GetConversationGitDiffFile)
 					conversations.GET("/:convId/logs/stream", taskConvHandlers.StreamConversationLogs)
-					conversations.POST("/:convId/execution/cancel", taskExecLogHandlers.CancelExecution)
-					conversations.POST("/:convId/execution/retry", taskExecLogHandlers.RetryExecution)
+					conversations.POST("/:convId/execution/cancel", taskConvHandlers.CancelExecution)
+					conversations.POST("/:convId/execution/retry", taskConvHandlers.RetryExecution)
 				}
 			}
 		}
