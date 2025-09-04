@@ -309,29 +309,6 @@ definitions:
       updated_at:
         type: string
     type: object
-  database.TaskExecutionLog:
-    properties:
-      completed_at:
-        type: string
-      conversation:
-        $ref: '#/definitions/database.TaskConversation'
-      conversation_id:
-        type: integer
-      created_at:
-        type: string
-      docker_command:
-        type: string
-      error_message:
-        type: string
-      execution_logs:
-        type: string
-      id:
-        type: integer
-      started_at:
-        type: string
-      updated_at:
-        type: string
-    type: object
   database.TaskStatus:
     enum:
     - todo
@@ -510,7 +487,6 @@ definitions:
         type: string
     required:
     - name
-    - protocol
     - repo_url
     type: object
   handlers.CreateTaskRequest:
@@ -2065,47 +2041,6 @@ paths:
       summary: Get conversation details
       tags:
       - Task Conversations
-  /conversations/{id}/execution-log:
-    get:
-      consumes:
-      - application/json
-      description: Get detailed execution log of AI task by conversation ID
-      parameters:
-      - description: Conversation ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/database.TaskExecutionLog'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get task conversation execution log
-      tags:
-      - Task Execution Log
   /conversations/{id}/execution/cancel:
     post:
       consumes:
@@ -3504,12 +3439,16 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get Git credential list compatible with protocol type
+      description: Get Git credential list compatible with protocol type, auto-detected
+        from repo URL or specified protocol
       parameters:
-      - description: Protocol type (https/ssh)
+      - description: Repository URL for protocol auto-detection
+        in: query
+        name: repo_url
+        type: string
+      - description: Protocol type (https/ssh) - fallback if repo_url not provided
         in: query
         name: protocol
-        required: true
         type: string
       produces:
       - application/json

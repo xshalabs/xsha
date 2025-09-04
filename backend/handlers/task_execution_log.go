@@ -20,37 +20,6 @@ func NewTaskExecutionLogHandlers(aiTaskExecutor services.AITaskExecutorService) 
 	}
 }
 
-// GetExecutionLog gets execution log
-// @Summary Get task conversation execution log
-// @Description Get detailed execution log of AI task by conversation ID
-// @Tags Task Execution Log
-// @Accept json
-// @Produce json
-// @Param id path int true "Conversation ID"
-// @Success 200 {object} database.TaskExecutionLog
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Security BearerAuth
-// @Router /conversations/{id}/execution-log [get]
-func (h *TaskExecutionLogHandlers) GetExecutionLog(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	conversationIDStr := c.Param("id")
-	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
-		return
-	}
-
-	log, err := h.aiTaskExecutor.GetExecutionLog(uint(conversationID))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "task_execution_log.not_found")})
-		return
-	}
-
-	c.JSON(http.StatusOK, log)
-}
 
 // CancelExecution cancels task execution
 // @Summary Cancel task execution

@@ -146,7 +146,6 @@ type TaskConversationResultService interface {
 
 type AITaskExecutorService interface {
 	ProcessPendingConversations() error
-	GetExecutionLog(conversationID uint) (*database.TaskExecutionLog, error)
 	CancelExecution(conversationID uint, createdBy string) error
 	RetryExecution(conversationID uint, createdBy string) error
 	GetExecutionStatus() map[string]interface{}

@@ -116,7 +116,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			conversations.GET("/:id/git-diff", taskConvHandlers.GetConversationGitDiff)
 			conversations.GET("/:id/git-diff/file", taskConvHandlers.GetConversationGitDiffFile)
 			conversations.GET("/:id/logs/stream", taskConvHandlers.StreamConversationLogs)
-			conversations.GET("/:id/execution-log", taskExecLogHandlers.GetExecutionLog)
 			conversations.POST("/:id/execution/cancel", taskExecLogHandlers.CancelExecution)
 			conversations.POST("/:id/execution/retry", taskExecLogHandlers.RetryExecution)
 		}
@@ -132,7 +131,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			attachments.DELETE("/:id", attachmentHandlers.DeleteAttachment)
 		}
 
-
 		devEnvs := api.Group("/environments")
 		{
 			devEnvs.POST("", middleware.RequirePermission("environment", "create"), devEnvHandlers.CreateEnvironment)
@@ -141,6 +139,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			devEnvs.GET("/:id", devEnvHandlers.GetEnvironment)
 			devEnvs.PUT("/:id", middleware.RequirePermission("environment", "update"), devEnvHandlers.UpdateEnvironment)
 			devEnvs.DELETE("/:id", middleware.RequirePermission("environment", "delete"), devEnvHandlers.DeleteEnvironment)
+
 			devEnvs.GET("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetEnvironmentAdmins)
 			devEnvs.POST("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.AddAdminToEnvironment)
 			devEnvs.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("environment", "update"), devEnvHandlers.RemoveAdminFromEnvironment)

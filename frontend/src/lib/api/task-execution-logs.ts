@@ -6,14 +6,6 @@ import type {
 } from "@/types/task-execution-log";
 
 export const taskExecutionLogsApi = {
-  getExecutionLog: async (
-    conversationId: number
-  ): Promise<TaskExecutionLog> => {
-    const response = await request<TaskExecutionLog>(
-      `/conversations/${conversationId}/execution-log`
-    );
-    return response;
-  },
 
   cancelExecution: async (
     conversationId: number

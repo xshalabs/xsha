@@ -2275,70 +2275,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/conversations/{id}/execution-log": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get detailed execution log of AI task by conversation ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Task Execution Log"
-                ],
-                "summary": "Get task conversation execution log",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Conversation ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/database.TaskExecutionLog"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/conversations/{id}/execution/cancel": {
             "post": {
                 "security": [
@@ -4176,7 +4112,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get Git credential list compatible with protocol type",
+                "description": "Get Git credential list compatible with protocol type, auto-detected from repo URL or specified protocol",
                 "consumes": [
                     "application/json"
                 ],
@@ -4190,10 +4126,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Protocol type (https/ssh)",
+                        "description": "Repository URL for protocol auto-detection",
+                        "name": "repo_url",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Protocol type (https/ssh) - fallback if repo_url not provided",
                         "name": "protocol",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -6168,41 +6109,6 @@ const docTemplate = `{
                 }
             }
         },
-        "database.TaskExecutionLog": {
-            "type": "object",
-            "properties": {
-                "completed_at": {
-                    "type": "string"
-                },
-                "conversation": {
-                    "$ref": "#/definitions/database.TaskConversation"
-                },
-                "conversation_id": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "docker_command": {
-                    "type": "string"
-                },
-                "error_message": {
-                    "type": "string"
-                },
-                "execution_logs": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "started_at": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
         "database.TaskStatus": {
             "type": "string",
             "enum": [
@@ -6429,7 +6335,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "name",
-                "protocol",
                 "repo_url"
             ],
             "properties": {
