@@ -127,12 +127,9 @@ type TaskService interface {
 type TaskConversationService interface {
 	CreateConversationWithExecutionTime(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, adminID *uint) (*database.TaskConversation, error)
 	CreateConversationWithExecutionTimeAndAttachments(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, attachmentIDs []uint, adminID *uint) (*database.TaskConversation, error)
-	GetConversation(id uint) (*database.TaskConversation, error)
 	GetConversationWithResult(id uint) (map[string]interface{}, error)
 	ListConversations(taskID uint, page, pageSize int) ([]database.TaskConversation, int64, error)
-	UpdateConversation(id uint, updates map[string]interface{}) error
 	DeleteConversation(id uint) error
-	GetLatestConversation(taskID uint) (*database.TaskConversation, error)
 	GetConversationGitDiff(conversationID uint, includeContent bool) (*utils.GitDiffSummary, error)
 	GetConversationGitDiffFile(conversationID uint, filePath string) (string, error)
 	ValidateConversationData(taskID uint, content string) error

@@ -626,13 +626,6 @@ definitions:
           $ref: '#/definitions/database.Task'
         type: array
     type: object
-  handlers.UpdateConversationRequest:
-    description: Update conversation request
-    properties:
-      content:
-        example: Updated conversation content
-        type: string
-    type: object
   handlers.UpdateCredentialRequest:
     description: Request parameters for updating Git credentials
     properties:
@@ -1943,99 +1936,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete task conversation
-      tags:
-      - Task Conversations
-    get:
-      consumes:
-      - application/json
-      description: Get a conversation by ID
-      parameters:
-      - description: Conversation ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Conversation retrieved successfully
-          schema:
-            properties:
-              data:
-                type: object
-              message:
-                type: string
-            type: object
-        "400":
-          description: Invalid conversation ID
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "401":
-          description: Authentication failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "404":
-          description: Conversation not found
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get task conversation
-      tags:
-      - Task Conversations
-    put:
-      consumes:
-      - application/json
-      description: Update a conversation's content
-      parameters:
-      - description: Conversation ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Conversation update information
-        in: body
-        name: conversation
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.UpdateConversationRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Conversation updated successfully
-          schema:
-            properties:
-              message:
-                type: string
-            type: object
-        "400":
-          description: Request parameter error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "401":
-          description: Authentication failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Update task conversation
       tags:
       - Task Conversations
   /conversations/{id}/details:

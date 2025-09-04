@@ -37,10 +37,6 @@ type CreateConversationRequest struct {
 	AttachmentIDs []uint     `json:"attachment_ids,omitempty" swaggertype:"array,integer" example:"1,2"`
 }
 
-// @Description Update conversation request
-type UpdateConversationRequest struct {
-	Content string `json:"content" example:"Updated conversation content"`
-}
 
 // CreateConversation creates a new task conversation
 // @Summary Create task conversation
@@ -100,40 +96,6 @@ func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 	})
 }
 
-// GetConversation retrieves a specific conversation
-// @Summary Get task conversation
-// @Description Get a conversation by ID
-// @Tags Task Conversations
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "Conversation ID"
-// @Success 200 {object} object{message=string,data=object} "Conversation retrieved successfully"
-// @Failure 400 {object} object{error=string} "Invalid conversation ID"
-// @Failure 401 {object} object{error=string} "Authentication failed"
-// @Failure 404 {object} object{error=string} "Conversation not found"
-// @Router /conversations/{id} [get]
-func (h *TaskConversationHandlers) GetConversation(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
-		return
-	}
-
-	conversation, err := h.conversationService.GetConversation(uint(id))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.not_found")})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "taskConversation.get_success"),
-		"data":    conversation,
-	})
-}
 
 // GetConversationDetails retrieves a conversation with its result details
 // @Summary Get conversation details
@@ -220,47 +182,6 @@ func (h *TaskConversationHandlers) ListConversations(c *gin.Context) {
 	})
 }
 
-// UpdateConversation updates a conversation
-// @Summary Update task conversation
-// @Description Update a conversation's content
-// @Tags Task Conversations
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "Conversation ID"
-// @Param conversation body UpdateConversationRequest true "Conversation update information"
-// @Success 200 {object} object{message=string} "Conversation updated successfully"
-// @Failure 400 {object} object{error=string} "Request parameter error"
-// @Failure 401 {object} object{error=string} "Authentication failed"
-// @Router /conversations/{id} [put]
-func (h *TaskConversationHandlers) UpdateConversation(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
-		return
-	}
-
-	var req UpdateConversationRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error())})
-		return
-	}
-
-	updates := make(map[string]interface{})
-	if req.Content != "" {
-		updates["content"] = req.Content
-	}
-
-	if err := h.conversationService.UpdateConversation(uint(id), updates); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "taskConversation.update_success")})
-}
 
 // DeleteConversation deletes a conversation
 // @Summary Delete task conversation
@@ -293,45 +214,6 @@ func (h *TaskConversationHandlers) DeleteConversation(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "taskConversation.update_success")})
 }
 
-// GetLatestConversation retrieves the latest conversation for a task
-// @Summary Get latest task conversation
-// @Description Get the most recent conversation for a specific task
-// @Tags Task Conversations
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param task_id query int true "Task ID"
-// @Success 200 {object} object{message=string,data=object} "Latest conversation retrieved successfully"
-// @Failure 400 {object} object{error=string} "Request parameter error"
-// @Failure 401 {object} object{error=string} "Authentication failed"
-// @Failure 404 {object} object{error=string} "Conversation not found"
-// @Router /conversations/latest [get]
-func (h *TaskConversationHandlers) GetLatestConversation(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	taskIDStr := c.Query("task_id")
-	if taskIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "task.project_id_required")})
-		return
-	}
-
-	taskID, err := strconv.ParseUint(taskIDStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
-		return
-	}
-
-	conversation, err := h.conversationService.GetLatestConversation(uint(taskID))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.not_found")})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "taskConversation.get_success"),
-		"data":    conversation,
-	})
-}
 
 // GetConversationGitDiff retrieves Git diff for a conversation
 // @Summary Get conversation Git diff

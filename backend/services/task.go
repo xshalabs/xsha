@@ -92,7 +92,6 @@ func (s *taskService) GetTaskByIDAndProject(taskID, projectID uint) (*database.T
 	return s.repo.GetByIDAndProjectID(taskID, projectID)
 }
 
-
 func (s *taskService) UpdateTask(id uint, updates map[string]interface{}) error {
 	task, err := s.repo.GetByID(id)
 	if err != nil {
@@ -215,10 +214,6 @@ func (s *taskService) DeleteTask(id uint) error {
 		return err
 	}
 
-	utils.Info("Task deleted",
-		"task_id", id,
-		"created_by", "admin",
-	)
 	return nil
 }
 
@@ -447,7 +442,6 @@ func (s *taskService) PushTaskBranch(id uint, forcePush bool) (string, error) {
 		return output, err
 	}
 
-	utils.Info("Successfully pushed task branch", "taskID", id, "branch", task.WorkBranch)
 	return output, nil
 }
 

@@ -105,10 +105,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		{
 			conversations.POST("", taskConvHandlers.CreateConversation)
 			conversations.GET("", taskConvHandlers.ListConversations)
-			conversations.GET("/latest", taskConvHandlers.GetLatestConversation)
-			conversations.GET("/:id", taskConvHandlers.GetConversation)
 			conversations.GET("/:id/details", taskConvHandlers.GetConversationDetails)
-			conversations.PUT("/:id", middleware.RequirePermission("conversation", "update"), taskConvHandlers.UpdateConversation)
 			conversations.DELETE("/:id", middleware.RequirePermission("conversation", "delete"), taskConvHandlers.DeleteConversation)
 			conversations.GET("/:id/git-diff", taskConvHandlers.GetConversationGitDiff)
 			conversations.GET("/:id/git-diff/file", taskConvHandlers.GetConversationGitDiffFile)

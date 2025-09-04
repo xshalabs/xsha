@@ -164,9 +164,6 @@ func (s *taskConversationService) CreateConversationWithExecutionTimeAndAttachme
 	return conversation, nil
 }
 
-func (s *taskConversationService) GetConversation(id uint) (*database.TaskConversation, error) {
-	return s.repo.GetByID(id)
-}
 
 func (s *taskConversationService) GetConversationWithResult(id uint) (map[string]interface{}, error) {
 	conversation, result, executionLog, err := s.repo.GetWithResult(id)
@@ -194,29 +191,6 @@ func (s *taskConversationService) ListConversations(taskID uint, page, pageSize 
 	return s.repo.List(taskID, page, pageSize)
 }
 
-func (s *taskConversationService) UpdateConversation(id uint, updates map[string]interface{}) error {
-	conversation, err := s.repo.GetByID(id)
-	if err != nil {
-		return err
-	}
-
-	if content, ok := updates["content"]; ok {
-		if contentStr, ok := content.(string); ok && strings.TrimSpace(contentStr) == "" {
-			return appErrors.ErrRequired
-		}
-	}
-
-	for key, value := range updates {
-		switch key {
-		case "content":
-			if v, ok := value.(string); ok {
-				conversation.Content = strings.TrimSpace(v)
-			}
-		}
-	}
-
-	return s.repo.Update(conversation)
-}
 
 func (s *taskConversationService) DeleteConversation(id uint) error {
 	conversation, err := s.repo.GetByID(id)
@@ -302,9 +276,6 @@ func (s *taskConversationService) DeleteConversation(id uint) error {
 	return nil
 }
 
-func (s *taskConversationService) GetLatestConversation(taskID uint) (*database.TaskConversation, error) {
-	return s.repo.GetLatestByTask(taskID)
-}
 
 func (s *taskConversationService) ValidateConversationData(taskID uint, content string) error {
 	if strings.TrimSpace(content) == "" {
