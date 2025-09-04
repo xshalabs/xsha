@@ -138,6 +138,11 @@ func (s *gitCredentialService) ListActiveCredentials(credType *database.GitCrede
 	return credentials, err
 }
 
+func (s *gitCredentialService) ListActiveCredentialsByAdminAccess(adminID uint, credType *database.GitCredentialType) ([]database.GitCredential, error) {
+	credentials, _, err := s.repo.ListByAdminAccess(adminID, nil, credType, 1, 1000)
+	return credentials, err
+}
+
 func (s *gitCredentialService) DecryptCredentialSecret(credential *database.GitCredential, secretType string) (string, error) {
 	switch secretType {
 	case "password", "token":

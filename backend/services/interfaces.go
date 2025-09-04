@@ -48,6 +48,7 @@ type GitCredentialService interface {
 	UpdateCredential(id uint, updates map[string]interface{}, secretData map[string]string) error
 	DeleteCredential(id uint) error
 	ListActiveCredentials(credType *database.GitCredentialType) ([]database.GitCredential, error)
+	ListActiveCredentialsByAdminAccess(adminID uint, credType *database.GitCredentialType) ([]database.GitCredential, error)
 	DecryptCredentialSecret(credential *database.GitCredential, secretType string) (string, error)
 	ValidateCredentialData(credType string, data map[string]string) error
 
@@ -66,7 +67,7 @@ type ProjectService interface {
 	UpdateProject(id uint, updates map[string]interface{}) error
 	DeleteProject(id uint) error
 	ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint) error
-	GetCompatibleCredentials(protocol database.GitProtocolType) ([]database.GitCredential, error)
+	GetCompatibleCredentials(protocol database.GitProtocolType, admin *database.Admin) ([]database.GitCredential, error)
 	FetchRepositoryBranches(repoURL string, credentialID *uint) (*utils.GitAccessResult, error)
 }
 

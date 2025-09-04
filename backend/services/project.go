@@ -199,19 +199,37 @@ func (s *projectService) ValidateProtocolCredential(protocol database.GitProtoco
 	return nil
 }
 
-func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolType) ([]database.GitCredential, error) {
+func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolType, admin *database.Admin) ([]database.GitCredential, error) {
 	switch protocol {
 	case database.GitProtocolHTTPS:
 		passwordType := database.GitCredentialTypePassword
-		passwordCreds, err := s.gitCredService.ListActiveCredentials(&passwordType)
-		if err != nil {
-			return nil, err
-		}
-
 		tokenType := database.GitCredentialTypeToken
-		tokenCreds, err := s.gitCredService.ListActiveCredentials(&tokenType)
-		if err != nil {
-			return nil, err
+		
+		var passwordCreds, tokenCreds []database.GitCredential
+		var err error
+		
+		if admin.Role == database.AdminRoleSuperAdmin {
+			// Super admin can see all credentials
+			passwordCreds, err = s.gitCredService.ListActiveCredentials(&passwordType)
+			if err != nil {
+				return nil, err
+			}
+			
+			tokenCreds, err = s.gitCredService.ListActiveCredentials(&tokenType)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			// Regular admin can only see credentials they have access to
+			passwordCreds, err = s.gitCredService.ListActiveCredentialsByAdminAccess(admin.ID, &passwordType)
+			if err != nil {
+				return nil, err
+			}
+			
+			tokenCreds, err = s.gitCredService.ListActiveCredentialsByAdminAccess(admin.ID, &tokenType)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		credentials := append(passwordCreds, tokenCreds...)
@@ -219,7 +237,14 @@ func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolT
 
 	case database.GitProtocolSSH:
 		sshType := database.GitCredentialTypeSSHKey
-		return s.gitCredService.ListActiveCredentials(&sshType)
+		
+		if admin.Role == database.AdminRoleSuperAdmin {
+			// Super admin can see all credentials
+			return s.gitCredService.ListActiveCredentials(&sshType)
+		} else {
+			// Regular admin can only see credentials they have access to
+			return s.gitCredService.ListActiveCredentialsByAdminAccess(admin.ID, &sshType)
+		}
 
 	default:
 		return nil, appErrors.ErrInvalidProtocol

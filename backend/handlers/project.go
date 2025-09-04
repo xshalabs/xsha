@@ -363,7 +363,9 @@ func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 		return
 	}
 
-	credentials, err := h.projectService.GetCompatibleCredentials(protocolType)
+	admin := middleware.GetAdminFromContext(c)
+
+	credentials, err := h.projectService.GetCompatibleCredentials(protocolType, admin)
 	if err != nil {
 		helper := i18n.NewHelper(lang)
 		helper.ErrorResponseFromError(c, http.StatusBadRequest, err)
