@@ -73,7 +73,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			gitCreds.PUT("/:id", middleware.RequirePermission("credential", "update"), gitCredHandlers.UpdateCredential)
 			gitCreds.DELETE("/:id", middleware.RequirePermission("credential", "delete"), gitCredHandlers.DeleteCredential)
 
-			gitCreds.GET("/:id/admins", middleware.RequirePermission("credential", "read"), gitCredHandlers.GetCredentialAdmins)
+			gitCreds.GET("/:id/admins", middleware.RequirePermission("credential", "update"), gitCredHandlers.GetCredentialAdmins)
 			gitCreds.POST("/:id/admins", middleware.RequirePermission("credential", "update"), gitCredHandlers.AddCredentialAdmin)
 			gitCreds.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("credential", "update"), gitCredHandlers.RemoveCredentialAdmin)
 		}
@@ -143,7 +143,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			devEnvs.GET("/:id", devEnvHandlers.GetEnvironment)
 			devEnvs.PUT("/:id", middleware.RequirePermission("environment", "update"), devEnvHandlers.UpdateEnvironment)
 			devEnvs.DELETE("/:id", middleware.RequirePermission("environment", "delete"), devEnvHandlers.DeleteEnvironment)
-			devEnvs.GET("/:id/admins", middleware.RequirePermission("environment", "read"), devEnvHandlers.GetEnvironmentAdmins)
+			devEnvs.GET("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetEnvironmentAdmins)
 			devEnvs.POST("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.AddAdminToEnvironment)
 			devEnvs.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("environment", "update"), devEnvHandlers.RemoveAdminFromEnvironment)
 		}
