@@ -10,7 +10,7 @@ export const taskExecutionLogsApi = {
     conversationId: number
   ): Promise<TaskExecutionLog> => {
     const response = await request<TaskExecutionLog>(
-      `/task-conversations/${conversationId}/execution-log`
+      `/conversations/${conversationId}/execution-log`
     );
     return response;
   },
@@ -19,7 +19,7 @@ export const taskExecutionLogsApi = {
     conversationId: number
   ): Promise<ExecutionActionResponse> => {
     return request<ExecutionActionResponse>(
-      `/task-conversations/${conversationId}/execution/cancel`,
+      `/conversations/${conversationId}/execution/cancel`,
       {
         method: "POST",
       }
@@ -30,7 +30,7 @@ export const taskExecutionLogsApi = {
     conversationId: number
   ): Promise<ExecutionActionResponse> => {
     return request<ExecutionActionResponse>(
-      `/task-conversations/${conversationId}/execution/retry`,
+      `/conversations/${conversationId}/execution/retry`,
       {
         method: "POST",
       }

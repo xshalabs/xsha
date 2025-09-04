@@ -118,6 +118,9 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			conversations.GET("/:id/git-diff", taskConvHandlers.GetConversationGitDiff)
 			conversations.GET("/:id/git-diff/file", taskConvHandlers.GetConversationGitDiffFile)
 			conversations.GET("/:id/logs/stream", taskConvHandlers.StreamConversationLogs)
+			conversations.GET("/:id/execution-log", taskExecLogHandlers.GetExecutionLog)
+			conversations.POST("/:id/execution/cancel", taskExecLogHandlers.CancelExecution)
+			conversations.POST("/:id/execution/retry", taskExecLogHandlers.RetryExecution)
 		}
 
 		attachments := api.Group("/attachments")
@@ -131,9 +134,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			attachments.DELETE("/:id", attachmentHandlers.DeleteAttachment)
 		}
 
-		api.GET("/task-conversations/:conversationId/execution-log", taskExecLogHandlers.GetExecutionLog)
-		api.POST("/task-conversations/:conversationId/execution/cancel", taskExecLogHandlers.CancelExecution)
-		api.POST("/task-conversations/:conversationId/execution/retry", taskExecLogHandlers.RetryExecution)
 
 		devEnvs := api.Group("/environments")
 		{

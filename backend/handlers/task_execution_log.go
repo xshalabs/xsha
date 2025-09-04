@@ -26,17 +26,17 @@ func NewTaskExecutionLogHandlers(aiTaskExecutor services.AITaskExecutorService) 
 // @Tags Task Execution Log
 // @Accept json
 // @Produce json
-// @Param conversationId path int true "Conversation ID"
+// @Param id path int true "Conversation ID"
 // @Success 200 {object} database.TaskExecutionLog
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Security BearerAuth
-// @Router /task-conversations/{conversationId}/execution-log [get]
+// @Router /conversations/{id}/execution-log [get]
 func (h *TaskExecutionLogHandlers) GetExecutionLog(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	conversationIDStr := c.Param("conversationId")
+	conversationIDStr := c.Param("id")
 	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
@@ -58,17 +58,17 @@ func (h *TaskExecutionLogHandlers) GetExecutionLog(c *gin.Context) {
 // @Tags Task Execution Log
 // @Accept json
 // @Produce json
-// @Param conversationId path int true "Conversation ID"
+// @Param id path int true "Conversation ID"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Security BearerAuth
-// @Router /task-conversations/{conversationId}/execution/cancel [post]
+// @Router /conversations/{id}/execution/cancel [post]
 func (h *TaskExecutionLogHandlers) CancelExecution(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	conversationIDStr := c.Param("conversationId")
+	conversationIDStr := c.Param("id")
 	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
@@ -92,17 +92,17 @@ func (h *TaskExecutionLogHandlers) CancelExecution(c *gin.Context) {
 // @Tags Task Execution Log
 // @Accept json
 // @Produce json
-// @Param conversationId path int true "Conversation ID"
+// @Param id path int true "Conversation ID"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Security BearerAuth
-// @Router /task-conversations/{conversationId}/execution/retry [post]
+// @Router /conversations/{id}/execution/retry [post]
 func (h *TaskExecutionLogHandlers) RetryExecution(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	conversationIDStr := c.Param("conversationId")
+	conversationIDStr := c.Param("id")
 	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
