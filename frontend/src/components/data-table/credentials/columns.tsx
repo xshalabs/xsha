@@ -92,6 +92,19 @@ export const createGitCredentialColumns = ({
     },
   },
   {
+    id: "admin_count",
+    header: t("gitCredentials.columns.admins"),
+    cell: ({ row }) => {
+      const admins = row.original.admins || [];
+      const count = admins.length;
+      return (
+        <Badge variant="secondary">
+          {count} {count === 1 ? t("gitCredentials.columns.admin") : t("gitCredentials.columns.admins")}
+        </Badge>
+      );
+    },
+  },
+  {
     accessorKey: "created_at",
     header: t("gitCredentials.columns.created"),
     cell: ({ row }) => {

@@ -35,6 +35,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 	api.Use(middleware.AuthMiddlewareWithService(authService, adminService, cfg))
 	api.Use(middleware.OperationLogMiddleware(operationLogHandlers.OperationLogService))
 	{
+		r.GET("/api/v1/admin/avatar/preview/:uuid", adminAvatarHandlers.PreviewAvatarHandler)
 		api.GET("/user/current", authHandlers.CurrentUserHandler)
 		api.PUT("/user/change-password", authHandlers.ChangeOwnPasswordHandler)
 		api.PUT("/user/update-avatar", authHandlers.UpdateOwnAvatarHandler)
@@ -64,9 +65,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			admin.GET("/roles", adminHandlers.GetAvailableRolesHandler)
 		}
 
-		// Avatar preview (public endpoint, no auth required)
-		r.GET("/api/v1/admin/avatar/preview/:uuid", adminAvatarHandlers.PreviewAvatarHandler)
-
 		gitCreds := api.Group("/credentials")
 		{
 			gitCreds.POST("", middleware.RequirePermission("credential", "create"), gitCredHandlers.CreateCredential)
@@ -74,6 +72,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			gitCreds.GET("/:id", gitCredHandlers.GetCredential)
 			gitCreds.PUT("/:id", middleware.RequirePermission("credential", "update"), gitCredHandlers.UpdateCredential)
 			gitCreds.DELETE("/:id", middleware.RequirePermission("credential", "delete"), gitCredHandlers.DeleteCredential)
+
 			gitCreds.GET("/:id/admins", middleware.RequirePermission("credential", "read"), gitCredHandlers.GetCredentialAdmins)
 			gitCreds.POST("/:id/admins", middleware.RequirePermission("credential", "update"), gitCredHandlers.AddCredentialAdmin)
 			gitCreds.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("credential", "update"), gitCredHandlers.RemoveCredentialAdmin)
