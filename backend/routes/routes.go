@@ -98,20 +98,20 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 				tasks.GET("/:taskId/git-diff/file", taskHandlers.GetTaskGitDiffFile)
 				tasks.POST("/:taskId/push", taskHandlers.PushTaskBranch)
 				tasks.PUT("/batch/status", taskHandlers.BatchUpdateTaskStatus)
-			}
-		}
 
-		conversations := api.Group("/conversations")
-		{
-			conversations.POST("", taskConvHandlers.CreateConversation)
-			conversations.GET("", taskConvHandlers.ListConversations)
-			conversations.GET("/:id/details", taskConvHandlers.GetConversationDetails)
-			conversations.DELETE("/:id", taskConvHandlers.DeleteConversation)
-			conversations.GET("/:id/git-diff", taskConvHandlers.GetConversationGitDiff)
-			conversations.GET("/:id/git-diff/file", taskConvHandlers.GetConversationGitDiffFile)
-			conversations.GET("/:id/logs/stream", taskConvHandlers.StreamConversationLogs)
-			conversations.POST("/:id/execution/cancel", taskExecLogHandlers.CancelExecution)
-			conversations.POST("/:id/execution/retry", taskExecLogHandlers.RetryExecution)
+				conversations := tasks.Group("/:taskId/conversations")
+				{
+					conversations.POST("", taskConvHandlers.CreateConversation)
+					conversations.GET("", taskConvHandlers.ListConversations)
+					conversations.GET("/:convId/details", taskConvHandlers.GetConversationDetails)
+					conversations.DELETE("/:convId", taskConvHandlers.DeleteConversation)
+					conversations.GET("/:convId/git-diff", taskConvHandlers.GetConversationGitDiff)
+					conversations.GET("/:convId/git-diff/file", taskConvHandlers.GetConversationGitDiffFile)
+					conversations.GET("/:convId/logs/stream", taskConvHandlers.StreamConversationLogs)
+					conversations.POST("/:convId/execution/cancel", taskExecLogHandlers.CancelExecution)
+					conversations.POST("/:convId/execution/retry", taskExecLogHandlers.RetryExecution)
+				}
+			}
 		}
 
 		attachments := api.Group("/attachments")

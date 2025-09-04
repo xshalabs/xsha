@@ -56,7 +56,6 @@ export interface CreateConversationRequest {
 }
 
 export interface ConversationListParams {
-  task_id: number;
   page?: number;
   page_size?: number;
 }

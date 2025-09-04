@@ -4,7 +4,6 @@ import type {
   CreateConversationResponse,
   ConversationListResponse,
   ConversationWithResultAndLogResponse,
-  ConversationListParams,
   ConversationGitDiffParams,
   ConversationGitDiffResponse,
   ConversationGitDiffFileParams,
@@ -14,43 +13,55 @@ import type { ExecutionActionResponse } from "@/types/task-execution-log";
 
 export const taskConversationsApi = {
   create: async (
+    projectId: number,
+    taskId: number,
     data: CreateConversationRequest
   ): Promise<CreateConversationResponse> => {
-    return request<CreateConversationResponse>("/conversations", {
+    return request<CreateConversationResponse>(`/projects/${projectId}/tasks/${taskId}/conversations`, {
       method: "POST",
       body: JSON.stringify(data),
     });
   },
 
   list: async (
-    params: ConversationListParams
+    projectId: number,
+    taskId: number,
+    params?: { page?: number; page_size?: number }
   ): Promise<ConversationListResponse> => {
     const searchParams = new URLSearchParams();
-    searchParams.set("task_id", params.task_id.toString());
-    if (params.page) searchParams.set("page", params.page.toString());
-    if (params.page_size)
+    if (params?.page) searchParams.set("page", params.page.toString());
+    if (params?.page_size)
       searchParams.set("page_size", params.page_size.toString());
 
     const queryString = searchParams.toString();
-    return request<ConversationListResponse>(`/conversations?${queryString}`);
+    const url = `/projects/${projectId}/tasks/${taskId}/conversations${queryString ? `?${queryString}` : ""}`;
+    return request<ConversationListResponse>(url);
   },
 
   getDetails: async (
-    id: number
+    projectId: number,
+    taskId: number,
+    conversationId: number
   ): Promise<ConversationWithResultAndLogResponse> => {
     return request<ConversationWithResultAndLogResponse>(
-      `/conversations/${id}/details`
+      `/projects/${projectId}/tasks/${taskId}/conversations/${conversationId}/details`
     );
   },
 
-  delete: async (id: number): Promise<{ message: string }> => {
-    return request<{ message: string }>(`/conversations/${id}`, {
+  delete: async (
+    projectId: number,
+    taskId: number,
+    conversationId: number
+  ): Promise<{ message: string }> => {
+    return request<{ message: string }>(`/projects/${projectId}/tasks/${taskId}/conversations/${conversationId}`, {
       method: "DELETE",
     });
   },
 
 
   getGitDiff: async (
+    projectId: number,
+    taskId: number,
     conversationId: number,
     params?: ConversationGitDiffParams
   ): Promise<ConversationGitDiffResponse> => {
@@ -59,7 +70,7 @@ export const taskConversationsApi = {
       searchParams.set("include_content", "true");
     }
 
-    const url = `/conversations/${conversationId}/git-diff${
+    const url = `/projects/${projectId}/tasks/${taskId}/conversations/${conversationId}/git-diff${
       searchParams.toString() ? `?${searchParams.toString()}` : ""
     }`;
     return request<ConversationGitDiffResponse>(url, {
@@ -68,23 +79,27 @@ export const taskConversationsApi = {
   },
 
   getGitDiffFile: async (
+    projectId: number,
+    taskId: number,
     conversationId: number,
     params: ConversationGitDiffFileParams
   ): Promise<ConversationGitDiffFileResponse> => {
     const searchParams = new URLSearchParams();
     searchParams.set("file_path", params.file_path);
 
-    const url = `/conversations/${conversationId}/git-diff/file?${searchParams.toString()}`;
+    const url = `/projects/${projectId}/tasks/${taskId}/conversations/${conversationId}/git-diff/file?${searchParams.toString()}`;
     return request<ConversationGitDiffFileResponse>(url, {
       method: "GET",
     });
   },
 
   cancelExecution: async (
+    projectId: number,
+    taskId: number,
     conversationId: number
   ): Promise<ExecutionActionResponse> => {
     return request<ExecutionActionResponse>(
-      `/conversations/${conversationId}/execution/cancel`,
+      `/projects/${projectId}/tasks/${taskId}/conversations/${conversationId}/execution/cancel`,
       {
         method: "POST",
       }
@@ -92,10 +107,12 @@ export const taskConversationsApi = {
   },
 
   retryExecution: async (
+    projectId: number,
+    taskId: number,
     conversationId: number
   ): Promise<ExecutionActionResponse> => {
     return request<ExecutionActionResponse>(
-      `/conversations/${conversationId}/execution/retry`,
+      `/projects/${projectId}/tasks/${taskId}/conversations/${conversationId}/execution/retry`,
       {
         method: "POST",
       }
