@@ -10,6 +10,7 @@ import type {
   ConversationGitDiffFileParams,
   ConversationGitDiffFileResponse,
 } from "@/types/task-conversation";
+import type { ExecutionActionResponse } from "@/types/task-execution-log";
 
 export const taskConversationsApi = {
   create: async (
@@ -77,5 +78,27 @@ export const taskConversationsApi = {
     return request<ConversationGitDiffFileResponse>(url, {
       method: "GET",
     });
+  },
+
+  cancelExecution: async (
+    conversationId: number
+  ): Promise<ExecutionActionResponse> => {
+    return request<ExecutionActionResponse>(
+      `/conversations/${conversationId}/execution/cancel`,
+      {
+        method: "POST",
+      }
+    );
+  },
+
+  retryExecution: async (
+    conversationId: number
+  ): Promise<ExecutionActionResponse> => {
+    return request<ExecutionActionResponse>(
+      `/conversations/${conversationId}/execution/retry`,
+      {
+        method: "POST",
+      }
+    );
   },
 };

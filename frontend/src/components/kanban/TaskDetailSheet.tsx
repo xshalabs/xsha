@@ -27,7 +27,6 @@ import { ConversationGitDiffModal } from "./ConversationGitDiffModal";
 import { ConversationDetailModal } from "@/components/ConversationDetailModal";
 import { ConversationLogModal } from "./ConversationLogModal";
 import { useTaskConversations } from "@/hooks/useTaskConversations";
-import { taskExecutionLogsApi } from "@/lib/api/task-execution-logs";
 import { taskConversationsApi } from "@/lib/api/task-conversations";
 import { tasksApi } from "@/lib/api/tasks";
 import {
@@ -173,7 +172,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     
     setRetrying(true);
     try {
-      await taskExecutionLogsApi.retryExecution(retryConversationId);
+      await taskConversationsApi.retryExecution(retryConversationId);
       toast.success(t("taskConversations.execution.actions.retry") + " " + t("common.success"));
       // Refresh conversations to show updated status
       await loadConversations();
@@ -199,7 +198,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     
     setCancelling(true);
     try {
-      await taskExecutionLogsApi.cancelExecution(cancelConversationId);
+      await taskConversationsApi.cancelExecution(cancelConversationId);
       toast.success(t("taskConversations.execution.actions.cancel") + " " + t("common.success"));
       // Refresh conversations to show updated status
       await loadConversations();
