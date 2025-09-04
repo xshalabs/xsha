@@ -355,7 +355,6 @@ func (h *AdminHandlers) ChangePasswordHandler(c *gin.Context) {
 	})
 }
 
-
 // GetAvailableRolesHandler returns available admin roles
 // @Summary Get available roles
 // @Description Get list of available administrator roles
@@ -367,7 +366,7 @@ func (h *AdminHandlers) ChangePasswordHandler(c *gin.Context) {
 // @Router /admin/roles [get]
 func (h *AdminHandlers) GetAvailableRolesHandler(c *gin.Context) {
 	roles := h.adminService.GetAvailableRoles()
-	
+
 	roleNames := make([]string, len(roles))
 	for i, role := range roles {
 		roleNames[i] = string(role)
@@ -405,4 +404,3 @@ func (h *AdminHandlers) PublicListAdminsHandler(c *gin.Context) {
 		"admins": adminResponses,
 	})
 }
-

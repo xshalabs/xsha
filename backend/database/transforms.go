@@ -106,3 +106,40 @@ func ToEnvironmentListItemResponses(environments []DevEnvironment) []Environment
 	}
 	return responses
 }
+
+// ToCredentialListItemResponse converts GitCredential to CredentialListItemResponse with minimal admin data
+func ToCredentialListItemResponse(cred GitCredential) CredentialListItemResponse {
+	response := CredentialListItemResponse{
+		ID:          cred.ID,
+		CreatedAt:   cred.CreatedAt,
+		UpdatedAt:   cred.UpdatedAt,
+		Name:        cred.Name,
+		Description: cred.Description,
+		Type:        cred.Type,
+		Username:    cred.Username,
+		AdminID:     cred.AdminID,
+		CreatedBy:   cred.CreatedBy,
+	}
+
+	// Convert legacy single admin to minimal version
+	if cred.Admin != nil {
+		minimalAdmin := ToMinimalAdminResponse(*cred.Admin)
+		response.Admin = &minimalAdmin
+	}
+
+	// Convert many-to-many admins to minimal versions
+	if len(cred.Admins) > 0 {
+		response.Admins = ToMinimalAdminResponses(cred.Admins)
+	}
+
+	return response
+}
+
+// ToCredentialListItemResponses converts slice of GitCredential to slice of CredentialListItemResponse
+func ToCredentialListItemResponses(credentials []GitCredential) []CredentialListItemResponse {
+	responses := make([]CredentialListItemResponse, len(credentials))
+	for i, cred := range credentials {
+		responses[i] = ToCredentialListItemResponse(cred)
+	}
+	return responses
+}

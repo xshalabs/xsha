@@ -35,6 +35,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 	api.Use(middleware.AuthMiddlewareWithService(authService, adminService, cfg))
 	api.Use(middleware.OperationLogMiddleware(operationLogHandlers.OperationLogService))
 	{
+		r.GET("/api/v1/admin/avatar/preview/:uuid", adminAvatarHandlers.PreviewAvatarHandler)
 		api.GET("/user/current", authHandlers.CurrentUserHandler)
 		api.PUT("/user/change-password", authHandlers.ChangeOwnPasswordHandler)
 		api.PUT("/user/update-avatar", authHandlers.UpdateOwnAvatarHandler)
@@ -64,16 +65,17 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			admin.GET("/roles", adminHandlers.GetAvailableRolesHandler)
 		}
 
-		// Avatar preview (public endpoint, no auth required)
-		r.GET("/api/v1/admin/avatar/preview/:uuid", adminAvatarHandlers.PreviewAvatarHandler)
-
 		gitCreds := api.Group("/credentials")
 		{
-			gitCreds.POST("", middleware.RequireAdminOrSuperAdmin(), gitCredHandlers.CreateCredential)
+			gitCreds.POST("", middleware.RequirePermission("credential", "create"), gitCredHandlers.CreateCredential)
 			gitCreds.GET("", gitCredHandlers.ListCredentials)
 			gitCreds.GET("/:id", gitCredHandlers.GetCredential)
 			gitCreds.PUT("/:id", middleware.RequirePermission("credential", "update"), gitCredHandlers.UpdateCredential)
 			gitCreds.DELETE("/:id", middleware.RequirePermission("credential", "delete"), gitCredHandlers.DeleteCredential)
+
+			gitCreds.GET("/:id/admins", middleware.RequirePermission("credential", "update"), gitCredHandlers.GetCredentialAdmins)
+			gitCreds.POST("/:id/admins", middleware.RequirePermission("credential", "update"), gitCredHandlers.AddCredentialAdmin)
+			gitCreds.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("credential", "update"), gitCredHandlers.RemoveCredentialAdmin)
 		}
 
 		projects := api.Group("/projects")
@@ -141,7 +143,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			devEnvs.GET("/:id", devEnvHandlers.GetEnvironment)
 			devEnvs.PUT("/:id", middleware.RequirePermission("environment", "update"), devEnvHandlers.UpdateEnvironment)
 			devEnvs.DELETE("/:id", middleware.RequirePermission("environment", "delete"), devEnvHandlers.DeleteEnvironment)
-			devEnvs.GET("/:id/admins", middleware.RequirePermission("environment", "read"), devEnvHandlers.GetEnvironmentAdmins)
+			devEnvs.GET("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetEnvironmentAdmins)
 			devEnvs.POST("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.AddAdminToEnvironment)
 			devEnvs.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("environment", "update"), devEnvHandlers.RemoveAdminFromEnvironment)
 		}

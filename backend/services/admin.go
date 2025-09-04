@@ -13,9 +13,10 @@ import (
 )
 
 type adminService struct {
-	adminRepo     repository.AdminRepository
-	authService   AuthService
-	devEnvService DevEnvironmentService
+	adminRepo      repository.AdminRepository
+	authService    AuthService
+	devEnvService  DevEnvironmentService
+	gitCredService GitCredentialService
 }
 
 func NewAdminService(adminRepo repository.AdminRepository) AdminService {
@@ -30,6 +31,10 @@ func (s *adminService) SetAuthService(authService AuthService) {
 
 func (s *adminService) SetDevEnvironmentService(devEnvService DevEnvironmentService) {
 	s.devEnvService = devEnvService
+}
+
+func (s *adminService) SetGitCredentialService(gitCredService GitCredentialService) {
+	s.gitCredService = gitCredService
 }
 
 func (s *adminService) CreateAdmin(username, password, name, email, createdBy string) (*database.Admin, error) {
@@ -424,14 +429,28 @@ func (s *adminService) checkConversationPermission(admin *database.Admin, action
 func (s *adminService) checkCredentialPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
 	switch action {
 	case "create":
-		return admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin
+		// Developer, Admin and SuperAdmin can all create credentials
+		return admin.Role == database.AdminRoleDeveloper || admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin
 	case "read":
 		return true // All roles can read credentials (masked)
 	case "update", "delete":
 		if admin.Role == database.AdminRoleSuperAdmin {
 			return true
 		}
-		return admin.Role == database.AdminRoleAdmin && admin.ID == resourceOwnerID
+		// Admin and Developer can update/delete credentials they have admin access to
+		if admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleDeveloper {
+			// resourceOwnerID is the credential ID, check if admin has access to this credential
+			if s.gitCredService != nil {
+				canAccess, err := s.gitCredService.CanAdminAccessCredential(resourceOwnerID, admin.ID)
+				if err != nil {
+					return false
+				}
+				return canAccess
+			}
+			// Fallback: if gitCredService is not set, deny access to prevent security issues
+			return false
+		}
+		return false
 	default:
 		return false
 	}

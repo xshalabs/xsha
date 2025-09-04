@@ -33,10 +33,18 @@ type AdminRepository interface {
 type GitCredentialRepository interface {
 	Create(credential *database.GitCredential) error
 	GetByID(id uint) (*database.GitCredential, error)
+	GetByIDWithAdmins(id uint) (*database.GitCredential, error)
 	GetByName(name string) (*database.GitCredential, error)
 	List(name *string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
+	ListByAdminAccess(adminID uint, name *string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
 	Update(credential *database.GitCredential) error
 	Delete(id uint) error
+
+	// Admin management methods
+	AddAdmin(credentialID, adminID uint) error
+	RemoveAdmin(credentialID, adminID uint) error
+	GetAdmins(credentialID uint) ([]database.Admin, error)
+	IsAdminForCredential(credentialID, adminID uint) (bool, error)
 }
 
 type ProjectRepository interface {
@@ -74,7 +82,7 @@ type DevEnvironmentRepository interface {
 	ListByAdminAccess(adminID uint, name *string, dockerImage *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
 	Update(env *database.DevEnvironment) error
 	Delete(id uint) error
-	
+
 	// Admin management methods
 	AddAdmin(envID, adminID uint) error
 	RemoveAdmin(envID, adminID uint) error

@@ -182,5 +182,9 @@
   "admin.update_success": "管理员用户更新成功",
   "admin.delete_success": "管理员用户删除成功",
   "admin.password_change_success": "管理员密码修改成功",
-  "admin.list_success": "管理员用户获取成功"
+  "admin.list_success": "管理员用户获取成功",
+
+  "git_credential.not_found": "Git凭据不存在",
+  "git_credential.admin_added_success": "管理员已成功添加到凭据",
+  "git_credential.admin_removed_success": "管理员已从凭据中移除"
 }

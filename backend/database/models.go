@@ -88,8 +88,13 @@ type GitCredential struct {
 	PrivateKey   string `gorm:"type:text" json:"-"`
 	PublicKey    string `gorm:"type:text" json:"public_key"`
 
-	AdminID   *uint  `gorm:"index" json:"admin_id"`
-	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+	// Legacy single admin relationship (for backward compatibility)
+	AdminID *uint  `gorm:"index" json:"admin_id"`
+	Admin   *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+
+	// Many-to-many relationship for credential admins
+	Admins []Admin `gorm:"many2many:git_credential_admins;" json:"admins,omitempty"`
+
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 
@@ -180,12 +185,12 @@ type DevEnvironment struct {
 	SessionDir string `gorm:"type:text" json:"session_dir"`
 
 	// Legacy single admin relationship (for backward compatibility)
-	AdminID   *uint  `gorm:"index" json:"admin_id"`
-	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
-	
+	AdminID *uint  `gorm:"index" json:"admin_id"`
+	Admin   *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+
 	// Many-to-many relationship for environment admins
-	Admins    []Admin `gorm:"many2many:dev_environment_admins;" json:"admins,omitempty"`
-	
+	Admins []Admin `gorm:"many2many:dev_environment_admins;" json:"admins,omitempty"`
+
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 
@@ -401,19 +406,19 @@ type AdminAvatarMinimal struct {
 
 // AdminListResponse represents admin information for list API responses
 type AdminListResponse struct {
-	ID           uint                `json:"id"`
-	CreatedAt    time.Time           `json:"created_at"`
-	UpdatedAt    time.Time           `json:"updated_at"`
-	Username     string              `json:"username"`
-	Name         string              `json:"name"`
-	Email        string              `json:"email"`
-	Role         AdminRole           `json:"role"`
-	IsActive     bool                `json:"is_active"`
-	LastLoginAt  *time.Time          `json:"last_login_at"`
-	LastLoginIP  string              `json:"last_login_ip"`
-	AvatarID     *uint               `json:"avatar_id"`
-	Avatar       *AdminAvatarMinimal `json:"avatar,omitempty"`
-	CreatedBy    string              `json:"created_by"`
+	ID          uint                `json:"id"`
+	CreatedAt   time.Time           `json:"created_at"`
+	UpdatedAt   time.Time           `json:"updated_at"`
+	Username    string              `json:"username"`
+	Name        string              `json:"name"`
+	Email       string              `json:"email"`
+	Role        AdminRole           `json:"role"`
+	IsActive    bool                `json:"is_active"`
+	LastLoginAt *time.Time          `json:"last_login_at"`
+	LastLoginIP string              `json:"last_login_ip"`
+	AvatarID    *uint               `json:"avatar_id"`
+	Avatar      *AdminAvatarMinimal `json:"avatar,omitempty"`
+	CreatedBy   string              `json:"created_by"`
 }
 
 // MinimalAdminResponse represents minimal admin information for environment list responses
@@ -442,4 +447,19 @@ type EnvironmentListItemResponse struct {
 	Admin        *MinimalAdminResponse  `json:"admin,omitempty"`
 	Admins       []MinimalAdminResponse `json:"admins,omitempty"`
 	CreatedBy    string                 `json:"created_by"`
+}
+
+// CredentialListItemResponse represents credential information with minimal admin data for list responses
+type CredentialListItemResponse struct {
+	ID          uint                   `json:"id"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Type        GitCredentialType      `json:"type"`
+	Username    string                 `json:"username"`
+	AdminID     *uint                  `json:"admin_id"`
+	Admin       *MinimalAdminResponse  `json:"admin,omitempty"`
+	Admins      []MinimalAdminResponse `json:"admins,omitempty"`
+	CreatedBy   string                 `json:"created_by"`
 }

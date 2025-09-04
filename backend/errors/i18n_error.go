@@ -118,9 +118,12 @@ var (
 	ErrCannotDeleteSystemAdmin    = &I18nError{Key: "admin.cannot_delete_system"}
 	ErrCannotRemoveLastSuperAdmin = &I18nError{Key: "admin.cannot_remove_last_super_admin"}
 
-	// Environment admin management errors  
+	// Environment admin management errors
 	ErrAdminAlreadyAssigned     = &I18nError{Key: "dev_environment.admin_already_assigned"}
 	ErrAdminNotAssigned         = &I18nError{Key: "dev_environment.admin_not_assigned"}
 	ErrCannotRemoveLastAdmin    = &I18nError{Key: "dev_environment.cannot_remove_last_admin"}
 	ErrCannotRemovePrimaryAdmin = &I18nError{Key: "dev_environment.cannot_remove_primary_admin"}
+
+	// Git credential errors that might be missing
+	ErrCredentialNotFound = &I18nError{Key: "git_credential.not_found"}
 )

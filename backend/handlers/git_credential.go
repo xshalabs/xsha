@@ -149,7 +149,6 @@ func (h *GitCredentialHandlers) GetCredential(c *gin.Context) {
 func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	// Parse query parameters
 	page := 1
 	pageSize := 20
 	var name *string
@@ -173,7 +172,18 @@ func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 		credType = &credTypeValue
 	}
 
-	credentials, total, err := h.gitCredService.ListCredentials(name, credType, page, pageSize)
+	admin := middleware.GetAdminFromContext(c)
+
+	var credentials []database.GitCredential
+	var total int64
+	var err error
+	if admin.Role == database.AdminRoleSuperAdmin {
+		// Super admin can see all credentials
+		credentials, total, err = h.gitCredService.ListCredentials(name, credType, page, pageSize)
+	} else {
+		// Regular admin and developer can only see credentials they have access to
+		credentials, total, err = h.gitCredService.ListCredentialsByAdminAccess(admin.ID, name, credType, page, pageSize)
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "common.internal_error"),
@@ -183,9 +193,11 @@ func (h *GitCredentialHandlers) ListCredentials(c *gin.Context) {
 
 	totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
 
+	credentialResponses := database.ToCredentialListItemResponses(credentials)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":     i18n.T(lang, "common.success"),
-		"credentials": credentials,
+		"credentials": credentialResponses,
 		"total":       total,
 		"page":        page,
 		"page_size":   pageSize,
@@ -282,5 +294,142 @@ func (h *GitCredentialHandlers) DeleteCredential(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": i18n.T(lang, "git_credential.delete_success"),
+	})
+}
+
+// @Description Request parameters for adding admin to credential
+type AddCredentialAdminRequest struct {
+	AdminID uint `json:"admin_id" binding:"required" example:"1"`
+}
+
+// GetCredentialAdmins gets all admins for a credential
+// @Summary Get credential admins
+// @Description Get all admins for a specific credential
+// @Tags Git Credentials
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Credential ID"
+// @Success 200 {object} object{admins=[]object} "Credential admins retrieved successfully"
+// @Failure 400 {object} object{error=string} "Invalid credential ID"
+// @Failure 404 {object} object{error=string} "Credential not found"
+// @Router /credentials/{id}/admins [get]
+func (h *GitCredentialHandlers) GetCredentialAdmins(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format"),
+		})
+		return
+	}
+
+	admins, err := h.gitCredService.GetCredentialAdmins(uint(id))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	// Transform to list response with minimal avatar data
+	adminResponses := database.ToAdminListResponses(admins)
+	c.JSON(http.StatusOK, gin.H{
+		"admins": adminResponses,
+	})
+}
+
+// AddCredentialAdmin adds an admin to a credential
+// @Summary Add admin to credential
+// @Description Add an admin to a credential
+// @Tags Git Credentials
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Credential ID"
+// @Param admin body AddCredentialAdminRequest true "Admin information"
+// @Success 200 {object} object{message=string} "Admin added to credential successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 404 {object} object{error=string} "Credential not found"
+// @Router /credentials/{id}/admins [post]
+func (h *GitCredentialHandlers) AddCredentialAdmin(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	idStr := c.Param("id")
+	credentialID, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format"),
+		})
+		return
+	}
+
+	var req AddCredentialAdminRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
+		})
+		return
+	}
+
+	err = h.gitCredService.AddAdminToCredential(uint(credentialID), req.AdminID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "git_credential.admin_added_success"),
+	})
+}
+
+// RemoveCredentialAdmin removes an admin from a credential
+// @Summary Remove admin from credential
+// @Description Remove an admin from a credential
+// @Tags Git Credentials
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Credential ID"
+// @Param admin_id path int true "Admin ID"
+// @Success 200 {object} object{message=string} "Admin removed from credential successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 404 {object} object{error=string} "Credential not found"
+// @Router /credentials/{id}/admins/{admin_id} [delete]
+func (h *GitCredentialHandlers) RemoveCredentialAdmin(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	idStr := c.Param("id")
+	credentialID, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format"),
+		})
+		return
+	}
+
+	adminIDStr := c.Param("admin_id")
+	adminID, err := strconv.ParseUint(adminIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format"),
+		})
+		return
+	}
+
+	err = h.gitCredService.RemoveAdminFromCredential(uint(credentialID), uint(adminID))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "git_credential.admin_removed_success"),
 	})
 }
