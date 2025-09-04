@@ -31,7 +31,7 @@ export interface CreateProjectRequest {
   description?: string;
   system_prompt?: string;
   repo_url: string;
-  protocol: GitProtocolType;
+  protocol?: GitProtocolType;
   credential_id?: number;
 }
 
@@ -90,20 +90,6 @@ export interface ProjectFormData {
   credential_id?: number;
 }
 
-export interface ParseRepositoryURLRequest {
-  repo_url: string;
-}
-
-export interface ParseRepositoryURLResponse {
-  message: string;
-  result: {
-    protocol: string;
-    host: string;
-    owner: string;
-    repo: string;
-    is_valid: boolean;
-  };
-}
 
 export interface FetchRepositoryBranchesRequest {
   repo_url: string;

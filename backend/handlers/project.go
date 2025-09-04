@@ -29,7 +29,7 @@ type CreateProjectRequest struct {
 	Description  string `json:"description"`
 	SystemPrompt string `json:"system_prompt"`
 	RepoURL      string `json:"repo_url" binding:"required"`
-	Protocol     string `json:"protocol" binding:"required,oneof=https ssh"`
+	Protocol     string `json:"protocol" binding:"omitempty,oneof=https ssh"`
 	CredentialID *uint  `json:"credential_id"`
 }
 
@@ -80,6 +80,13 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
 		})
 		return
+	}
+
+	// Auto-detect protocol from repository URL
+	urlInfo := utils.ParseGitURL(req.RepoURL)
+	if urlInfo.IsValid {
+		// Use detected protocol instead of user input
+		req.Protocol = string(urlInfo.Protocol)
 	}
 
 	project, err := h.projectService.CreateProject(
@@ -351,56 +358,6 @@ func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	})
 }
 
-// @Description Parse repository URL request
-type ParseRepositoryURLRequest struct {
-	RepoURL string `json:"repo_url" binding:"required" example:"https://github.com/user/repo.git"`
-}
-
-// @Description Parse repository URL response
-type ParseRepositoryURLResponse struct {
-	Protocol string `json:"protocol" example:"https"`
-	Host     string `json:"host" example:"github.com"`
-	Owner    string `json:"owner" example:"user"`
-	Repo     string `json:"repo" example:"repo"`
-	IsValid  bool   `json:"is_valid" example:"true"`
-}
-
-// @Summary Parse repository URL
-// @Description Parse repository URL automatically detect protocol type and parse URL information
-// @Tags Project
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body ParseRepositoryURLRequest true "Repository URL"
-// @Success 200 {object} object{message=string,result=ParseRepositoryURLResponse} "Parse successfully"
-// @Failure 400 {object} object{error=string} "Request parameter error"
-// @Router /projects/parse-url [post]
-func (h *ProjectHandlers) ParseRepositoryURL(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	var req ParseRepositoryURLRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
-		})
-		return
-	}
-
-	urlInfo := utils.ParseGitURL(req.RepoURL)
-
-	response := ParseRepositoryURLResponse{
-		Protocol: string(urlInfo.Protocol),
-		Host:     urlInfo.Host,
-		Owner:    urlInfo.Owner,
-		Repo:     urlInfo.Repo,
-		IsValid:  urlInfo.IsValid,
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "common.success"),
-		"result":  response,
-	})
-}
 
 // @Description Request parameters for fetching Git repository branch list
 type FetchRepositoryBranchesRequest struct {

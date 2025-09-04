@@ -25,7 +25,6 @@ export function ProjectFormSheet({
     formData,
     loading,
     credentialsLoading,
-    urlParsing,
     credentialValidating,
     error,
     errors,
@@ -63,7 +62,6 @@ export function ProjectFormSheet({
           formData={formData}
           errors={errors}
           disabled={loading}
-          urlParsing={urlParsing}
           onChange={handleInputChange}
         />
 

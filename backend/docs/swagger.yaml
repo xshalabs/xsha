@@ -590,34 +590,6 @@ definitions:
           $ref: '#/definitions/database.Task'
         type: array
     type: object
-  handlers.ParseRepositoryURLRequest:
-    description: Parse repository URL request
-    properties:
-      repo_url:
-        example: https://github.com/user/repo.git
-        type: string
-    required:
-    - repo_url
-    type: object
-  handlers.ParseRepositoryURLResponse:
-    description: Parse repository URL response
-    properties:
-      host:
-        example: github.com
-        type: string
-      is_valid:
-        example: true
-        type: boolean
-      owner:
-        example: user
-        type: string
-      protocol:
-        example: https
-        type: string
-      repo:
-        example: repo
-        type: string
-    type: object
   handlers.UpdateConversationRequest:
     description: Update conversation request
     properties:
@@ -3563,43 +3535,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Get compatible credentials
-      tags:
-      - Project
-  /projects/parse-url:
-    post:
-      consumes:
-      - application/json
-      description: Parse repository URL automatically detect protocol type and parse
-        URL information
-      parameters:
-      - description: Repository URL
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.ParseRepositoryURLRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Parse successfully
-          schema:
-            properties:
-              message:
-                type: string
-              result:
-                $ref: '#/definitions/handlers.ParseRepositoryURLResponse'
-            type: object
-        "400":
-          description: Request parameter error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Parse repository URL
       tags:
       - Project
   /settings:

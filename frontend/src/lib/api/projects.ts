@@ -7,7 +7,6 @@ import type {
   ProjectDetailResponse,
   CompatibleCredentialsResponse,
   ProjectListParams,
-  ParseRepositoryURLResponse,
   FetchRepositoryBranchesRequest,
   FetchRepositoryBranchesResponse,
 } from "@/types/project";
@@ -66,12 +65,6 @@ export const projectsApi = {
     );
   },
 
-  parseUrl: async (repoUrl: string): Promise<ParseRepositoryURLResponse> => {
-    return request<ParseRepositoryURLResponse>("/projects/parse-url", {
-      method: "POST",
-      body: JSON.stringify({ repo_url: repoUrl }),
-    });
-  },
 
   fetchBranches: async (
     data: FetchRepositoryBranchesRequest

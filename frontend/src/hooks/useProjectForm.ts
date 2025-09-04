@@ -38,11 +38,9 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
   const [credentials, setCredentials] = useState<CredentialOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [credentialsLoading, setCredentialsLoading] = useState(false);
-  const [urlParsing, setUrlParsing] = useState(false);
   const [credentialValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [urlParseTimeout, setUrlParseTimeout] = useState<NodeJS.Timeout | null>(null);
   const [accessValidated, setAccessValidated] = useState(false);
   const [accessError, setAccessError] = useState<string | null>(null);
 
@@ -60,40 +58,6 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
   }, []);
 
 
-  const parseRepositoryUrl = useCallback(
-    async (url: string) => {
-      if (!url.trim()) {
-        return;
-      }
-
-      const gitUrlPattern = /^(https?:\/\/|git@|ssh:\/\/)/;
-      if (!gitUrlPattern.test(url)) {
-        return;
-      }
-
-      try {
-        setUrlParsing(true);
-        const response = await apiService.projects.parseUrl(url);
-
-        if (response.result.is_valid) {
-          const detectedProtocol = response.result.protocol as GitProtocolType;
-
-          if (detectedProtocol !== formData.protocol) {
-            setFormData((prev) => ({
-              ...prev,
-              protocol: detectedProtocol,
-              credential_id: undefined,
-            }));
-          }
-        }
-      } catch (error) {
-        logError(error as Error, "Failed to parse repository URL");
-      } finally {
-        setUrlParsing(false);
-      }
-    },
-    [formData.protocol]
-  );
 
   const validateForm = useCallback((): boolean => {
     const newErrors: Record<string, string> = {};
@@ -131,23 +95,12 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
       }));
     }
 
-    if (field === "repo_url" && typeof value === "string") {
-      if (urlParseTimeout) {
-        clearTimeout(urlParseTimeout);
-      }
-
-      const timeoutId = setTimeout(() => {
-        parseRepositoryUrl(value);
-      }, 500);
-
-      setUrlParseTimeout(timeoutId);
-    }
 
     if (field === "credential_id") {
       setAccessValidated(false);
       setAccessError(null);
     }
-  }, [errors, urlParseTimeout, parseRepositoryUrl]);
+  }, [errors]);
 
   const handleSubmit = useCallback(async () => {
     if (!validateForm()) {
@@ -179,7 +132,6 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
           description: formData.description,
           system_prompt: formData.system_prompt,
           repo_url: formData.repo_url,
-          protocol: formData.protocol,
           credential_id: formData.credential_id,
         };
 
@@ -221,13 +173,6 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
   }, [formData.protocol, loadCredentials]);
 
 
-  useEffect(() => {
-    return () => {
-      if (urlParseTimeout) {
-        clearTimeout(urlParseTimeout);
-      }
-    };
-  }, [urlParseTimeout]);
 
   return {
     // Form data
@@ -237,7 +182,6 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
     // Loading states
     loading,
     credentialsLoading,
-    urlParsing,
     credentialValidating,
 
     // Error states
@@ -254,6 +198,5 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
     // Actions
     handleInputChange,
     handleSubmit,
-    parseRepositoryUrl,
   };
 }

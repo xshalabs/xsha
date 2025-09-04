@@ -4228,64 +4228,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/projects/parse-url": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Parse repository URL automatically detect protocol type and parse URL information",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Project"
-                ],
-                "summary": "Parse repository URL",
-                "parameters": [
-                    {
-                        "description": "Repository URL",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ParseRepositoryURLRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Parse successfully",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string"
-                                },
-                                "result": {
-                                    "$ref": "#/definitions/handlers.ParseRepositoryURLResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Request parameter error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/projects/{id}": {
             "get": {
                 "security": [
@@ -6623,45 +6565,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/database.Task"
                     }
-                }
-            }
-        },
-        "handlers.ParseRepositoryURLRequest": {
-            "description": "Parse repository URL request",
-            "type": "object",
-            "required": [
-                "repo_url"
-            ],
-            "properties": {
-                "repo_url": {
-                    "type": "string",
-                    "example": "https://github.com/user/repo.git"
-                }
-            }
-        },
-        "handlers.ParseRepositoryURLResponse": {
-            "description": "Parse repository URL response",
-            "type": "object",
-            "properties": {
-                "host": {
-                    "type": "string",
-                    "example": "github.com"
-                },
-                "is_valid": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "owner": {
-                    "type": "string",
-                    "example": "user"
-                },
-                "protocol": {
-                    "type": "string",
-                    "example": "https"
-                },
-                "repo": {
-                    "type": "string",
-                    "example": "repo"
                 }
             }
         },
