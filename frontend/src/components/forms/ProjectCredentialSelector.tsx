@@ -24,7 +24,6 @@ interface ProjectCredentialSelectorProps {
   disabled?: boolean;
   credentialsLoading?: boolean;
   credentialValidating?: boolean;
-  accessValidated?: boolean;
   accessError?: string | null;
   onChange: (field: keyof ProjectFormData, value: number | undefined) => void;
 }
@@ -35,7 +34,6 @@ export function ProjectCredentialSelector({
   disabled = false,
   credentialsLoading = false,
   credentialValidating = false,
-  accessValidated = false,
   accessError = null,
   onChange,
 }: ProjectCredentialSelectorProps) {
@@ -105,12 +103,6 @@ export function ProjectCredentialSelector({
         <div className="flex items-center space-x-2 text-sm text-blue-600">
           <Loader2 className="h-3 w-3 animate-spin" />
           <span>{t("projects.repository.validatingAccess")}</span>
-        </div>
-      )}
-
-      {accessValidated && !credentialValidating && (
-        <div className="text-sm text-green-600">
-          ✓ {t("projects.repository.accessValidated")}
         </div>
       )}
 

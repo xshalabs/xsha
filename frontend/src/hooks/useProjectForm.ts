@@ -41,7 +41,6 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
   const [credentialValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [accessValidated, setAccessValidated] = useState(false);
   const [accessError, setAccessError] = useState<string | null>(null);
 
   const loadCredentials = useCallback(async (protocol: GitProtocolType) => {
@@ -97,7 +96,6 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
 
 
     if (field === "credential_id") {
-      setAccessValidated(false);
       setAccessError(null);
     }
   }, [errors]);
@@ -189,8 +187,6 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
     errors,
     accessError,
 
-    // Validation states
-    accessValidated,
 
     // Data
     credentials,

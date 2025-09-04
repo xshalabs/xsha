@@ -29,7 +29,6 @@ export function ProjectFormSheet({
     error,
     errors,
     accessError,
-    accessValidated,
     credentials,
     handleInputChange,
     handleSubmit: onFormSubmit,
@@ -71,7 +70,6 @@ export function ProjectFormSheet({
           disabled={loading}
           credentialsLoading={credentialsLoading}
           credentialValidating={credentialValidating}
-          accessValidated={accessValidated}
           accessError={accessError}
           onChange={handleInputChange}
         />
