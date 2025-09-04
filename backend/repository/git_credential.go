@@ -82,12 +82,12 @@ func (r *gitCredentialRepository) GetByIDWithAdmins(id uint) (*database.GitCrede
 func (r *gitCredentialRepository) ListByAdminAccess(adminID uint, name *string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error) {
 	// First, get credential IDs that the admin has access to
 	var credentialIDs []uint
-	
+
 	subQuery := r.db.Table("git_credentials").
 		Select("DISTINCT git_credentials.id").
 		Joins("LEFT JOIN git_credential_admins gca ON git_credentials.id = gca.git_credential_id").
 		Where("gca.admin_id = ? OR git_credentials.admin_id = ?", adminID, adminID)
-	
+
 	if name != nil && *name != "" {
 		subQuery = subQuery.Where("git_credentials.name LIKE ?", "%"+*name+"%")
 	}
@@ -95,7 +95,7 @@ func (r *gitCredentialRepository) ListByAdminAccess(adminID uint, name *string, 
 	if credType != nil {
 		subQuery = subQuery.Where("git_credentials.type = ?", *credType)
 	}
-	
+
 	if err := subQuery.Pluck("id", &credentialIDs).Error; err != nil {
 		return nil, 0, err
 	}
@@ -110,7 +110,7 @@ func (r *gitCredentialRepository) ListByAdminAccess(adminID uint, name *string, 
 	// Get paginated results using the credential IDs
 	var credentials []database.GitCredential
 	offset := (page - 1) * pageSize
-	
+
 	query := r.db.Where("id IN ?", credentialIDs).
 		Preload("Admin", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id, username, name, email, avatar_id").
@@ -125,7 +125,7 @@ func (r *gitCredentialRepository) ListByAdminAccess(adminID uint, name *string, 
 				})
 		}).
 		Order("created_at DESC").Offset(offset).Limit(pageSize)
-	
+
 	if err := query.Find(&credentials).Error; err != nil {
 		return nil, 0, err
 	}
@@ -170,7 +170,6 @@ func (r *gitCredentialRepository) GetAdmins(credentialID uint) ([]database.Admin
 }
 
 func (r *gitCredentialRepository) IsAdminForCredential(credentialID, adminID uint) (bool, error) {
-	// Check both legacy AdminID and many-to-many relationship
 	var count int64
 
 	// Check legacy relationship first
@@ -184,12 +183,5 @@ func (r *gitCredentialRepository) IsAdminForCredential(credentialID, adminID uin
 		return true, nil
 	}
 
-	// Check many-to-many relationship
-	if err := r.db.Table("git_credential_admins").
-		Where("git_credential_id = ? AND admin_id = ?", credentialID, adminID).
-		Count(&count).Error; err != nil {
-		return false, err
-	}
-
-	return count > 0, nil
+	return false, nil
 }
