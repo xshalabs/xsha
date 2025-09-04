@@ -33,10 +33,9 @@ export interface Task {
   };
 }
 
-export interface CreateTaskRequest {
+export interface CreateTaskApiRequest {
   title: string;
   start_branch: string;
-  project_id: number;
   dev_environment_id?: number;
   requirement_desc?: string;
   include_branches?: boolean;
@@ -71,10 +70,6 @@ export interface TaskListResponse {
   };
 }
 
-export interface TaskDetailResponse {
-  message: string;
-  data: Task;
-}
 
 export interface CreateTaskResponse {
   message: string;

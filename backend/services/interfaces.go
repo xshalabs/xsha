@@ -111,12 +111,12 @@ type DevEnvironmentService interface {
 type TaskService interface {
 	CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint, adminID *uint, createdBy string) (*database.Task, error)
 	GetTask(id uint) (*database.Task, error)
-	ListTasks(projectID *uint, statuses []database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error)
+	GetTaskByIDAndProject(taskID, projectID uint) (*database.Task, error)
 	GetKanbanTasks(projectID uint) (map[database.TaskStatus][]database.Task, error)
 	UpdateTask(id uint, updates map[string]interface{}) error
 	UpdateTaskStatus(id uint, status database.TaskStatus) error
 	UpdateTaskSessionID(id uint, sessionID string) error
-	UpdateTaskStatusBatch(taskIDs []uint, status database.TaskStatus) ([]uint, []uint, error)
+	UpdateTaskStatusBatch(taskIDs []uint, status database.TaskStatus, projectID uint) ([]uint, []uint, error)
 	DeleteTask(id uint) error
 	ValidateTaskData(title, startBranch string, projectID uint) error
 	GetTaskGitDiff(task *database.Task, includeContent bool) (*utils.GitDiffSummary, error)
@@ -125,7 +125,6 @@ type TaskService interface {
 }
 
 type TaskConversationService interface {
-	CreateConversation(taskID uint, content, createdBy string, adminID *uint) (*database.TaskConversation, error)
 	CreateConversationWithExecutionTime(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, adminID *uint) (*database.TaskConversation, error)
 	CreateConversationWithExecutionTimeAndAttachments(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, attachmentIDs []uint, adminID *uint) (*database.TaskConversation, error)
 	GetConversation(id uint) (*database.TaskConversation, error)

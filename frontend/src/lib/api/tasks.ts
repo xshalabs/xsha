@@ -1,70 +1,55 @@
 import { request } from "./request";
 import type {
-  CreateTaskRequest,
+  CreateTaskApiRequest,
   CreateTaskResponse,
   UpdateTaskRequest,
-  TaskListResponse,
-  TaskDetailResponse,
-  TaskListParams,
   Task,
 } from "@/types/task";
 
 export const tasksApi = {
-  create: async (data: CreateTaskRequest): Promise<CreateTaskResponse> => {
-    return request<CreateTaskResponse>("/tasks", {
+  create: async (
+    projectId: number,
+    data: CreateTaskApiRequest
+  ): Promise<CreateTaskResponse> => {
+    return request<CreateTaskResponse>(`/projects/${projectId}/tasks`, {
       method: "POST",
       body: JSON.stringify(data),
     });
   },
 
-  list: async (params?: TaskListParams): Promise<TaskListResponse> => {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set("page", params.page.toString());
-    if (params?.page_size)
-      searchParams.set("page_size", params.page_size.toString());
-    if (params?.project_id)
-      searchParams.set("project_id", params.project_id.toString());
-    if (params?.status) searchParams.set("status", params.status);
-    if (params?.title) searchParams.set("title", params.title);
-    if (params?.branch) searchParams.set("branch", params.branch);
-    if (params?.dev_environment_id)
-      searchParams.set(
-        "dev_environment_id",
-        params.dev_environment_id.toString()
-      );
-    if (params?.sort_by) searchParams.set("sort_by", params.sort_by);
-    if (params?.sort_direction) searchParams.set("sort_direction", params.sort_direction);
-
-    const queryString = searchParams.toString();
-    const url = queryString ? `/tasks?${queryString}` : "/tasks";
-
-    return request<TaskListResponse>(url);
-  },
-
-  get: async (id: number): Promise<TaskDetailResponse> => {
-    return request<TaskDetailResponse>(`/tasks/${id}`);
-  },
-
   update: async (
-    id: number,
+    projectId: number,
+    taskId: number,
     data: UpdateTaskRequest
   ): Promise<{ message: string }> => {
-    return request<{ message: string }>(`/tasks/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
+    return request<{ message: string }>(
+      `/projects/${projectId}/tasks/${taskId}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }
+    );
   },
 
-  delete: async (id: number): Promise<{ message: string }> => {
-    return request<{ message: string }>(`/tasks/${id}`, {
-      method: "DELETE",
-    });
+  delete: async (
+    projectId: number,
+    taskId: number
+  ): Promise<{ message: string }> => {
+    return request<{ message: string }>(
+      `/projects/${projectId}/tasks/${taskId}`,
+      {
+        method: "DELETE",
+      }
+    );
   },
 
-  batchUpdateStatus: async (data: {
-    task_ids: number[];
-    status: string;
-  }): Promise<{
+  batchUpdateStatus: async (
+    projectId: number,
+    data: {
+      task_ids: number[];
+      status: string;
+    }
+  ): Promise<{
     message: string;
     data: {
       success_count: number;
@@ -73,13 +58,14 @@ export const tasksApi = {
       failed_ids: number[];
     };
   }> => {
-    return request(`/tasks/batch/status`, {
+    return request(`/projects/${projectId}/tasks/batch/status`, {
       method: "PUT",
       body: JSON.stringify(data),
     });
   },
 
   getTaskGitDiff: async (
+    projectId: number,
     taskId: number,
     params?: TaskGitDiffParams
   ): Promise<TaskGitDiffResponse> => {
@@ -88,7 +74,7 @@ export const tasksApi = {
       searchParams.set("include_content", "true");
     }
 
-    const url = `/tasks/${taskId}/git-diff${
+    const url = `/projects/${projectId}/tasks/${taskId}/git-diff${
       searchParams.toString() ? `?${searchParams.toString()}` : ""
     }`;
     return request<TaskGitDiffResponse>(url, {
@@ -97,19 +83,21 @@ export const tasksApi = {
   },
 
   getTaskGitDiffFile: async (
+    projectId: number,
     taskId: number,
     params: TaskGitDiffFileParams
   ): Promise<TaskGitDiffFileResponse> => {
     const searchParams = new URLSearchParams();
     searchParams.set("file_path", params.file_path);
 
-    const url = `/tasks/${taskId}/git-diff/file?${searchParams.toString()}`;
+    const url = `/projects/${projectId}/tasks/${taskId}/git-diff/file?${searchParams.toString()}`;
     return request<TaskGitDiffFileResponse>(url, {
       method: "GET",
     });
   },
 
   pushTaskBranch: async (
+    projectId: number,
     taskId: number,
     forcePush: boolean = false
   ): Promise<{
@@ -118,7 +106,7 @@ export const tasksApi = {
       output: string;
     };
   }> => {
-    return request(`/tasks/${taskId}/push`, {
+    return request(`/projects/${projectId}/tasks/${taskId}/push`, {
       method: "POST",
       body: JSON.stringify({ force_push: forcePush }),
     });

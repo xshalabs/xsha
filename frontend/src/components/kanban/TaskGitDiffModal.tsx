@@ -74,9 +74,13 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const response = await apiService.tasks.getTaskGitDiff(task.id, {
-        include_content: false,
-      });
+      const response = await apiService.tasks.getTaskGitDiff(
+        task.project_id,
+        task.id,
+        {
+          include_content: false,
+        }
+      );
       const data = response.data || getDefaultDiffSummary();
       const safeDiffSummary: GitDiffSummary = {
         total_files: data.total_files || 0,
@@ -104,9 +108,13 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
 
     try {
       setLoadingFiles((prev) => new Set(prev).add(filePath));
-      const response = await apiService.tasks.getTaskGitDiffFile(task.id, {
-        file_path: filePath,
-      });
+      const response = await apiService.tasks.getTaskGitDiffFile(
+        task.project_id,
+        task.id,
+        {
+          file_path: filePath,
+        }
+      );
       setFileContents((prev) =>
         new Map(prev).set(filePath, response.data.diff_content)
       );
@@ -120,8 +128,6 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
       });
     }
   };
-
-
 
   const toggleFileExpanded = (filePath: string) => {
     const newExpanded = new Set(expandedFiles);
@@ -232,8 +238,7 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
                     -{diffSummary.total_deletions || 0}
                   </span>
                   <span className="whitespace-nowrap">
-                    {diffSummary.total_files || 0}{" "}
-                    {t("gitDiff.filesChanged")}
+                    {diffSummary.total_files || 0} {t("gitDiff.filesChanged")}
                   </span>
                 </div>
               )}
@@ -331,7 +336,10 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
                   {safeFiles.length > 0 ? (
                     <div className="space-y-2">
                       {safeFiles.map((file) => (
-                        <div key={file.path} className="border border-border rounded-lg overflow-hidden">
+                        <div
+                          key={file.path}
+                          className="border border-border rounded-lg overflow-hidden"
+                        >
                           <div
                             className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50"
                             onClick={() => toggleFileExpanded(file.path)}
@@ -381,7 +389,7 @@ export const TaskGitDiffModal: React.FC<TaskGitDiffModalProps> = ({
                               )}
                             </div>
                           </div>
-                          
+
                           {/* 在小屏幕上显示状态标签 */}
                           <div className="sm:hidden px-4 pb-3">
                             <div className="flex items-center gap-2">

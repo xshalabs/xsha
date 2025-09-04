@@ -34,7 +34,7 @@ type CreateConversationRequest struct {
 	Content       string     `json:"content" binding:"required" example:"Please implement the user authentication feature"`
 	ExecutionTime *time.Time `json:"execution_time" example:"2024-01-01T10:00:00Z"`
 	EnvParams     string     `json:"env_params" example:"{\"model\":\"sonnet\"}"`
-	AttachmentIDs []uint     `json:"attachment_ids,omitempty" example:"[1,2]"`
+	AttachmentIDs []uint     `json:"attachment_ids,omitempty" swaggertype:"array,integer" example:"1,2"`
 }
 
 // @Description Update conversation request

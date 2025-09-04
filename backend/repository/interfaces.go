@@ -93,6 +93,7 @@ type DevEnvironmentRepository interface {
 type TaskRepository interface {
 	Create(task *database.Task) error
 	GetByID(id uint) (*database.Task, error)
+	GetByIDAndProjectID(taskID, projectID uint) (*database.Task, error)
 	List(projectID *uint, statuses []database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error)
 	Update(task *database.Task) error
 	Delete(id uint) error
@@ -100,6 +101,7 @@ type TaskRepository interface {
 	ListByProject(projectID uint) ([]database.Task, error)
 	GetConversationCounts(taskIDs []uint) (map[uint]int64, error)
 	GetLatestExecutionTimes(taskIDs []uint) (map[uint]*time.Time, error)
+	UpdateStatusBatch(taskIDs []uint, status database.TaskStatus, projectID uint) ([]uint, []uint, error)
 }
 
 type TaskConversationRepository interface {

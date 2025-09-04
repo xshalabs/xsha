@@ -31,44 +31,6 @@ func NewTaskConversationService(repo repository.TaskConversationRepository, task
 	}
 }
 
-func (s *taskConversationService) CreateConversation(taskID uint, content, createdBy string, adminID *uint) (*database.TaskConversation, error) {
-	if err := s.ValidateConversationData(taskID, content); err != nil {
-		return nil, err
-	}
-
-	task, err := s.taskRepo.GetByID(taskID)
-	if err != nil {
-		return nil, appErrors.ErrTaskNotFound
-	}
-
-	if task.Status == database.TaskStatusDone || task.Status == database.TaskStatusCancelled {
-		return nil, appErrors.ErrConversationTaskCompleted
-	}
-
-	hasPendingOrRunning, err := s.repo.HasPendingOrRunningConversations(taskID)
-	if err != nil {
-		return nil, appErrors.ErrConversationGetFailed
-	}
-	if hasPendingOrRunning {
-		return nil, appErrors.ErrConversationCreateFailed
-	}
-
-	conversation := &database.TaskConversation{
-		TaskID:    taskID,
-		Content:   strings.TrimSpace(content),
-		Status:    database.ConversationStatusPending,
-		AdminID:   adminID,
-		CreatedBy: createdBy,
-	}
-
-	if err := s.repo.Create(conversation); err != nil {
-		return nil, err
-	}
-
-	conversation.Task = task
-	return conversation, nil
-}
-
 func (s *taskConversationService) CreateConversationWithExecutionTime(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, adminID *uint) (*database.TaskConversation, error) {
 	if err := s.ValidateConversationData(taskID, content); err != nil {
 		return nil, err

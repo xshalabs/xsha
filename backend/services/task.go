@@ -88,47 +88,10 @@ func (s *taskService) GetTask(id uint) (*database.Task, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *taskService) ListTasks(projectID *uint, statuses []database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 || pageSize > 100 {
-		pageSize = 20
-	}
-
-	tasks, total, err := s.repo.List(projectID, statuses, title, branch, devEnvID, sortBy, sortDirection, page, pageSize)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	if len(tasks) == 0 {
-		return tasks, total, nil
-	}
-
-	taskIDs := make([]uint, len(tasks))
-	for i, task := range tasks {
-		taskIDs[i] = task.ID
-	}
-
-	conversationCounts, err := s.repo.GetConversationCounts(taskIDs)
-	if err != nil {
-		utils.Error("Failed to get conversation counts", "error", err)
-		return tasks, total, nil
-	}
-
-	executionTimes, err := s.repo.GetLatestExecutionTimes(taskIDs)
-	if err != nil {
-		utils.Error("Failed to get latest execution times", "error", err)
-		return tasks, total, nil
-	}
-
-	for i := range tasks {
-		tasks[i].ConversationCount = conversationCounts[tasks[i].ID]
-		tasks[i].LatestExecutionTime = executionTimes[tasks[i].ID]
-	}
-
-	return tasks, total, nil
+func (s *taskService) GetTaskByIDAndProject(taskID, projectID uint) (*database.Task, error) {
+	return s.repo.GetByIDAndProjectID(taskID, projectID)
 }
+
 
 func (s *taskService) UpdateTask(id uint, updates map[string]interface{}) error {
 	task, err := s.repo.GetByID(id)
@@ -279,7 +242,7 @@ func (s *taskService) ValidateTaskData(title, startBranch string, projectID uint
 	return nil
 }
 
-func (s *taskService) UpdateTaskStatusBatch(taskIDs []uint, status database.TaskStatus) ([]uint, []uint, error) {
+func (s *taskService) UpdateTaskStatusBatch(taskIDs []uint, status database.TaskStatus, projectID uint) ([]uint, []uint, error) {
 	if len(taskIDs) == 0 {
 		return nil, nil, appErrors.ErrTaskIDsEmpty
 	}
@@ -288,40 +251,28 @@ func (s *taskService) UpdateTaskStatusBatch(taskIDs []uint, status database.Task
 		return nil, nil, appErrors.ErrTooManyTasksForBatch
 	}
 
-	var successIDs []uint
-	var failedIDs []uint
+	// Use repository batch update with project ID filter
+	successIDs, failedIDs, err := s.repo.UpdateStatusBatch(taskIDs, status, projectID)
+	if err != nil {
+		return nil, taskIDs, err
+	}
 
-	for _, taskID := range taskIDs {
-		task, err := s.repo.GetByID(taskID)
-		if err != nil {
-			failedIDs = append(failedIDs, taskID)
-			utils.Warn("Failed to get task for batch status update",
-				"task_id", taskID,
-				"created_by", "admin",
-				"error", err.Error(),
-			)
-			continue
-		}
-
-		oldStatus := task.Status
-		task.Status = status
-
-		if err := s.repo.Update(task); err != nil {
-			failedIDs = append(failedIDs, taskID)
-			utils.Error("Failed to update task status in batch",
-				"task_id", taskID,
-				"created_by", "admin",
-				"error", err.Error(),
-			)
-			continue
-		}
-
-		successIDs = append(successIDs, taskID)
+	// Log successful updates
+	for _, taskID := range successIDs {
 		utils.Info("Task status updated in batch",
 			"task_id", taskID,
+			"project_id", projectID,
 			"created_by", "admin",
-			"old_status", string(oldStatus),
 			"new_status", string(status),
+		)
+	}
+
+	// Log failed updates
+	for _, taskID := range failedIDs {
+		utils.Warn("Failed to update task status in batch (task not found in project or does not exist)",
+			"task_id", taskID,
+			"project_id", projectID,
+			"created_by", "admin",
 		)
 	}
 

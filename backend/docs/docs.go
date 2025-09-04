@@ -4455,6 +4455,93 @@ const docTemplate = `{
                 }
             }
         },
+        "/projects/{id}/tasks/batch/status": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the status of multiple tasks in a single request within a specific project",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Batch update task status",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Batch status update information",
+                        "name": "batch",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.BatchUpdateTaskStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Batch update completed",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/handlers.BatchUpdateTaskStatusResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request parameter error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication failed",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found or task not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/settings": {
             "get": {
                 "security": [
@@ -4545,156 +4632,6 @@ const docTemplate = `{
             }
         },
         "/tasks": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get a paginated list of tasks with optional filtering by project, status, title, branch, and dev environment",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tasks"
-                ],
-                "summary": "List tasks",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (default: 1)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Number of items per page (default: 20)",
-                        "name": "page_size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Filter by project ID",
-                        "name": "project_id",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "todo",
-                            "in_progress",
-                            "done",
-                            "cancelled"
-                        ],
-                        "type": "string",
-                        "description": "Filter by task status (comma-separated for multiple)",
-                        "name": "status",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by task title (partial match)",
-                        "name": "title",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by branch name",
-                        "name": "branch",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Filter by development environment ID",
-                        "name": "dev_environment_id",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "title",
-                            "start_branch",
-                            "created_at",
-                            "updated_at",
-                            "status",
-                            "conversation_count",
-                            "dev_environment_name"
-                        ],
-                        "type": "string",
-                        "description": "Sort by field",
-                        "name": "sort_by",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "asc",
-                            "desc"
-                        ],
-                        "type": "string",
-                        "description": "Sort direction",
-                        "name": "sort_direction",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Tasks retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "type": "object",
-                                    "properties": {
-                                        "page": {
-                                            "type": "integer"
-                                        },
-                                        "page_size": {
-                                            "type": "integer"
-                                        },
-                                        "tasks": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/database.Task"
-                                            }
-                                        },
-                                        "total": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                },
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Authentication failed",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
             "post": {
                 "security": [
                     {
@@ -4763,152 +4700,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/tasks/batch/status": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update the status of multiple tasks in a single request",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tasks"
-                ],
-                "summary": "Batch update task status",
-                "parameters": [
-                    {
-                        "description": "Batch status update information",
-                        "name": "batch",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.BatchUpdateTaskStatusRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Batch update completed",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "$ref": "#/definitions/handlers.BatchUpdateTaskStatusResponse"
-                                },
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Request parameter error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Authentication failed",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/tasks/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get a task by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tasks"
-                ],
-                "summary": "Get task",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Task ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Task retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "$ref": "#/definitions/database.Task"
-                                },
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid task ID",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Authentication failed",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Task not found",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
             "put": {
                 "security": [
                     {
@@ -5360,79 +5152,6 @@ const docTemplate = `{
                                 "details": {
                                     "type": "string"
                                 },
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/tasks/{id}/status": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update the status of a specific task",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tasks"
-                ],
-                "summary": "Update task status",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Task ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Task status update information",
-                        "name": "status",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.UpdateTaskStatusRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Task status updated successfully",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Request parameter error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Authentication failed",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
                                 "error": {
                                     "type": "string"
                                 }
@@ -6245,7 +5964,40 @@ const docTemplate = `{
             }
         },
         "handlers.CreateConversationRequest": {
-            "type": "object"
+            "description": "Create conversation request",
+            "type": "object",
+            "required": [
+                "content",
+                "task_id"
+            ],
+            "properties": {
+                "attachment_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1,
+                        2
+                    ]
+                },
+                "content": {
+                    "type": "string",
+                    "example": "Please implement the user authentication feature"
+                },
+                "env_params": {
+                    "type": "string",
+                    "example": "{\"model\":\"sonnet\"}"
+                },
+                "execution_time": {
+                    "type": "string",
+                    "example": "2024-01-01T10:00:00Z"
+                },
+                "task_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
         },
         "handlers.CreateCredentialRequest": {
             "description": "Request parameters for creating Git credentials",
@@ -6363,16 +6115,64 @@ const docTemplate = `{
             }
         },
         "handlers.CreateTaskRequest": {
-            "type": "object"
+            "description": "Create task request",
+            "type": "object",
+            "required": [
+                "dev_environment_id",
+                "requirement_desc",
+                "start_branch",
+                "title"
+            ],
+            "properties": {
+                "attachment_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1,
+                        2,
+                        3
+                    ]
+                },
+                "dev_environment_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "env_params": {
+                    "type": "string",
+                    "example": "{\"model\":\"sonnet\"}"
+                },
+                "execution_time": {
+                    "type": "string",
+                    "example": "2024-01-01T10:00:00Z"
+                },
+                "include_branches": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "project_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "requirement_desc": {
+                    "type": "string",
+                    "example": "Fix the login validation issue"
+                },
+                "start_branch": {
+                    "type": "string",
+                    "example": "main"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Fix user authentication bug"
+                }
+            }
         },
         "handlers.CreateTaskResponse": {
             "description": "Create task response",
             "type": "object",
             "properties": {
-                "branch_error": {
-                    "type": "string",
-                    "example": "Failed to fetch branches"
-                },
                 "project_branches": {
                     "type": "array",
                     "items": {
@@ -6428,9 +6228,9 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "example": [
-                        "[\"main\"",
-                        "\"develop\"",
-                        "\"feature-1\"]"
+                        "main",
+                        "develop",
+                        "feature-1"
                     ]
                 },
                 "can_access": {
@@ -6573,25 +6373,6 @@ const docTemplate = `{
                 "title": {
                     "type": "string",
                     "example": "Updated task title"
-                }
-            }
-        },
-        "handlers.UpdateTaskStatusRequest": {
-            "description": "Update task status request",
-            "type": "object",
-            "required": [
-                "status"
-            ],
-            "properties": {
-                "status": {
-                    "type": "string",
-                    "enum": [
-                        "todo",
-                        "in_progress",
-                        "done",
-                        "cancelled"
-                    ],
-                    "example": "in_progress"
                 }
             }
         }

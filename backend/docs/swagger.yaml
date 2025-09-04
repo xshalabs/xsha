@@ -406,6 +406,30 @@ definitions:
     - config_value
     type: object
   handlers.CreateConversationRequest:
+    description: Create conversation request
+    properties:
+      attachment_ids:
+        example:
+        - 1
+        - 2
+        items:
+          type: integer
+        type: array
+      content:
+        example: Please implement the user authentication feature
+        type: string
+      env_params:
+        example: '{"model":"sonnet"}'
+        type: string
+      execution_time:
+        example: "2024-01-01T10:00:00Z"
+        type: string
+      task_id:
+        example: 1
+        type: integer
+    required:
+    - content
+    - task_id
     type: object
   handlers.CreateCredentialRequest:
     description: Request parameters for creating Git credentials
@@ -490,13 +514,49 @@ definitions:
     - repo_url
     type: object
   handlers.CreateTaskRequest:
+    description: Create task request
+    properties:
+      attachment_ids:
+        example:
+        - 1
+        - 2
+        - 3
+        items:
+          type: integer
+        type: array
+      dev_environment_id:
+        example: 1
+        type: integer
+      env_params:
+        example: '{"model":"sonnet"}'
+        type: string
+      execution_time:
+        example: "2024-01-01T10:00:00Z"
+        type: string
+      include_branches:
+        example: true
+        type: boolean
+      project_id:
+        example: 1
+        type: integer
+      requirement_desc:
+        example: Fix the login validation issue
+        type: string
+      start_branch:
+        example: main
+        type: string
+      title:
+        example: Fix user authentication bug
+        type: string
+    required:
+    - dev_environment_id
+    - requirement_desc
+    - start_branch
+    - title
     type: object
   handlers.CreateTaskResponse:
     description: Create task response
     properties:
-      branch_error:
-        example: Failed to fetch branches
-        type: string
       project_branches:
         example:
         - main
@@ -533,9 +593,9 @@ definitions:
     properties:
       branches:
         example:
-        - '["main"'
-        - '"develop"'
-        - '"feature-1"]'
+        - main
+        - develop
+        - feature-1
         items:
           type: string
         type: array
@@ -637,20 +697,6 @@ definitions:
         type: string
     required:
     - title
-    type: object
-  handlers.UpdateTaskStatusRequest:
-    description: Update task status request
-    properties:
-      status:
-        enum:
-        - todo
-        - in_progress
-        - done
-        - cancelled
-        example: in_progress
-        type: string
-    required:
-    - status
     type: object
 host: localhost:8080
 info:
@@ -3391,6 +3437,62 @@ paths:
       summary: Get kanban tasks
       tags:
       - Tasks
+  /projects/{id}/tasks/batch/status:
+    put:
+      consumes:
+      - application/json
+      description: Update the status of multiple tasks in a single request within
+        a specific project
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Batch status update information
+        in: body
+        name: batch
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.BatchUpdateTaskStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Batch update completed
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/handlers.BatchUpdateTaskStatusResponse'
+              message:
+                type: string
+            type: object
+        "400":
+          description: Request parameter error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "401":
+          description: Authentication failed
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Project not found or task not found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Batch update task status
+      tags:
+      - Tasks
   /projects/branches:
     post:
       consumes:
@@ -3532,108 +3634,6 @@ paths:
       tags:
       - System Configuration
   /tasks:
-    get:
-      consumes:
-      - application/json
-      description: Get a paginated list of tasks with optional filtering by project,
-        status, title, branch, and dev environment
-      parameters:
-      - default: 1
-        description: 'Page number (default: 1)'
-        in: query
-        name: page
-        type: integer
-      - default: 20
-        description: 'Number of items per page (default: 20)'
-        in: query
-        name: page_size
-        type: integer
-      - description: Filter by project ID
-        in: query
-        name: project_id
-        type: integer
-      - description: Filter by task status (comma-separated for multiple)
-        enum:
-        - todo
-        - in_progress
-        - done
-        - cancelled
-        in: query
-        name: status
-        type: string
-      - description: Filter by task title (partial match)
-        in: query
-        name: title
-        type: string
-      - description: Filter by branch name
-        in: query
-        name: branch
-        type: string
-      - description: Filter by development environment ID
-        in: query
-        name: dev_environment_id
-        type: integer
-      - description: Sort by field
-        enum:
-        - title
-        - start_branch
-        - created_at
-        - updated_at
-        - status
-        - conversation_count
-        - dev_environment_name
-        in: query
-        name: sort_by
-        type: string
-      - description: Sort direction
-        enum:
-        - asc
-        - desc
-        in: query
-        name: sort_direction
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Tasks retrieved successfully
-          schema:
-            properties:
-              data:
-                properties:
-                  page:
-                    type: integer
-                  page_size:
-                    type: integer
-                  tasks:
-                    items:
-                      $ref: '#/definitions/database.Task'
-                    type: array
-                  total:
-                    type: integer
-                type: object
-              message:
-                type: string
-            type: object
-        "401":
-          description: Authentication failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: List tasks
-      tags:
-      - Tasks
     post:
       consumes:
       - application/json
@@ -3722,54 +3722,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete task
-      tags:
-      - Tasks
-    get:
-      consumes:
-      - application/json
-      description: Get a task by ID
-      parameters:
-      - description: Task ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Task retrieved successfully
-          schema:
-            properties:
-              data:
-                $ref: '#/definitions/database.Task'
-              message:
-                type: string
-            type: object
-        "400":
-          description: Invalid task ID
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "401":
-          description: Authentication failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "404":
-          description: Task not found
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get task
       tags:
       - Tasks
     put:
@@ -4015,95 +3967,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Push task branch
-      tags:
-      - Tasks
-  /tasks/{id}/status:
-    put:
-      consumes:
-      - application/json
-      description: Update the status of a specific task
-      parameters:
-      - description: Task ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Task status update information
-        in: body
-        name: status
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.UpdateTaskStatusRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Task status updated successfully
-          schema:
-            properties:
-              message:
-                type: string
-            type: object
-        "400":
-          description: Request parameter error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "401":
-          description: Authentication failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Update task status
-      tags:
-      - Tasks
-  /tasks/batch/status:
-    put:
-      consumes:
-      - application/json
-      description: Update the status of multiple tasks in a single request
-      parameters:
-      - description: Batch status update information
-        in: body
-        name: batch
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.BatchUpdateTaskStatusRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Batch update completed
-          schema:
-            properties:
-              data:
-                $ref: '#/definitions/handlers.BatchUpdateTaskStatusResponse'
-              message:
-                type: string
-            type: object
-        "400":
-          description: Request parameter error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "401":
-          description: Authentication failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Batch update task status
       tags:
       - Tasks
   /user/change-password:

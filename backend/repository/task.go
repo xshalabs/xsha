@@ -29,6 +29,16 @@ func (r *taskRepository) GetByID(id uint) (*database.Task, error) {
 	return &task, nil
 }
 
+func (r *taskRepository) GetByIDAndProjectID(taskID, projectID uint) (*database.Task, error) {
+	var task database.Task
+	err := r.db.Preload("Project").Preload("DevEnvironment").Preload("Conversations").
+		Where("id = ? AND project_id = ?", taskID, projectID).First(&task).Error
+	if err != nil {
+		return nil, err
+	}
+	return &task, nil
+}
+
 func (r *taskRepository) List(projectID *uint, statuses []database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error) {
 	var tasks []database.Task
 	var total int64
@@ -189,4 +199,44 @@ func (r *taskRepository) GetLatestExecutionTimes(taskIDs []uint) (map[uint]*time
 	}
 
 	return executionTimes, nil
+}
+
+func (r *taskRepository) UpdateStatusBatch(taskIDs []uint, status database.TaskStatus, projectID uint) ([]uint, []uint, error) {
+	if len(taskIDs) == 0 {
+		return []uint{}, []uint{}, nil
+	}
+
+	// First, find which tasks exist and belong to the specified project
+	var validTaskIDs []uint
+	err := r.db.Model(&database.Task{}).
+		Where("id IN ? AND project_id = ?", taskIDs, projectID).
+		Pluck("id", &validTaskIDs).Error
+	if err != nil {
+		return nil, taskIDs, err
+	}
+
+	// Determine failed task IDs
+	validTaskIDSet := make(map[uint]bool)
+	for _, id := range validTaskIDs {
+		validTaskIDSet[id] = true
+	}
+
+	var failedIDs []uint
+	for _, taskID := range taskIDs {
+		if !validTaskIDSet[taskID] {
+			failedIDs = append(failedIDs, taskID)
+		}
+	}
+
+	// Perform batch update only for valid task IDs
+	if len(validTaskIDs) > 0 {
+		err = r.db.Model(&database.Task{}).
+			Where("id IN ? AND project_id = ?", validTaskIDs, projectID).
+			Update("status", status).Error
+		if err != nil {
+			return nil, taskIDs, err
+		}
+	}
+
+	return validTaskIDs, failedIDs, nil
 }

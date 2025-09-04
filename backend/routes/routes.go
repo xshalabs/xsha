@@ -88,20 +88,17 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			projects.PUT("/:id", middleware.RequirePermission("project", "update"), projectHandlers.UpdateProject)
 			projects.DELETE("/:id", middleware.RequirePermission("project", "delete"), projectHandlers.DeleteProject)
 			projects.GET("/:id/kanban", taskHandlers.GetKanbanTasks)
-		}
 
-		tasks := api.Group("/tasks")
-		{
-			tasks.POST("", taskHandlers.CreateTask)
-			tasks.GET("", taskHandlers.ListTasks)
-			tasks.GET("/:id", taskHandlers.GetTask)
-			tasks.PUT("/:id", middleware.RequirePermission("task", "update"), taskHandlers.UpdateTask)
-			tasks.PUT("/:id/status", middleware.RequirePermission("task", "update"), taskHandlers.UpdateTaskStatus)
-			tasks.PUT("/batch/status", taskHandlers.BatchUpdateTaskStatus)
-			tasks.DELETE("/:id", middleware.RequirePermission("task", "delete"), taskHandlers.DeleteTask)
-			tasks.GET("/:id/git-diff", taskHandlers.GetTaskGitDiff)
-			tasks.GET("/:id/git-diff/file", taskHandlers.GetTaskGitDiffFile)
-			tasks.POST("/:id/push", taskHandlers.PushTaskBranch)
+			tasks := projects.Group("/:id/tasks")
+			{
+				tasks.POST("", taskHandlers.CreateTask)
+				tasks.PUT("/:taskId", middleware.RequirePermission("task", "update"), taskHandlers.UpdateTask)
+				tasks.DELETE("/:taskId", middleware.RequirePermission("task", "delete"), taskHandlers.DeleteTask)
+				tasks.GET("/:taskId/git-diff", taskHandlers.GetTaskGitDiff)
+				tasks.GET("/:taskId/git-diff/file", taskHandlers.GetTaskGitDiffFile)
+				tasks.POST("/:taskId/push", taskHandlers.PushTaskBranch)
+				tasks.PUT("/batch/status", taskHandlers.BatchUpdateTaskStatus)
+			}
 		}
 
 		conversations := api.Group("/conversations")
@@ -124,7 +121,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		{
 			attachments.POST("/upload", attachmentHandlers.UploadAttachment)
 			attachments.GET("", attachmentHandlers.GetConversationAttachments)
-
 			attachments.GET("/:id", attachmentHandlers.GetAttachment)
 			attachments.GET("/:id/download", attachmentHandlers.DownloadAttachment)
 			attachments.GET("/:id/preview", attachmentHandlers.PreviewAttachment)

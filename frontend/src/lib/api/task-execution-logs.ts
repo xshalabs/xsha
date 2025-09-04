@@ -1,6 +1,5 @@
 import { request } from "./request";
 import type {
-  TaskExecutionLog,
   ExecutionActionResponse,
   ExecutionStatusResponse,
 } from "@/types/task-execution-log";

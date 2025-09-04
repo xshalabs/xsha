@@ -251,7 +251,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     
     setDeleting(true);
     try {
-      await tasksApi.delete(task.id);
+      await tasksApi.delete(task.project_id, task.id);
       toast.success(t("tasks.delete.deleteSuccess"));
       // Close the sheet first
       onClose();
@@ -302,7 +302,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     
     setUpdatingTitle(true);
     try {
-      await tasksApi.update(task.id, { title: trimmedTitle });
+      await tasksApi.update(task.project_id, task.id, { title: trimmedTitle });
       toast.success(t("tasks.messages.updateSuccess"));
       
       // Update local task data

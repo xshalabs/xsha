@@ -389,7 +389,7 @@ type FetchRepositoryBranchesRequest struct {
 type FetchRepositoryBranchesResponse struct {
 	CanAccess    bool     `json:"can_access" example:"true"`
 	ErrorMessage string   `json:"error_message" example:""`
-	Branches     []string `json:"branches" example:"[\"main\",\"develop\",\"feature-1\"]"`
+	Branches     []string `json:"branches" example:"main,develop,feature-1"`
 }
 
 // FetchRepositoryBranches fetches repository branch list
