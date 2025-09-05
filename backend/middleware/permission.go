@@ -60,15 +60,23 @@ func RequirePermission(resource, action string) gin.HandlerFunc {
 			return
 		}
 
-		// Get resource ID from URL params
+		var paramName string
+		switch resource {
+		case "task":
+			paramName = "taskId"
+		case "conversation":
+			paramName = "convId"
+		default:
+			paramName = "id"
+		}
+
 		var resourceID uint = 0
-		if idStr := c.Param("id"); idStr != "" {
+		if idStr := c.Param(paramName); idStr != "" {
 			if id, err := strconv.ParseUint(idStr, 10, 32); err == nil {
 				resourceID = uint(id)
 			}
 		}
 
-		// Check permission (AdminService will handle resource owner lookup internally)
 		if !adminService.HasPermission(admin, resource, action, resourceID) {
 			c.JSON(http.StatusForbidden, gin.H{
 				"error": i18n.T(lang, "auth.insufficient_permissions"),
