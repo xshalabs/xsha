@@ -36,6 +36,7 @@ import {
 } from "@/components/forms/form-sheet";
 import { FormCard, FormCardContent } from "@/components/forms/form-card";
 import { ProjectFormSheet } from "@/components/ProjectFormSheet";
+import { AdminManagementSheet } from "@/components/projects/AdminManagementSheet";
 
 import { createProjectColumns } from "@/components/data-table/projects/columns";
 import { ProjectDataTableToolbar } from "@/components/data-table/projects/data-table-toolbar";
@@ -64,6 +65,7 @@ const ProjectListPage: React.FC = () => {
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [managingProject, setManagingProject] = useState<Project | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add request deduplication
@@ -299,6 +301,13 @@ const ProjectListPage: React.FC = () => {
     [navigate]
   );
 
+  const handleManageAdmins = useCallback(
+    (project: Project) => {
+      setManagingProject(project);
+    },
+    []
+  );
+
   // Sheet handlers
   const handleCreateProject = async (project: Project) => {
     try {
@@ -355,10 +364,11 @@ const ProjectListPage: React.FC = () => {
         onEdit: handleEdit,
         onDelete: handleDelete,
         onKanban: handleKanban,
+        onManageAdmins: handleManageAdmins,
         canEditProject,
         canDeleteProject,
       }),
-    [t, handleEdit, handleDelete, handleKanban, canEditProject, canDeleteProject]
+    [t, handleEdit, handleDelete, handleKanban, handleManageAdmins, canEditProject, canDeleteProject]
   );
 
   return (
@@ -474,6 +484,23 @@ const ProjectListPage: React.FC = () => {
           </FormSheetFooter>
         </FormSheetContent>
       </FormSheet>
+
+      {/* Admin Management Sheet */}
+      {managingProject && (
+        <AdminManagementSheet
+          project={managingProject}
+          open={!!managingProject}
+          onOpenChange={(open) => {
+            if (!open) {
+              setManagingProject(null);
+            }
+          }}
+          onAdminChanged={() => {
+            // Optionally reload projects data to reflect changes
+            loadProjectsData(currentPage, columnFilters, sorting);
+          }}
+        />
+      )}
     </div>
   );
 };

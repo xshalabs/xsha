@@ -9,6 +9,8 @@ import type {
   ProjectListParams,
   FetchRepositoryBranchesRequest,
   FetchRepositoryBranchesResponse,
+  AddAdminToProjectRequest,
+  ProjectAdminsResponse,
 } from "@/types/project";
 
 export const projectsApi = {
@@ -73,6 +75,33 @@ export const projectsApi = {
       method: "POST",
       body: JSON.stringify(data),
     });
+  },
+
+  // Admin management methods
+  getAdmins: async (id: number): Promise<ProjectAdminsResponse> => {
+    return request<ProjectAdminsResponse>(`/projects/${id}/admins`);
+  },
+
+  addAdmin: async (
+    id: number,
+    data: AddAdminToProjectRequest
+  ): Promise<{ message: string }> => {
+    return request<{ message: string }>(`/projects/${id}/admins`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  removeAdmin: async (
+    id: number,
+    adminId: number
+  ): Promise<{ message: string }> => {
+    return request<{ message: string }>(
+      `/projects/${id}/admins/${adminId}`,
+      {
+        method: "DELETE",
+      }
+    );
   },
 
 };

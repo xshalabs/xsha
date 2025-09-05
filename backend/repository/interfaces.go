@@ -58,6 +58,14 @@ type ProjectRepository interface {
 	UpdateLastUsed(id uint) error
 	GetByCredentialID(credentialID uint) ([]database.Project, error)
 	GetTaskCounts(projectIDs []uint) (map[uint]int64, error)
+	GetAdminCounts(projectIDs []uint) (map[uint]int64, error)
+
+	// Admin management methods
+	GetByIDWithAdmins(id uint) (*database.Project, error)
+	ListByAdminAccess(adminID uint, name string, protocol *database.GitProtocolType, sortBy, sortDirection string, page, pageSize int) ([]database.Project, int64, error)
+	AddAdmin(projectID, adminID uint) error
+	RemoveAdmin(projectID, adminID uint) error
+	GetAdmins(projectID uint) ([]database.Admin, error)
 }
 
 type AdminOperationLogRepository interface {

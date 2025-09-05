@@ -207,7 +207,16 @@ func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 		protocol = &protocolValue
 	}
 
-	projects, total, err := h.projectService.ListProjectsWithTaskCount(name, protocol, sortBy, sortDirection, page, pageSize)
+	admin := middleware.GetAdminFromContext(c)
+
+	var projects interface{}
+	var total int64
+	var err error
+	if admin.Role == database.AdminRoleSuperAdmin {
+		projects, total, err = h.projectService.ListProjectsWithTaskCount(name, protocol, sortBy, sortDirection, page, pageSize)
+	} else {
+		projects, total, err = h.projectService.ListProjectsByAdminAccess(admin.ID, name, protocol, sortBy, sortDirection, page, pageSize)
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "common.internal_error"),
@@ -431,6 +440,147 @@ func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": i18n.T(lang, "common.success"),
 		"result":  response,
+	})
+}
+
+// @Description Add admin to project request
+type AddAdminToProjectRequest struct {
+	AdminID uint `json:"admin_id" binding:"required"`
+}
+
+// @Description Project admins response
+type ProjectAdminsResponse struct {
+	Admins []database.AdminListResponse `json:"admins"`
+}
+
+// GetProjectAdmins gets all admins for a specific project
+// @Summary Get project admins
+// @Description Get all admins that have access to a specific project
+// @Tags Project
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Project ID"
+// @Success 200 {object} ProjectAdminsResponse "Project admins"
+// @Failure 404 {object} object{error=string} "Project not found"
+// @Router /projects/{id}/admins [get]
+func (h *ProjectHandlers) GetProjectAdmins(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "project.invalid_id"),
+		})
+		return
+	}
+
+	admins, err := h.projectService.GetProjectAdmins(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	// Transform to list response with minimal avatar data
+	adminResponses := database.ToAdminListResponses(admins)
+	c.JSON(http.StatusOK, ProjectAdminsResponse{
+		Admins: adminResponses,
+	})
+}
+
+// AddAdminToProject adds an admin to the project
+// @Summary Add admin to project
+// @Description Add an admin to the project's admin list
+// @Tags Project
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Project ID"
+// @Param admin body AddAdminToProjectRequest true "Admin information"
+// @Success 200 {object} object{message=string} "Admin added successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 404 {object} object{error=string} "Project not found"
+// @Router /projects/{id}/admins [post]
+func (h *ProjectHandlers) AddAdminToProject(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	idStr := c.Param("id")
+	projectID, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "project.invalid_id"),
+		})
+		return
+	}
+
+	var req AddAdminToProjectRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
+		})
+		return
+	}
+
+	err = h.projectService.AddAdminToProject(uint(projectID), req.AdminID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "project.admin_added_success"),
+	})
+}
+
+// RemoveAdminFromProject removes an admin from the project
+// @Summary Remove admin from project
+// @Description Remove an admin from the project's admin list
+// @Tags Project
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Project ID"
+// @Param admin_id path int true "Admin ID"
+// @Success 200 {object} object{message=string} "Admin removed successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 404 {object} object{error=string} "Project not found"
+// @Router /projects/{id}/admins/{admin_id} [delete]
+func (h *ProjectHandlers) RemoveAdminFromProject(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	idStr := c.Param("id")
+	projectID, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "project.invalid_id"),
+		})
+		return
+	}
+
+	adminIDStr := c.Param("admin_id")
+	adminID, err := strconv.ParseUint(adminIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "admin.invalid_id"),
+		})
+		return
+	}
+
+	err = h.projectService.RemoveAdminFromProject(uint(projectID), uint(adminID))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "project.admin_removed_success"),
 	})
 }
 

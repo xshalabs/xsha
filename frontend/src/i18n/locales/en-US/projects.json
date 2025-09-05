@@ -14,6 +14,7 @@
   "repoUrl": "Repository URL",
   "credential": "Credential",
   "taskCount": "Tasks",
+  "adminCount": "Admins",
   "credentialHelp": "Select a credential to access this repository (optional)",
   "protocolAutoDetected": "Auto-detected protocol",
   "messages": {
@@ -49,5 +50,23 @@
   "createAndCustomize": "Create and start customizing",
   "createHelpText": "Configure your project repository settings, add credentials, and start automating your development workflow.",
   "editAndUpdate": "Edit and update settings",
-  "editHelpText": "Modify your project configuration, update repository settings, and manage access credentials."
+  "editHelpText": "Modify your project configuration, update repository settings, and manage access credentials.",
+  "admin": {
+    "manage": "Manage Admins",
+    "manage_title": "Manage Project Admins",
+    "manage_description": "Manage administrators who have access to project {{name}}",
+    "add_admin": "Add Admin",
+    "current_admins": "Current Admins",
+    "select_admin": "Please select an admin to add",
+    "select_placeholder": "Select an admin to add",
+    "no_admins": "No admins assigned to this project",
+    "creator": "Creator",
+    "cannot_remove_creator": "Cannot remove the project creator",
+    "added_success": "Admin successfully added to project",
+    "removed_success": "Admin {{name}} successfully removed from project",
+    "confirm_add_title": "Confirm Add Admin",
+    "confirm_add_description": "Are you sure you want to add {{adminName}} as an admin to {{projectName}}?",
+    "confirm_remove_title": "Confirm Remove Admin", 
+    "confirm_remove_description": "Are you sure you want to remove {{adminName}} as an admin from {{projectName}}?"
+  }
 } 

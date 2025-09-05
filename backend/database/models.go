@@ -122,6 +122,10 @@ type Project struct {
 
 	AdminID   *uint  `gorm:"index" json:"admin_id"`
 	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+
+	// Many-to-many relationship for project admins
+	Admins []Admin `gorm:"many2many:project_admins;" json:"admins,omitempty"`
+
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 
@@ -461,5 +465,21 @@ type CredentialListItemResponse struct {
 	AdminID     *uint                  `json:"admin_id"`
 	Admin       *MinimalAdminResponse  `json:"admin,omitempty"`
 	Admins      []MinimalAdminResponse `json:"admins,omitempty"`
+	CreatedBy   string                 `json:"created_by"`
+}
+
+// ProjectListItemResponse represents project information with minimal admin data for list responses
+type ProjectListItemResponse struct {
+	ID          uint                   `json:"id"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	RepoURL     string                 `json:"repo_url"`
+	Protocol    GitProtocolType        `json:"protocol"`
+	AdminID     *uint                  `json:"admin_id"`
+	Admin       *MinimalAdminResponse  `json:"admin,omitempty"`
+	Admins      []MinimalAdminResponse `json:"admins,omitempty"`
+	AdminCount  int64                  `json:"admin_count"`
 	CreatedBy   string                 `json:"created_by"`
 }

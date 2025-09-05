@@ -14,6 +14,7 @@
   "repoUrl": "仓库地址",
   "credential": "访问凭据",
   "taskCount": "任务数量",
+  "adminCount": "管理员",
   "credentialHelp": "选择用于访问此仓库的凭据（可选）",
   "protocolAutoDetected": "自动检测协议",
   "messages": {
@@ -49,5 +50,23 @@
   "createAndCustomize": "创建并开始自定义",
   "createHelpText": "配置您的项目仓库设置，添加访问凭据，开始自动化您的开发工作流程。",
   "editAndUpdate": "编辑并更新设置",
-  "editHelpText": "修改您的项目配置，更新仓库设置，管理访问凭据。"
+  "editHelpText": "修改您的项目配置，更新仓库设置，管理访问凭据。",
+  "admin": {
+    "manage": "管理管理员",
+    "manage_title": "管理项目管理员",
+    "manage_description": "管理有权访问项目 {{name}} 的管理员",
+    "add_admin": "添加管理员",
+    "current_admins": "当前管理员",
+    "select_admin": "请选择要添加的管理员",
+    "select_placeholder": "选择要添加的管理员",
+    "no_admins": "此项目未分配管理员",
+    "creator": "创建者",
+    "cannot_remove_creator": "无法移除项目创建者",
+    "added_success": "管理员成功添加到项目",
+    "removed_success": "管理员 {{name}} 成功从项目中移除",
+    "confirm_add_title": "确认添加管理员",
+    "confirm_add_description": "确定要将 {{adminName}} 添加为 {{projectName}} 的管理员吗？",
+    "confirm_remove_title": "确认移除管理员",
+    "confirm_remove_description": "确定要将 {{adminName}} 从 {{projectName}} 的管理员中移除吗？"
+  }
 }

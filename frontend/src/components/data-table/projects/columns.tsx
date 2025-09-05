@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Edit, Copy, Columns } from "lucide-react";
+import { Edit, Copy, Columns, Users } from "lucide-react";
 import type { TFunction } from "i18next";
 import { QuickActions } from "@/components/ui/quick-actions";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ interface ProjectColumnsProps {
   onEdit: (project: Project) => void;
   onDelete: (id: number) => void;
   onKanban: (project: Project) => void;
+  onManageAdmins: (project: Project) => void;
   canEditProject: (resourceAdminId?: number) => boolean;
   canDeleteProject: (resourceAdminId?: number) => boolean;
 }
@@ -24,6 +25,7 @@ export const createProjectColumns = ({
   onEdit,
   onDelete,
   onKanban,
+  onManageAdmins,
   canEditProject,
   canDeleteProject,
 }: ProjectColumnsProps): ColumnDef<Project>[] => [
@@ -118,6 +120,21 @@ export const createProjectColumns = ({
     enableSorting: true,
   },
   {
+    accessorKey: "admin_count",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title={t("projects.adminCount")} />
+    ),
+    cell: ({ row }) => {
+      const count = row.getValue("admin_count") as number;
+      return (
+        <Badge variant="outline" className="font-mono">
+          {count || 0}
+        </Badge>
+      );
+    },
+    enableSorting: true,
+  },
+  {
     accessorKey: "created_at",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={t("common.created")} />
@@ -154,6 +171,13 @@ export const createProjectColumns = ({
           label: t("common.edit"),
           icon: Edit,
           onClick: () => onEdit(project),
+        }] : []),
+        // Only show manage admins action if user has permission
+        ...(canEditProject(project.admin_id) ? [{
+          id: "manage-admins",
+          label: t("projects.admin.manage"),
+          icon: Users,
+          onClick: () => onManageAdmins(project),
         }] : []),
       ];
 

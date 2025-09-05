@@ -19,6 +19,7 @@ export interface Project {
   created_at: string;
   updated_at: string;
   task_count?: number;
+  admin_count?: number;
   credential?: {
     id: number;
     name: string;
@@ -103,5 +104,28 @@ export interface FetchRepositoryBranchesResponse {
     error_message: string;
     branches: string[];
   };
+}
+
+// Project admin management types
+export interface AddAdminToProjectRequest {
+  admin_id: number;
+}
+
+export interface ProjectAdminsResponse {
+  admins: Array<{
+    id: number;
+    username: string;
+    name: string;
+    email: string;
+    role: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    last_login_at?: string;
+    avatar?: {
+      uuid: string;
+      original_name: string;
+    };
+  }>;
 }
 

@@ -49,6 +49,12 @@ var (
 	ErrIncompatibleCredential = &I18nError{Key: "project.incompatible_credential"}
 	ErrInvalidProtocol        = &I18nError{Key: "project.invalid_protocol"}
 
+	// Project admin management errors
+	ErrProjectAdminAlreadyAssigned     = &I18nError{Key: "project.admin_already_assigned"}
+	ErrProjectAdminNotAssigned         = &I18nError{Key: "project.admin_not_assigned"}
+	ErrProjectCannotRemoveLastAdmin    = &I18nError{Key: "project.cannot_remove_last_admin"}
+	ErrProjectCannotRemovePrimaryAdmin = &I18nError{Key: "project.cannot_remove_primary_admin"}
+
 	ErrCredentialNameExists              = &I18nError{Key: "git_credential.name_exists"}
 	ErrCredentialUseFailed               = &I18nError{Key: "git_credential.use_failed"}
 	ErrInvalidCredentialType             = &I18nError{Key: "git_credential.invalid_type"}

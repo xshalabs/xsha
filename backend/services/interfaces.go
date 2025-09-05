@@ -69,6 +69,14 @@ type ProjectService interface {
 	ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint) error
 	GetCompatibleCredentials(protocol database.GitProtocolType, admin *database.Admin) ([]database.GitCredential, error)
 	FetchRepositoryBranches(repoURL string, credentialID *uint) (*utils.GitAccessResult, error)
+
+	// Admin management methods
+	GetProjectWithAdmins(id uint) (*database.Project, error)
+	ListProjectsByAdminAccess(adminID uint, name string, protocol *database.GitProtocolType, sortBy, sortDirection string, page, pageSize int) (interface{}, int64, error)
+	AddAdminToProject(projectID, adminID uint) error
+	RemoveAdminFromProject(projectID, adminID uint) error
+	GetProjectAdmins(projectID uint) ([]database.Admin, error)
+	CanAdminAccessProject(projectID, adminID uint) (bool, error)
 }
 
 type AdminOperationLogService interface {
