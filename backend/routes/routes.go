@@ -82,17 +82,20 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		{
 			projects.GET("", projectHandlers.ListProjects)
 			projects.GET("/:id", projectHandlers.GetProject)
-			projects.POST("/:id/branches", projectHandlers.FetchRepositoryBranches)
 
+			// used to task created
+			projects.POST("/:id/branches", projectHandlers.FetchRepositoryBranches)
+			// create
 			projects.POST("", middleware.RequireAdminOrSuperAdmin(), projectHandlers.CreateProject)
 			projects.GET("/credentials", middleware.RequireAdminOrSuperAdmin(), projectHandlers.GetCompatibleCredentials)
-
+			// update
 			projects.PUT("/:id", middleware.RequirePermission("project", "update"), projectHandlers.UpdateProject)
 			projects.DELETE("/:id", middleware.RequirePermission("project", "delete"), projectHandlers.DeleteProject)
 			projects.GET("/:id/admins", middleware.RequirePermission("project", "update"), projectHandlers.GetProjectAdmins)
 			projects.POST("/:id/admins", middleware.RequirePermission("project", "update"), projectHandlers.AddAdminToProject)
-
+			// delete
 			projects.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("project", "delete"), projectHandlers.RemoveAdminFromProject)
+
 			projects.GET("/:id/kanban", taskHandlers.GetKanbanTasks)
 
 			tasks := projects.Group("/:id/tasks")

@@ -570,6 +570,24 @@ func (h *TaskHandlers) GetKanbanTasks(c *gin.Context) {
 		return
 	}
 
+	admin := middleware.GetAdminFromContext(c)
+
+	// Check if admin has access to this project
+	canAccess, err := h.projectService.CanAdminAccessProject(uint(projectID), admin.ID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": i18n.T(lang, "project.not_found"),
+		})
+		return
+	}
+
+	if !canAccess {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": i18n.T(lang, "project.not_found"),
+		})
+		return
+	}
+
 	kanbanData, err := h.taskService.GetKanbanTasks(uint(projectID))
 	if err != nil {
 		helper := i18n.NewHelper(lang)
