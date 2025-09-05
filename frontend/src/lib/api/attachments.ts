@@ -49,13 +49,6 @@ export const attachmentApi = {
     return result.data;
   },
 
-  // Get attachment info
-  async getAttachment(id: number): Promise<Attachment> {
-    const response = await request<AttachmentApiResponse<Attachment>>(
-      `/attachments/${id}`
-    );
-    return response.data;
-  },
 
   // Get attachments for a conversation
   async getConversationAttachments(conversationId: number): Promise<Attachment[]> {
@@ -63,18 +56,6 @@ export const attachmentApi = {
       `/attachments?conversation_id=${conversationId}`
     );
     return response.data;
-  },
-
-
-
-  // Download attachment
-  getDownloadUrl(id: number): string {
-    return `${API_BASE_URL}/attachments/${id}/download`;
-  },
-
-  // Preview attachment (for images)
-  getPreviewUrl(id: number): string {
-    return `${API_BASE_URL}/attachments/${id}/preview`;
   },
 
   // Get preview with authentication for images

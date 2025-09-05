@@ -129,40 +129,6 @@ func (h *TaskConversationAttachmentHandlers) UploadAttachment(c *gin.Context) {
 	})
 }
 
-// GetAttachment retrieves attachment information
-// @Summary Get attachment info
-// @Description Get attachment information by ID
-// @Tags Task Conversation Attachments
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "Attachment ID"
-// @Success 200 {object} object{message=string,data=object} "Attachment retrieved successfully"
-// @Failure 400 {object} object{error=string} "Invalid attachment ID"
-// @Failure 401 {object} object{error=string} "Authentication failed"
-// @Failure 404 {object} object{error=string} "Attachment not found"
-// @Router /attachments/{id} [get]
-func (h *TaskConversationAttachmentHandlers) GetAttachment(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
-		return
-	}
-
-	attachment, err := h.attachmentService.GetAttachment(uint(id))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "attachment.not_found")})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "attachment.get_success"),
-		"data":    attachment,
-	})
-}
 
 // DownloadAttachment downloads an attachment file
 // @Summary Download attachment
@@ -322,8 +288,6 @@ func (h *TaskConversationAttachmentHandlers) GetConversationAttachments(c *gin.C
 		"data":    attachments,
 	})
 }
-
-// Helper functions
 
 func (h *TaskConversationAttachmentHandlers) getAttachmentType(contentType, filename string) (database.AttachmentType, error) {
 	// Check by content type first

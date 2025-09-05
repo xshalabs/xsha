@@ -104,7 +104,6 @@ func (s *taskConversationService) CreateConversationWithExecutionTimeAndAttachme
 	}
 
 	// Validate and process attachments
-	var attachments []database.TaskConversationAttachment
 	if len(attachmentIDs) > 0 {
 		// First create the conversation, then associate attachments
 		// For now, we'll handle attachments after conversation creation
@@ -139,24 +138,21 @@ func (s *taskConversationService) CreateConversationWithExecutionTimeAndAttachme
 				utils.Error("Failed to associate attachment with conversation", "attachmentID", attachmentID, "conversationID", conversation.ID, "error", err)
 				continue
 			}
-
-			// Get the updated attachment
-			attachment, err := s.attachmentService.GetAttachment(attachmentID)
-			if err != nil {
-				utils.Warn("Attachment not found after association", "attachmentID", attachmentID, "conversationID", conversation.ID)
-				continue
-			}
-
-			attachments = append(attachments, *attachment)
 		}
 
-		// Update conversation content with attachment tags
-		processedContent = s.attachmentService.ProcessContentWithAttachments(content, attachments, conversation.ID)
-		conversation.Content = processedContent
+		// Get all attachments for this conversation after association
+		attachments, err := s.attachmentService.GetAttachmentsByConversation(conversation.ID)
+		if err != nil {
+			utils.Error("Failed to get attachments for conversation", "conversationID", conversation.ID, "error", err)
+		} else {
+			// Update conversation content with attachment tags
+			processedContent = s.attachmentService.ProcessContentWithAttachments(content, attachments, conversation.ID)
+			conversation.Content = processedContent
 
-		// Save the updated content
-		if err := s.repo.Update(conversation); err != nil {
-			utils.Error("Failed to update conversation content with attachment tags", "conversationID", conversation.ID, "error", err)
+			// Save the updated content
+			if err := s.repo.Update(conversation); err != nil {
+				utils.Error("Failed to update conversation content with attachment tags", "conversationID", conversation.ID, "error", err)
+			}
 		}
 	}
 
