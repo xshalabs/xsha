@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"xsha-backend/database"
@@ -10,7 +8,6 @@ import (
 	"xsha-backend/services"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 // RequireRole creates a middleware that requires specific roles
@@ -71,18 +68,8 @@ func RequirePermission(resource, action string) gin.HandlerFunc {
 			}
 		}
 
-		// Get the actual resource owner ID based on resource type and resource ID
-		resourceOwnerID, err := getResourceOwnerID(c, resource, resourceID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": i18n.T(lang, "auth.permission_check_failed"),
-			})
-			c.Abort()
-			return
-		}
-
-		// Check permission
-		if !adminService.HasPermission(admin, resource, action, resourceOwnerID) {
+		// Check permission (AdminService will handle resource owner lookup internally)
+		if !adminService.HasPermission(admin, resource, action, resourceID) {
 			c.JSON(http.StatusForbidden, gin.H{
 				"error": i18n.T(lang, "auth.insufficient_permissions"),
 			})
@@ -91,108 +78,6 @@ func RequirePermission(resource, action string) gin.HandlerFunc {
 		}
 
 		c.Next()
-	}
-}
-
-// getResourceOwnerID gets the actual owner ID for a given resource using services
-func getResourceOwnerID(c *gin.Context, resourceType string, resourceID uint) (uint, error) {
-	if resourceID == 0 {
-		return 0, nil
-	}
-
-	switch resourceType {
-	case "project":
-		projectService, exists := c.Get("projectService")
-		if !exists {
-			return 0, fmt.Errorf("projectService not found in context")
-		}
-		project, err := projectService.(services.ProjectService).GetProject(resourceID)
-		if err != nil {
-			// Check if it's a not found error (most services return gorm.ErrRecordNotFound)
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return 0, nil // Resource not found, no owner
-			}
-			return 0, fmt.Errorf("failed to get project: %v", err)
-		}
-		if project.AdminID != nil {
-			return *project.AdminID, nil
-		}
-		return 0, nil
-
-	case "task":
-		taskService, exists := c.Get("taskService")
-		if !exists {
-			return 0, fmt.Errorf("taskService not found in context")
-		}
-		task, err := taskService.(services.TaskService).GetTask(resourceID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return 0, nil // Resource not found, no owner
-			}
-			return 0, fmt.Errorf("failed to get task: %v", err)
-		}
-		if task.AdminID != nil {
-			return *task.AdminID, nil
-		}
-		return 0, nil
-
-	case "conversation":
-		taskConvService, exists := c.Get("taskConvService")
-		if !exists {
-			return 0, fmt.Errorf("taskConvService not found in context")
-		}
-		conversationData, err := taskConvService.(services.TaskConversationService).GetConversationWithResult(resourceID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return 0, nil // Resource not found, no owner
-			}
-			return 0, fmt.Errorf("failed to get conversation: %v", err)
-		}
-		if conversationObj, ok := conversationData["conversation"]; ok {
-			if conversation, ok := conversationObj.(*database.TaskConversation); ok {
-				if conversation.AdminID != nil {
-					return *conversation.AdminID, nil
-				}
-			}
-		}
-		return 0, nil
-
-	case "credential":
-		gitCredService, exists := c.Get("gitCredService")
-		if !exists {
-			return 0, fmt.Errorf("gitCredService not found in context")
-		}
-		credential, err := gitCredService.(services.GitCredentialService).GetCredential(resourceID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return 0, nil // Resource not found, no owner
-			}
-			return 0, fmt.Errorf("failed to get credential: %v", err)
-		}
-		if credential.AdminID != nil {
-			return *credential.AdminID, nil
-		}
-		return 0, nil
-
-	case "environment":
-		devEnvService, exists := c.Get("devEnvService")
-		if !exists {
-			return 0, fmt.Errorf("devEnvService not found in context")
-		}
-		environment, err := devEnvService.(services.DevEnvironmentService).GetEnvironment(resourceID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return 0, nil // Resource not found, no owner
-			}
-			return 0, fmt.Errorf("failed to get environment: %v", err)
-		}
-		if environment.AdminID != nil {
-			return *environment.AdminID, nil
-		}
-		return 0, nil
-
-	default:
-		return 0, nil
 	}
 }
 

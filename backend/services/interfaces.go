@@ -34,8 +34,11 @@ type AdminService interface {
 	SetAuthService(authService AuthService)
 	SetDevEnvironmentService(devEnvService DevEnvironmentService)
 	SetGitCredentialService(gitCredService GitCredentialService)
-	HasPermission(admin *database.Admin, resource, action string, resourceOwnerID uint) bool
-	CanAccessResource(admin *database.Admin, resource string, action string, resourceOwnerID uint) bool
+	SetProjectService(projectService ProjectService)
+	SetTaskService(taskService TaskService)
+	SetTaskConversationService(taskConvService TaskConversationService)
+	HasPermission(admin *database.Admin, resource, action string, resourceId uint) bool
+	CanAccessResource(admin *database.Admin, resource string, action string, resourceId uint) bool
 	GetAvailableRoles() []database.AdminRole
 }
 
