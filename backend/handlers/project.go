@@ -129,6 +129,24 @@ func (h *ProjectHandlers) GetProject(c *gin.Context) {
 		return
 	}
 
+	admin := middleware.GetAdminFromContext(c)
+
+	// Check if admin has access to this project
+	canAccess, err := h.projectService.CanAdminAccessProject(uint(id), admin.ID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": i18n.T(lang, "project.not_found"),
+		})
+		return
+	}
+
+	if !canAccess {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": i18n.T(lang, "project.not_found"),
+		})
+		return
+	}
+
 	project, err := h.projectService.GetProject(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
