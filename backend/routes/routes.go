@@ -148,15 +148,17 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 					conversations.POST("/:convId/execution/retry", taskConvHandlers.RetryExecution)
 				}
 			}
-		}
 
-		attachments := api.Group("/attachments")
-		{
-			attachments.POST("/upload", attachmentHandlers.UploadAttachment)
-			attachments.GET("", attachmentHandlers.GetConversationAttachments)
-			attachments.GET("/:id/download", attachmentHandlers.DownloadAttachment)
-			attachments.GET("/:id/preview", attachmentHandlers.PreviewAttachment)
-			attachments.DELETE("/:id", attachmentHandlers.DeleteAttachment)
+			// Project-based attachment routes
+			attachments := projects.Group("/:id/attachments")
+			attachments.Use(middleware.RequirePermission("project", "read"))
+			{
+				attachments.POST("/upload", attachmentHandlers.UploadAttachment)
+				attachments.GET("", attachmentHandlers.GetConversationAttachments)
+				attachments.GET("/:attachmentId/download", attachmentHandlers.DownloadAttachment)
+				attachments.GET("/:attachmentId/preview", attachmentHandlers.PreviewAttachment)
+				attachments.DELETE("/:attachmentId", attachmentHandlers.DeleteAttachment)
+			}
 		}
 	}
 

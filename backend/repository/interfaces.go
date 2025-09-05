@@ -167,10 +167,13 @@ type DashboardRepository interface {
 type TaskConversationAttachmentRepository interface {
 	Create(attachment *database.TaskConversationAttachment) error
 	GetByID(id uint) (*database.TaskConversationAttachment, error)
+	GetByIDAndProjectID(id, projectID uint) (*database.TaskConversationAttachment, error)
 	GetByConversationID(conversationID uint) ([]database.TaskConversationAttachment, error)
+	GetByProjectID(projectID uint) ([]database.TaskConversationAttachment, error)
 	Update(attachment *database.TaskConversationAttachment) error
 	Delete(id uint) error
 	DeleteByConversationID(conversationID uint) error
+	DeleteByProjectID(projectID uint) error
 }
 
 type AdminAvatarRepository interface {

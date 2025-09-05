@@ -55,7 +55,7 @@ export const NewMessageForm = memo<NewMessageFormProps>(
       removeAttachment,
       clearAttachments,
       getAttachmentIds,
-    } = useAttachments();
+    } = useAttachments(task.project_id);
 
     // Explicitly acknowledge the parameter to avoid linter warning
     // This parameter is used implicitly through canSendMessage logic

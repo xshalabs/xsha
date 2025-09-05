@@ -35,14 +35,23 @@ func NewTaskConversationAttachmentHandlers(attachmentService services.TaskConver
 // @Accept multipart/form-data
 // @Produce json
 // @Security BearerAuth
+// @Param id path int true "Project ID"
 // @Param file formData file true "File to upload"
 // @Success 200 {object} object{message=string,data=object} "Attachment uploaded successfully"
 // @Failure 400 {object} object{error=string} "Request parameter error"
 // @Failure 401 {object} object{error=string} "Authentication failed"
 // @Failure 413 {object} object{error=string} "File too large"
-// @Router /attachments/upload [post]
+// @Router /projects/{id}/attachments/upload [post]
 func (h *TaskConversationAttachmentHandlers) UploadAttachment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
+
+	// Extract project ID from URL parameter
+	projectIDStr := c.Param("id")
+	projectID, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
 
 	username, exists := c.Get("username")
 	if !exists {
@@ -113,6 +122,7 @@ func (h *TaskConversationAttachmentHandlers) UploadAttachment(c *gin.Context) {
 		header.Size,
 		filePath,
 		attachmentType,
+		uint(projectID),
 		adminID,
 		username.(string),
 	)
@@ -137,23 +147,32 @@ func (h *TaskConversationAttachmentHandlers) UploadAttachment(c *gin.Context) {
 // @Accept json
 // @Produce application/octet-stream
 // @Security BearerAuth
-// @Param id path int true "Attachment ID"
+// @Param id path int true "Project ID"
+// @Param attachmentId path int true "Attachment ID"
 // @Success 200 {file} binary "Attachment file"
 // @Failure 400 {object} object{error=string} "Invalid attachment ID"
 // @Failure 401 {object} object{error=string} "Authentication failed"
 // @Failure 404 {object} object{error=string} "Attachment not found"
-// @Router /attachments/{id}/download [get]
+// @Router /projects/{id}/attachments/{attachmentId}/download [get]
 func (h *TaskConversationAttachmentHandlers) DownloadAttachment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	idStr := c.Param("id")
+	// Extract project ID from URL parameter
+	projectIDStr := c.Param("id")
+	projectID, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	idStr := c.Param("attachmentId")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
-	attachment, err := h.attachmentService.GetAttachment(uint(id))
+	attachment, err := h.attachmentService.GetAttachmentByProjectID(uint(id), uint(projectID))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "attachment.not_found")})
 		return
@@ -183,23 +202,32 @@ func (h *TaskConversationAttachmentHandlers) DownloadAttachment(c *gin.Context) 
 // @Accept json
 // @Produce image/*
 // @Security BearerAuth
-// @Param id path int true "Attachment ID"
+// @Param id path int true "Project ID"
+// @Param attachmentId path int true "Attachment ID"
 // @Success 200 {file} binary "Attachment file for preview"
 // @Failure 400 {object} object{error=string} "Invalid attachment ID"
 // @Failure 401 {object} object{error=string} "Authentication failed"
 // @Failure 404 {object} object{error=string} "Attachment not found"
-// @Router /attachments/{id}/preview [get]
+// @Router /projects/{id}/attachments/{attachmentId}/preview [get]
 func (h *TaskConversationAttachmentHandlers) PreviewAttachment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	idStr := c.Param("id")
+	// Extract project ID from URL parameter
+	projectIDStr := c.Param("id")
+	projectID, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	idStr := c.Param("attachmentId")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
-	attachment, err := h.attachmentService.GetAttachment(uint(id))
+	attachment, err := h.attachmentService.GetAttachmentByProjectID(uint(id), uint(projectID))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "attachment.not_found")})
 		return
@@ -226,19 +254,35 @@ func (h *TaskConversationAttachmentHandlers) PreviewAttachment(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Attachment ID"
+// @Param id path int true "Project ID"
+// @Param attachmentId path int true "Attachment ID"
 // @Success 200 {object} object{message=string} "Attachment deleted successfully"
 // @Failure 400 {object} object{error=string} "Invalid attachment ID"
 // @Failure 401 {object} object{error=string} "Authentication failed"
 // @Failure 404 {object} object{error=string} "Attachment not found"
-// @Router /attachments/{id} [delete]
+// @Router /projects/{id}/attachments/{attachmentId} [delete]
 func (h *TaskConversationAttachmentHandlers) DeleteAttachment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	idStr := c.Param("id")
+	// Extract project ID from URL parameter
+	projectIDStr := c.Param("id")
+	projectID, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	idStr := c.Param("attachmentId")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	// Validate attachment belongs to project before deletion
+	_, err = h.attachmentService.GetAttachmentByProjectID(uint(id), uint(projectID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "attachment.not_found")})
 		return
 	}
 
@@ -257,30 +301,46 @@ func (h *TaskConversationAttachmentHandlers) DeleteAttachment(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param conversation_id query int true "Conversation ID"
+// @Param id path int true "Project ID"
+// @Param conversation_id query int false "Conversation ID (optional, if not provided returns all project attachments)"
 // @Success 200 {object} object{message=string,data=[]object} "Attachments retrieved successfully"
 // @Failure 400 {object} object{error=string} "Invalid conversation ID"
 // @Failure 401 {object} object{error=string} "Authentication failed"
-// @Router /attachments [get]
+// @Router /projects/{id}/attachments [get]
 func (h *TaskConversationAttachmentHandlers) GetConversationAttachments(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	conversationIDStr := c.Query("conversation_id")
-	if conversationIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.conversation_id_required")})
-		return
-	}
-
-	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
+	// Extract project ID from URL parameter
+	projectIDStr := c.Param("id")
+	projectID, err := strconv.ParseUint(projectIDStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
-	attachments, err := h.attachmentService.GetAttachmentsByConversation(uint(conversationID))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
-		return
+	conversationIDStr := c.Query("conversation_id")
+	var attachments []database.TaskConversationAttachment
+
+	if conversationIDStr != "" {
+		// Get attachments for specific conversation
+		conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+			return
+		}
+
+		attachments, err = h.attachmentService.GetAttachmentsByConversation(uint(conversationID))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
+			return
+		}
+	} else {
+		// Get all attachments for project
+		attachments, err = h.attachmentService.GetAttachmentsByProjectID(uint(projectID))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{

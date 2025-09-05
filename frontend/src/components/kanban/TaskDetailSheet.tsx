@@ -417,6 +417,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
               conversations={conversations}
               conversationCount={task.conversation_count}
               taskId={task.id}
+              projectId={task.project_id}
               onViewConversationGitDiff={handleViewConversationGitDiff}
               onViewConversationDetails={handleViewConversationDetails}
               onViewConversationLogs={handleViewConversationLogs}

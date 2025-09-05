@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { attachmentApi, type Attachment } from "@/lib/api/attachments";
 
-export function useAttachments() {
+export function useAttachments(projectId: number) {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [uploading, setUploading] = useState(false);
 
@@ -43,7 +43,7 @@ export function useAttachments() {
           throw new Error(`File ${file.name} is not supported (only images and PDF)`);
         }
 
-        return await attachmentApi.uploadAttachment(file);
+        return await attachmentApi.uploadAttachment(file, projectId);
       });
 
       const uploadedAttachments = await Promise.all(uploadPromises);
@@ -58,18 +58,18 @@ export function useAttachments() {
     } finally {
       setUploading(false);
     }
-  }, []);
+  }, [projectId]);
 
   // Remove attachment
   const removeAttachment = useCallback(async (attachment: Attachment) => {
     try {
-      await attachmentApi.deleteAttachment(attachment.id);
+      await attachmentApi.deleteAttachment(attachment.id, projectId);
       setAttachments(prev => prev.filter(a => a.id !== attachment.id));
     } catch (error) {
       console.error('Failed to delete attachment:', error);
       throw error;
     }
-  }, []);
+  }, [projectId]);
 
   // Clear all attachments
   const clearAttachments = useCallback(() => {

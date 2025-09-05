@@ -368,6 +368,8 @@ type TaskConversationAttachment struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
+	ProjectID      *uint             `gorm:"index" json:"project_id"`
+	Project        *Project          `gorm:"foreignKey:ProjectID" json:"project"`
 	ConversationID *uint             `gorm:"index" json:"conversation_id"`
 	Conversation   *TaskConversation `gorm:"foreignKey:ConversationID" json:"conversation"`
 
