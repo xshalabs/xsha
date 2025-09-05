@@ -329,12 +329,10 @@ func (s *adminService) UpdateAdminRole(id uint, role database.AdminRole) error {
 
 // HasPermission checks if admin has permission for specific resource and action
 func (s *adminService) HasPermission(admin *database.Admin, resource, action string, resourceOwnerID uint) bool {
-	// Super admin has all permissions
 	if admin.Role == database.AdminRoleSuperAdmin {
 		return true
 	}
 
-	// Check permission based on role and resource
 	switch resource {
 	case "admin":
 		return admin.Role == database.AdminRoleSuperAdmin
@@ -459,10 +457,9 @@ func (s *adminService) checkCredentialPermission(admin *database.Admin, action s
 func (s *adminService) checkEnvironmentPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
 	switch action {
 	case "create":
-		// Developer, Admin and SuperAdmin can all create environments
 		return admin.Role == database.AdminRoleDeveloper || admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin
 	case "read":
-		return true // All roles can read environments
+		return true
 	case "update", "delete":
 		if admin.Role == database.AdminRoleSuperAdmin {
 			return true

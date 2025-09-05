@@ -8,7 +8,6 @@ import (
 	"xsha-backend/database"
 	"xsha-backend/i18n"
 	"xsha-backend/services"
-	"xsha-backend/utils"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -75,7 +74,6 @@ func RequirePermission(resource, action string) gin.HandlerFunc {
 		// Get the actual resource owner ID based on resource type and resource ID
 		resourceOwnerID, err := getResourceOwnerID(c, resource, resourceID)
 		if err != nil {
-			utils.Info("error", "err", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": i18n.T(lang, "auth.permission_check_failed"),
 			})
@@ -98,7 +96,6 @@ func RequirePermission(resource, action string) gin.HandlerFunc {
 
 // getResourceOwnerID gets the actual owner ID for a given resource using services
 func getResourceOwnerID(c *gin.Context, resourceType string, resourceID uint) (uint, error) {
-	// If no resource ID provided, return 0 (no specific owner)
 	if resourceID == 0 {
 		return 0, nil
 	}
@@ -195,7 +192,6 @@ func getResourceOwnerID(c *gin.Context, resourceType string, resourceID uint) (u
 		return 0, nil
 
 	default:
-		// Unknown resource type, return 0
 		return 0, nil
 	}
 }
