@@ -16,7 +16,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, adminService services.AdminService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, adminAvatarHandlers *handlers.AdminAvatarHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, staticFiles *embed.FS) {
+func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, adminService services.AdminService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, adminAvatarHandlers *handlers.AdminAvatarHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, staticFiles *embed.FS, projectService services.ProjectService, taskService services.TaskService, taskConvService services.TaskConversationService, gitCredService services.GitCredentialService, devEnvService services.DevEnvironmentService) {
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
 
@@ -34,6 +34,15 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 	api := r.Group("/api/v1")
 	api.Use(middleware.AuthMiddlewareWithService(authService, adminService, cfg))
 	api.Use(middleware.OperationLogMiddleware(operationLogHandlers.OperationLogService))
+	// Add services to context for permission middleware
+	api.Use(func(c *gin.Context) {
+		c.Set("projectService", projectService)
+		c.Set("taskService", taskService)
+		c.Set("taskConvService", taskConvService)
+		c.Set("gitCredService", gitCredService)
+		c.Set("devEnvService", devEnvService)
+		c.Next()
+	})
 	{
 		r.GET("/api/v1/admin/avatar/preview/:uuid", adminAvatarHandlers.PreviewAvatarHandler)
 		api.GET("/user/current", authHandlers.CurrentUserHandler)
@@ -84,7 +93,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			projects.GET("", projectHandlers.ListProjects)
 			projects.POST("/branches", projectHandlers.FetchRepositoryBranches)
 			projects.GET("/credentials", projectHandlers.GetCompatibleCredentials)
-			projects.GET("/:id", projectHandlers.GetProject)
+			projects.GET("/:id", middleware.RequirePermission("project", "update"), projectHandlers.GetProject)
 			projects.PUT("/:id", middleware.RequirePermission("project", "update"), projectHandlers.UpdateProject)
 			projects.DELETE("/:id", middleware.RequirePermission("project", "delete"), projectHandlers.DeleteProject)
 			projects.GET("/:id/admins", middleware.RequirePermission("project", "update"), projectHandlers.GetProjectAdmins)

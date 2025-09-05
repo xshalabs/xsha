@@ -176,7 +176,7 @@ func main() {
 	}
 
 	// Setup routes - Pass all handler instances including static files
-	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, adminAvatarHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
+	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, adminAvatarHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles, projectService, taskService, taskConvService, gitCredService, devEnvService)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

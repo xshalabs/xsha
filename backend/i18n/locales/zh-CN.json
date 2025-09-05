@@ -14,6 +14,8 @@
   "auth.account_deactivated": "您的账户已被停用，请联系管理员",
   "auth.admin_deactivated": "您的管理员账户已被停用，已自动注销",
   "auth.insufficient_permissions": "权限不足，无法访问此资源",
+  "auth.permission_check_failed": "权限验证失败",
+  "auth.access_denied": "访问被拒绝",
   "auth.server_error": "服务器内部错误",
   "user.get_info_error": "无法获取用户信息",
   "user.authenticated": "已认证",
