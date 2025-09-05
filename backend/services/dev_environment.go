@@ -316,7 +316,7 @@ func (s *devEnvironmentService) GetEnvironmentAdmins(envID uint) ([]database.Adm
 	return s.repo.GetAdmins(envID)
 }
 
-// CanAdminAccessEnvironment checks if an admin has access to a specific environment
-func (s *devEnvironmentService) CanAdminAccessEnvironment(envID, adminID uint) (bool, error) {
-	return s.repo.IsAdminForEnvironment(envID, adminID)
+// IsOwner checks if an admin is the owner of a specific environment
+func (s *devEnvironmentService) IsOwner(envID, adminID uint) (bool, error) {
+	return s.repo.IsOwner(envID, adminID)
 }

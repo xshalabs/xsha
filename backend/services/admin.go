@@ -350,12 +350,6 @@ func (s *adminService) HasPermission(admin *database.Admin, resource, action str
 	}
 
 	switch resource {
-	case "admin":
-		return admin.Role == database.AdminRoleSuperAdmin
-	case "system_config":
-		return admin.Role == database.AdminRoleSuperAdmin
-	case "operation_log":
-		return admin.Role == database.AdminRoleSuperAdmin
 	case "project":
 		return s.checkProjectPermission(admin, action, resourceId)
 	case "task":
@@ -479,24 +473,26 @@ func (s *adminService) checkConversationPermission(admin *database.Admin, action
 }
 
 func (s *adminService) checkCredentialPermission(admin *database.Admin, action string, resourceId uint) bool {
+	if admin.Role == database.AdminRoleSuperAdmin {
+		return true
+	}
+
+	if s.gitCredService == nil {
+		utils.Error("GitCredentialService not initialized for permission check", "adminID", admin.ID)
+		return false
+	}
+
 	switch action {
-	case "create":
-		return admin.Role == database.AdminRoleDeveloper || admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin
-	case "read":
+	case "read", "create":
 		return true
 	case "update", "delete":
-		if admin.Role == database.AdminRoleSuperAdmin {
-			return true
-		}
 		if admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleDeveloper {
-			if s.gitCredService != nil {
-				canAccess, err := s.gitCredService.CanAdminAccessCredential(resourceId, admin.ID)
-				if err != nil {
-					return false
-				}
-				return canAccess
+			canAccess, err := s.gitCredService.IsOwner(resourceId, admin.ID)
+			if err != nil {
+				utils.Error("Failed to check credential access permission", "credentialID", resourceId, "adminID", admin.ID, "error", err)
+				return false
 			}
-			return false
+			return canAccess
 		}
 		return false
 	default:
@@ -505,24 +501,26 @@ func (s *adminService) checkCredentialPermission(admin *database.Admin, action s
 }
 
 func (s *adminService) checkEnvironmentPermission(admin *database.Admin, action string, resourceId uint) bool {
+	if admin.Role == database.AdminRoleSuperAdmin {
+		return true
+	}
+
+	if s.devEnvService == nil {
+		utils.Error("DevEnvironmentService not initialized for permission check", "adminID", admin.ID)
+		return false
+	}
+
 	switch action {
-	case "create":
-		return admin.Role == database.AdminRoleDeveloper || admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin
-	case "read":
+	case "read", "create":
 		return true
 	case "update", "delete":
-		if admin.Role == database.AdminRoleSuperAdmin {
-			return true
-		}
 		if admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleDeveloper {
-			if s.devEnvService != nil {
-				canAccess, err := s.devEnvService.CanAdminAccessEnvironment(resourceId, admin.ID)
-				if err != nil {
-					return false
-				}
-				return canAccess
+			canAccess, err := s.devEnvService.IsOwner(resourceId, admin.ID)
+			if err != nil {
+				utils.Error("Failed to check environment access permission", "environmentID", resourceId, "adminID", admin.ID, "error", err)
+				return false
 			}
-			return false
+			return canAccess
 		}
 		return false
 	default:

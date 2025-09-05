@@ -178,8 +178,8 @@ func (r *devEnvironmentRepository) GetAdmins(envID uint) ([]database.Admin, erro
 	return admins, err
 }
 
-// IsAdminForEnvironment checks if an admin has access to a specific environment
-func (r *devEnvironmentRepository) IsAdminForEnvironment(envID, adminID uint) (bool, error) {
+// IsOwner checks if an admin has access to a specific environment
+func (r *devEnvironmentRepository) IsOwner(envID, adminID uint) (bool, error) {
 	var count int64
 
 	err := r.db.Table("dev_environments").

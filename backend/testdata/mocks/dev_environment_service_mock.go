@@ -96,7 +96,7 @@ func (m *MockDevEnvironmentService) GetEnvironmentAdmins(envID uint) ([]database
 	return args.Get(0).([]database.Admin), args.Error(1)
 }
 
-func (m *MockDevEnvironmentService) CanAdminAccessEnvironment(envID, adminID uint) (bool, error) {
+func (m *MockDevEnvironmentService) IsOwner(envID, adminID uint) (bool, error) {
 	args := m.Called(envID, adminID)
 	return args.Bool(0), args.Error(1)
 }

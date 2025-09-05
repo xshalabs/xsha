@@ -44,7 +44,7 @@ type GitCredentialRepository interface {
 	AddAdmin(credentialID, adminID uint) error
 	RemoveAdmin(credentialID, adminID uint) error
 	GetAdmins(credentialID uint) ([]database.Admin, error)
-	IsAdminForCredential(credentialID, adminID uint) (bool, error)
+	IsOwner(credentialID, adminID uint) (bool, error)
 }
 
 type ProjectRepository interface {
@@ -96,7 +96,7 @@ type DevEnvironmentRepository interface {
 	AddAdmin(envID, adminID uint) error
 	RemoveAdmin(envID, adminID uint) error
 	GetAdmins(envID uint) ([]database.Admin, error)
-	IsAdminForEnvironment(envID, adminID uint) (bool, error)
+	IsOwner(envID, adminID uint) (bool, error)
 }
 
 type TaskRepository interface {

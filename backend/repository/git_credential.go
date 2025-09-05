@@ -169,7 +169,7 @@ func (r *gitCredentialRepository) GetAdmins(credentialID uint) ([]database.Admin
 	return admins, err
 }
 
-func (r *gitCredentialRepository) IsAdminForCredential(credentialID, adminID uint) (bool, error) {
+func (r *gitCredentialRepository) IsOwner(credentialID, adminID uint) (bool, error) {
 	var count int64
 
 	// Check legacy relationship first

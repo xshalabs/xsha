@@ -19,11 +19,9 @@ import (
 func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, adminService services.AdminService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, adminAvatarHandlers *handlers.AdminAvatarHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, staticFiles *embed.FS) {
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
-
 	r.NoMethod(middleware.MethodNotAllowedHandler())
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
 	r.GET("/health", handlers.HealthHandler)
 
 	auth := r.Group("/api/v1/auth")
@@ -31,16 +29,23 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		auth.POST("/login", middleware.LoginRateLimitMiddleware(), authHandlers.LoginHandler)
 	}
 
+	r.GET("/api/v1/admin/avatar/preview/:uuid", adminAvatarHandlers.PreviewAvatarHandler)
+
 	api := r.Group("/api/v1")
 	api.Use(middleware.AuthMiddlewareWithService(authService, adminService, cfg))
 	api.Use(middleware.OperationLogMiddleware(operationLogHandlers.OperationLogService))
 	{
-		r.GET("/api/v1/admin/avatar/preview/:uuid", adminAvatarHandlers.PreviewAvatarHandler)
 		api.GET("/user/current", authHandlers.CurrentUserHandler)
 		api.PUT("/user/change-password", authHandlers.ChangeOwnPasswordHandler)
 		api.PUT("/user/update-avatar", authHandlers.UpdateOwnAvatarHandler)
 		api.POST("/auth/logout", authHandlers.LogoutHandler)
 		api.GET("/admins", adminHandlers.PublicListAdminsHandler)
+
+		dashboard := api.Group("/dashboard")
+		{
+			dashboard.GET("/stats", middleware.RequireSuperAdmin(), dashboardHandlers.GetDashboardStats)
+			dashboard.GET("/recent-tasks", dashboardHandlers.GetRecentTasks)
+		}
 
 		admin := api.Group("/admin")
 		admin.Use(middleware.RequireSuperAdmin())
@@ -51,7 +56,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			admin.GET("/operation-logs/:id", operationLogHandlers.GetOperationLog)
 			admin.GET("/operation-stats", operationLogHandlers.GetOperationStats)
 
-			// user management
 			admin.POST("/users", adminHandlers.CreateAdminHandler)
 			admin.GET("/users", adminHandlers.ListAdminsHandler)
 			admin.GET("/users/:id", adminHandlers.GetAdminHandler)
@@ -65,17 +69,41 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			admin.GET("/roles", adminHandlers.GetAvailableRolesHandler)
 		}
 
+		// settings
+		systemConfigs := api.Group("/settings")
+		systemConfigs.Use(middleware.RequireSuperAdmin())
+		{
+			systemConfigs.GET("", systemConfigHandlers.ListAllConfigs)
+			systemConfigs.PUT("", systemConfigHandlers.BatchUpdateConfigs)
+		}
+
+		// environments
+		devEnvs := api.Group("/environments")
+		{
+			devEnvs.POST("", middleware.RequirePermission("environment", "create"), devEnvHandlers.CreateEnvironment)
+			devEnvs.GET("", devEnvHandlers.ListEnvironments)
+			devEnvs.GET("/available-images", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetAvailableImages)
+			devEnvs.GET("/:id", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetEnvironment)
+			devEnvs.PUT("/:id", middleware.RequirePermission("environment", "update"), devEnvHandlers.UpdateEnvironment)
+			devEnvs.DELETE("/:id", middleware.RequirePermission("environment", "delete"), devEnvHandlers.DeleteEnvironment)
+
+			devEnvs.GET("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetEnvironmentAdmins)
+			devEnvs.POST("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.AddAdminToEnvironment)
+			devEnvs.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("environment", "update"), devEnvHandlers.RemoveAdminFromEnvironment)
+		}
+
 		gitCreds := api.Group("/credentials")
 		{
-			gitCreds.POST("", middleware.RequirePermission("credential", "create"), gitCredHandlers.CreateCredential)
 			gitCreds.GET("", gitCredHandlers.ListCredentials)
+
+			gitCreds.POST("", middleware.RequirePermission("credential", "create"), gitCredHandlers.CreateCredential)
 			gitCreds.GET("/:id", middleware.RequirePermission("credential", "update"), gitCredHandlers.GetCredential)
 			gitCreds.PUT("/:id", middleware.RequirePermission("credential", "update"), gitCredHandlers.UpdateCredential)
 			gitCreds.DELETE("/:id", middleware.RequirePermission("credential", "delete"), gitCredHandlers.DeleteCredential)
 
 			gitCreds.GET("/:id/admins", middleware.RequirePermission("credential", "update"), gitCredHandlers.GetCredentialAdmins)
 			gitCreds.POST("/:id/admins", middleware.RequirePermission("credential", "update"), gitCredHandlers.AddCredentialAdmin)
-			gitCreds.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("credential", "delete"), gitCredHandlers.RemoveCredentialAdmin)
+			gitCreds.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("credential", "update"), gitCredHandlers.RemoveCredentialAdmin)
 		}
 
 		projects := api.Group("/projects")
@@ -130,33 +158,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			attachments.GET("/:id/download", attachmentHandlers.DownloadAttachment)
 			attachments.GET("/:id/preview", attachmentHandlers.PreviewAttachment)
 			attachments.DELETE("/:id", attachmentHandlers.DeleteAttachment)
-		}
-
-		devEnvs := api.Group("/environments")
-		{
-			devEnvs.POST("", middleware.RequirePermission("environment", "create"), devEnvHandlers.CreateEnvironment)
-			devEnvs.GET("", devEnvHandlers.ListEnvironments)
-			devEnvs.GET("/available-images", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetAvailableImages)
-			devEnvs.GET("/:id", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetEnvironment)
-			devEnvs.PUT("/:id", middleware.RequirePermission("environment", "update"), devEnvHandlers.UpdateEnvironment)
-			devEnvs.DELETE("/:id", middleware.RequirePermission("environment", "delete"), devEnvHandlers.DeleteEnvironment)
-
-			devEnvs.GET("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetEnvironmentAdmins)
-			devEnvs.POST("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.AddAdminToEnvironment)
-			devEnvs.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("environment", "update"), devEnvHandlers.RemoveAdminFromEnvironment)
-		}
-
-		systemConfigs := api.Group("/settings")
-		systemConfigs.Use(middleware.RequireSuperAdmin())
-		{
-			systemConfigs.GET("", systemConfigHandlers.ListAllConfigs)
-			systemConfigs.PUT("", systemConfigHandlers.BatchUpdateConfigs)
-		}
-
-		dashboard := api.Group("/dashboard")
-		{
-			dashboard.GET("/stats", middleware.RequireSuperAdmin(), dashboardHandlers.GetDashboardStats)
-			dashboard.GET("/recent-tasks", dashboardHandlers.GetRecentTasks)
 		}
 	}
 

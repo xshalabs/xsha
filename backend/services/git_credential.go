@@ -229,7 +229,7 @@ func (s *gitCredentialService) GetCredentialAdmins(credentialID uint) ([]databas
 	return s.repo.GetAdmins(credentialID)
 }
 
-// CanAdminAccessCredential checks if an admin has access to a specific credential
-func (s *gitCredentialService) CanAdminAccessCredential(credentialID, adminID uint) (bool, error) {
-	return s.repo.IsAdminForCredential(credentialID, adminID)
+// IsOwner checks if an admin is owner of a specific credential
+func (s *gitCredentialService) IsOwner(credentialID, adminID uint) (bool, error) {
+	return s.repo.IsOwner(credentialID, adminID)
 }

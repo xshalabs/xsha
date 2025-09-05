@@ -58,7 +58,7 @@ type GitCredentialService interface {
 	AddAdminToCredential(credentialID, adminID uint) error
 	RemoveAdminFromCredential(credentialID, adminID uint) error
 	GetCredentialAdmins(credentialID uint) ([]database.Admin, error)
-	CanAdminAccessCredential(credentialID, adminID uint) (bool, error)
+	IsOwner(credentialID, adminID uint) (bool, error)
 }
 
 type ProjectService interface {
@@ -116,7 +116,7 @@ type DevEnvironmentService interface {
 	AddAdminToEnvironment(envID, adminID uint) error
 	RemoveAdminFromEnvironment(envID, adminID uint) error
 	GetEnvironmentAdmins(envID uint) ([]database.Admin, error)
-	CanAdminAccessEnvironment(envID, adminID uint) (bool, error)
+	IsOwner(envID, adminID uint) (bool, error)
 }
 
 type TaskService interface {
