@@ -15,6 +15,7 @@
   "credential": "访问凭据",
   "taskCount": "任务数量",
   "adminCount": "管理员",
+  "createdBy": "创建者",
   "credentialHelp": "选择用于访问此仓库的凭据（可选）",
   "protocolAutoDetected": "自动检测协议",
   "messages": {
@@ -64,8 +65,6 @@
     "cannot_remove_creator": "无法移除项目创建者",
     "added_success": "管理员成功添加到项目",
     "removed_success": "管理员 {{name}} 成功从项目中移除",
-    "confirm_add_title": "确认添加管理员",
-    "confirm_add_description": "确定要将 {{adminName}} 添加为 {{projectName}} 的管理员吗？",
     "confirm_remove_title": "确认移除管理员",
     "confirm_remove_description": "确定要将 {{adminName}} 从 {{projectName}} 的管理员中移除吗？"
   }

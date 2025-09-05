@@ -15,6 +15,7 @@
   "credential": "Credential",
   "taskCount": "Tasks",
   "adminCount": "Admins",
+  "createdBy": "Created By",
   "credentialHelp": "Select a credential to access this repository (optional)",
   "protocolAutoDetected": "Auto-detected protocol",
   "messages": {
@@ -64,8 +65,6 @@
     "cannot_remove_creator": "Cannot remove the project creator",
     "added_success": "Admin successfully added to project",
     "removed_success": "Admin {{name}} successfully removed from project",
-    "confirm_add_title": "Confirm Add Admin",
-    "confirm_add_description": "Are you sure you want to add {{adminName}} as an admin to {{projectName}}?",
     "confirm_remove_title": "Confirm Remove Admin", 
     "confirm_remove_description": "Are you sure you want to remove {{adminName}} as an admin from {{projectName}}?"
   }
