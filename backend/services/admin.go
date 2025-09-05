@@ -349,11 +349,6 @@ func (s *adminService) HasPermission(admin *database.Admin, resource, action str
 		return true
 	}
 
-	resourceOwnerID, err := s.getResourceOwnerID(resource, resourceId)
-	if err != nil {
-		return false
-	}
-
 	switch resource {
 	case "admin":
 		return admin.Role == database.AdminRoleSuperAdmin
@@ -364,9 +359,9 @@ func (s *adminService) HasPermission(admin *database.Admin, resource, action str
 	case "project":
 		return s.checkProjectPermission(admin, action, resourceId)
 	case "task":
-		return s.checkTaskPermission(admin, action, resourceOwnerID)
+		return s.checkTaskPermission(admin, action, resourceId)
 	case "conversation":
-		return s.checkConversationPermission(admin, action, resourceOwnerID)
+		return s.checkConversationPermission(admin, action, resourceId)
 	case "credential":
 		return s.checkCredentialPermission(admin, action, resourceId)
 	case "environment":
@@ -376,114 +371,12 @@ func (s *adminService) HasPermission(admin *database.Admin, resource, action str
 	}
 }
 
-// CanAccessResource is an alias for HasPermission
-func (s *adminService) CanAccessResource(admin *database.Admin, resource string, action string, resourceId uint) bool {
-	return s.HasPermission(admin, resource, action, resourceId)
-}
-
 // GetAvailableRoles returns all available admin roles
 func (s *adminService) GetAvailableRoles() []database.AdminRole {
 	return []database.AdminRole{
 		database.AdminRoleSuperAdmin,
 		database.AdminRoleAdmin,
 		database.AdminRoleDeveloper,
-	}
-}
-
-// getResourceOwnerID gets the actual owner ID for a given resource
-func (s *adminService) getResourceOwnerID(resourceType string, resourceID uint) (uint, error) {
-	if resourceID == 0 {
-		return 0, nil
-	}
-
-	switch resourceType {
-	case "project":
-		if s.projectService == nil {
-			return 0, fmt.Errorf("projectService not available")
-		}
-		project, err := s.projectService.GetProject(resourceID)
-		if err != nil {
-			// Check if it's a not found error
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return 0, nil // Resource not found, no owner
-			}
-			return 0, fmt.Errorf("failed to get project: %v", err)
-		}
-		if project.AdminID != nil {
-			return *project.AdminID, nil
-		}
-		return 0, nil
-
-	case "task":
-		if s.taskService == nil {
-			return 0, fmt.Errorf("taskService not available")
-		}
-		task, err := s.taskService.GetTask(resourceID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return 0, nil // Resource not found, no owner
-			}
-			return 0, fmt.Errorf("failed to get task: %v", err)
-		}
-		if task.AdminID != nil {
-			return *task.AdminID, nil
-		}
-		return 0, nil
-
-	case "conversation":
-		if s.taskConvService == nil {
-			return 0, fmt.Errorf("taskConvService not available")
-		}
-		conversationData, err := s.taskConvService.GetConversationWithResult(resourceID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return 0, nil // Resource not found, no owner
-			}
-			return 0, fmt.Errorf("failed to get conversation: %v", err)
-		}
-		if conversationObj, ok := conversationData["conversation"]; ok {
-			if conversation, ok := conversationObj.(*database.TaskConversation); ok {
-				if conversation.AdminID != nil {
-					return *conversation.AdminID, nil
-				}
-			}
-		}
-		return 0, nil
-
-	case "credential":
-		if s.gitCredService == nil {
-			return 0, fmt.Errorf("gitCredService not available")
-		}
-		credential, err := s.gitCredService.GetCredential(resourceID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return 0, nil // Resource not found, no owner
-			}
-			return 0, fmt.Errorf("failed to get credential: %v", err)
-		}
-		if credential.AdminID != nil {
-			return *credential.AdminID, nil
-		}
-		return 0, nil
-
-	case "environment":
-		if s.devEnvService == nil {
-			return 0, fmt.Errorf("devEnvService not available")
-		}
-		environment, err := s.devEnvService.GetEnvironment(resourceID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return 0, nil // Resource not found, no owner
-			}
-			return 0, fmt.Errorf("failed to get environment: %v", err)
-		}
-		if environment.AdminID != nil {
-			return *environment.AdminID, nil
-		}
-		return 0, nil
-
-	default:
-		return 0, nil
 	}
 }
 
@@ -541,37 +434,48 @@ func (s *adminService) checkProjectPermission(admin *database.Admin, action stri
 	}
 }
 
-func (s *adminService) checkTaskPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
-	switch action {
-	case "create", "execute", "read":
+func (s *adminService) checkTaskPermission(admin *database.Admin, action string, taskId uint) bool {
+	if admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin {
 		return true
-	case "update", "delete":
-		switch admin.Role {
-		case database.AdminRoleSuperAdmin:
-			return true
-		case database.AdminRoleAdmin:
-			return admin.ID == resourceOwnerID
-		}
-		return false
-	default:
-		return false
 	}
+
+	if admin.Role == database.AdminRoleDeveloper && s.taskService != nil {
+		switch action {
+		case "delete":
+			task, err := s.taskService.GetTask(taskId)
+			if err != nil {
+				utils.Error("Failed to get task for permission check", "taskID", taskId, "adminID", admin.ID, "error", err)
+				return false
+			}
+			return task.AdminID != nil && *task.AdminID == admin.ID
+		default:
+			return false
+		}
+	}
+
+	return false
 }
 
-func (s *adminService) checkConversationPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
-	switch action {
-	case "create", "execute":
-		return true // All roles can create and execute conversations
-	case "read":
-		return true // All roles can read conversations
-	case "update", "delete":
-		if admin.Role == database.AdminRoleSuperAdmin {
-			return true
-		}
-		return admin.ID == resourceOwnerID // Only owner can update/delete
-	default:
-		return false
+func (s *adminService) checkConversationPermission(admin *database.Admin, action string, convId uint) bool {
+	if admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin {
+		return true
 	}
+
+	if admin.Role == database.AdminRoleDeveloper && s.taskConvService != nil {
+		switch action {
+		case "delete":
+			conversation, err := s.taskConvService.GetConversation(convId)
+			if err != nil {
+				utils.Error("Failed to get conversation for permission check", "conversationID", convId, "adminID", admin.ID, "error", err)
+				return false
+			}
+			return conversation.AdminID != nil && *conversation.AdminID == admin.ID
+		default:
+			return false
+		}
+	}
+
+	return false
 }
 
 func (s *adminService) checkCredentialPermission(admin *database.Admin, action string, resourceId uint) bool {

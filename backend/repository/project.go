@@ -155,7 +155,7 @@ func (r *projectRepository) GetAdminCounts(projectIDs []uint) (map[uint]int64, e
 	}
 
 	var results []AdminCountResult
-	
+
 	// Count admins from many-to-many relationship table
 	err := r.db.Table("project_admins").
 		Select("project_id, COUNT(DISTINCT admin_id) as count").
@@ -313,7 +313,7 @@ func (r *projectRepository) GetAdmins(projectID uint) ([]database.Admin, error) 
 // IsAdminForProject checks if an admin has access to a project (either through direct ownership or many-to-many relationship)
 func (r *projectRepository) IsAdminForProject(projectID, adminID uint) (bool, error) {
 	var count int64
-	
+
 	// Check if admin is the direct owner of the project (AdminID field)
 	err := r.db.Model(&database.Project{}).
 		Where("id = ? AND admin_id = ?", projectID, adminID).
@@ -321,11 +321,11 @@ func (r *projectRepository) IsAdminForProject(projectID, adminID uint) (bool, er
 	if err != nil {
 		return false, err
 	}
-	
+
 	if count > 0 {
 		return true, nil
 	}
-	
+
 	// Check if admin is in the many-to-many relationship table
 	err = r.db.Table("project_admins").
 		Where("project_id = ? AND admin_id = ?", projectID, adminID).
@@ -333,6 +333,6 @@ func (r *projectRepository) IsAdminForProject(projectID, adminID uint) (bool, er
 	if err != nil {
 		return false, err
 	}
-	
+
 	return count > 0, nil
 }

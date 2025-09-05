@@ -120,8 +120,8 @@ type Project struct {
 	CredentialID *uint           `gorm:"index" json:"credential_id"`
 	Credential   *GitCredential  `gorm:"foreignKey:CredentialID" json:"credential"`
 
-	AdminID   *uint  `gorm:"index" json:"admin_id"`
-	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+	AdminID *uint  `gorm:"index" json:"admin_id"`
+	Admin   *Admin `gorm:"foreignKey:AdminID" json:"admin"`
 
 	// Many-to-many relationship for project admins
 	Admins []Admin `gorm:"many2many:project_admins;" json:"admins,omitempty"`

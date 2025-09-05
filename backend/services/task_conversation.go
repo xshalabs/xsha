@@ -164,6 +164,9 @@ func (s *taskConversationService) CreateConversationWithExecutionTimeAndAttachme
 	return conversation, nil
 }
 
+func (s *taskConversationService) GetConversation(id uint) (*database.TaskConversation, error) {
+	return s.repo.GetByID(id)
+}
 
 func (s *taskConversationService) GetConversationWithResult(id uint) (map[string]interface{}, error) {
 	conversation, result, executionLog, err := s.repo.GetWithResult(id)
@@ -190,7 +193,6 @@ func (s *taskConversationService) ListConversations(taskID uint, page, pageSize 
 
 	return s.repo.List(taskID, page, pageSize)
 }
-
 
 func (s *taskConversationService) DeleteConversation(id uint) error {
 	conversation, err := s.repo.GetByID(id)
@@ -275,7 +277,6 @@ func (s *taskConversationService) DeleteConversation(id uint) error {
 
 	return nil
 }
-
 
 func (s *taskConversationService) ValidateConversationData(taskID uint, content string) error {
 	if strings.TrimSpace(content) == "" {

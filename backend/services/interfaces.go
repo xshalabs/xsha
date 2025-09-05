@@ -38,7 +38,6 @@ type AdminService interface {
 	SetTaskService(taskService TaskService)
 	SetTaskConversationService(taskConvService TaskConversationService)
 	HasPermission(admin *database.Admin, resource, action string, resourceId uint) bool
-	CanAccessResource(admin *database.Admin, resource string, action string, resourceId uint) bool
 	GetAvailableRoles() []database.AdminRole
 }
 
@@ -139,6 +138,7 @@ type TaskService interface {
 type TaskConversationService interface {
 	CreateConversationWithExecutionTime(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, adminID *uint) (*database.TaskConversation, error)
 	CreateConversationWithExecutionTimeAndAttachments(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, attachmentIDs []uint, adminID *uint) (*database.TaskConversation, error)
+	GetConversation(id uint) (*database.TaskConversation, error)
 	GetConversationWithResult(id uint) (map[string]interface{}, error)
 	ListConversations(taskID uint, page, pageSize int) ([]database.TaskConversation, int64, error)
 	DeleteConversation(id uint) error
