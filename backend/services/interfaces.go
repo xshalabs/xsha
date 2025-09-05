@@ -80,6 +80,7 @@ type ProjectService interface {
 	RemoveAdminFromProject(projectID, adminID uint) error
 	GetProjectAdmins(projectID uint) ([]database.Admin, error)
 	CanAdminAccessProject(projectID, adminID uint) (bool, error)
+	IsOwner(projectID, adminID uint) (bool, error)
 }
 
 type AdminOperationLogService interface {

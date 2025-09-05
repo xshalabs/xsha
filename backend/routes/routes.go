@@ -45,13 +45,13 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		admin := api.Group("/admin")
 		admin.Use(middleware.RequireSuperAdmin())
 		{
+			// logs
 			admin.GET("/login-logs", authHandlers.GetLoginLogsHandler)
-
 			admin.GET("/operation-logs", operationLogHandlers.GetOperationLogs)
 			admin.GET("/operation-logs/:id", operationLogHandlers.GetOperationLog)
 			admin.GET("/operation-stats", operationLogHandlers.GetOperationStats)
 
-			// Admin user management
+			// user management
 			admin.POST("/users", adminHandlers.CreateAdminHandler)
 			admin.GET("/users", adminHandlers.ListAdminsHandler)
 			admin.GET("/users/:id", adminHandlers.GetAdminHandler)
@@ -81,10 +81,8 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		projects := api.Group("/projects")
 		{
 			projects.GET("", projectHandlers.ListProjects)
-			projects.GET("/:id", projectHandlers.GetProject)
-
-			// used to task created
-			projects.POST("/:id/branches", projectHandlers.FetchRepositoryBranches)
+			projects.GET("/:id", middleware.RequirePermission("project", "read"), projectHandlers.GetProject)
+			projects.POST("/:id/branches", middleware.RequirePermission("project", "read"), projectHandlers.FetchRepositoryBranches)
 			// create
 			projects.POST("", middleware.RequireAdminOrSuperAdmin(), projectHandlers.CreateProject)
 			projects.GET("/credentials", middleware.RequireAdminOrSuperAdmin(), projectHandlers.GetCompatibleCredentials)
@@ -95,14 +93,15 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			projects.POST("/:id/admins", middleware.RequirePermission("project", "update"), projectHandlers.AddAdminToProject)
 			// delete
 			projects.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("project", "delete"), projectHandlers.RemoveAdminFromProject)
-
-			projects.GET("/:id/kanban", taskHandlers.GetKanbanTasks)
+			// kanban
+			projects.GET("/:id/kanban", middleware.RequirePermission("project", "read"), taskHandlers.GetKanbanTasks)
 
 			tasks := projects.Group("/:id/tasks")
+			tasks.Use(middleware.RequirePermission("project", "tasks"))
 			{
 				tasks.POST("", taskHandlers.CreateTask)
 				tasks.PUT("/:taskId", taskHandlers.UpdateTask)
-				tasks.DELETE("/:taskId", taskHandlers.DeleteTask)
+				tasks.DELETE("/:taskId", middleware.RequirePermission("task", "delete"), taskHandlers.DeleteTask)
 				tasks.GET("/:taskId/git-diff", taskHandlers.GetTaskGitDiff)
 				tasks.GET("/:taskId/git-diff/file", taskHandlers.GetTaskGitDiffFile)
 				tasks.POST("/:taskId/push", taskHandlers.PushTaskBranch)
@@ -113,7 +112,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 					conversations.POST("", taskConvHandlers.CreateConversation)
 					conversations.GET("", taskConvHandlers.ListConversations)
 					conversations.GET("/:convId/details", taskConvHandlers.GetConversationDetails)
-					conversations.DELETE("/:convId", taskConvHandlers.DeleteConversation)
+					conversations.DELETE("/:convId", middleware.RequirePermission("conversation", "delete"), taskConvHandlers.DeleteConversation)
 					conversations.GET("/:convId/git-diff", taskConvHandlers.GetConversationGitDiff)
 					conversations.GET("/:convId/git-diff/file", taskConvHandlers.GetConversationGitDiffFile)
 					conversations.GET("/:convId/logs/stream", taskConvHandlers.StreamConversationLogs)

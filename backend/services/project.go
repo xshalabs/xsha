@@ -229,17 +229,17 @@ func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolT
 	case database.GitProtocolHTTPS:
 		passwordType := database.GitCredentialTypePassword
 		tokenType := database.GitCredentialTypeToken
-		
+
 		var passwordCreds, tokenCreds []database.GitCredential
 		var err error
-		
+
 		if admin.Role == database.AdminRoleSuperAdmin {
 			// Super admin can see all credentials
 			passwordCreds, err = s.gitCredService.ListActiveCredentials(&passwordType)
 			if err != nil {
 				return nil, err
 			}
-			
+
 			tokenCreds, err = s.gitCredService.ListActiveCredentials(&tokenType)
 			if err != nil {
 				return nil, err
@@ -250,7 +250,7 @@ func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolT
 			if err != nil {
 				return nil, err
 			}
-			
+
 			tokenCreds, err = s.gitCredService.ListActiveCredentialsByAdminAccess(admin.ID, &tokenType)
 			if err != nil {
 				return nil, err
@@ -262,7 +262,7 @@ func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolT
 
 	case database.GitProtocolSSH:
 		sshType := database.GitCredentialTypeSSHKey
-		
+
 		if admin.Role == database.AdminRoleSuperAdmin {
 			// Super admin can see all credentials
 			return s.gitCredService.ListActiveCredentials(&sshType)
@@ -330,7 +330,6 @@ func (s *projectService) FetchRepositoryBranches(repoURL string, credentialID *u
 func (s *projectService) getGitProxyConfig() (*utils.GitProxyConfig, error) {
 	return s.systemConfigService.GetGitProxyConfig()
 }
-
 
 func (s *projectService) validateProjectData(name, repoURL, protocol string) error {
 	if strings.TrimSpace(name) == "" {
@@ -466,6 +465,19 @@ func (s *projectService) CanAdminAccessProject(projectID, adminID uint) (bool, e
 		if admin.ID == adminID {
 			return true, nil
 		}
+	}
+
+	return false, nil
+}
+
+func (s *projectService) IsOwner(projectID, adminID uint) (bool, error) {
+	project, err := s.repo.GetByID(projectID)
+	if err != nil {
+		return false, err
+	}
+
+	if project.AdminID != nil && *project.AdminID == adminID {
+		return true, nil
 	}
 
 	return false, nil

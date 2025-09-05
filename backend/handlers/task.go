@@ -130,8 +130,6 @@ func (h *TaskHandlers) CreateTask(c *gin.Context) {
 	})
 }
 
-
-
 // UpdateTask updates an existing task
 // @Summary Update task
 // @Description Update task information
@@ -187,7 +185,6 @@ func (h *TaskHandlers) UpdateTask(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task.update_success")})
 }
-
 
 // DeleteTask deletes a task
 // @Summary Delete task
@@ -567,24 +564,6 @@ func (h *TaskHandlers) GetKanbanTasks(c *gin.Context) {
 	projectID, err := strconv.ParseUint(projectIDStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
-		return
-	}
-
-	admin := middleware.GetAdminFromContext(c)
-
-	// Check if admin has access to this project
-	canAccess, err := h.projectService.CanAdminAccessProject(uint(projectID), admin.ID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": i18n.T(lang, "project.not_found"),
-		})
-		return
-	}
-
-	if !canAccess {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": i18n.T(lang, "project.not_found"),
-		})
 		return
 	}
 

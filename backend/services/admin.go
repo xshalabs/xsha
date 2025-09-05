@@ -7,6 +7,7 @@ import (
 	"xsha-backend/database"
 	appErrors "xsha-backend/errors"
 	"xsha-backend/repository"
+	"xsha-backend/utils"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -361,7 +362,7 @@ func (s *adminService) HasPermission(admin *database.Admin, resource, action str
 	case "operation_log":
 		return admin.Role == database.AdminRoleSuperAdmin
 	case "project":
-		return s.checkProjectPermission(admin, action, resourceOwnerID)
+		return s.checkProjectPermission(admin, action, resourceId)
 	case "task":
 		return s.checkTaskPermission(admin, action, resourceOwnerID)
 	case "conversation":
@@ -487,17 +488,54 @@ func (s *adminService) getResourceOwnerID(resourceType string, resourceID uint) 
 }
 
 // Helper methods for specific resource permissions
-func (s *adminService) checkProjectPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
+func (s *adminService) checkProjectPermission(admin *database.Admin, action string, projectID uint) bool {
+	if admin.Role == database.AdminRoleSuperAdmin {
+		return true
+	}
+
 	switch action {
 	case "create":
-		return admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin
+		return admin.Role == database.AdminRoleAdmin
 	case "read":
-		return true
-	case "update", "delete":
-		if admin.Role == database.AdminRoleSuperAdmin {
-			return true
+		if s.projectService != nil {
+			canAccess, err := s.projectService.CanAdminAccessProject(projectID, admin.ID)
+			if err != nil {
+				utils.Error("Failed to check project access", "projectID", projectID, "adminID", admin.ID, "error", err)
+				return false
+			}
+			return canAccess
 		}
-		return admin.Role == database.AdminRoleAdmin && admin.ID == resourceOwnerID
+		return false
+	case "update", "delete":
+		if admin.Role == database.AdminRoleAdmin && s.projectService != nil {
+			canAccess, err := s.projectService.IsOwner(projectID, admin.ID)
+			if err != nil {
+				utils.Error("Failed to check project ownership", "projectID", projectID, "adminID", admin.ID, "error", err)
+				return false
+			}
+			return canAccess
+		}
+		return false
+	case "tasks":
+		if s.projectService != nil {
+			if admin.Role == database.AdminRoleAdmin {
+				canAccess, err := s.projectService.IsOwner(projectID, admin.ID)
+				if err != nil {
+					utils.Error("Failed to check project ownership for tasks", "projectID", projectID, "adminID", admin.ID, "error", err)
+					return false
+				}
+				return canAccess
+			}
+			if admin.Role == database.AdminRoleDeveloper {
+				canAccess, err := s.projectService.CanAdminAccessProject(projectID, admin.ID)
+				if err != nil {
+					utils.Error("Failed to check project access for tasks", "projectID", projectID, "adminID", admin.ID, "error", err)
+					return false
+				}
+				return canAccess
+			}
+		}
+		return false
 	default:
 		return false
 	}

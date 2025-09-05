@@ -66,6 +66,7 @@ type ProjectRepository interface {
 	AddAdmin(projectID, adminID uint) error
 	RemoveAdmin(projectID, adminID uint) error
 	GetAdmins(projectID uint) ([]database.Admin, error)
+	IsAdminForProject(projectID, adminID uint) (bool, error)
 }
 
 type AdminOperationLogRepository interface {
