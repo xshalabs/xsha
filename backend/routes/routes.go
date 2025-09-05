@@ -75,21 +75,24 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 
 			gitCreds.GET("/:id/admins", middleware.RequirePermission("credential", "update"), gitCredHandlers.GetCredentialAdmins)
 			gitCreds.POST("/:id/admins", middleware.RequirePermission("credential", "update"), gitCredHandlers.AddCredentialAdmin)
-			gitCreds.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("credential", "update"), gitCredHandlers.RemoveCredentialAdmin)
+			gitCreds.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("credential", "delete"), gitCredHandlers.RemoveCredentialAdmin)
 		}
 
 		projects := api.Group("/projects")
 		{
-			projects.POST("", middleware.RequireAdminOrSuperAdmin(), projectHandlers.CreateProject)
 			projects.GET("", projectHandlers.ListProjects)
-			projects.POST("/branches", projectHandlers.FetchRepositoryBranches)
-			projects.GET("/credentials", projectHandlers.GetCompatibleCredentials)
 			projects.GET("/:id", projectHandlers.GetProject)
+			projects.POST("/:id/branches", projectHandlers.FetchRepositoryBranches)
+
+			projects.POST("", middleware.RequireAdminOrSuperAdmin(), projectHandlers.CreateProject)
+			projects.GET("/credentials", middleware.RequireAdminOrSuperAdmin(), projectHandlers.GetCompatibleCredentials)
+
 			projects.PUT("/:id", middleware.RequirePermission("project", "update"), projectHandlers.UpdateProject)
 			projects.DELETE("/:id", middleware.RequirePermission("project", "delete"), projectHandlers.DeleteProject)
 			projects.GET("/:id/admins", middleware.RequirePermission("project", "update"), projectHandlers.GetProjectAdmins)
 			projects.POST("/:id/admins", middleware.RequirePermission("project", "update"), projectHandlers.AddAdminToProject)
-			projects.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("project", "update"), projectHandlers.RemoveAdminFromProject)
+
+			projects.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("project", "delete"), projectHandlers.RemoveAdminFromProject)
 			projects.GET("/:id/kanban", taskHandlers.GetKanbanTasks)
 
 			tasks := projects.Group("/:id/tasks")

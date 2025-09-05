@@ -405,13 +405,6 @@ func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	})
 }
 
-
-// @Description Request parameters for fetching Git repository branch list
-type FetchRepositoryBranchesRequest struct {
-	RepoURL      string `json:"repo_url" binding:"required" example:"https://github.com/user/repo.git"`
-	CredentialID *uint  `json:"credential_id" example:"1"`
-}
-
 // @Description Response for fetching Git repository branch list
 type FetchRepositoryBranchesResponse struct {
 	CanAccess    bool     `json:"can_access" example:"true"`
@@ -421,28 +414,57 @@ type FetchRepositoryBranchesResponse struct {
 
 // FetchRepositoryBranches fetches repository branch list
 // @Summary Fetch Git repository branch list
-// @Description Fetch Git repository branch list using provided credentials and verify access permissions
+// @Description Fetch Git repository branch list using project's repository and credentials
 // @Tags Project
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body FetchRepositoryBranchesRequest true "Repository information"
+// @Param id path int true "Project ID"
 // @Success 200 {object} object{message=string,result=FetchRepositoryBranchesResponse} "Fetch branch list successfully"
-// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 400 {object} object{error=string} "Invalid project ID"
+// @Failure 404 {object} object{error=string} "Project not found"
 // @Failure 500 {object} object{error=string} "Failed to fetch branch list"
-// @Router /projects/branches [post]
+// @Router /projects/{id}/branches [post]
 func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	var req FetchRepositoryBranchesRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
+			"error": i18n.T(lang, "validation.invalid_format"),
 		})
 		return
 	}
 
-	result, err := h.projectService.FetchRepositoryBranches(req.RepoURL, req.CredentialID)
+	admin := middleware.GetAdminFromContext(c)
+
+	// Check if admin has access to this project
+	canAccess, err := h.projectService.CanAdminAccessProject(uint(id), admin.ID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": i18n.T(lang, "project.not_found"),
+		})
+		return
+	}
+
+	if !canAccess {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": i18n.T(lang, "project.not_found"),
+		})
+		return
+	}
+
+	// Get project details
+	project, err := h.projectService.GetProject(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": i18n.T(lang, "project.not_found"),
+		})
+		return
+	}
+
+	result, err := h.projectService.FetchRepositoryBranches(project.RepoURL, project.CredentialID)
 	if err != nil {
 		helper := i18n.NewHelper(lang)
 		helper.ErrorResponseFromError(c, http.StatusInternalServerError, err)
@@ -601,5 +623,3 @@ func (h *ProjectHandlers) RemoveAdminFromProject(c *gin.Context) {
 		"message": i18n.T(lang, "project.admin_removed_success"),
 	})
 }
-
-

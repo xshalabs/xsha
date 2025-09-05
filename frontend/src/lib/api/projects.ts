@@ -7,7 +7,6 @@ import type {
   ProjectDetailResponse,
   CompatibleCredentialsResponse,
   ProjectListParams,
-  FetchRepositoryBranchesRequest,
   FetchRepositoryBranchesResponse,
   AddAdminToProjectRequest,
   ProjectAdminsResponse,
@@ -69,11 +68,10 @@ export const projectsApi = {
 
 
   fetchBranches: async (
-    data: FetchRepositoryBranchesRequest
+    projectId: number
   ): Promise<FetchRepositoryBranchesResponse> => {
-    return request<FetchRepositoryBranchesResponse>("/projects/branches", {
+    return request<FetchRepositoryBranchesResponse>(`/projects/${projectId}/branches`, {
       method: "POST",
-      body: JSON.stringify(data),
     });
   },
 
