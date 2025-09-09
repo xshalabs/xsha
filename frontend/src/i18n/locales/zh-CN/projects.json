@@ -20,6 +20,7 @@
   "protocolAutoDetected": "自动检测协议",
   "messages": {
     "loadFailed": "加载项目失败",
+    "loadDetailsFailed": "加载项目详情失败",
     "createSuccess": "项目创建成功",
     "createFailed": "创建项目失败",
     "updateSuccess": "项目更新成功",

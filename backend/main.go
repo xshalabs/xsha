@@ -211,7 +211,6 @@ func main() {
 	}()
 
 	// Start server
-	utils.Info("Server starting...")
 	utils.Info("Server starting on port", "port", cfg.Port)
 
 	if err := r.Run(":" + cfg.Port); err != nil {

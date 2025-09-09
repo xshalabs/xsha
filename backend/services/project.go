@@ -175,9 +175,15 @@ func (s *projectService) UpdateProject(id uint, updates map[string]interface{}) 
 		if err := s.ValidateProtocolCredential(project.Protocol, project.CredentialID); err != nil {
 			return err
 		}
+		// Clear the stale credential relationship since credential_id has changed
+		project.Credential = nil
 	}
 
-	return s.repo.Update(project)
+	if err := s.repo.Update(project); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *projectService) DeleteProject(id uint) error {

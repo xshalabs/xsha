@@ -66,8 +66,6 @@ func (i *I18n) loadEmbeddedMessageFile(filename, lang string) {
 	i.mu.Lock()
 	i.messages[lang] = messages
 	i.mu.Unlock()
-
-	utils.Info("Embedded language file loaded", "filename", filename, "messageCount", len(messages))
 }
 
 func (i *I18n) GetMessage(lang, key string) string {

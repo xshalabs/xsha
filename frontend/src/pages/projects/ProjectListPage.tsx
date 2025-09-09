@@ -272,11 +272,19 @@ const ProjectListPage: React.FC = () => {
   }, [setActions, setItems, t, canCreateProject]);
 
   const handleEdit = useCallback(
-    (project: Project) => {
-      setEditingProject(project);
-      setIsEditSheetOpen(true);
+    async (project: Project) => {
+      try {
+        // Fetch complete project details from API to ensure we have all fields
+        // The list data only contains ProjectListItemResponse which may be missing fields like system_prompt, credential_id
+        const response = await apiService.projects.get(project.id);
+        setEditingProject(response.project);
+        setIsEditSheetOpen(true);
+      } catch (error) {
+        logError(error as Error, "Failed to load project details for editing");
+        toast.error(t("projects.messages.loadDetailsFailed"));
+      }
     },
-    []
+    [t]
   );
 
   const handleDelete = useCallback(

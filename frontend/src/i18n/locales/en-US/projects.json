@@ -20,6 +20,7 @@
   "protocolAutoDetected": "Auto-detected protocol",
   "messages": {
     "loadFailed": "Failed to load projects",
+    "loadDetailsFailed": "Failed to load project details",
     "createSuccess": "Project created successfully",
     "createFailed": "Failed to create project",
     "updateSuccess": "Project updated successfully",

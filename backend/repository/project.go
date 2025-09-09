@@ -91,7 +91,13 @@ func (r *projectRepository) List(name string, protocol *database.GitProtocolType
 }
 
 func (r *projectRepository) Update(project *database.Project) error {
-	return r.db.Save(project).Error
+	err := r.db.Save(project).Error
+	if err != nil {
+		return err
+	}
+	
+	// Reload the credential relationship after saving to ensure consistency
+	return r.db.Preload("Credential").Where("id = ?", project.ID).First(project).Error
 }
 
 func (r *projectRepository) Delete(id uint) error {
