@@ -210,7 +210,9 @@ func (s *taskConversationService) DeleteConversation(id uint) error {
 	}
 
 	if conversation.CommitHash != "" && conversation.Task != nil && conversation.Task.WorkspacePath != "" {
-		if err := utils.GitResetToPreviousCommit(conversation.Task.WorkspacePath, conversation.CommitHash); err != nil {
+		// Convert relative workspace path to absolute for git operations
+		absoluteWorkspacePath := s.workspaceManager.GetAbsolutePath(conversation.Task.WorkspacePath)
+		if err := utils.GitResetToPreviousCommit(absoluteWorkspacePath, conversation.CommitHash); err != nil {
 			utils.Error("Failed to reset git repository to previous commit",
 				"conversation_id", id,
 				"commit_hash", conversation.CommitHash,
