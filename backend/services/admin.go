@@ -104,7 +104,7 @@ func (s *adminService) GetAdminByUsername(username string) (*database.Admin, err
 	return s.adminRepo.GetByUsername(username)
 }
 
-func (s *adminService) ListAdmins(search *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error) {
+func (s *adminService) ListAdmins(search *string, isActive *bool, roles []string, page, pageSize int) ([]database.Admin, int64, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -112,7 +112,7 @@ func (s *adminService) ListAdmins(search *string, isActive *bool, page, pageSize
 		pageSize = 20
 	}
 
-	return s.adminRepo.List(search, isActive, page, pageSize)
+	return s.adminRepo.List(search, isActive, roles, page, pageSize)
 }
 
 func (s *adminService) UpdateAdmin(id uint, updates map[string]interface{}) error {

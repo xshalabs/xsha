@@ -16,6 +16,7 @@ export const adminApi = {
     search?: string;
     username?: string; // kept for backward compatibility
     is_active?: boolean;
+    role?: string[];
     page?: number;
     page_size?: number;
   }): Promise<AdminListResponse> => {
@@ -29,6 +30,9 @@ export const adminApi = {
     }
     if (params?.is_active !== undefined) {
       searchParams.append('is_active', params.is_active.toString());
+    }
+    if (params?.role && params.role.length > 0) {
+      searchParams.append('role', params.role.join(','));
     }
     if (params?.page) {
       searchParams.append('page', params.page.toString());

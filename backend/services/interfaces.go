@@ -24,7 +24,7 @@ type AdminService interface {
 	CreateAdminWithRole(username, password, name, email string, role database.AdminRole, createdBy string) (*database.Admin, error)
 	GetAdmin(id uint) (*database.Admin, error)
 	GetAdminByUsername(username string) (*database.Admin, error)
-	ListAdmins(search *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error)
+	ListAdmins(search *string, isActive *bool, roles []string, page, pageSize int) ([]database.Admin, int64, error)
 	UpdateAdmin(id uint, updates map[string]interface{}) error
 	UpdateAdminRole(id uint, role database.AdminRole) error
 	DeleteAdmin(id uint) error

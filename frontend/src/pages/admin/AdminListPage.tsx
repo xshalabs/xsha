@@ -118,6 +118,9 @@ export default function AdminListPage() {
               // Both active and inactive selected, don't filter
               // apiParams.is_active remains undefined
             }
+          } else if (filter.id === "role" && Array.isArray(filter.value) && filter.value.length > 0) {
+            // Handle role filter
+            apiParams.role = filter.value;
           }
         });
 
@@ -142,6 +145,9 @@ export default function AdminListPage() {
                 if (filter.value.length === 1) {
                   params.set(filter.id, filter.value[0]);
                 }
+              } else if (filter.id === "role" && Array.isArray(filter.value) && filter.value.length > 0) {
+                // Handle role filter - join multiple values with comma
+                params.set(filter.id, filter.value.join(","));
               }
             }
           });
@@ -180,12 +186,17 @@ export default function AdminListPage() {
   // Initialize from URL parameters
   useEffect(() => {
     const statusParam = searchParams.get("is_active");
+    const roleParam = searchParams.get("role");
     const pageParam = searchParams.get("page");
 
     const initialFilters: ColumnFiltersState = [];
 
     if (statusParam) {
       initialFilters.push({ id: "is_active", value: [statusParam] });
+    }
+
+    if (roleParam) {
+      initialFilters.push({ id: "role", value: roleParam.split(",") });
     }
 
     const initialPage = pageParam ? parseInt(pageParam, 10) : 1;

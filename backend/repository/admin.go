@@ -39,7 +39,7 @@ func (r *adminRepository) GetByUsername(username string) (*database.Admin, error
 	return &admin, nil
 }
 
-func (r *adminRepository) List(search *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error) {
+func (r *adminRepository) List(search *string, isActive *bool, roles []string, page, pageSize int) ([]database.Admin, int64, error) {
 	var admins []database.Admin
 	var total int64
 
@@ -53,6 +53,10 @@ func (r *adminRepository) List(search *string, isActive *bool, page, pageSize in
 
 	if isActive != nil {
 		query = query.Where("is_active = ?", *isActive)
+	}
+
+	if len(roles) > 0 {
+		query = query.Where("role IN ?", roles)
 	}
 
 	// Count total records

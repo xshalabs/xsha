@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"xsha-backend/database"
 	"xsha-backend/i18n"
 	"xsha-backend/middleware"
@@ -129,6 +130,7 @@ func (h *AdminHandlers) GetAdminHandler(c *gin.Context) {
 // @Security BearerAuth
 // @Param username query string false "Username filter"
 // @Param is_active query boolean false "Active status filter"
+// @Param role query string false "Role filter (comma-separated, e.g., 'admin,super_admin')"
 // @Param page query int false "Page number, defaults to 1"
 // @Param page_size query int false "Page size, defaults to 20, maximum 100"
 // @Success 200 {object} object{message=string,admins=[]object,total=number,page=number,page_size=number,total_pages=number} "Admin list"
@@ -142,6 +144,7 @@ func (h *AdminHandlers) ListAdminsHandler(c *gin.Context) {
 	pageSize := 20
 	var search *string
 	var isActive *bool
+	var roles []string
 
 	if p := c.Query("page"); p != "" {
 		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
@@ -168,7 +171,16 @@ func (h *AdminHandlers) ListAdminsHandler(c *gin.Context) {
 		}
 	}
 
-	admins, total, err := h.adminService.ListAdmins(search, isActive, page, pageSize)
+	// Parse role parameter - support comma-separated roles
+	if r := c.Query("role"); r != "" {
+		roles = strings.Split(r, ",")
+		// Trim whitespace from each role
+		for i, role := range roles {
+			roles[i] = strings.TrimSpace(role)
+		}
+	}
+
+	admins, total, err := h.adminService.ListAdmins(search, isActive, roles, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "common.internal_error"),
@@ -389,7 +401,7 @@ func (h *AdminHandlers) GetAvailableRolesHandler(c *gin.Context) {
 // @Router /api/v1/admins [get]
 func (h *AdminHandlers) PublicListAdminsHandler(c *gin.Context) {
 	// Get all active admins
-	admins, _, err := h.adminService.ListAdmins(nil, nil, 1, 100)
+	admins, _, err := h.adminService.ListAdmins(nil, nil, nil, 1, 100)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to get admin list",
