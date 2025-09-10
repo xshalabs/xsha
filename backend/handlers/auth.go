@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 	"strconv"
-	"xsha-backend/database"
 	"xsha-backend/i18n"
 	"xsha-backend/middleware"
 	"xsha-backend/services"
@@ -103,10 +102,11 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 		return
 	}
 
-	claims, err := utils.ValidateJWT(token, "")
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": i18n.T(lang, "logout.invalid_token_with_details", err.Error()),
+	// Get username from context (set by auth middleware)
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "logout.failed"),
 		})
 		return
 	}
@@ -114,7 +114,7 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 	clientIP := c.ClientIP()
 	userAgent := c.GetHeader("User-Agent")
 
-	if err := h.authService.Logout(token, claims.Username, clientIP, userAgent); err != nil {
+	if err := h.authService.Logout(token, username.(string), clientIP, userAgent); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "logout.failed"),
 		})
@@ -139,12 +139,9 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	adminInterface, _ := c.Get("admin")
-	admin, ok := adminInterface.(*database.Admin)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "user.get_info_error"),
-		})
+	admin := middleware.GetAdminFromContext(c)
+	if admin == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
@@ -255,12 +252,9 @@ func (h *AuthHandlers) GetLoginLogsHandler(c *gin.Context) {
 func (h *AuthHandlers) ChangeOwnPasswordHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	adminInterface, _ := c.Get("admin")
-	admin, ok := adminInterface.(*database.Admin)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "user.get_info_error"),
-		})
+	admin := middleware.GetAdminFromContext(c)
+	if admin == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
@@ -313,12 +307,9 @@ func (h *AuthHandlers) ChangeOwnPasswordHandler(c *gin.Context) {
 func (h *AuthHandlers) UpdateOwnAvatarHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	adminInterface, _ := c.Get("admin")
-	admin, ok := adminInterface.(*database.Admin)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "user.get_info_error"),
-		})
+	admin := middleware.GetAdminFromContext(c)
+	if admin == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 

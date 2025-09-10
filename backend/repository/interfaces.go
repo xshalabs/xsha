@@ -6,7 +6,7 @@ import (
 )
 
 type TokenBlacklistRepository interface {
-	Add(tokenID string, username string, expiresAt time.Time, reason string) error
+	Add(tokenID string, adminID uint, expiresAt time.Time, reason string) error
 	IsBlacklisted(tokenID string) (bool, error)
 	CleanExpired() error
 }

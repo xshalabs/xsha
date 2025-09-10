@@ -14,14 +14,14 @@ type Migration struct {
 	AppliedAt time.Time `gorm:"not null" json:"applied_at"`
 }
 
-type TokenBlacklist struct {
+type TokenBlacklistV2 struct {
 	ID        uint           `gorm:"primarykey" json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	TokenID   string         `gorm:"uniqueIndex;not null" json:"token_id"`
 	ExpiresAt time.Time      `gorm:"not null" json:"expires_at"`
-	Username  string         `gorm:"not null" json:"username"`
+	AdminID   uint           `gorm:"not null;index" json:"admin_id"`
 	Reason    string         `gorm:"default:'logout'" json:"reason"`
 }
 

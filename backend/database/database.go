@@ -68,7 +68,7 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 	}
 
 	// AutoMigrate all tables first to create the base structure
-	if err := db.AutoMigrate(&Migration{}, &TokenBlacklist{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}, &AdminAvatar{}); err != nil {
+	if err := db.AutoMigrate(&Migration{}, &TokenBlacklistV2{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}, &AdminAvatar{}); err != nil {
 		return nil, err
 	}
 	utils.Info("Database table auto-migration completed")
@@ -127,11 +127,6 @@ func runMigrations(db *gorm.DB, cfg *config.Config) error {
 	migrationManager := migrations.NewMigrationManager(db, cfg)
 	if err := migrationManager.RunAll(); err != nil {
 		return fmt.Errorf("migration manager failed: %v", err)
-	}
-
-	// Run token blacklist token ID migration (keeping this separate as it's already in its own file)
-	if err := runTokenBlacklistTokenIDMigration(db); err != nil {
-		return fmt.Errorf("token blacklist token ID migration failed: %v", err)
 	}
 
 	utils.Info("Custom migrations completed successfully")
