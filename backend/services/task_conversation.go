@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"strings"
 	"time"
 	"xsha-backend/database"
@@ -327,6 +328,15 @@ func (s *taskConversationService) GetConversationGitDiffFile(conversationID uint
 		return "", appErrors.ErrFilePathEmpty
 	}
 
+	// Additional security validation at service layer
+	if err := utils.ValidateGitFilePath(filePath); err != nil {
+		utils.Warn("Service layer security validation failed",
+			"conversationID", conversationID,
+			"filePath", filePath,
+			"error", err)
+		return "", fmt.Errorf("invalid file path: %v", err)
+	}
+
 	conversation, err := s.repo.GetByID(conversationID)
 	if err != nil {
 		return "", appErrors.ErrTaskNotFound
@@ -345,11 +355,25 @@ func (s *taskConversationService) GetConversationGitDiffFile(conversationID uint
 		return "", appErrors.ErrWorkspacePathEmpty
 	}
 
+	// Log the file access attempt for security monitoring
+	utils.Info("Git diff file access",
+		"conversationID", conversationID,
+		"taskID", task.ID,
+		"filePath", filePath,
+		"commitHash", conversation.CommitHash,
+		"workspacePath", task.WorkspacePath)
+
 	// Convert relative workspace path to absolute for git operations
 	absoluteWorkspacePath := s.workspaceManager.GetAbsolutePath(task.WorkspacePath)
 
 	diffContent, err := utils.GetCommitFileDiff(absoluteWorkspacePath, conversation.CommitHash, filePath)
 	if err != nil {
+		utils.Error("Failed to get commit file diff",
+			"conversationID", conversationID,
+			"filePath", filePath,
+			"commitHash", conversation.CommitHash,
+			"workspacePath", absoluteWorkspacePath,
+			"error", err)
 		return "", err
 	}
 

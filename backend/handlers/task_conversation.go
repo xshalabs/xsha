@@ -381,6 +381,15 @@ func (h *TaskConversationHandlers) GetConversationGitDiffFile(c *gin.Context) {
 		return
 	}
 
+	// Validate file path for security
+	if err := utils.ValidateGitFilePath(filePath); err != nil {
+		utils.Warn("Invalid file path detected", "filePath", filePath, "error", err, "clientIP", c.ClientIP())
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_file_path"),
+		})
+		return
+	}
+
 	diffContent, err := h.conversationService.GetConversationGitDiffFile(uint(conversationID), filePath)
 	if err != nil {
 		utils.Error("Failed to get conversation file Git diff", "conversationID", conversationID, "filePath", filePath, "error", err)

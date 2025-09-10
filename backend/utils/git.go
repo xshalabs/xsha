@@ -736,6 +736,55 @@ func getCommitFileDiffContent(ctx context.Context, workspacePath, commitHash, fi
 	return string(output), nil
 }
 
+// ValidateGitFilePath validates that a file path is safe for Git operations
+// It prevents path traversal attacks and ensures the path is within acceptable bounds
+func ValidateGitFilePath(filePath string) error {
+	if filePath == "" {
+		return fmt.Errorf("file path cannot be empty")
+	}
+
+	// Clean the path to resolve any relative path components
+	cleanPath := filepath.Clean(filePath)
+
+	// Check for path traversal attempts
+	if strings.Contains(cleanPath, "..") {
+		return fmt.Errorf("path traversal not allowed in file path")
+	}
+
+	// Ensure the path doesn't start with / (absolute path)
+	if strings.HasPrefix(cleanPath, "/") {
+		return fmt.Errorf("absolute paths not allowed")
+	}
+
+	// Check for dangerous patterns
+	dangerousPatterns := []string{
+		"/etc/", "/proc/", "/sys/", "/dev/", "/root/", "/home/",
+		"passwd", "shadow", "hosts", ".ssh", ".git/", 
+		"\\", // Windows path separator
+	}
+
+	lowerPath := strings.ToLower(cleanPath)
+	for _, pattern := range dangerousPatterns {
+		if strings.Contains(lowerPath, pattern) {
+			return fmt.Errorf("potentially dangerous file path detected")
+		}
+	}
+
+	// Limit path length to prevent buffer overflow attacks
+	if len(cleanPath) > 255 {
+		return fmt.Errorf("file path too long (max 255 characters)")
+	}
+
+	// Check for null bytes and other control characters
+	for _, b := range []byte(cleanPath) {
+		if b < 32 && b != 9 { // Allow tab character
+			return fmt.Errorf("invalid characters in file path")
+		}
+	}
+
+	return nil
+}
+
 func GetCommitFileDiff(workspacePath, commitHash, filePath string) (string, error) {
 	if workspacePath == "" {
 		return "", fmt.Errorf("workspace path cannot be empty")
@@ -747,6 +796,11 @@ func GetCommitFileDiff(workspacePath, commitHash, filePath string) (string, erro
 
 	if filePath == "" {
 		return "", fmt.Errorf("file path cannot be empty")
+	}
+
+	// Validate file path for security
+	if err := ValidateGitFilePath(filePath); err != nil {
+		return "", fmt.Errorf("invalid file path: %v", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
