@@ -792,55 +792,6 @@ paths:
       summary: Preview avatar
       tags:
       - Admin Avatar
-  /admin/avatar/upload:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Upload an avatar image for administrator
-      parameters:
-      - description: Avatar image to upload
-        in: formData
-        name: file
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Avatar uploaded successfully
-          schema:
-            properties:
-              data:
-                type: object
-              message:
-                type: string
-            type: object
-        "400":
-          description: Request parameter error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "401":
-          description: Authentication failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "413":
-          description: File too large
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Upload avatar
-      tags:
-      - Admin Avatar
   /admin/login-logs:
     get:
       consumes:
@@ -1511,6 +1462,55 @@ paths:
       summary: User logout
       tags:
       - Authentication
+  /avatar/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload an avatar image for administrator
+      parameters:
+      - description: Avatar image to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Avatar uploaded successfully
+          schema:
+            properties:
+              data:
+                type: object
+              message:
+                type: string
+            type: object
+        "400":
+          description: Request parameter error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "401":
+          description: Authentication failed
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "413":
+          description: File too large
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload avatar
+      tags:
+      - Admin Avatar
   /credentials:
     get:
       consumes:

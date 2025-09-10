@@ -82,7 +82,7 @@ export const adminApi = {
     const formData = new FormData();
     formData.append('file', file);
 
-    return request<AvatarUploadResponse>('/admin/avatar/upload', {
+    return request<AvatarUploadResponse>('/avatar/upload', {
       method: 'POST',
       body: formData,
     });

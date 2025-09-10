@@ -40,6 +40,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		api.PUT("/user/update-avatar", authHandlers.UpdateOwnAvatarHandler)
 		api.POST("/auth/logout", authHandlers.LogoutHandler)
 		api.GET("/admins", adminHandlers.PublicListAdminsHandler)
+		api.POST("/avatar/upload", adminAvatarHandlers.UploadAvatarHandler)
 
 		dashboard := api.Group("/dashboard")
 		{
@@ -63,7 +64,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			admin.DELETE("/users/:id", adminHandlers.DeleteAdminHandler)
 			admin.PUT("/users/:id/password", adminHandlers.ChangePasswordHandler)
 			admin.PUT("/avatar/:uuid", adminAvatarHandlers.UpdateAdminAvatarHandler)
-			admin.POST("/avatar/upload", adminAvatarHandlers.UploadAvatarHandler)
 
 			// Role management
 			admin.GET("/roles", adminHandlers.GetAvailableRolesHandler)
