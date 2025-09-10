@@ -30,6 +30,29 @@ export const createAdminColumns = ({
   permissions,
 }: AdminColumnsProps): ColumnDef<Admin>[] => [
   {
+    id: "search",
+    accessorFn: (row) => `${row.username} ${row.name} ${row.email || ""}`,
+    header: () => null,
+    cell: () => null,
+    enableSorting: false,
+    enableHiding: false,
+    enableColumnFilter: true,
+    filterFn: (row, columnId, value) => {
+      if (!value) return true;
+      
+      const searchValue = value.toLowerCase();
+      const username = row.original.username.toLowerCase();
+      const name = row.original.name.toLowerCase();
+      const email = (row.original.email || "").toLowerCase();
+      
+      return username.includes(searchValue) || 
+             name.includes(searchValue) || 
+             email.includes(searchValue);
+    },
+    size: 0,
+    maxSize: 0,
+  },
+  {
     accessorKey: "username",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={t("admin.table.username")} />

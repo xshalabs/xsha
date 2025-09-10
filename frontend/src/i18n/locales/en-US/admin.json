@@ -40,7 +40,8 @@
     "status": "Status",
     "allStatus": "All Status",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "search_placeholder": "Search by email, name, username..."
   },
   "roles": {
     "super_admin": "Super Admin",

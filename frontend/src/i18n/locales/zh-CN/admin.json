@@ -40,7 +40,8 @@
     "status": "状态",
     "allStatus": "全部状态",
     "active": "启用",
-    "inactive": "禁用"
+    "inactive": "禁用",
+    "search_placeholder": "搜索邮箱、姓名、用户名..."
   },
   "roles": {
     "super_admin": "超级管理员",
