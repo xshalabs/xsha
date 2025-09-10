@@ -38,7 +38,6 @@ type AdminService interface {
 	SetTaskService(taskService TaskService)
 	SetTaskConversationService(taskConvService TaskConversationService)
 	HasPermission(admin *database.Admin, resource, action string, resourceId uint) bool
-	GetAvailableRoles() []database.AdminRole
 }
 
 type GitCredentialService interface {

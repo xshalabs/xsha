@@ -6,8 +6,7 @@ import type {
   AdminListResponse,
   AdminResponse,
   CreateAdminResponse,
-  AvatarUploadResponse,
-  RoleListResponse
+  AvatarUploadResponse
 } from './types';
 
 export const adminApi = {
@@ -100,10 +99,6 @@ export const adminApi = {
     });
   },
 
-  // Get available roles
-  getRoles: async (): Promise<RoleListResponse> => {
-    return request<RoleListResponse>('/admin/roles');
-  },
 
   // Get all admins from v1 API endpoint
   getV1Admins: async (params?: {

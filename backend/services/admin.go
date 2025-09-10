@@ -370,14 +370,6 @@ func (s *adminService) HasPermission(admin *database.Admin, resource, action str
 	}
 }
 
-// GetAvailableRoles returns all available admin roles
-func (s *adminService) GetAvailableRoles() []database.AdminRole {
-	return []database.AdminRole{
-		database.AdminRoleSuperAdmin,
-		database.AdminRoleAdmin,
-		database.AdminRoleDeveloper,
-	}
-}
 
 // Helper methods for specific resource permissions
 func (s *adminService) checkProjectPermission(admin *database.Admin, action string, projectID uint) bool {

@@ -502,42 +502,6 @@
                 }
             }
         },
-        "/admin/roles": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get list of available administrator roles",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin Management"
-                ],
-                "summary": "Get available roles",
-                "responses": {
-                    "200": {
-                        "description": "Available roles",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "roles": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/admin/users": {
             "get": {
                 "security": [
@@ -567,6 +531,12 @@
                         "type": "boolean",
                         "description": "Active status filter",
                         "name": "is_active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Role filter (comma-separated, e.g., 'admin,super_admin')",
+                        "name": "role",
                         "in": "query"
                     },
                     {

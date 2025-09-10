@@ -1024,28 +1024,6 @@ paths:
       summary: Get operation statistics
       tags:
       - Admin Logs
-  /admin/roles:
-    get:
-      consumes:
-      - application/json
-      description: Get list of available administrator roles
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Available roles
-          schema:
-            properties:
-              roles:
-                items:
-                  type: string
-                type: array
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get available roles
-      tags:
-      - Admin Management
   /admin/users:
     get:
       consumes:
@@ -1060,6 +1038,10 @@ paths:
         in: query
         name: is_active
         type: boolean
+      - description: Role filter (comma-separated, e.g., 'admin,super_admin')
+        in: query
+        name: role
+        type: string
       - description: Page number, defaults to 1
         in: query
         name: page

@@ -65,8 +65,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			admin.PUT("/users/:id/password", adminHandlers.ChangePasswordHandler)
 			admin.PUT("/avatar/:uuid", adminAvatarHandlers.UpdateAdminAvatarHandler)
 
-			// Role management
-			admin.GET("/roles", adminHandlers.GetAvailableRolesHandler)
 		}
 
 		// settings

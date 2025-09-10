@@ -367,27 +367,6 @@ func (h *AdminHandlers) ChangePasswordHandler(c *gin.Context) {
 	})
 }
 
-// GetAvailableRolesHandler returns available admin roles
-// @Summary Get available roles
-// @Description Get list of available administrator roles
-// @Tags Admin Management
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Success 200 {object} object{roles=[]string} "Available roles"
-// @Router /admin/roles [get]
-func (h *AdminHandlers) GetAvailableRolesHandler(c *gin.Context) {
-	roles := h.adminService.GetAvailableRoles()
-
-	roleNames := make([]string, len(roles))
-	for i, role := range roles {
-		roleNames[i] = string(role)
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"roles": roleNames,
-	})
-}
 
 // PublicListAdminsHandler lists admin users with authentication
 // @Summary List admin users (authenticated)
