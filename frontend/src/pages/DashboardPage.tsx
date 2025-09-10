@@ -61,10 +61,15 @@ export const DashboardPage: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        const [statsData, tasksData] = await Promise.all([
-          dashboardApi.getDashboardStats(),
-          dashboardApi.getRecentTasks(6)
-        ]);
+        // Only super admin users should request dashboard stats
+        const promises = [dashboardApi.getRecentTasks(6)];
+        if (isSuperAdmin) {
+          promises.unshift(dashboardApi.getDashboardStats());
+        }
+        
+        const results = await Promise.all(promises);
+        const tasksData = results[isSuperAdmin ? 1 : 0];
+        const statsData = isSuperAdmin ? results[0] : null;
         
         setStats(statsData);
         setRecentTasks(tasksData);
@@ -77,7 +82,7 @@ export const DashboardPage: React.FC = () => {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [isSuperAdmin]);
 
   const metrics = stats ? [
     {

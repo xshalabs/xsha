@@ -40,7 +40,7 @@ func NewAdminAvatarHandlers(avatarService services.AdminAvatarService, adminServ
 // @Failure 400 {object} object{error=string} "Request parameter error"
 // @Failure 401 {object} object{error=string} "Authentication failed"
 // @Failure 413 {object} object{error=string} "File too large"
-// @Router /admin/avatar/upload [post]
+// @Router /avatar/upload [post]
 func (h *AdminAvatarHandlers) UploadAvatarHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
