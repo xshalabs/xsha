@@ -121,8 +121,9 @@ var (
 	ErrAdminInactive              = &I18nError{Key: "admin.inactive"}
 	ErrInvalidCredentials         = &I18nError{Key: "admin.invalid_credentials"}
 	ErrCannotDeleteLastAdmin      = &I18nError{Key: "admin.cannot_delete_last"}
-	ErrCannotDeleteSystemAdmin    = &I18nError{Key: "admin.cannot_delete_system"}
-	ErrCannotRemoveLastSuperAdmin = &I18nError{Key: "admin.cannot_remove_last_super_admin"}
+	ErrCannotDeleteSystemAdmin       = &I18nError{Key: "admin.cannot_delete_system"}
+	ErrCannotModifySystemAdminRole   = &I18nError{Key: "admin.cannot_modify_system_role"}
+	ErrCannotRemoveLastSuperAdmin    = &I18nError{Key: "admin.cannot_remove_last_super_admin"}
 
 	// Environment admin management errors
 	ErrAdminAlreadyAssigned     = &I18nError{Key: "dev_environment.admin_already_assigned"}

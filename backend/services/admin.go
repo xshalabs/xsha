@@ -325,6 +325,11 @@ func (s *adminService) UpdateAdminRole(id uint, role database.AdminRole) error {
 		return fmt.Errorf("failed to get admin: %v", err)
 	}
 
+	// Check if this is a system-created admin
+	if admin.CreatedBy == "system" {
+		return appErrors.ErrCannotModifySystemAdminRole
+	}
+
 	// Check if there would be no super_admin left
 	if admin.Role == database.AdminRoleSuperAdmin && role != database.AdminRoleSuperAdmin {
 		count, err := s.adminRepo.CountActiveAdminsByRole(database.AdminRoleSuperAdmin)

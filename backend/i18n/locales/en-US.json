@@ -186,6 +186,8 @@
   "admin.invalid_credentials": "Invalid username or password",
   "admin.cannot_delete_last": "Cannot delete the last admin user",
   "admin.cannot_delete_system": "Cannot delete system-created admin accounts",
+  "admin.cannot_modify_system_role": "Cannot modify the role of system-created admin accounts",
+  "admin.cannot_remove_last_super_admin": "Cannot remove the last super admin user",
   "admin.create_success": "Admin user created successfully",
   "admin.update_success": "Admin user updated successfully",
   "admin.delete_success": "Admin user deleted successfully",

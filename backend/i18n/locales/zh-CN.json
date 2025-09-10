@@ -186,6 +186,8 @@
   "admin.invalid_credentials": "用户名或密码错误",
   "admin.cannot_delete_last": "不能删除最后一个管理员用户",
   "admin.cannot_delete_system": "不能删除系统创建的管理员账户",
+  "admin.cannot_modify_system_role": "不能修改系统创建的管理员账户的角色",
+  "admin.cannot_remove_last_super_admin": "不能删除最后一个超级管理员用户",
   "admin.create_success": "管理员用户创建成功",
   "admin.update_success": "管理员用户更新成功",
   "admin.delete_success": "管理员用户删除成功",
