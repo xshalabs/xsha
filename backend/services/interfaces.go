@@ -181,7 +181,7 @@ type SystemConfigService interface {
 
 type DashboardService interface {
 	GetDashboardStats() (map[string]interface{}, error)
-	GetRecentTasks(limit int) ([]database.Task, error)
+	GetRecentTasks(limit int, admin *database.Admin) ([]database.Task, error)
 }
 
 type TaskConversationAttachmentService interface {

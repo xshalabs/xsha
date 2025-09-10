@@ -161,7 +161,7 @@ type SystemConfigRepository interface {
 
 type DashboardRepository interface {
 	GetDashboardStats() (map[string]interface{}, error)
-	GetRecentTasks(limit int) ([]database.Task, error)
+	GetRecentTasks(limit int, adminID uint, adminRole database.AdminRole) ([]database.Task, error)
 }
 
 type TaskConversationAttachmentRepository interface {

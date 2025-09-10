@@ -61,8 +61,8 @@ func (h *DashboardHandlers) GetDashboardStats(c *gin.Context) {
 // @Router /dashboard/recent-tasks [get]
 func (h *DashboardHandlers) GetRecentTasks(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
+	admin := middleware.GetAdminFromContext(c)
 
-	// Parse limit parameter, default to 10
 	limit := 10
 	if limitStr := c.Query("limit"); limitStr != "" {
 		parsedLimit, err := strconv.Atoi(limitStr)
@@ -78,7 +78,7 @@ func (h *DashboardHandlers) GetRecentTasks(c *gin.Context) {
 		limit = parsedLimit
 	}
 
-	tasks, err := h.dashboardService.GetRecentTasks(limit)
+	tasks, err := h.dashboardService.GetRecentTasks(limit, admin)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.MapErrorToI18nKey(err, lang),

@@ -86,12 +86,21 @@ func (r *dashboardRepository) GetDashboardStats() (map[string]interface{}, error
 	return stats, nil
 }
 
-func (r *dashboardRepository) GetRecentTasks(limit int) ([]database.Task, error) {
+func (r *dashboardRepository) GetRecentTasks(limit int, adminID uint, adminRole database.AdminRole) ([]database.Task, error) {
 	var tasks []database.Task
 
-	err := r.db.Preload("Project").
-		Preload("DevEnvironment").
-		Order("created_at DESC").
+	query := r.db.Preload("Project").Preload("DevEnvironment")
+
+	if adminRole != database.AdminRoleSuperAdmin {
+		query = query.Where("project_id IN (?)", r.db.Select("DISTINCT p.id").
+			Table("projects p").
+			Where("p.admin_id = ? OR p.id IN (?)", adminID,
+				r.db.Select("project_id").
+					Table("project_admins").
+					Where("admin_id = ?", adminID)))
+	}
+
+	err := query.Order("created_at DESC").
 		Limit(limit).
 		Find(&tasks).Error
 
