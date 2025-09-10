@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"xsha-backend/database"
 	"xsha-backend/i18n"
 	"xsha-backend/middleware"
 	"xsha-backend/services"
@@ -138,17 +139,9 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "user.get_info_error"),
-		})
-		return
-	}
-
-	// Get admin info to retrieve the name
-	admin, err := h.adminService.GetAdminByUsername(username.(string))
-	if err != nil {
+	adminInterface, _ := c.Get("admin")
+	admin, ok := adminInterface.(*database.Admin)
+	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "user.get_info_error"),
 		})
@@ -156,7 +149,7 @@ func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"user":          username,
+		"user":          admin.Username,
 		"admin_id":      admin.ID,
 		"name":          admin.Name,
 		"role":          admin.Role,
