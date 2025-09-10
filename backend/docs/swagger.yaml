@@ -1417,283 +1417,6 @@ paths:
       summary: List admin users (authenticated)
       tags:
       - Admin Management
-  /attachments:
-    get:
-      consumes:
-      - application/json
-      description: Get all attachments for a specific conversation
-      parameters:
-      - description: Conversation ID
-        in: query
-        name: conversation_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Attachments retrieved successfully
-          schema:
-            properties:
-              data:
-                items:
-                  type: object
-                type: array
-              message:
-                type: string
-            type: object
-        "400":
-          description: Invalid conversation ID
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "401":
-          description: Authentication failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get conversation attachments
-      tags:
-      - Task Conversation Attachments
-  /attachments/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete an attachment by ID
-      parameters:
-      - description: Attachment ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Attachment deleted successfully
-          schema:
-            properties:
-              message:
-                type: string
-            type: object
-        "400":
-          description: Invalid attachment ID
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "401":
-          description: Authentication failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "404":
-          description: Attachment not found
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Delete attachment
-      tags:
-      - Task Conversation Attachments
-    get:
-      consumes:
-      - application/json
-      description: Get attachment information by ID
-      parameters:
-      - description: Attachment ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Attachment retrieved successfully
-          schema:
-            properties:
-              data:
-                type: object
-              message:
-                type: string
-            type: object
-        "400":
-          description: Invalid attachment ID
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "401":
-          description: Authentication failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "404":
-          description: Attachment not found
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get attachment info
-      tags:
-      - Task Conversation Attachments
-  /attachments/{id}/download:
-    get:
-      consumes:
-      - application/json
-      description: Download attachment file by ID
-      parameters:
-      - description: Attachment ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/octet-stream
-      responses:
-        "200":
-          description: Attachment file
-          schema:
-            type: file
-        "400":
-          description: Invalid attachment ID
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "401":
-          description: Authentication failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "404":
-          description: Attachment not found
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Download attachment
-      tags:
-      - Task Conversation Attachments
-  /attachments/{id}/preview:
-    get:
-      consumes:
-      - application/json
-      description: Preview attachment file (mainly for images)
-      parameters:
-      - description: Attachment ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - image/*
-      responses:
-        "200":
-          description: Attachment file for preview
-          schema:
-            type: file
-        "400":
-          description: Invalid attachment ID
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "401":
-          description: Authentication failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "404":
-          description: Attachment not found
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Preview attachment
-      tags:
-      - Task Conversation Attachments
-  /attachments/upload:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Upload an image or PDF file that will be associated with a conversation
-        later
-      parameters:
-      - description: File to upload
-        in: formData
-        name: file
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Attachment uploaded successfully
-          schema:
-            properties:
-              data:
-                type: object
-              message:
-                type: string
-            type: object
-        "400":
-          description: Request parameter error
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "401":
-          description: Authentication failed
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-        "413":
-          description: File too large
-          schema:
-            properties:
-              error:
-                type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Upload attachment
-      tags:
-      - Task Conversation Attachments
   /auth/login:
     post:
       consumes:
@@ -2905,6 +2628,260 @@ paths:
       summary: Remove admin from project
       tags:
       - Project
+  /projects/{id}/attachments:
+    get:
+      consumes:
+      - application/json
+      description: Get all attachments for a specific conversation
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Conversation ID (optional, if not provided returns all project
+          attachments)
+        in: query
+        name: conversation_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Attachments retrieved successfully
+          schema:
+            properties:
+              data:
+                items:
+                  type: object
+                type: array
+              message:
+                type: string
+            type: object
+        "400":
+          description: Invalid conversation ID
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "401":
+          description: Authentication failed
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get conversation attachments
+      tags:
+      - Task Conversation Attachments
+  /projects/{id}/attachments/{attachmentId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an attachment by ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Attachment ID
+        in: path
+        name: attachmentId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Attachment deleted successfully
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Invalid attachment ID
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "401":
+          description: Authentication failed
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Attachment not found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete attachment
+      tags:
+      - Task Conversation Attachments
+  /projects/{id}/attachments/{attachmentId}/download:
+    get:
+      consumes:
+      - application/json
+      description: Download attachment file by ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Attachment ID
+        in: path
+        name: attachmentId
+        required: true
+        type: integer
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Attachment file
+          schema:
+            type: file
+        "400":
+          description: Invalid attachment ID
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "401":
+          description: Authentication failed
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Attachment not found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Download attachment
+      tags:
+      - Task Conversation Attachments
+  /projects/{id}/attachments/{attachmentId}/preview:
+    get:
+      consumes:
+      - application/json
+      description: Preview attachment file (mainly for images)
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Attachment ID
+        in: path
+        name: attachmentId
+        required: true
+        type: integer
+      produces:
+      - image/*
+      responses:
+        "200":
+          description: Attachment file for preview
+          schema:
+            type: file
+        "400":
+          description: Invalid attachment ID
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "401":
+          description: Authentication failed
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Attachment not found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Preview attachment
+      tags:
+      - Task Conversation Attachments
+  /projects/{id}/attachments/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload an image or PDF file that will be associated with a conversation
+        later
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Attachment uploaded successfully
+          schema:
+            properties:
+              data:
+                type: object
+              message:
+                type: string
+            type: object
+        "400":
+          description: Request parameter error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "401":
+          description: Authentication failed
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "413":
+          description: File too large
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload attachment
+      tags:
+      - Task Conversation Attachments
   /projects/{id}/branches:
     post:
       consumes:
