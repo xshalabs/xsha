@@ -162,13 +162,26 @@ func (r *projectRepository) GetAdminCounts(projectIDs []uint) (map[uint]int64, e
 
 	var results []AdminCountResult
 
-	// Count admins from many-to-many relationship table
-	err := r.db.Table("project_admins").
-		Select("project_id, COUNT(DISTINCT admin_id) as count").
-		Where("project_id IN ?", projectIDs).
-		Group("project_id").
-		Find(&results).Error
+	// Use UNION to combine both primary admins and many-to-many admins, with DISTINCT to avoid duplicates
+	query := `
+		SELECT project_id, COUNT(DISTINCT admin_id) as count
+		FROM (
+			-- Primary admins from projects table
+			SELECT id as project_id, admin_id
+			FROM projects 
+			WHERE id IN ? AND admin_id IS NOT NULL
+			
+			UNION
+			
+			-- Additional admins from many-to-many relationship table
+			SELECT project_id, admin_id
+			FROM project_admins 
+			WHERE project_id IN ?
+		) combined_admins
+		GROUP BY project_id
+	`
 
+	err := r.db.Raw(query, projectIDs, projectIDs).Find(&results).Error
 	if err != nil {
 		return nil, err
 	}
@@ -179,24 +192,9 @@ func (r *projectRepository) GetAdminCounts(projectIDs []uint) (map[uint]int64, e
 		adminCounts[projectID] = 0
 	}
 
-	// Set counts from many-to-many relationships
+	// Set counts from the combined query results
 	for _, result := range results {
 		adminCounts[result.ProjectID] = result.Count
-	}
-
-	// Now we need to add primary admins (AdminID field) to the count
-	// Get projects with their AdminID to count primary admins
-	var projects []database.Project
-	err = r.db.Select("id, admin_id").Where("id IN ?", projectIDs).Find(&projects).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// Add primary admin count (1 if AdminID is not nil)
-	for _, project := range projects {
-		if project.AdminID != nil {
-			adminCounts[project.ID]++
-		}
 	}
 
 	return adminCounts, nil

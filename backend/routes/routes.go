@@ -77,7 +77,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			systemConfigs.PUT("", systemConfigHandlers.BatchUpdateConfigs)
 		}
 
-		// environments
 		devEnvs := api.Group("/environments")
 		{
 			devEnvs.POST("", middleware.RequirePermission("environment", "create"), devEnvHandlers.CreateEnvironment)
