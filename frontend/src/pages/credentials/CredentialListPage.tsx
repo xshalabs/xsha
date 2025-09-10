@@ -31,6 +31,7 @@ import {
 } from "@/components/forms/form-sheet";
 import { FormCard, FormCardContent } from "@/components/forms/form-card";
 import { CredentialFormSheet } from "@/components/CredentialFormSheet";
+import { CredentialAdminManagementSheet } from "@/components/credentials/CredentialAdminManagementSheet";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTablePaginationServer } from "@/components/ui/data-table/data-table-pagination-server";
 import { createGitCredentialColumns } from "@/components/data-table/credentials/columns";
@@ -65,6 +66,7 @@ const CredentialListPage: React.FC = () => {
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [editingCredential, setEditingCredential] = useState<GitCredential | null>(null);
+  const [managingCredential, setManagingCredential] = useState<GitCredential | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add request deduplication
@@ -268,6 +270,13 @@ const CredentialListPage: React.FC = () => {
     [loadCredentialsData, currentPage, columnFilters]
   );
 
+  const handleManageAdmins = useCallback(
+    (credential: GitCredential) => {
+      setManagingCredential(credential);
+    },
+    []
+  );
+
 
 
 
@@ -325,12 +334,13 @@ const CredentialListPage: React.FC = () => {
       createGitCredentialColumns({
         onEdit: handleEdit,
         onDelete: handleDelete,
+        onManageAdmins: handleManageAdmins,
         t: (key: string) => t(key),
         canEditCredential,
         canDeleteCredential,
         canManageCredentialAdmins,
       }),
-    [handleEdit, handleDelete, t, canEditCredential, canDeleteCredential, canManageCredentialAdmins]
+    [handleEdit, handleDelete, handleManageAdmins, t, canEditCredential, canDeleteCredential, canManageCredentialAdmins]
   );
 
 
@@ -452,6 +462,19 @@ const CredentialListPage: React.FC = () => {
           </FormSheetFooter>
         </FormSheetContent>
       </FormSheet>
+
+      {/* Admin Management Sheet */}
+      {managingCredential && (
+        <CredentialAdminManagementSheet
+          credential={managingCredential}
+          open={!!managingCredential}
+          onOpenChange={(open) => {
+            if (!open) {
+              setManagingCredential(null);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

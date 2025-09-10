@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,17 +38,18 @@ import type { Admin } from "@/lib/api/types";
 
 interface CredentialAdminManagementSheetProps {
   credential: GitCredential;
-  trigger?: React.ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onAdminChanged?: () => void;
 }
 
 export function CredentialAdminManagementSheet({
   credential,
-  trigger,
+  open,
+  onOpenChange,
   onAdminChanged,
 }: CredentialAdminManagementSheetProps) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
   const [credentialAdmins, setCredentialAdmins] = useState<MinimalAdminResponse[]>([]);
   const [availableAdmins, setAvailableAdmins] = useState<Admin[]>([]);
   const [selectedAdminId, setSelectedAdminId] = useState<string>("");
@@ -137,7 +138,7 @@ export function CredentialAdminManagementSheet({
   };
 
   const handleClose = () => {
-    setOpen(false);
+    onOpenChange(false);
     setSelectedAdminId("");
     setShowRemoveConfirmDialog(false);
     setAdminToRemove(null);
@@ -150,14 +151,7 @@ export function CredentialAdminManagementSheet({
   );
 
   return (
-    <FormSheet open={open} onOpenChange={setOpen}>
-      {trigger && React.cloneElement(trigger as React.ReactElement<{onClick?: (e: React.MouseEvent) => void}>, {
-        onClick: (e: React.MouseEvent) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setOpen(true);
-        }
-      })}
+    <FormSheet open={open} onOpenChange={onOpenChange}>
       <FormSheetContent className="w-full sm:w-[600px] sm:max-w-[600px]">
         <FormSheetHeader className="border-b">
           <FormSheetTitle className="text-foreground font-semibold">

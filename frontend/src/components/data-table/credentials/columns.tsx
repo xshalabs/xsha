@@ -4,11 +4,11 @@ import { QuickActions } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
 import type { GitCredential } from "@/types/credentials";
 import { GitCredentialType } from "@/types/credentials";
-import { CredentialAdminManagementSheet } from "@/components/credentials/CredentialAdminManagementSheet";
 
 interface GitCredentialColumnsProps {
   onEdit: (credential: GitCredential) => void;
   onDelete: (id: number) => void;
+  onManageAdmins: (credential: GitCredential) => void;
   t: (key: string) => string;
   canEditCredential: (resourceAdminId?: number) => boolean;
   canDeleteCredential: (resourceAdminId?: number) => boolean;
@@ -18,6 +18,7 @@ interface GitCredentialColumnsProps {
 export const createGitCredentialColumns = ({
   onEdit,
   onDelete,
+  onManageAdmins,
   t,
   canEditCredential,
   canDeleteCredential,
@@ -144,17 +145,7 @@ export const createGitCredentialColumns = ({
           id: "manageAdmins",
           label: t("gitCredentials.manageAdmins"),
           icon: Users,
-          render: () => (
-            <CredentialAdminManagementSheet
-              credential={credential}
-              trigger={
-                <button className="flex items-center gap-2 w-full px-2 py-1.5 text-left text-sm hover:bg-accent rounded-sm">
-                  <Users className="h-4 w-4" />
-                  {t("gitCredentials.manageAdmins")}
-                </button>
-              }
-            />
-          ),
+          onClick: () => onManageAdmins(credential),
         });
       }
 
