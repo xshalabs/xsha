@@ -94,7 +94,6 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		gitCreds := api.Group("/credentials")
 		{
 			gitCreds.GET("", gitCredHandlers.ListCredentials)
-
 			gitCreds.POST("", middleware.RequirePermission("credential", "create"), gitCredHandlers.CreateCredential)
 			gitCreds.GET("/:id", middleware.RequirePermission("credential", "update"), gitCredHandlers.GetCredential)
 			gitCreds.PUT("/:id", middleware.RequirePermission("credential", "update"), gitCredHandlers.UpdateCredential)

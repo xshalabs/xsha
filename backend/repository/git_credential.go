@@ -55,7 +55,20 @@ func (r *gitCredentialRepository) List(name *string, credType *database.GitCrede
 	}
 
 	offset := (page - 1) * pageSize
-	if err := query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&credentials).Error; err != nil {
+	if err := query.
+		Preload("Admin", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, username, name, email, avatar_id").
+				Preload("Avatar", func(db *gorm.DB) *gorm.DB {
+					return db.Select("id, uuid, original_name")
+				})
+		}).
+		Preload("Admins", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, username, name, email, avatar_id").
+				Preload("Avatar", func(db *gorm.DB) *gorm.DB {
+					return db.Select("id, uuid, original_name")
+				})
+		}).
+		Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&credentials).Error; err != nil {
 		return nil, 0, err
 	}
 
