@@ -139,7 +139,6 @@ func (h *TaskConversationAttachmentHandlers) UploadAttachment(c *gin.Context) {
 	})
 }
 
-
 // DownloadAttachment downloads an attachment file
 // @Summary Download attachment
 // @Description Download attachment file by ID

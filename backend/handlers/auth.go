@@ -255,8 +255,9 @@ func (h *AuthHandlers) GetLoginLogsHandler(c *gin.Context) {
 func (h *AuthHandlers) ChangeOwnPasswordHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	username, exists := c.Get("username")
-	if !exists {
+	adminInterface, _ := c.Get("admin")
+	admin, ok := adminInterface.(*database.Admin)
+	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "user.get_info_error"),
 		})
@@ -275,17 +276,8 @@ func (h *AuthHandlers) ChangeOwnPasswordHandler(c *gin.Context) {
 		return
 	}
 
-	// Get user by username to get their ID
-	admin, err := h.adminService.GetAdminByUsername(username.(string))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "user.get_info_error"),
-		})
-		return
-	}
-
 	// Verify current password
-	_, err = h.adminService.ValidateCredentials(username.(string), passwordData.CurrentPassword)
+	_, err := h.adminService.ValidateCredentials(admin.Username, passwordData.CurrentPassword)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": i18n.T(lang, "user.current_password_incorrect"),
@@ -321,22 +313,12 @@ func (h *AuthHandlers) ChangeOwnPasswordHandler(c *gin.Context) {
 func (h *AuthHandlers) UpdateOwnAvatarHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	username, exists := c.Get("username")
-	if !exists {
+	adminInterface, _ := c.Get("admin")
+	admin, ok := adminInterface.(*database.Admin)
+	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "user.get_info_error"),
 		})
-		return
-	}
-
-	adminIDInterface, exists := c.Get("admin_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-	_, ok := adminIDInterface.(uint)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
 		return
 	}
 
@@ -347,15 +329,6 @@ func (h *AuthHandlers) UpdateOwnAvatarHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&avatarData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
-		})
-		return
-	}
-
-	// Get admin service from handler dependencies
-	admin, err := h.adminService.GetAdminByUsername(username.(string))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "user.get_info_error"),
 		})
 		return
 	}

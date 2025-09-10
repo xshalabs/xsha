@@ -759,7 +759,7 @@ func ValidateGitFilePath(filePath string) error {
 	// Check for dangerous patterns
 	dangerousPatterns := []string{
 		"/etc/", "/proc/", "/sys/", "/dev/", "/root/", "/home/",
-		"passwd", "shadow", "hosts", ".ssh", ".git/", 
+		"passwd", "shadow", "hosts", ".ssh", ".git/",
 		"\\", // Windows path separator
 	}
 

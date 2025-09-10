@@ -95,7 +95,7 @@ func (r *projectRepository) Update(project *database.Project) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Reload the credential relationship after saving to ensure consistency
 	return r.db.Preload("Credential").Where("id = ?", project.ID).First(project).Error
 }
