@@ -79,7 +79,7 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		{
 			devEnvs.POST("", middleware.RequirePermission("environment", "create"), devEnvHandlers.CreateEnvironment)
 			devEnvs.GET("", devEnvHandlers.ListEnvironments)
-			devEnvs.GET("/available-images", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetAvailableImages)
+			devEnvs.GET("/available-images", middleware.RequirePermission("environment", "create"), devEnvHandlers.GetAvailableImages)
 			devEnvs.GET("/:id", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetEnvironment)
 			devEnvs.PUT("/:id", middleware.RequirePermission("environment", "update"), devEnvHandlers.UpdateEnvironment)
 			devEnvs.DELETE("/:id", middleware.RequirePermission("environment", "delete"), devEnvHandlers.DeleteEnvironment)
