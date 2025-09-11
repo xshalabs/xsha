@@ -226,6 +226,11 @@ func (s *adminService) DeleteAdmin(id uint) error {
 		}
 	}
 
+	// Delete admin associations first, then delete the admin
+	if err := s.adminRepo.DeleteAdminAssociations(id); err != nil {
+		return fmt.Errorf("failed to delete admin associations: %v", err)
+	}
+
 	return s.adminRepo.Delete(id)
 }
 

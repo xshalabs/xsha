@@ -24,6 +24,7 @@ type AdminRepository interface {
 	List(search *string, isActive *bool, roles []string, page, pageSize int) ([]database.Admin, int64, error)
 	Update(id uint, updates map[string]interface{}) error
 	Delete(id uint) error
+	DeleteAdminAssociations(adminID uint) error
 	UpdateLastLogin(username, ip string) error
 	CountAdmins() (int64, error)
 	CountActiveAdminsByRole(role database.AdminRole) (int64, error)

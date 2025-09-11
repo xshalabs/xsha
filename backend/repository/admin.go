@@ -80,6 +80,28 @@ func (r *adminRepository) Delete(id uint) error {
 	return r.db.Delete(&database.Admin{}, id).Error
 }
 
+func (r *adminRepository) DeleteAdminAssociations(adminID uint) error {
+	// Use transaction to ensure all deletions are atomic
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// Delete from dev_environment_admins
+		if err := tx.Exec("DELETE FROM dev_environment_admins WHERE admin_id = ?", adminID).Error; err != nil {
+			return err
+		}
+
+		// Delete from git_credential_admins
+		if err := tx.Exec("DELETE FROM git_credential_admins WHERE admin_id = ?", adminID).Error; err != nil {
+			return err
+		}
+
+		// Delete from project_admins
+		if err := tx.Exec("DELETE FROM project_admins WHERE admin_id = ?", adminID).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 func (r *adminRepository) UpdateLastLogin(username, ip string) error {
 	now := time.Now()
 	return r.db.Model(&database.Admin{}).
