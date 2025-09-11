@@ -58,6 +58,7 @@ type GitCredentialService interface {
 	RemoveAdminFromCredential(credentialID, adminID uint) error
 	GetCredentialAdmins(credentialID uint) ([]database.Admin, error)
 	IsOwner(credentialID, adminID uint) (bool, error)
+	CountByAdminID(adminID uint) (int64, error)
 }
 
 type ProjectService interface {
@@ -116,6 +117,7 @@ type DevEnvironmentService interface {
 	RemoveAdminFromEnvironment(envID, adminID uint) error
 	GetEnvironmentAdmins(envID uint) ([]database.Admin, error)
 	IsOwner(envID, adminID uint) (bool, error)
+	CountByAdminID(adminID uint) (int64, error)
 }
 
 type TaskService interface {
@@ -132,6 +134,7 @@ type TaskService interface {
 	GetTaskGitDiff(task *database.Task, includeContent bool) (*utils.GitDiffSummary, error)
 	GetTaskGitDiffFile(task *database.Task, filePath string) (string, error)
 	PushTaskBranch(id uint, forcePush bool) (string, error)
+	CountByAdminID(adminID uint) (int64, error)
 }
 
 type TaskConversationService interface {

@@ -188,13 +188,14 @@
   "admin.cannot_delete_system": "不能删除系统创建的管理员账户",
   "admin.cannot_modify_system_role": "不能修改系统创建的管理员账户的角色",
   "admin.cannot_remove_last_super_admin": "不能删除最后一个超级管理员用户",
+  "admin.has_environments": "无法删除管理员用户：该用户已创建开发环境",
+  "admin.has_credentials": "无法删除管理员用户：该用户已创建Git凭据",
+  "admin.has_tasks": "无法删除管理员用户：该用户已创建任务",
   "admin.create_success": "管理员用户创建成功",
   "admin.update_success": "管理员用户更新成功",
   "admin.delete_success": "管理员用户删除成功",
   "admin.password_change_success": "管理员密码修改成功",
   "admin.list_success": "管理员用户获取成功",
-
-  "git_credential.not_found": "Git凭据不存在",
   "git_credential.admin_added_success": "管理员已成功添加到凭据",
   "git_credential.admin_removed_success": "管理员已从凭据中移除"
 }

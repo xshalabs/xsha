@@ -197,3 +197,12 @@ func (r *devEnvironmentRepository) IsOwner(envID, adminID uint) (bool, error) {
 
 	return count > 0, err
 }
+
+// CountByAdminID counts the number of dev environments created by a specific admin
+func (r *devEnvironmentRepository) CountByAdminID(adminID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&database.DevEnvironment{}).
+		Where("admin_id = ?", adminID).
+		Count(&count).Error
+	return count, err
+}

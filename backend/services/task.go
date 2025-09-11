@@ -589,3 +589,8 @@ func (s *taskService) deleteConversationCascade(conversationID uint, workspacePa
 func (s *taskService) getGitProxyConfig() (*utils.GitProxyConfig, error) {
 	return s.systemConfigService.GetGitProxyConfig()
 }
+
+// CountByAdminID counts the number of tasks created by a specific admin
+func (s *taskService) CountByAdminID(adminID uint) (int64, error) {
+	return s.repo.CountByAdminID(adminID)
+}

@@ -130,7 +130,6 @@ func (s *adminService) UpdateAdmin(id uint, updates map[string]interface{}) erro
 			if err := s.validateUsername(usernameStr); err != nil {
 				return err
 			}
-			// Check if new username already exists (and it's not the same admin)
 			existingAdmin, err := s.adminRepo.GetByUsername(usernameStr)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				return fmt.Errorf("failed to check existing admin: %v", err)
@@ -163,14 +162,9 @@ func (s *adminService) UpdateAdmin(id uint, updates map[string]interface{}) erro
 		}
 	}
 
-	// Update the admin first
 	if err := s.adminRepo.Update(admin.ID, updates); err != nil {
 		return err
 	}
-
-	// Note: When an admin is deactivated (is_active = false), their existing tokens
-	// remain valid until expiration, but they cannot login to get new tokens.
-	// This provides a grace period and avoids the complexity of user-based blacklisting.
 
 	return nil
 }
@@ -197,6 +191,39 @@ func (s *adminService) DeleteAdmin(id uint) error {
 
 	if activeCount <= 1 && admin.IsActive {
 		return appErrors.ErrCannotDeleteLastAdmin
+	}
+
+	// Check if admin has created any dev environments
+	if s.devEnvService != nil {
+		envCount, err := s.devEnvService.CountByAdminID(id)
+		if err != nil {
+			return fmt.Errorf("failed to count admin environments: %v", err)
+		}
+		if envCount > 0 {
+			return appErrors.ErrAdminHasEnvironments
+		}
+	}
+
+	// Check if admin has created any git credentials
+	if s.gitCredService != nil {
+		credCount, err := s.gitCredService.CountByAdminID(id)
+		if err != nil {
+			return fmt.Errorf("failed to count admin credentials: %v", err)
+		}
+		if credCount > 0 {
+			return appErrors.ErrAdminHasCredentials
+		}
+	}
+
+	// Check if admin has created any tasks
+	if s.taskService != nil {
+		taskCount, err := s.taskService.CountByAdminID(id)
+		if err != nil {
+			return fmt.Errorf("failed to count admin tasks: %v", err)
+		}
+		if taskCount > 0 {
+			return appErrors.ErrAdminHasTasks
+		}
 	}
 
 	return s.adminRepo.Delete(id)
@@ -369,7 +396,6 @@ func (s *adminService) HasPermission(admin *database.Admin, resource, action str
 		return false
 	}
 }
-
 
 // Helper methods for specific resource permissions
 func (s *adminService) checkProjectPermission(admin *database.Admin, action string, projectID uint) bool {

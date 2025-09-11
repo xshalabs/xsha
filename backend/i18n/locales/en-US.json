@@ -188,13 +188,14 @@
   "admin.cannot_delete_system": "Cannot delete system-created admin accounts",
   "admin.cannot_modify_system_role": "Cannot modify the role of system-created admin accounts",
   "admin.cannot_remove_last_super_admin": "Cannot remove the last super admin user",
+  "admin.has_environments": "Cannot delete admin user: they have created development environments",
+  "admin.has_credentials": "Cannot delete admin user: they have created git credentials",
+  "admin.has_tasks": "Cannot delete admin user: they have created tasks",
   "admin.create_success": "Admin user created successfully",
   "admin.update_success": "Admin user updated successfully",
   "admin.delete_success": "Admin user deleted successfully",
   "admin.password_change_success": "Admin password changed successfully",
   "admin.list_success": "Admin users retrieved successfully",
-
-  "git_credential.not_found": "Git credential not found",
   "git_credential.admin_added_success": "Administrator added to credential successfully",
   "git_credential.admin_removed_success": "Administrator removed from credential successfully"
 }

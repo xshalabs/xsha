@@ -236,3 +236,8 @@ func (s *gitCredentialService) GetCredentialAdmins(credentialID uint) ([]databas
 func (s *gitCredentialService) IsOwner(credentialID, adminID uint) (bool, error) {
 	return s.repo.IsOwner(credentialID, adminID)
 }
+
+// CountByAdminID counts the number of git credentials created by a specific admin
+func (s *gitCredentialService) CountByAdminID(adminID uint) (int64, error) {
+	return s.repo.CountByAdminID(adminID)
+}

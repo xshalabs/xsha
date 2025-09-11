@@ -246,3 +246,9 @@ func (r *taskRepository) CountByDevEnvironmentID(devEnvID uint) (int64, error) {
 	err := r.db.Model(&database.Task{}).Where("dev_environment_id = ?", devEnvID).Count(&count).Error
 	return count, err
 }
+
+func (r *taskRepository) CountByAdminID(adminID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&database.Task{}).Where("admin_id = ?", adminID).Count(&count).Error
+	return count, err
+}

@@ -46,6 +46,7 @@ type GitCredentialRepository interface {
 	DeleteAdminAssociations(credentialID uint) error
 	GetAdmins(credentialID uint) ([]database.Admin, error)
 	IsOwner(credentialID, adminID uint) (bool, error)
+	CountByAdminID(adminID uint) (int64, error)
 }
 
 type ProjectRepository interface {
@@ -98,6 +99,7 @@ type DevEnvironmentRepository interface {
 	RemoveAdmin(envID, adminID uint) error
 	GetAdmins(envID uint) ([]database.Admin, error)
 	IsOwner(envID, adminID uint) (bool, error)
+	CountByAdminID(adminID uint) (int64, error)
 }
 
 type TaskRepository interface {
@@ -113,6 +115,7 @@ type TaskRepository interface {
 	GetLatestExecutionTimes(taskIDs []uint) (map[uint]*time.Time, error)
 	UpdateStatusBatch(taskIDs []uint, status database.TaskStatus, projectID uint) ([]uint, []uint, error)
 	CountByDevEnvironmentID(devEnvID uint) (int64, error)
+	CountByAdminID(adminID uint) (int64, error)
 }
 
 type TaskConversationRepository interface {

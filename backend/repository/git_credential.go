@@ -202,3 +202,12 @@ func (r *gitCredentialRepository) IsOwner(credentialID, adminID uint) (bool, err
 
 	return false, nil
 }
+
+// CountByAdminID counts the number of git credentials created by a specific admin
+func (r *gitCredentialRepository) CountByAdminID(adminID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&database.GitCredential{}).
+		Where("admin_id = ?", adminID).
+		Count(&count).Error
+	return count, err
+}

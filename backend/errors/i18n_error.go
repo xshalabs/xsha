@@ -124,6 +124,9 @@ var (
 	ErrCannotDeleteSystemAdmin       = &I18nError{Key: "admin.cannot_delete_system"}
 	ErrCannotModifySystemAdminRole   = &I18nError{Key: "admin.cannot_modify_system_role"}
 	ErrCannotRemoveLastSuperAdmin    = &I18nError{Key: "admin.cannot_remove_last_super_admin"}
+	ErrAdminHasEnvironments          = &I18nError{Key: "admin.has_environments"}
+	ErrAdminHasCredentials           = &I18nError{Key: "admin.has_credentials"}
+	ErrAdminHasTasks                 = &I18nError{Key: "admin.has_tasks"}
 
 	// Environment admin management errors
 	ErrAdminAlreadyAssigned     = &I18nError{Key: "dev_environment.admin_already_assigned"}

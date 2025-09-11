@@ -317,3 +317,8 @@ func (s *devEnvironmentService) GetEnvironmentAdmins(envID uint) ([]database.Adm
 func (s *devEnvironmentService) IsOwner(envID, adminID uint) (bool, error) {
 	return s.repo.IsOwner(envID, adminID)
 }
+
+// CountByAdminID counts the number of dev environments created by a specific admin
+func (s *devEnvironmentService) CountByAdminID(adminID uint) (int64, error) {
+	return s.repo.CountByAdminID(adminID)
+}
