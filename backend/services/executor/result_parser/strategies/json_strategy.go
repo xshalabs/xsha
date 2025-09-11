@@ -36,12 +36,10 @@ func (s *JSONStrategy) CanParse(logs string) bool {
 	if logs == "" {
 		return false
 	}
-
 	// 快速检查是否包含JSON指示符
 	if !containsJSON(logs) {
 		return false
 	}
-
 	// 尝试提取JSON并验证
 	lines := strings.Split(logs, "\n")
 	for i := len(lines) - 1; i >= 0 && i >= len(lines)-10; i-- { // 只检查最后10行
@@ -49,7 +47,6 @@ func (s *JSONStrategy) CanParse(logs string) bool {
 		if line == "" {
 			continue
 		}
-
 		if jsonStr := s.extractJSONFromLine(line); jsonStr != "" {
 			var testData map[string]interface{}
 			if err := json.Unmarshal([]byte(jsonStr), &testData); err == nil {
@@ -59,7 +56,6 @@ func (s *JSONStrategy) CanParse(logs string) bool {
 			}
 		}
 	}
-
 	return false
 }
 
@@ -77,7 +73,6 @@ func (s *JSONStrategy) Parse(ctx context.Context, logs string) (map[string]inter
 	if len(lines) > maxLines {
 		startIndex = len(lines) - maxLines
 	}
-
 	// 从末尾开始查找有效的JSON结果
 	for i := len(lines) - 1; i >= startIndex; i-- {
 		select {
@@ -85,22 +80,18 @@ func (s *JSONStrategy) Parse(ctx context.Context, logs string) (map[string]inter
 			return nil, ctx.Err()
 		default:
 		}
-
 		line := strings.TrimSpace(lines[i])
 		if line == "" {
 			continue
 		}
-
 		jsonStr := s.extractJSONFromLine(line)
 		if jsonStr == "" {
 			continue
 		}
-
 		var result map[string]interface{}
 		if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
 			continue
 		}
-
 		// 检查是否是有效的结果JSON
 		if s.isValidResultJSON(result) {
 			return result, nil
@@ -122,13 +113,11 @@ func (s *JSONStrategy) extractJSONFromLine(line string) string {
 			return jsonStr
 		}
 	}
-
 	// 如果没有 STDOUT: 前缀，检查整行是否为 JSON
 	trimmedLine := strings.TrimSpace(line)
 	if strings.HasPrefix(trimmedLine, "{") && strings.HasSuffix(trimmedLine, "}") {
 		return trimmedLine
 	}
-
 	return ""
 }
 
@@ -138,28 +127,23 @@ func (s *JSONStrategy) isValidResultJSON(data map[string]interface{}) bool {
 	if s.isPlanModeResult(data) {
 		return false // 计划模式结果应该由PlanModeStrategy处理
 	}
-
 	// 检查必需的字段
 	typeVal, hasType := data["type"].(string)
 	if !hasType || typeVal != "result" {
 		return false
 	}
-
 	// 检查subtype字段
 	if _, hasSubtype := data["subtype"]; !hasSubtype {
 		return false
 	}
-
 	// 检查is_error字段
 	if _, hasIsError := data["is_error"]; !hasIsError {
 		return false
 	}
-
 	// 检查session_id字段
 	if sessionID, hasSessionID := data["session_id"].(string); !hasSessionID || sessionID == "" {
 		return false
 	}
-
 	return true
 }
 
@@ -170,30 +154,25 @@ func (s *JSONStrategy) isPlanModeResult(data map[string]interface{}) bool {
 	if !hasType || typeVal != "assistant" {
 		return false
 	}
-
 	// 检查message字段
 	message, hasMessage := data["message"]
 	if !hasMessage {
 		return false
 	}
-
 	messageMap, ok := message.(map[string]interface{})
 	if !ok {
 		return false
 	}
-
 	// 检查content字段
 	content, hasContent := messageMap["content"]
 	if !hasContent {
 		return false
 	}
-
 	// content应该是一个数组
 	contentArray, ok := content.([]interface{})
 	if !ok {
 		return false
 	}
-
 	// 检查是否包含ExitPlanMode工具使用
 	for _, item := range contentArray {
 		if itemMap, ok := item.(map[string]interface{}); ok {

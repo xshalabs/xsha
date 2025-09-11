@@ -4,7 +4,7 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)，项目遵循 [语义化版本控制](https://semver.org/spec/v2.0.0.html)。
 
-## v0.6.0 - 20250911
+## v0.7.0 - 20250911
 
 ### 新增
 
@@ -13,6 +13,12 @@
 ### 修复
 
 - 修复git diff权限漏洞
+
+## v0.6.0 - 20250901
+
+### 新增
+
+- 新增 HTTP 协议的 Git 仓库支持
 
 ## v0.5.0 - 20250826
 

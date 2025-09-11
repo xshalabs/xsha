@@ -353,11 +353,11 @@ func (s *projectService) validateProjectData(name, repoURL, protocol string) err
 func (s *projectService) validateRepositoryURL(repoURL string, protocol database.GitProtocolType) error {
 	switch protocol {
 	case database.GitProtocolHTTPS:
-		if !strings.HasPrefix(repoURL, "https://") {
+		if !strings.HasPrefix(repoURL, "https://") && !strings.HasPrefix(repoURL, "http://") {
 			return appErrors.ErrInvalidFormat
 		}
 		if _, err := url.Parse(repoURL); err != nil {
-			return fmt.Errorf("invalid HTTPS URL format: %v", err)
+			return fmt.Errorf("invalid HTTP/HTTPS URL format: %v", err)
 		}
 	case database.GitProtocolSSH:
 		if !strings.Contains(repoURL, "@") || !strings.Contains(repoURL, ":") {

@@ -30,7 +30,6 @@ func TestPlanModeStrategy(t *testing.T) {
 	}
 
 	parser := NewDefaultParser(nil, nil, nil)
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -47,7 +46,6 @@ func TestPlanModeStrategy(t *testing.T) {
 					t.Error("Expected result but got nil")
 					return
 				}
-
 				// Verify plan mode specific fields
 				if typeVal, ok := result["type"].(string); !ok || typeVal != "result" {
 					t.Errorf("Expected type 'result', got: %v", result["type"])
@@ -111,7 +109,6 @@ func TestPlanModeDetection(t *testing.T) {
 					isPlanMode = true
 				}
 			}
-
 			if isPlanMode != tt.expected {
 				t.Errorf("Expected plan mode detection: %v, got: %v", tt.expected, isPlanMode)
 			}
