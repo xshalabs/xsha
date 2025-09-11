@@ -100,3 +100,8 @@ func (m *MockDevEnvironmentService) IsOwner(envID, adminID uint) (bool, error) {
 	args := m.Called(envID, adminID)
 	return args.Bool(0), args.Error(1)
 }
+
+func (m *MockDevEnvironmentService) CountByAdminID(adminID uint) (int64, error) {
+	args := m.Called(adminID)
+	return args.Get(0).(int64), args.Error(1)
+}
