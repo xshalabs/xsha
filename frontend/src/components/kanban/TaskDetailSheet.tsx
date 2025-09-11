@@ -230,7 +230,18 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
       await loadConversations();
     } catch (error) {
       console.error("Failed to delete conversation:", error);
-      toast.error(t("taskConversations.delete.deleteFailed"));
+      
+      // Extract specific error message from API response
+      let errorMessage = t("taskConversations.delete.deleteFailed");
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      } else if (error && typeof error === "object" && "message" in error) {
+        errorMessage = String(error.message);
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setDeletingConversation(false);
       setDeleteConversationId(null);
@@ -258,7 +269,18 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
       onTaskDeleted?.();
     } catch (error) {
       console.error("Failed to delete task:", error);
-      toast.error(t("tasks.delete.deleteFailed"));
+      
+      // Extract specific error message from API response
+      let errorMessage = t("tasks.delete.deleteFailed");
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      } else if (error && typeof error === "object" && "message" in error) {
+        errorMessage = String(error.message);
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setDeleting(false);
       setIsDeleteDialogOpen(false);
