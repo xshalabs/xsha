@@ -521,7 +521,6 @@ func (h *TaskHandlers) PushTaskBranch(c *gin.Context) {
 
 	output, err := h.taskService.PushTaskBranch(uint(taskID), req.ForcePush)
 	if err != nil {
-		utils.Error("Failed to push task branch", "taskID", taskID, "error", err)
 		helper := i18n.NewHelper(lang)
 		helper.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
