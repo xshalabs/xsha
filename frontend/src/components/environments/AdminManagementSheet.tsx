@@ -55,7 +55,6 @@ export function AdminManagementSheet({
   const [isLoading, setIsLoading] = useState(false);
   const [isAddingAdmin, setIsAddingAdmin] = useState(false);
   const [isRemovingAdmin, setIsRemovingAdmin] = useState(false);
-  const [showAddConfirmDialog, setShowAddConfirmDialog] = useState(false);
   const [showRemoveConfirmDialog, setShowRemoveConfirmDialog] = useState(false);
   const [adminToRemove, setAdminToRemove] = useState<Admin | null>(null);
 
@@ -90,15 +89,12 @@ export function AdminManagementSheet({
     }
   };
 
-  const handleAddAdmin = () => {
+  const handleAddAdmin = async () => {
     if (!selectedAdminId) {
       toast.error(t("devEnvironments.admin.select_admin"));
       return;
     }
-    setShowAddConfirmDialog(true);
-  };
 
-  const confirmAddAdmin = async () => {
     try {
       setIsAddingAdmin(true);
       await apiService.devEnvironments.addAdmin(environment.id, {
@@ -107,7 +103,6 @@ export function AdminManagementSheet({
 
       toast.success(t("devEnvironments.admin.added_success"));
       setSelectedAdminId("");
-      setShowAddConfirmDialog(false);
       await loadEnvironmentAdmins();
     } catch (error) {
       logError(error, "Failed to add admin to environment");
@@ -144,7 +139,6 @@ export function AdminManagementSheet({
   const handleClose = () => {
     setOpen(false);
     setSelectedAdminId("");
-    setShowAddConfirmDialog(false);
     setShowRemoveConfirmDialog(false);
     setAdminToRemove(null);
     onAdminChanged?.();
@@ -306,41 +300,6 @@ export function AdminManagementSheet({
         </FormSheetFooter>
       </FormSheetContent>
 
-      {/* Add Admin Confirmation Dialog */}
-      <AlertDialog open={showAddConfirmDialog} onOpenChange={setShowAddConfirmDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("devEnvironments.admin.confirm_add_title")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {selectedAdminId && (
-                t("devEnvironments.admin.confirm_add_description", {
-                  adminName: availableAdmins.find(admin => admin.id.toString() === selectedAdminId)?.name,
-                  environmentName: environment.name
-                })
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isAddingAdmin}>
-              {t("common.cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmAddAdmin}
-              disabled={isAddingAdmin}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              {isAddingAdmin ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {t("common.adding")}
-                </>
-              ) : (
-                t("common.add")
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Remove Admin Confirmation Dialog */}
       <AlertDialog open={showRemoveConfirmDialog} onOpenChange={setShowRemoveConfirmDialog}>

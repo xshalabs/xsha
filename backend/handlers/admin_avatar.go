@@ -40,24 +40,13 @@ func NewAdminAvatarHandlers(avatarService services.AdminAvatarService, adminServ
 // @Failure 400 {object} object{error=string} "Request parameter error"
 // @Failure 401 {object} object{error=string} "Authentication failed"
 // @Failure 413 {object} object{error=string} "File too large"
-// @Router /admin/avatar/upload [post]
+// @Router /avatar/upload [post]
 func (h *AdminAvatarHandlers) UploadAvatarHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	username, exists := c.Get("username")
-	if !exists {
+	admin := middleware.GetAdminFromContext(c)
+	if admin == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-
-	adminIDInterface, exists := c.Get("admin_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-	adminID, ok := adminIDInterface.(uint)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
 		return
 	}
 
@@ -110,9 +99,9 @@ func (h *AdminAvatarHandlers) UploadAvatarHandler(c *gin.Context) {
 		header.Filename,
 		contentType,
 		header.Size,
-		fileName, // Store relative path (just filename) instead of full path
-		adminID,
-		username.(string),
+		fileName,
+		admin.ID,
+		admin.Username,
 	)
 	if err != nil {
 		// Clean up file if database operation failed

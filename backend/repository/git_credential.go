@@ -55,7 +55,20 @@ func (r *gitCredentialRepository) List(name *string, credType *database.GitCrede
 	}
 
 	offset := (page - 1) * pageSize
-	if err := query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&credentials).Error; err != nil {
+	if err := query.
+		Preload("Admin", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, username, name, email, avatar_id").
+				Preload("Avatar", func(db *gorm.DB) *gorm.DB {
+					return db.Select("id, uuid, original_name")
+				})
+		}).
+		Preload("Admins", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, username, name, email, avatar_id").
+				Preload("Avatar", func(db *gorm.DB) *gorm.DB {
+					return db.Select("id, uuid, original_name")
+				})
+		}).
+		Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&credentials).Error; err != nil {
 		return nil, 0, err
 	}
 
@@ -154,6 +167,10 @@ func (r *gitCredentialRepository) RemoveAdmin(credentialID, adminID uint) error 
 	return r.db.Exec("DELETE FROM git_credential_admins WHERE git_credential_id = ? AND admin_id = ?", credentialID, adminID).Error
 }
 
+func (r *gitCredentialRepository) DeleteAdminAssociations(credentialID uint) error {
+	return r.db.Exec("DELETE FROM git_credential_admins WHERE git_credential_id = ?", credentialID).Error
+}
+
 func (r *gitCredentialRepository) GetAdmins(credentialID uint) ([]database.Admin, error) {
 	var admins []database.Admin
 	err := r.db.
@@ -169,7 +186,7 @@ func (r *gitCredentialRepository) GetAdmins(credentialID uint) ([]database.Admin
 	return admins, err
 }
 
-func (r *gitCredentialRepository) IsAdminForCredential(credentialID, adminID uint) (bool, error) {
+func (r *gitCredentialRepository) IsOwner(credentialID, adminID uint) (bool, error) {
 	var count int64
 
 	// Check legacy relationship first
@@ -184,4 +201,13 @@ func (r *gitCredentialRepository) IsAdminForCredential(credentialID, adminID uin
 	}
 
 	return false, nil
+}
+
+// CountByAdminID counts the number of git credentials created by a specific admin
+func (r *gitCredentialRepository) CountByAdminID(adminID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&database.GitCredential{}).
+		Where("admin_id = ?", adminID).
+		Count(&count).Error
+	return count, err
 }

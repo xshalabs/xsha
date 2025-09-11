@@ -109,7 +109,10 @@ export default function AdminListPage() {
 
         // Handle column filters
         filters.forEach((filter) => {
-          if (filter.id === "is_active" && Array.isArray(filter.value) && filter.value.length > 0) {
+          if (filter.id === "search" && filter.value) {
+            // Handle search filter for email, name, username
+            apiParams.search = filter.value as string;
+          } else if (filter.id === "is_active" && Array.isArray(filter.value) && filter.value.length > 0) {
             // Handle faceted filter with array values
             if (filter.value.length === 1) {
               // Single selection
@@ -118,6 +121,9 @@ export default function AdminListPage() {
               // Both active and inactive selected, don't filter
               // apiParams.is_active remains undefined
             }
+          } else if (filter.id === "role" && Array.isArray(filter.value) && filter.value.length > 0) {
+            // Handle role filter
+            apiParams.role = filter.value;
           }
         });
 
@@ -137,11 +143,17 @@ export default function AdminListPage() {
           // Add filter parameters
           filters.forEach((filter) => {
             if (filter.value) {
-              if (filter.id === "is_active" && Array.isArray(filter.value) && filter.value.length > 0) {
+              if (filter.id === "search") {
+                // Handle search parameter
+                params.set(filter.id, String(filter.value));
+              } else if (filter.id === "is_active" && Array.isArray(filter.value) && filter.value.length > 0) {
                 // Only set parameter if not both values are selected (which means no filter)
                 if (filter.value.length === 1) {
                   params.set(filter.id, filter.value[0]);
                 }
+              } else if (filter.id === "role" && Array.isArray(filter.value) && filter.value.length > 0) {
+                // Handle role filter - join multiple values with comma
+                params.set(filter.id, filter.value.join(","));
               }
             }
           });
@@ -179,13 +191,23 @@ export default function AdminListPage() {
 
   // Initialize from URL parameters
   useEffect(() => {
+    const searchParam = searchParams.get("search");
     const statusParam = searchParams.get("is_active");
+    const roleParam = searchParams.get("role");
     const pageParam = searchParams.get("page");
 
     const initialFilters: ColumnFiltersState = [];
 
+    if (searchParam) {
+      initialFilters.push({ id: "search", value: searchParam });
+    }
+
     if (statusParam) {
       initialFilters.push({ id: "is_active", value: [statusParam] });
+    }
+
+    if (roleParam) {
+      initialFilters.push({ id: "role", value: roleParam.split(",") });
     }
 
     const initialPage = pageParam ? parseInt(pageParam, 10) : 1;

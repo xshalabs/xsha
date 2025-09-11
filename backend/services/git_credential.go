@@ -119,15 +119,18 @@ func (s *gitCredentialService) DeleteCredential(id uint) error {
 		return err
 	}
 
-	projects, _, err := s.projectRepo.List("", nil, "created_at", "desc", 1, 1000)
+	projects, err := s.projectRepo.GetByCredentialID(credential.ID)
 	if err != nil {
 		return fmt.Errorf("failed to check credential usage: %v", err)
 	}
 
-	for _, project := range projects {
-		if project.CredentialID != nil && *project.CredentialID == credential.ID {
-			return appErrors.ErrCredentialUsedByProjects
-		}
+	if len(projects) > 0 {
+		return appErrors.ErrCredentialUsedByProjects
+	}
+
+	// Clean up admin associations before deleting the credential
+	if err := s.repo.DeleteAdminAssociations(id); err != nil {
+		return fmt.Errorf("failed to delete admin associations: %v", err)
 	}
 
 	return s.repo.Delete(id)
@@ -135,6 +138,11 @@ func (s *gitCredentialService) DeleteCredential(id uint) error {
 
 func (s *gitCredentialService) ListActiveCredentials(credType *database.GitCredentialType) ([]database.GitCredential, error) {
 	credentials, _, err := s.repo.List(nil, credType, 1, 1000)
+	return credentials, err
+}
+
+func (s *gitCredentialService) ListActiveCredentialsByAdminAccess(adminID uint, credType *database.GitCredentialType) ([]database.GitCredential, error) {
+	credentials, _, err := s.repo.ListByAdminAccess(adminID, nil, credType, 1, 1000)
 	return credentials, err
 }
 
@@ -224,7 +232,12 @@ func (s *gitCredentialService) GetCredentialAdmins(credentialID uint) ([]databas
 	return s.repo.GetAdmins(credentialID)
 }
 
-// CanAdminAccessCredential checks if an admin has access to a specific credential
-func (s *gitCredentialService) CanAdminAccessCredential(credentialID, adminID uint) (bool, error) {
-	return s.repo.IsAdminForCredential(credentialID, adminID)
+// IsOwner checks if an admin is owner of a specific credential
+func (s *gitCredentialService) IsOwner(credentialID, adminID uint) (bool, error) {
+	return s.repo.IsOwner(credentialID, adminID)
+}
+
+// CountByAdminID counts the number of git credentials created by a specific admin
+func (s *gitCredentialService) CountByAdminID(adminID uint) (int64, error) {
+	return s.repo.CountByAdminID(adminID)
 }

@@ -119,7 +119,3 @@ export interface UpdateAvatarRequest {
   avatar_id: number;
 }
 
-// Role management types
-export interface RoleListResponse {
-  roles: AdminRole[];
-}

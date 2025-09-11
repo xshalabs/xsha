@@ -97,6 +97,7 @@ export function TaskFormCreateNew({
   } = useTaskFormFileHandling({
     requirementDesc: formData.requirement_desc || "",
     onRequirementDescChange: requirementDescChangeCallback,
+    projectId: formData.project_id,
   });
 
   // Handle branch auto-selection separately to avoid circular dependency

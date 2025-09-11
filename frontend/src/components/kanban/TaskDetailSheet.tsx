@@ -27,7 +27,6 @@ import { ConversationGitDiffModal } from "./ConversationGitDiffModal";
 import { ConversationDetailModal } from "@/components/ConversationDetailModal";
 import { ConversationLogModal } from "./ConversationLogModal";
 import { useTaskConversations } from "@/hooks/useTaskConversations";
-import { taskExecutionLogsApi } from "@/lib/api/task-execution-logs";
 import { taskConversationsApi } from "@/lib/api/task-conversations";
 import { tasksApi } from "@/lib/api/tasks";
 import {
@@ -169,11 +168,11 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
   }, []);
 
   const handleConfirmRetry = useCallback(async () => {
-    if (!retryConversationId) return;
+    if (!retryConversationId || !task) return;
     
     setRetrying(true);
     try {
-      await taskExecutionLogsApi.retryExecution(retryConversationId);
+      await taskConversationsApi.retryExecution(task.project_id, task.id, retryConversationId);
       toast.success(t("taskConversations.execution.actions.retry") + " " + t("common.success"));
       // Refresh conversations to show updated status
       await loadConversations();
@@ -184,7 +183,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
       setRetrying(false);
       setRetryConversationId(null);
     }
-  }, [retryConversationId, t, loadConversations]);
+  }, [retryConversationId, task, t, loadConversations]);
 
   const handleCancelRetry = useCallback(() => {
     setRetryConversationId(null);
@@ -195,11 +194,11 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
   }, []);
 
   const handleConfirmCancel = useCallback(async () => {
-    if (!cancelConversationId) return;
+    if (!cancelConversationId || !task) return;
     
     setCancelling(true);
     try {
-      await taskExecutionLogsApi.cancelExecution(cancelConversationId);
+      await taskConversationsApi.cancelExecution(task.project_id, task.id, cancelConversationId);
       toast.success(t("taskConversations.execution.actions.cancel") + " " + t("common.success"));
       // Refresh conversations to show updated status
       await loadConversations();
@@ -210,7 +209,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
       setCancelling(false);
       setCancelConversationId(null);
     }
-  }, [cancelConversationId, t, loadConversations]);
+  }, [cancelConversationId, task, t, loadConversations]);
 
   const handleCancelCancel = useCallback(() => {
     setCancelConversationId(null);
@@ -221,22 +220,33 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
   }, []);
 
   const handleConfirmDeleteConversation = useCallback(async () => {
-    if (!deleteConversationId) return;
+    if (!deleteConversationId || !task) return;
     
     setDeletingConversation(true);
     try {
-      await taskConversationsApi.delete(deleteConversationId);
+      await taskConversationsApi.delete(task.project_id, task.id, deleteConversationId);
       toast.success(t("taskConversations.delete.deleteSuccess"));
       // Refresh conversations to show updated list
       await loadConversations();
     } catch (error) {
       console.error("Failed to delete conversation:", error);
-      toast.error(t("taskConversations.delete.deleteFailed"));
+      
+      // Extract specific error message from API response
+      let errorMessage = t("taskConversations.delete.deleteFailed");
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      } else if (error && typeof error === "object" && "message" in error) {
+        errorMessage = String(error.message);
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setDeletingConversation(false);
       setDeleteConversationId(null);
     }
-  }, [deleteConversationId, t, loadConversations]);
+  }, [deleteConversationId, task, t, loadConversations]);
 
   const handleCancelDeleteConversation = useCallback(() => {
     setDeleteConversationId(null);
@@ -251,7 +261,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     
     setDeleting(true);
     try {
-      await tasksApi.delete(task.id);
+      await tasksApi.delete(task.project_id, task.id);
       toast.success(t("tasks.delete.deleteSuccess"));
       // Close the sheet first
       onClose();
@@ -259,7 +269,18 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
       onTaskDeleted?.();
     } catch (error) {
       console.error("Failed to delete task:", error);
-      toast.error(t("tasks.delete.deleteFailed"));
+      
+      // Extract specific error message from API response
+      let errorMessage = t("tasks.delete.deleteFailed");
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      } else if (error && typeof error === "object" && "message" in error) {
+        errorMessage = String(error.message);
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setDeleting(false);
       setIsDeleteDialogOpen(false);
@@ -302,7 +323,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     
     setUpdatingTitle(true);
     try {
-      await tasksApi.update(task.id, { title: trimmedTitle });
+      await tasksApi.update(task.project_id, task.id, { title: trimmedTitle });
       toast.success(t("tasks.messages.updateSuccess"));
       
       // Update local task data
@@ -418,6 +439,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
               conversations={conversations}
               conversationCount={task.conversation_count}
               taskId={task.id}
+              projectId={task.project_id}
               onViewConversationGitDiff={handleViewConversationGitDiff}
               onViewConversationDetails={handleViewConversationDetails}
               onViewConversationLogs={handleViewConversationLogs}
@@ -472,16 +494,21 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
         isOpen={isConversationGitDiffModalOpen}
         onClose={handleCloseConversationGitDiff}
         conversation={selectedConversation}
+        projectId={task?.project_id}
       />
 
       <ConversationDetailModal
         conversationId={selectedConversationId}
+        projectId={task?.project_id}
+        taskId={task?.id}
         isOpen={isConversationDetailModalOpen}
         onClose={handleCloseConversationDetails}
       />
 
       <ConversationLogModal
         conversationId={selectedLogConversationId}
+        projectId={task?.project_id}
+        taskId={task?.id}
         isOpen={isConversationLogModalOpen}
         onClose={handleCloseConversationLogs}
       />

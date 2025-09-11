@@ -2,7 +2,6 @@ package migrations
 
 import (
 	"fmt"
-	"time"
 	"xsha-backend/config"
 	"xsha-backend/utils"
 
@@ -20,12 +19,12 @@ func (m *RemoveAdminCredentialsMigration) Run(db *gorm.DB, cfg *config.Config) e
 	migrationName := m.Name()
 
 	// Check if migration already applied
-	var existing Migration
-	if err := db.Where("name = ?", migrationName).First(&existing).Error; err == nil {
-		utils.Info("Migration already applied, skipping", "migration", migrationName)
+	applied, err := checkMigrationStatus(db, migrationName)
+	if err != nil {
+		return err
+	}
+	if applied {
 		return nil
-	} else if err != gorm.ErrRecordNotFound {
-		return fmt.Errorf("failed to check migration status: %v", err)
 	}
 
 	utils.Info("Starting admin credentials system config removal migration", "migration", migrationName)
@@ -41,13 +40,5 @@ func (m *RemoveAdminCredentialsMigration) Run(db *gorm.DB, cfg *config.Config) e
 		"deleted_count", result.RowsAffected)
 
 	// Record migration as applied
-	migration := Migration{
-		Name:      migrationName,
-		AppliedAt: time.Now(),
-	}
-	if err := db.Create(&migration).Error; err != nil {
-		return fmt.Errorf("failed to record migration: %v", err)
-	}
-
-	return nil
+	return recordMigrationApplied(db, migrationName)
 }

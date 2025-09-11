@@ -3,8 +3,6 @@ package utils
 import (
 	"context"
 	"os"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 	"xsha-backend/config"
@@ -93,7 +91,7 @@ func InitLogger(config LogConfig) error {
 
 	// Create core and logger
 	core := zapcore.NewCore(encoder, writer, level)
-	defaultLogger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+	defaultLogger = zap.New(core)
 	sugar = defaultLogger.Sugar()
 
 	return nil
@@ -181,27 +179,9 @@ func logWithCaller(level zapcore.Level, msg string, args ...interface{}) {
 		return
 	}
 
-	// Add source info
-	if pc, file, line, ok := runtime.Caller(2); ok {
-		fn := runtime.FuncForPC(pc)
-		functionName := ""
-		if fn != nil {
-			functionName = fn.Name()
-		}
-
-		// Convert args to zap fields
-		fields := argsToFields(args)
-		fields = append(fields,
-			zap.String("source.function", functionName),
-			zap.String("source.file", filepath.Base(file)),
-			zap.Int("source.line", line),
-		)
-
-		logger.Log(level, msg, fields...)
-	} else {
-		fields := argsToFields(args)
-		logger.Log(level, msg, fields...)
-	}
+	// Convert args to zap fields
+	fields := argsToFields(args)
+	logger.Log(level, msg, fields...)
 }
 
 func logWithCallerContext(ctx context.Context, level zapcore.Level, msg string, args ...interface{}) {
@@ -210,27 +190,9 @@ func logWithCallerContext(ctx context.Context, level zapcore.Level, msg string, 
 		return
 	}
 
-	// Add source info
-	if pc, file, line, ok := runtime.Caller(2); ok {
-		fn := runtime.FuncForPC(pc)
-		functionName := ""
-		if fn != nil {
-			functionName = fn.Name()
-		}
-
-		// Convert args to zap fields
-		fields := argsToFields(args)
-		fields = append(fields,
-			zap.String("source.function", functionName),
-			zap.String("source.file", filepath.Base(file)),
-			zap.Int("source.line", line),
-		)
-
-		logger.Log(level, msg, fields...)
-	} else {
-		fields := argsToFields(args)
-		logger.Log(level, msg, fields...)
-	}
+	// Convert args to zap fields
+	fields := argsToFields(args)
+	logger.Log(level, msg, fields...)
 }
 
 func argsToFields(args []interface{}) []zap.Field {

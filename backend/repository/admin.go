@@ -18,7 +18,11 @@ func NewAdminRepository(db *gorm.DB) AdminRepository {
 }
 
 func (r *adminRepository) Create(admin *database.Admin) error {
-	return r.db.Create(admin).Error
+	err := r.db.Create(admin).Error
+	if err != nil {
+		return utils.ParseDBError(err)
+	}
+	return nil
 }
 
 func (r *adminRepository) GetByID(id uint) (*database.Admin, error) {
@@ -39,7 +43,7 @@ func (r *adminRepository) GetByUsername(username string) (*database.Admin, error
 	return &admin, nil
 }
 
-func (r *adminRepository) List(search *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error) {
+func (r *adminRepository) List(search *string, isActive *bool, roles []string, page, pageSize int) ([]database.Admin, int64, error) {
 	var admins []database.Admin
 	var total int64
 
@@ -53,6 +57,10 @@ func (r *adminRepository) List(search *string, isActive *bool, page, pageSize in
 
 	if isActive != nil {
 		query = query.Where("is_active = ?", *isActive)
+	}
+
+	if len(roles) > 0 {
+		query = query.Where("role IN ?", roles)
 	}
 
 	// Count total records
@@ -76,6 +84,28 @@ func (r *adminRepository) Delete(id uint) error {
 	return r.db.Delete(&database.Admin{}, id).Error
 }
 
+func (r *adminRepository) DeleteAdminAssociations(adminID uint) error {
+	// Use transaction to ensure all deletions are atomic
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// Delete from dev_environment_admins
+		if err := tx.Exec("DELETE FROM dev_environment_admins WHERE admin_id = ?", adminID).Error; err != nil {
+			return err
+		}
+
+		// Delete from git_credential_admins
+		if err := tx.Exec("DELETE FROM git_credential_admins WHERE admin_id = ?", adminID).Error; err != nil {
+			return err
+		}
+
+		// Delete from project_admins
+		if err := tx.Exec("DELETE FROM project_admins WHERE admin_id = ?", adminID).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 func (r *adminRepository) UpdateLastLogin(username, ip string) error {
 	now := time.Now()
 	return r.db.Model(&database.Admin{}).
@@ -93,14 +123,11 @@ func (r *adminRepository) CountAdmins() (int64, error) {
 }
 
 func (r *adminRepository) InitializeDefaultAdmin() error {
-	// Check if any admin exists
 	count, err := r.CountAdmins()
 	if err != nil {
 		return err
 	}
-
 	if count > 0 {
-		utils.Info("Admin users already exist, skipping default admin creation")
 		return nil
 	}
 

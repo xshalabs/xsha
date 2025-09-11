@@ -73,12 +73,12 @@ export function useKanbanData(projectId: string | undefined) {
           .flat()
           .find((task) => task.id === taskId);
 
-        if (!sourceTask || sourceTask.status === targetStatus) {
+        if (!sourceTask || sourceTask.status === targetStatus || !projectId) {
           return;
         }
 
         // Update task status via API
-        await apiService.tasks.batchUpdateStatus({
+        await apiService.tasks.batchUpdateStatus(parseInt(projectId), {
           task_ids: [taskId],
           status: targetStatus,
         });

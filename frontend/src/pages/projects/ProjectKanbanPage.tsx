@@ -36,7 +36,6 @@ import {
   AppHeaderActions,
 } from "@/components/nav";
 
-
 import type { TaskStatus } from "@/types/task";
 import type { DevEnvironment } from "@/types/dev-environment";
 
@@ -79,20 +78,20 @@ export default function ProjectKanbanPage() {
 
   // Handle taskId from URL parameters
   useEffect(() => {
-    const taskIdParam = searchParams.get('taskId');
+    const taskIdParam = searchParams.get("taskId");
     if (taskIdParam && !loading && tasks) {
       const taskId = parseInt(taskIdParam, 10);
       if (!isNaN(taskId)) {
         // Find the task in all columns
         const allTasks = Object.values(tasks).flat();
-        const targetTask = allTasks.find(task => task.id === taskId);
-        
+        const targetTask = allTasks.find((task) => task.id === taskId);
+
         if (targetTask) {
           setSelectedTask(targetTask);
           setIsSheetOpen(true);
           // Remove taskId from URL to clean up
           const newSearchParams = new URLSearchParams(searchParams);
-          newSearchParams.delete('taskId');
+          newSearchParams.delete("taskId");
           setSearchParams(newSearchParams, { replace: true });
         }
       }
@@ -102,27 +101,21 @@ export default function ProjectKanbanPage() {
   // Auto-refresh kanban data every second
   useEffect(() => {
     if (!projectId || loading) return;
-    
+
     const interval = setInterval(() => {
       refreshKanbanData();
     }, 1000);
-    
+
     return () => clearInterval(interval);
   }, [projectId, loading, refreshKanbanData]);
-
-
 
   const handleAddTask = () => {
     setIsCreateTaskSheetOpen(true);
   };
 
-
-
   const handleProjectChange = (newProjectId: string) => {
     navigate(`/projects/${newProjectId}/kanban`);
   };
-
-
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
@@ -135,11 +128,13 @@ export default function ProjectKanbanPage() {
   };
 
   const handleTaskDeleted = () => {
-    // Refresh kanban data after task deletion
     refreshKanbanData();
   };
 
-  const handleCreateTask = async (taskData: TaskFormData, selectedEnvironment?: DevEnvironment) => {
+  const handleCreateTask = async (
+    taskData: TaskFormData,
+    selectedEnvironment?: DevEnvironment
+  ) => {
     if (!projectId) return;
 
     try {
@@ -150,26 +145,25 @@ export default function ProjectKanbanPage() {
       if (taskData.dev_environment_id && selectedEnvironment) {
         if (selectedEnvironment.type === "claude-code") {
           const params: { model?: string; is_plan_mode?: boolean } = {};
-          
+
           if (taskData.model && taskData.model !== "default") {
             params.model = taskData.model;
           }
-          
+
           if (taskData.is_plan_mode === true) {
             params.is_plan_mode = taskData.is_plan_mode;
           }
-          
+
           if (Object.keys(params).length > 0) {
             envParams = JSON.stringify(params);
           }
         }
       }
 
-      // Convert TaskFormData to CreateTaskRequest
+      // Convert TaskFormData to CreateTaskApiRequest (without project_id since it's in URL path)
       const createRequest = {
         title: taskData.title,
         start_branch: taskData.start_branch,
-        project_id: taskData.project_id,
         dev_environment_id: taskData.dev_environment_id,
         requirement_desc: taskData.requirement_desc,
         include_branches: taskData.include_branches,
@@ -180,42 +174,42 @@ export default function ProjectKanbanPage() {
         attachment_ids: taskData.attachment_ids,
       };
 
-      const response = await apiService.tasks.create(createRequest);
+      await apiService.tasks.create(parseInt(projectId!), createRequest);
 
       // Refresh kanban data using the hook function
       await refreshKanbanData();
 
       // Close the sheet
       setIsCreateTaskSheetOpen(false);
-
-      // Show success message (you might want to add toast notification here)
-      console.log("Task created successfully:", response.data);
     } catch (error) {
       console.error("Failed to create task:", error);
       logError(error as Error, "Failed to create task");
-      // Error will be handled by the TaskFormCreate component
       throw error;
     } finally {
       setIsCreatingTask(false);
     }
   };
 
-
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <AppHeader>
           <AppHeaderContent>
-            <div className={`flex items-center ${isMobile ? "gap-2" : "gap-4"}`}>
-              {/* Logo */}
-              <Logo className={`${isMobile ? "h-6 w-auto" : "h-8 w-auto"} flex-shrink-0`} />
-              {/* Project Switcher Skeleton */}
+            <div
+              className={`flex items-center ${isMobile ? "gap-2" : "gap-4"}`}
+            >
+              <Logo
+                className={`${
+                  isMobile ? "h-6 w-auto" : "h-8 w-auto"
+                } flex-shrink-0`}
+              />
               <Skeleton className={`h-10 ${isMobile ? "w-44" : "w-64"}`} />
             </div>
           </AppHeaderContent>
           <AppHeaderActions>
-            <div className={`flex items-center ${isMobile ? "gap-1" : "gap-2"}`}>
+            <div
+              className={`flex items-center ${isMobile ? "gap-1" : "gap-2"}`}
+            >
               <Skeleton className={`h-8 ${isMobile ? "w-8" : "w-24"}`} />
               <Skeleton className={`h-8 ${isMobile ? "w-16" : "w-24"}`} />
             </div>
@@ -269,8 +263,12 @@ export default function ProjectKanbanPage() {
         <AppHeaderContent>
           <div className={`flex items-center ${isMobile ? "gap-2" : "gap-4"}`}>
             {/* Logo */}
-            <Logo className={`${isMobile ? "h-6 w-auto" : "h-8 w-auto"} flex-shrink-0`} />
-            
+            <Logo
+              className={`${
+                isMobile ? "h-6 w-auto" : "h-8 w-auto"
+              } flex-shrink-0`}
+            />
+
             {/* Project Switcher */}
             {project && (
               <ProjectSwitcher
@@ -283,22 +281,24 @@ export default function ProjectKanbanPage() {
         </AppHeaderContent>
         <AppHeaderActions>
           <div className={`flex items-center ${isMobile ? "gap-1" : "gap-2"}`}>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size={isMobile ? "sm" : "sm"}
               onClick={() => navigate("/projects")}
-              className={`flex items-center ${isMobile ? "gap-1 px-2" : "gap-2"}`}
+              className={`flex items-center ${
+                isMobile ? "gap-1 px-2" : "gap-2"
+              }`}
             >
               <ArrowLeft className="h-4 w-4" />
               {!isMobile && t("navigation.projects")}
             </Button>
-            <Button 
-              onClick={handleAddTask} 
+            <Button
+              onClick={handleAddTask}
               size="sm"
               className={isMobile ? "px-2" : ""}
             >
               <Plus className="h-4 w-4 mr-2" />
-{isMobile ? t("common.create") : t("tasks.addTask")}
+              {isMobile ? t("common.create") : t("tasks.addTask")}
             </Button>
           </div>
         </AppHeaderActions>

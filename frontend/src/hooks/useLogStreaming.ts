@@ -11,6 +11,8 @@ export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'er
 
 export interface UseLogStreamingOptions {
   conversationId: number | null;
+  projectId?: number;
+  taskId?: number;
   isOpen: boolean;
 }
 
@@ -28,6 +30,8 @@ export interface UseLogStreamingReturn {
 
 export const useLogStreaming = ({ 
   conversationId, 
+  projectId,
+  taskId,
   isOpen 
 }: UseLogStreamingOptions): UseLogStreamingReturn => {
   const { t } = useTranslation();
@@ -159,7 +163,7 @@ export const useLogStreaming = ({
   }, [t, closeConnection]);
 
   const startStreaming = useCallback(() => {
-    if (!conversationId || isStreaming || hasAuthError) return;
+    if (!conversationId || !projectId || !taskId || isStreaming || hasAuthError) return;
     
     // Prevent duplicate connections for the same conversation
     if (currentConversationRef.current === conversationId && isFinishedRef.current) {
@@ -190,12 +194,12 @@ export const useLogStreaming = ({
     setHasAuthError(false);
     isFinishedRef.current = false;
 
-    const url = `/api/v1/conversations/${conversationId}/logs/stream?token=${encodeURIComponent(token)}`;
+    const url = `/api/v1/projects/${projectId}/tasks/${taskId}/conversations/${conversationId}/logs/stream?token=${encodeURIComponent(token)}`;
     const eventSource = new EventSource(url);
     eventSourceRef.current = eventSource;
 
     setupEventListeners(eventSource);
-  }, [conversationId, isStreaming, hasAuthError, t, setupEventListeners]);
+  }, [conversationId, projectId, taskId, isStreaming, hasAuthError, t, setupEventListeners]);
 
   const refreshStream = useCallback(() => {
     console.log('Manual refresh triggered');

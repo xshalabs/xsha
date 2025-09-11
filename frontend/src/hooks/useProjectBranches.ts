@@ -22,10 +22,7 @@ export function useProjectBranches({ currentProject }: UseProjectBranchesOptions
       setError("");
       setAvailableBranches([]);
 
-      const response = await projectsApi.fetchBranches({
-        repo_url: currentProject.repo_url,
-        credential_id: currentProject.credential_id || undefined,
-      });
+      const response = await projectsApi.fetchBranches(currentProject.id);
 
       if (response.result.can_access && response.result.branches && response.result.branches.length > 0) {
         setAvailableBranches(response.result.branches);

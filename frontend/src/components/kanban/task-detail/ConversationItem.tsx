@@ -18,6 +18,7 @@ import { attachmentApi, type Attachment } from "@/lib/api/attachments";
 interface ConversationItemProps {
   conversation: any;
   taskId: number;
+  projectId: number;
   isExpanded: boolean;
   shouldShowExpandButton: boolean;
   isLatest?: boolean;
@@ -34,6 +35,7 @@ export const ConversationItem = memo<ConversationItemProps>(
   ({
     conversation,
     taskId,
+    projectId,
     isExpanded,
     shouldShowExpandButton,
     isLatest = false,
@@ -55,7 +57,7 @@ export const ConversationItem = memo<ConversationItemProps>(
         if (!conversation?.id) return;
         
         try {
-          const conversationAttachments = await attachmentApi.getConversationAttachments(conversation.id);
+          const conversationAttachments = await attachmentApi.getConversationAttachments(conversation.id, projectId);
           setAttachments(conversationAttachments);
         } catch (error) {
           console.error("Failed to load conversation attachments:", error);
@@ -64,7 +66,7 @@ export const ConversationItem = memo<ConversationItemProps>(
       };
 
       loadAttachments();
-    }, [conversation?.id]);
+    }, [conversation?.id, projectId]);
 
     const handleCopyContent = useCallback(async () => {
       try {
@@ -194,6 +196,7 @@ export const ConversationItem = memo<ConversationItemProps>(
               <div className="mt-3 pt-3 border-t border-border">
                 <AttachmentList
                   attachments={attachments}
+                  projectId={projectId}
                   readonly={true}
                   className="text-sm"
                 />

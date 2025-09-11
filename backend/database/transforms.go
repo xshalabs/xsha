@@ -143,3 +143,41 @@ func ToCredentialListItemResponses(credentials []GitCredential) []CredentialList
 	}
 	return responses
 }
+
+// ToProjectListItemResponse converts Project to ProjectListItemResponse with minimal admin data
+func ToProjectListItemResponse(project Project) ProjectListItemResponse {
+	response := ProjectListItemResponse{
+		ID:          project.ID,
+		CreatedAt:   project.CreatedAt,
+		UpdatedAt:   project.UpdatedAt,
+		Name:        project.Name,
+		Description: project.Description,
+		RepoURL:     project.RepoURL,
+		Protocol:    project.Protocol,
+		AdminID:     project.AdminID,
+		AdminCount:  0, // Will be set by service layer
+		CreatedBy:   project.CreatedBy,
+	}
+
+	// Convert legacy single admin to minimal version
+	if project.Admin != nil {
+		minimalAdmin := ToMinimalAdminResponse(*project.Admin)
+		response.Admin = &minimalAdmin
+	}
+
+	// Convert many-to-many admins to minimal versions
+	if len(project.Admins) > 0 {
+		response.Admins = ToMinimalAdminResponses(project.Admins)
+	}
+
+	return response
+}
+
+// ToProjectListItemResponses converts slice of Project to slice of ProjectListItemResponse
+func ToProjectListItemResponses(projects []Project) []ProjectListItemResponse {
+	responses := make([]ProjectListItemResponse, len(projects))
+	for i, project := range projects {
+		responses[i] = ToProjectListItemResponse(project)
+	}
+	return responses
+}

@@ -1,8 +1,8 @@
 {
-  "title": "Admin Users",
-  "description": "Manage system administrator accounts",
+  "title": "Users",
+  "description": "Manage user accounts",
   "pageTitle": {
-    "list": "Admin Users - XSha"
+    "list": "Users - XSha"
   },
   "table": {
     "username": "Username",
@@ -13,7 +13,7 @@
     "lastLogin": "Last Login",
     "createdBy": "Created By",
     "createdAt": "Created At",
-    "noData": "No admin users found"
+    "noData": "No users found"
   },
   "fields": {
     "username": "Username",
@@ -22,7 +22,7 @@
     "email": "Email",
     "role": "Role",
     "status": "Status",
-    "statusDescription": "Enable or disable this admin account",
+    "statusDescription": "Enable or disable this user account",
     "newPassword": "New Password",
     "confirmPassword": "Confirm Password"
   },
@@ -40,7 +40,8 @@
     "status": "Status",
     "allStatus": "All Status",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "search_placeholder": "Search by email, name, username..."
   },
   "roles": {
     "super_admin": "Super Admin",
@@ -52,42 +53,42 @@
     "inactive": "Inactive"
   },
   "actions": {
-    "create": "Create Admin",
+    "create": "Create User",
     "changePassword": "Change Password",
     "changingPassword": "Changing..."
   },
   "dialogs": {
     "create": {
-      "title": "Create Admin User",
-      "description": "Create a new administrator account"
+      "title": "Create User",
+      "description": "Create a new user account"
     },
     "update": {
-      "title": "Update Admin User",
-      "description": "Update administrator account: {{username}}"
+      "title": "Update User",
+      "description": "Update user account: {{username}}"
     },
     "changePassword": {
       "title": "Change Password",
-      "description": "Change password for administrator: {{username}}"
+      "description": "Change password for user: {{username}}"
     },
     "delete": {
-      "title": "Delete Admin User",
-      "description": "Are you sure you want to delete administrator: {{username}}?",
+      "title": "Delete User",
+      "description": "Are you sure you want to delete user: {{username}}?",
       "warning": "This action cannot be undone."
     }
   },
   "messages": {
-    "createSuccess": "Admin user created successfully",
-    "updateSuccess": "Admin user updated successfully",
-    "deleteSuccess": "Admin user deleted successfully",
+    "createSuccess": "User created successfully",
+    "updateSuccess": "User updated successfully",
+    "deleteSuccess": "User deleted successfully",
     "passwordChangeSuccess": "Password changed successfully"
   },
   "errors": {
-    "loadFailed": "Failed to load admin users",
-    "createFailed": "Failed to create admin user",
-    "updateFailed": "Failed to update admin user",
-    "deleteFailed": "Failed to delete admin user",
+    "loadFailed": "Failed to load users",
+    "createFailed": "Failed to create user",
+    "updateFailed": "Failed to update user",
+    "deleteFailed": "Failed to delete user",
     "passwordChangeFailed": "Failed to change password",
-    "cannotDeleteSystemAdmin": "Cannot delete system-created admin accounts"
+    "cannotDeleteSystemAdmin": "Cannot delete system-created user accounts"
   },
   "avatar": {
     "title": "Avatar",

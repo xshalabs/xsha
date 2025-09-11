@@ -7,11 +7,9 @@ import type {
   ProjectDetailResponse,
   CompatibleCredentialsResponse,
   ProjectListParams,
-  ParseRepositoryURLResponse,
-  FetchRepositoryBranchesRequest,
   FetchRepositoryBranchesResponse,
-  ValidateRepositoryAccessRequest,
-  ValidateRepositoryAccessResponse,
+  AddAdminToProjectRequest,
+  ProjectAdminsResponse,
 } from "@/types/project";
 
 export const projectsApi = {
@@ -61,38 +59,47 @@ export const projectsApi = {
   },
 
   getCompatibleCredentials: async (
-    protocol: string
+    repoUrl: string
   ): Promise<CompatibleCredentialsResponse> => {
     return request<CompatibleCredentialsResponse>(
-      `/projects/credentials?protocol=${protocol}`
+      `/projects/credentials?repo_url=${encodeURIComponent(repoUrl)}`
     );
   },
 
-  parseUrl: async (repoUrl: string): Promise<ParseRepositoryURLResponse> => {
-    return request<ParseRepositoryURLResponse>("/projects/parse-url", {
+
+  fetchBranches: async (
+    projectId: number
+  ): Promise<FetchRepositoryBranchesResponse> => {
+    return request<FetchRepositoryBranchesResponse>(`/projects/${projectId}/branches`, {
       method: "POST",
-      body: JSON.stringify({ repo_url: repoUrl }),
     });
   },
 
-  fetchBranches: async (
-    data: FetchRepositoryBranchesRequest
-  ): Promise<FetchRepositoryBranchesResponse> => {
-    return request<FetchRepositoryBranchesResponse>("/projects/branches", {
+  // Admin management methods
+  getAdmins: async (id: number): Promise<ProjectAdminsResponse> => {
+    return request<ProjectAdminsResponse>(`/projects/${id}/admins`);
+  },
+
+  addAdmin: async (
+    id: number,
+    data: AddAdminToProjectRequest
+  ): Promise<{ message: string }> => {
+    return request<{ message: string }>(`/projects/${id}/admins`, {
       method: "POST",
       body: JSON.stringify(data),
     });
   },
 
-  validateAccess: async (
-    data: ValidateRepositoryAccessRequest
-  ): Promise<ValidateRepositoryAccessResponse> => {
-    return request<ValidateRepositoryAccessResponse>(
-      "/projects/validate-access",
+  removeAdmin: async (
+    id: number,
+    adminId: number
+  ): Promise<{ message: string }> => {
+    return request<{ message: string }>(
+      `/projects/${id}/admins/${adminId}`,
       {
-        method: "POST",
-        body: JSON.stringify(data),
+        method: "DELETE",
       }
     );
   },
+
 };

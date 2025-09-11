@@ -11,7 +11,7 @@ type AuthService interface {
 	Logout(token, username, clientIP, userAgent string) error
 	IsTokenBlacklisted(token string) (bool, error)
 	CleanExpiredTokens() error
-	CheckAdminStatus(username string) (bool, error)
+	CheckAdminStatus(adminID uint) (bool, error)
 }
 
 type LoginLogService interface {
@@ -24,7 +24,7 @@ type AdminService interface {
 	CreateAdminWithRole(username, password, name, email string, role database.AdminRole, createdBy string) (*database.Admin, error)
 	GetAdmin(id uint) (*database.Admin, error)
 	GetAdminByUsername(username string) (*database.Admin, error)
-	ListAdmins(search *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error)
+	ListAdmins(search *string, isActive *bool, roles []string, page, pageSize int) ([]database.Admin, int64, error)
 	UpdateAdmin(id uint, updates map[string]interface{}) error
 	UpdateAdminRole(id uint, role database.AdminRole) error
 	DeleteAdmin(id uint) error
@@ -34,9 +34,10 @@ type AdminService interface {
 	SetAuthService(authService AuthService)
 	SetDevEnvironmentService(devEnvService DevEnvironmentService)
 	SetGitCredentialService(gitCredService GitCredentialService)
-	HasPermission(admin *database.Admin, resource, action string, resourceOwnerID uint) bool
-	CanAccessResource(admin *database.Admin, resource string, action string, resourceOwnerID uint) bool
-	GetAvailableRoles() []database.AdminRole
+	SetProjectService(projectService ProjectService)
+	SetTaskService(taskService TaskService)
+	SetTaskConversationService(taskConvService TaskConversationService)
+	HasPermission(admin *database.Admin, resource, action string, resourceId uint) bool
 }
 
 type GitCredentialService interface {
@@ -48,6 +49,7 @@ type GitCredentialService interface {
 	UpdateCredential(id uint, updates map[string]interface{}, secretData map[string]string) error
 	DeleteCredential(id uint) error
 	ListActiveCredentials(credType *database.GitCredentialType) ([]database.GitCredential, error)
+	ListActiveCredentialsByAdminAccess(adminID uint, credType *database.GitCredentialType) ([]database.GitCredential, error)
 	DecryptCredentialSecret(credential *database.GitCredential, secretType string) (string, error)
 	ValidateCredentialData(credType string, data map[string]string) error
 
@@ -55,7 +57,8 @@ type GitCredentialService interface {
 	AddAdminToCredential(credentialID, adminID uint) error
 	RemoveAdminFromCredential(credentialID, adminID uint) error
 	GetCredentialAdmins(credentialID uint) ([]database.Admin, error)
-	CanAdminAccessCredential(credentialID, adminID uint) (bool, error)
+	IsOwner(credentialID, adminID uint) (bool, error)
+	CountByAdminID(adminID uint) (int64, error)
 }
 
 type ProjectService interface {
@@ -66,9 +69,17 @@ type ProjectService interface {
 	UpdateProject(id uint, updates map[string]interface{}) error
 	DeleteProject(id uint) error
 	ValidateProtocolCredential(protocol database.GitProtocolType, credentialID *uint) error
-	GetCompatibleCredentials(protocol database.GitProtocolType) ([]database.GitCredential, error)
+	GetCompatibleCredentials(protocol database.GitProtocolType, admin *database.Admin) ([]database.GitCredential, error)
 	FetchRepositoryBranches(repoURL string, credentialID *uint) (*utils.GitAccessResult, error)
-	ValidateRepositoryAccess(repoURL string, credentialID *uint) error
+
+	// Admin management methods
+	GetProjectWithAdmins(id uint) (*database.Project, error)
+	ListProjectsByAdminAccess(adminID uint, name string, protocol *database.GitProtocolType, sortBy, sortDirection string, page, pageSize int) (interface{}, int64, error)
+	AddAdminToProject(projectID, adminID uint) error
+	RemoveAdminFromProject(projectID, adminID uint) error
+	GetProjectAdmins(projectID uint) ([]database.Admin, error)
+	CanAdminAccessProject(projectID, adminID uint) (bool, error)
+	IsOwner(projectID, adminID uint) (bool, error)
 }
 
 type AdminOperationLogService interface {
@@ -105,35 +116,34 @@ type DevEnvironmentService interface {
 	AddAdminToEnvironment(envID, adminID uint) error
 	RemoveAdminFromEnvironment(envID, adminID uint) error
 	GetEnvironmentAdmins(envID uint) ([]database.Admin, error)
-	CanAdminAccessEnvironment(envID, adminID uint) (bool, error)
+	IsOwner(envID, adminID uint) (bool, error)
+	CountByAdminID(adminID uint) (int64, error)
 }
 
 type TaskService interface {
 	CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint, adminID *uint, createdBy string) (*database.Task, error)
 	GetTask(id uint) (*database.Task, error)
-	ListTasks(projectID *uint, statuses []database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error)
-	GetKanbanTasks(projectID uint) (map[database.TaskStatus][]database.Task, error)
+	GetTaskByIDAndProject(taskID, projectID uint) (*database.Task, error)
+	GetKanbanTasks(projectID uint) (map[database.TaskStatus][]database.TaskKanbanResponse, error)
 	UpdateTask(id uint, updates map[string]interface{}) error
 	UpdateTaskStatus(id uint, status database.TaskStatus) error
 	UpdateTaskSessionID(id uint, sessionID string) error
-	UpdateTaskStatusBatch(taskIDs []uint, status database.TaskStatus) ([]uint, []uint, error)
+	UpdateTaskStatusBatch(taskIDs []uint, status database.TaskStatus, projectID uint) ([]uint, []uint, error)
 	DeleteTask(id uint) error
 	ValidateTaskData(title, startBranch string, projectID uint) error
 	GetTaskGitDiff(task *database.Task, includeContent bool) (*utils.GitDiffSummary, error)
 	GetTaskGitDiffFile(task *database.Task, filePath string) (string, error)
 	PushTaskBranch(id uint, forcePush bool) (string, error)
+	CountByAdminID(adminID uint) (int64, error)
 }
 
 type TaskConversationService interface {
-	CreateConversation(taskID uint, content, createdBy string, adminID *uint) (*database.TaskConversation, error)
 	CreateConversationWithExecutionTime(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, adminID *uint) (*database.TaskConversation, error)
 	CreateConversationWithExecutionTimeAndAttachments(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, attachmentIDs []uint, adminID *uint) (*database.TaskConversation, error)
 	GetConversation(id uint) (*database.TaskConversation, error)
 	GetConversationWithResult(id uint) (map[string]interface{}, error)
 	ListConversations(taskID uint, page, pageSize int) ([]database.TaskConversation, int64, error)
-	UpdateConversation(id uint, updates map[string]interface{}) error
 	DeleteConversation(id uint) error
-	GetLatestConversation(taskID uint) (*database.TaskConversation, error)
 	GetConversationGitDiff(conversationID uint, includeContent bool) (*utils.GitDiffSummary, error)
 	GetConversationGitDiffFile(conversationID uint, filePath string) (string, error)
 	ValidateConversationData(taskID uint, content string) error
@@ -146,7 +156,6 @@ type TaskConversationResultService interface {
 
 type AITaskExecutorService interface {
 	ProcessPendingConversations() error
-	GetExecutionLog(conversationID uint) (*database.TaskExecutionLog, error)
 	CancelExecution(conversationID uint, createdBy string) error
 	RetryExecution(conversationID uint, createdBy string) error
 	GetExecutionStatus() map[string]interface{}
@@ -174,17 +183,20 @@ type SystemConfigService interface {
 
 type DashboardService interface {
 	GetDashboardStats() (map[string]interface{}, error)
-	GetRecentTasks(limit int) ([]database.Task, error)
+	GetRecentTasks(limit int, admin *database.Admin) ([]database.Task, error)
 }
 
 type TaskConversationAttachmentService interface {
-	UploadAttachment(fileName, originalName, contentType string, fileSize int64, filePath string, attachmentType database.AttachmentType, adminID uint, createdBy string) (*database.TaskConversationAttachment, error)
+	UploadAttachment(fileName, originalName, contentType string, fileSize int64, filePath string, attachmentType database.AttachmentType, projectID, adminID uint, createdBy string) (*database.TaskConversationAttachment, error)
 	AssociateWithConversation(attachmentID, conversationID uint) error
 	GetAttachment(id uint) (*database.TaskConversationAttachment, error)
+	GetAttachmentByProjectID(id, projectID uint) (*database.TaskConversationAttachment, error)
 	GetAttachmentsByConversation(conversationID uint) ([]database.TaskConversationAttachment, error)
+	GetAttachmentsByProjectID(projectID uint) ([]database.TaskConversationAttachment, error)
 	UpdateAttachment(id uint, attachment *database.TaskConversationAttachment) error
 	DeleteAttachment(id uint) error
 	DeleteAttachmentsByConversation(conversationID uint) error
+	DeleteAttachmentsByProjectID(projectID uint) error
 	ProcessContentWithAttachments(content string, attachments []database.TaskConversationAttachment, conversationID uint) string
 	ParseAttachmentTags(content string) []string
 	GetAttachmentStorageDir() string

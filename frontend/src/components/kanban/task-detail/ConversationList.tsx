@@ -9,6 +9,7 @@ interface ConversationListProps {
   conversations: any[];
   conversationCount: number;
   taskId: number;
+  projectId: number;
   onViewConversationGitDiff: (conversationId: number) => void;
   onViewConversationDetails: (conversationId: number) => void;
   onViewConversationLogs: (conversationId: number) => void;
@@ -25,6 +26,7 @@ export const ConversationList = memo<ConversationListProps>(
     conversations,
     conversationCount,
     taskId,
+    projectId,
     onViewConversationGitDiff,
     onViewConversationDetails,
     onViewConversationLogs,
@@ -74,6 +76,7 @@ export const ConversationList = memo<ConversationListProps>(
                   key={conversation.id}
                   conversation={conversation}
                   taskId={taskId}
+                  projectId={projectId}
                   isExpanded={isConversationExpanded(conversation.id)}
                   shouldShowExpandButton={shouldShowExpandButton(
                     conversation.content

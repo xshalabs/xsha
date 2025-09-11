@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,47 +33,54 @@ import { Plus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { apiService } from "@/lib/api/index";
 import { logError, handleApiError } from "@/lib/errors";
-import type { GitCredential, MinimalAdminResponse } from "@/types/credentials";
+import type { Project } from "@/types/project";
 import type { Admin } from "@/lib/api/types";
 
-interface CredentialAdminManagementSheetProps {
-  credential: GitCredential;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+interface AdminManagementSheetProps {
+  project: Project;
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onAdminChanged?: () => void;
 }
 
-export function CredentialAdminManagementSheet({
-  credential,
-  open,
-  onOpenChange,
+export function AdminManagementSheet({
+  project,
+  trigger,
+  open: externalOpen,
+  onOpenChange: externalOnOpenChange,
   onAdminChanged,
-}: CredentialAdminManagementSheetProps) {
+}: AdminManagementSheetProps) {
   const { t } = useTranslation();
-  const [credentialAdmins, setCredentialAdmins] = useState<MinimalAdminResponse[]>([]);
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  // Use external open state if provided, otherwise use internal state
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = externalOnOpenChange !== undefined ? externalOnOpenChange : setInternalOpen;
+  const [projectAdmins, setProjectAdmins] = useState<Admin[]>([]);
   const [availableAdmins, setAvailableAdmins] = useState<Admin[]>([]);
   const [selectedAdminId, setSelectedAdminId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isAddingAdmin, setIsAddingAdmin] = useState(false);
   const [isRemovingAdmin, setIsRemovingAdmin] = useState(false);
   const [showRemoveConfirmDialog, setShowRemoveConfirmDialog] = useState(false);
-  const [adminToRemove, setAdminToRemove] = useState<MinimalAdminResponse | null>(null);
+  const [adminToRemove, setAdminToRemove] = useState<Admin | null>(null);
 
-  // Load credential admins and available admins when sheet opens
+  // Load project admins and available admins when sheet opens
   useEffect(() => {
     if (open) {
-      loadCredentialAdmins();
+      loadProjectAdmins();
       loadAvailableAdmins();
     }
   }, [open]);
 
-  const loadCredentialAdmins = async () => {
+  const loadProjectAdmins = async () => {
     try {
       setIsLoading(true);
-      const response = await apiService.gitCredentials.getAdmins(credential.id);
-      setCredentialAdmins(response.admins);
+      const response = await apiService.projects.getAdmins(project.id);
+      setProjectAdmins(response.admins);
     } catch (error) {
-      logError(error, "Failed to load credential admins");
+      logError(error, "Failed to load project admins");
       toast.error(handleApiError(error));
     } finally {
       setIsLoading(false);
@@ -92,28 +99,28 @@ export function CredentialAdminManagementSheet({
 
   const handleAddAdmin = async () => {
     if (!selectedAdminId) {
-      toast.error(t("gitCredentials.admin.select_admin"));
+      toast.error(t("projects.admin.select_admin"));
       return;
     }
 
     try {
       setIsAddingAdmin(true);
-      await apiService.gitCredentials.addAdmin(credential.id, {
+      await apiService.projects.addAdmin(project.id, {
         admin_id: parseInt(selectedAdminId),
       });
 
-      toast.success(t("gitCredentials.admin.added_success"));
+      toast.success(t("projects.admin.added_success"));
       setSelectedAdminId("");
-      await loadCredentialAdmins();
+      await loadProjectAdmins();
     } catch (error) {
-      logError(error, "Failed to add admin to credential");
+      logError(error, "Failed to add admin to project");
       toast.error(handleApiError(error));
     } finally {
       setIsAddingAdmin(false);
     }
   };
 
-  const handleRemoveAdmin = (admin: MinimalAdminResponse) => {
+  const handleRemoveAdmin = (admin: Admin) => {
     setAdminToRemove(admin);
     setShowRemoveConfirmDialog(true);
   };
@@ -123,14 +130,14 @@ export function CredentialAdminManagementSheet({
 
     try {
       setIsRemovingAdmin(true);
-      await apiService.gitCredentials.removeAdmin(credential.id, adminToRemove.id);
+      await apiService.projects.removeAdmin(project.id, adminToRemove.id);
 
-      toast.success(t("gitCredentials.admin.removed_success", { name: adminToRemove.name }));
+      toast.success(t("projects.admin.removed_success", { name: adminToRemove.name }));
       setShowRemoveConfirmDialog(false);
       setAdminToRemove(null);
-      await loadCredentialAdmins();
+      await loadProjectAdmins();
     } catch (error) {
-      logError(error, "Failed to remove admin from credential");
+      logError(error, "Failed to remove admin from project");
       toast.error(handleApiError(error));
     } finally {
       setIsRemovingAdmin(false);
@@ -138,7 +145,7 @@ export function CredentialAdminManagementSheet({
   };
 
   const handleClose = () => {
-    onOpenChange(false);
+    setOpen(false);
     setSelectedAdminId("");
     setShowRemoveConfirmDialog(false);
     setAdminToRemove(null);
@@ -147,19 +154,30 @@ export function CredentialAdminManagementSheet({
 
   // Filter available admins to exclude those already assigned
   const unassignedAdmins = availableAdmins.filter(
-    (admin) => !credentialAdmins.some((credAdmin) => credAdmin.id === admin.id)
+    (admin) => !projectAdmins.some((projAdmin) => projAdmin.id === admin.id)
   );
 
   return (
-    <FormSheet open={open} onOpenChange={onOpenChange}>
+    <FormSheet open={open} onOpenChange={setOpen}>
+      {trigger && React.cloneElement(trigger as React.ReactElement<any>, {
+        onClick: (e: React.MouseEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (externalOnOpenChange) {
+            externalOnOpenChange(true);
+          } else {
+            setOpen(true);
+          }
+        }
+      })}
       <FormSheetContent className="w-full sm:w-[600px] sm:max-w-[600px]">
         <FormSheetHeader className="border-b">
           <FormSheetTitle className="text-foreground font-semibold">
-            {t("gitCredentials.admin.manage_title")}
+            {t("projects.admin.manage_title")}
           </FormSheetTitle>
           <FormSheetDescription className="text-muted-foreground text-sm">
-            {t("gitCredentials.admin.manage_description", {
-              name: credential.name,
+            {t("projects.admin.manage_description", {
+              name: project.name,
             })}
           </FormSheetDescription>
         </FormSheetHeader>
@@ -168,11 +186,11 @@ export function CredentialAdminManagementSheet({
           {/* Add Admin Section */}
           <div className="p-4">
             <div className="space-y-4">
-              <h4 className="text-sm font-medium">{t("gitCredentials.admin.add_admin")}</h4>
+              <h4 className="text-sm font-medium">{t("projects.admin.add_admin")}</h4>
               <div className="flex gap-2 items-center">
                 <Select value={selectedAdminId} onValueChange={setSelectedAdminId}>
                   <SelectTrigger className="flex-1">
-                    <SelectValue placeholder={t("gitCredentials.admin.select_placeholder")} />
+                    <SelectValue placeholder={t("projects.admin.select_placeholder")} />
                   </SelectTrigger>
                   <SelectContent>
                     {unassignedAdmins.map((admin) => (
@@ -215,24 +233,24 @@ export function CredentialAdminManagementSheet({
           {/* Current Admins Section */}
           <div className="border-t p-4 flex-1 flex flex-col">
             <h4 className="text-sm font-medium mb-4">
-              {t("gitCredentials.admin.current_admins")} ({credentialAdmins.length})
+              {t("projects.admin.current_admins")} ({projectAdmins.length})
             </h4>
             
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
-            ) : credentialAdmins.length === 0 ? (
+            ) : projectAdmins.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <div className="text-muted-foreground text-sm">
-                  {t("gitCredentials.admin.no_admins")}
+                  {t("projects.admin.no_admins")}
                 </div>
               </div>
             ) : (
               <ScrollArea className="flex-1">
                 <div className="space-y-2 pr-2">
-                  {credentialAdmins.map((admin) => {
-                    const isPrimaryAdmin = credential.admin_id === admin.id;
+                  {projectAdmins.map((admin) => {
+                    const isPrimaryAdmin = project.admin_id === admin.id;
                     return (
                       <div
                         key={admin.id}
@@ -250,7 +268,7 @@ export function CredentialAdminManagementSheet({
                               <div className="font-medium truncate">{admin.name}</div>
                               {isPrimaryAdmin && (
                                 <Badge variant="secondary" className="text-xs shrink-0">
-                                  {t("gitCredentials.admin.creator")}
+                                  {t("projects.admin.creator")}
                                 </Badge>
                               )}
                             </div>
@@ -270,7 +288,7 @@ export function CredentialAdminManagementSheet({
                             (isRemovingAdmin && adminToRemove?.id === admin.id)
                           }
                           className="shrink-0 text-destructive dark:text-white hover:text-destructive dark:hover:text-white hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title={isPrimaryAdmin ? t("gitCredentials.admin.cannot_remove_creator") : undefined}
+                          title={isPrimaryAdmin ? t("projects.admin.cannot_remove_creator") : undefined}
                         >
                           {isRemovingAdmin && adminToRemove?.id === admin.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -299,12 +317,12 @@ export function CredentialAdminManagementSheet({
       <AlertDialog open={showRemoveConfirmDialog} onOpenChange={setShowRemoveConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("gitCredentials.admin.confirm_remove_title")}</AlertDialogTitle>
+            <AlertDialogTitle>{t("projects.admin.confirm_remove_title")}</AlertDialogTitle>
             <AlertDialogDescription>
               {adminToRemove && (
-                t("gitCredentials.admin.confirm_remove_description", {
+                t("projects.admin.confirm_remove_description", {
                   adminName: adminToRemove.name,
-                  credentialName: credential.name
+                  projectName: project.name
                 })
               )}
             </AlertDialogDescription>

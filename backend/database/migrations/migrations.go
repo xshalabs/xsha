@@ -2,8 +2,8 @@ package migrations
 
 import (
 	"fmt"
+	"time"
 	"xsha-backend/config"
-	"xsha-backend/utils"
 
 	"gorm.io/gorm"
 )
@@ -46,15 +46,34 @@ func (m *MigrationManager) registerMigrations() {
 
 // RunAll runs all registered migrations
 func (m *MigrationManager) RunAll() error {
-	utils.Info("Starting migration manager")
-
 	for _, migration := range m.migrations {
-		utils.Info("Running migration", "name", migration.Name())
 		if err := migration.Run(m.db, m.cfg); err != nil {
 			return fmt.Errorf("migration %s failed: %v", migration.Name(), err)
 		}
 	}
+	return nil
+}
 
-	utils.Info("All migrations completed successfully")
+// checkMigrationStatus checks if a migration has already been applied
+// Returns true if already applied, false if not applied, error if database error
+func checkMigrationStatus(db *gorm.DB, migrationName string) (bool, error) {
+	var existing Migration
+	if err := db.Where("name = ?", migrationName).First(&existing).Error; err == nil {
+		return true, nil
+	} else if err != gorm.ErrRecordNotFound {
+		return false, fmt.Errorf("failed to check migration status: %v", err)
+	}
+	return false, nil
+}
+
+// recordMigrationApplied records a migration as successfully applied
+func recordMigrationApplied(db *gorm.DB, migrationName string) error {
+	migration := Migration{
+		Name:      migrationName,
+		AppliedAt: time.Now(),
+	}
+	if err := db.Create(&migration).Error; err != nil {
+		return fmt.Errorf("failed to record migration: %v", err)
+	}
 	return nil
 }

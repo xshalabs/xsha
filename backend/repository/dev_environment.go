@@ -136,7 +136,16 @@ func (r *devEnvironmentRepository) Update(env *database.DevEnvironment) error {
 }
 
 func (r *devEnvironmentRepository) Delete(id uint) error {
-	return r.db.Where("id = ?", id).Delete(&database.DevEnvironment{}).Error
+	// Use transaction to ensure both operations succeed or fail together
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// First, delete all admin relationships for this environment
+		if err := tx.Exec("DELETE FROM dev_environment_admins WHERE dev_environment_id = ?", id).Error; err != nil {
+			return err
+		}
+		
+		// Then delete the environment itself
+		return tx.Where("id = ?", id).Delete(&database.DevEnvironment{}).Error
+	})
 }
 
 // AddAdmin adds an admin to the environment's admin list
@@ -178,8 +187,8 @@ func (r *devEnvironmentRepository) GetAdmins(envID uint) ([]database.Admin, erro
 	return admins, err
 }
 
-// IsAdminForEnvironment checks if an admin has access to a specific environment
-func (r *devEnvironmentRepository) IsAdminForEnvironment(envID, adminID uint) (bool, error) {
+// IsOwner checks if an admin has access to a specific environment
+func (r *devEnvironmentRepository) IsOwner(envID, adminID uint) (bool, error) {
 	var count int64
 
 	err := r.db.Table("dev_environments").
@@ -187,4 +196,13 @@ func (r *devEnvironmentRepository) IsAdminForEnvironment(envID, adminID uint) (b
 		Count(&count).Error
 
 	return count > 0, err
+}
+
+// CountByAdminID counts the number of dev environments created by a specific admin
+func (r *devEnvironmentRepository) CountByAdminID(adminID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&database.DevEnvironment{}).
+		Where("admin_id = ?", adminID).
+		Count(&count).Error
+	return count, err
 }

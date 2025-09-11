@@ -6,8 +6,7 @@ import type {
   AdminListResponse,
   AdminResponse,
   CreateAdminResponse,
-  AvatarUploadResponse,
-  RoleListResponse
+  AvatarUploadResponse
 } from './types';
 
 export const adminApi = {
@@ -16,6 +15,7 @@ export const adminApi = {
     search?: string;
     username?: string; // kept for backward compatibility
     is_active?: boolean;
+    role?: string[];
     page?: number;
     page_size?: number;
   }): Promise<AdminListResponse> => {
@@ -29,6 +29,9 @@ export const adminApi = {
     }
     if (params?.is_active !== undefined) {
       searchParams.append('is_active', params.is_active.toString());
+    }
+    if (params?.role && params.role.length > 0) {
+      searchParams.append('role', params.role.join(','));
     }
     if (params?.page) {
       searchParams.append('page', params.page.toString());
@@ -82,7 +85,7 @@ export const adminApi = {
     const formData = new FormData();
     formData.append('file', file);
 
-    return request<AvatarUploadResponse>('/admin/avatar/upload', {
+    return request<AvatarUploadResponse>('/avatar/upload', {
       method: 'POST',
       body: formData,
     });
@@ -96,10 +99,6 @@ export const adminApi = {
     });
   },
 
-  // Get available roles
-  getRoles: async (): Promise<RoleListResponse> => {
-    return request<RoleListResponse>('/admin/roles');
-  },
 
   // Get all admins from v1 API endpoint
   getV1Admins: async (params?: {

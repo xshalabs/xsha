@@ -7,16 +7,20 @@ import (
 	"xsha-backend/database"
 	appErrors "xsha-backend/errors"
 	"xsha-backend/repository"
+	"xsha-backend/utils"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type adminService struct {
-	adminRepo      repository.AdminRepository
-	authService    AuthService
-	devEnvService  DevEnvironmentService
-	gitCredService GitCredentialService
+	adminRepo       repository.AdminRepository
+	authService     AuthService
+	devEnvService   DevEnvironmentService
+	gitCredService  GitCredentialService
+	projectService  ProjectService
+	taskService     TaskService
+	taskConvService TaskConversationService
 }
 
 func NewAdminService(adminRepo repository.AdminRepository) AdminService {
@@ -35,6 +39,18 @@ func (s *adminService) SetDevEnvironmentService(devEnvService DevEnvironmentServ
 
 func (s *adminService) SetGitCredentialService(gitCredService GitCredentialService) {
 	s.gitCredService = gitCredService
+}
+
+func (s *adminService) SetProjectService(projectService ProjectService) {
+	s.projectService = projectService
+}
+
+func (s *adminService) SetTaskService(taskService TaskService) {
+	s.taskService = taskService
+}
+
+func (s *adminService) SetTaskConversationService(taskConvService TaskConversationService) {
+	s.taskConvService = taskConvService
 }
 
 func (s *adminService) CreateAdmin(username, password, name, email, createdBy string) (*database.Admin, error) {
@@ -74,6 +90,11 @@ func (s *adminService) CreateAdminWithRole(username, password, name, email strin
 	}
 
 	if err := s.adminRepo.Create(admin); err != nil {
+		// Check if it's already an internationalized error
+		if _, ok := err.(*appErrors.I18nError); ok {
+			return nil, err
+		}
+		// For other errors, wrap with generic message
 		return nil, fmt.Errorf("failed to create admin: %v", err)
 	}
 
@@ -88,7 +109,7 @@ func (s *adminService) GetAdminByUsername(username string) (*database.Admin, err
 	return s.adminRepo.GetByUsername(username)
 }
 
-func (s *adminService) ListAdmins(search *string, isActive *bool, page, pageSize int) ([]database.Admin, int64, error) {
+func (s *adminService) ListAdmins(search *string, isActive *bool, roles []string, page, pageSize int) ([]database.Admin, int64, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -96,7 +117,7 @@ func (s *adminService) ListAdmins(search *string, isActive *bool, page, pageSize
 		pageSize = 20
 	}
 
-	return s.adminRepo.List(search, isActive, page, pageSize)
+	return s.adminRepo.List(search, isActive, roles, page, pageSize)
 }
 
 func (s *adminService) UpdateAdmin(id uint, updates map[string]interface{}) error {
@@ -114,7 +135,6 @@ func (s *adminService) UpdateAdmin(id uint, updates map[string]interface{}) erro
 			if err := s.validateUsername(usernameStr); err != nil {
 				return err
 			}
-			// Check if new username already exists (and it's not the same admin)
 			existingAdmin, err := s.adminRepo.GetByUsername(usernameStr)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				return fmt.Errorf("failed to check existing admin: %v", err)
@@ -147,14 +167,9 @@ func (s *adminService) UpdateAdmin(id uint, updates map[string]interface{}) erro
 		}
 	}
 
-	// Update the admin first
 	if err := s.adminRepo.Update(admin.ID, updates); err != nil {
 		return err
 	}
-
-	// Note: When an admin is deactivated (is_active = false), their existing tokens
-	// remain valid until expiration, but they cannot login to get new tokens.
-	// This provides a grace period and avoids the complexity of user-based blacklisting.
 
 	return nil
 }
@@ -181,6 +196,44 @@ func (s *adminService) DeleteAdmin(id uint) error {
 
 	if activeCount <= 1 && admin.IsActive {
 		return appErrors.ErrCannotDeleteLastAdmin
+	}
+
+	// Check if admin has created any dev environments
+	if s.devEnvService != nil {
+		envCount, err := s.devEnvService.CountByAdminID(id)
+		if err != nil {
+			return fmt.Errorf("failed to count admin environments: %v", err)
+		}
+		if envCount > 0 {
+			return appErrors.ErrAdminHasEnvironments
+		}
+	}
+
+	// Check if admin has created any git credentials
+	if s.gitCredService != nil {
+		credCount, err := s.gitCredService.CountByAdminID(id)
+		if err != nil {
+			return fmt.Errorf("failed to count admin credentials: %v", err)
+		}
+		if credCount > 0 {
+			return appErrors.ErrAdminHasCredentials
+		}
+	}
+
+	// Check if admin has created any tasks
+	if s.taskService != nil {
+		taskCount, err := s.taskService.CountByAdminID(id)
+		if err != nil {
+			return fmt.Errorf("failed to count admin tasks: %v", err)
+		}
+		if taskCount > 0 {
+			return appErrors.ErrAdminHasTasks
+		}
+	}
+
+	// Delete admin associations first, then delete the admin
+	if err := s.adminRepo.DeleteAdminAssociations(id); err != nil {
+		return fmt.Errorf("failed to delete admin associations: %v", err)
 	}
 
 	return s.adminRepo.Delete(id)
@@ -309,6 +362,11 @@ func (s *adminService) UpdateAdminRole(id uint, role database.AdminRole) error {
 		return fmt.Errorf("failed to get admin: %v", err)
 	}
 
+	// Check if this is a system-created admin
+	if admin.CreatedBy == "system" {
+		return appErrors.ErrCannotModifySystemAdminRole
+	}
+
 	// Check if there would be no super_admin left
 	if admin.Role == database.AdminRoleSuperAdmin && role != database.AdminRoleSuperAdmin {
 		count, err := s.adminRepo.CountActiveAdminsByRole(database.AdminRoleSuperAdmin)
@@ -328,127 +386,74 @@ func (s *adminService) UpdateAdminRole(id uint, role database.AdminRole) error {
 }
 
 // HasPermission checks if admin has permission for specific resource and action
-func (s *adminService) HasPermission(admin *database.Admin, resource, action string, resourceOwnerID uint) bool {
-	// Super admin has all permissions
+func (s *adminService) HasPermission(admin *database.Admin, resource, action string, resourceId uint) bool {
 	if admin.Role == database.AdminRoleSuperAdmin {
 		return true
 	}
 
-	// Check permission based on role and resource
 	switch resource {
-	case "admin":
-		return admin.Role == database.AdminRoleSuperAdmin
-	case "system_config":
-		return admin.Role == database.AdminRoleSuperAdmin
-	case "operation_log":
-		return admin.Role == database.AdminRoleSuperAdmin
 	case "project":
-		return s.checkProjectPermission(admin, action, resourceOwnerID)
+		return s.checkProjectPermission(admin, action, resourceId)
 	case "task":
-		return s.checkTaskPermission(admin, action, resourceOwnerID)
+		return s.checkTaskPermission(admin, action, resourceId)
 	case "conversation":
-		return s.checkConversationPermission(admin, action, resourceOwnerID)
+		return s.checkConversationPermission(admin, action, resourceId)
 	case "credential":
-		return s.checkCredentialPermission(admin, action, resourceOwnerID)
+		return s.checkCredentialPermission(admin, action, resourceId)
 	case "environment":
-		return s.checkEnvironmentPermission(admin, action, resourceOwnerID)
+		return s.checkEnvironmentPermission(admin, action, resourceId)
 	default:
 		return false
-	}
-}
-
-// CanAccessResource is an alias for HasPermission
-func (s *adminService) CanAccessResource(admin *database.Admin, resource string, action string, resourceOwnerID uint) bool {
-	return s.HasPermission(admin, resource, action, resourceOwnerID)
-}
-
-// GetAvailableRoles returns all available admin roles
-func (s *adminService) GetAvailableRoles() []database.AdminRole {
-	return []database.AdminRole{
-		database.AdminRoleSuperAdmin,
-		database.AdminRoleAdmin,
-		database.AdminRoleDeveloper,
 	}
 }
 
 // Helper methods for specific resource permissions
+func (s *adminService) checkProjectPermission(admin *database.Admin, action string, projectID uint) bool {
+	if admin.Role == database.AdminRoleSuperAdmin {
+		return true
+	}
 
-func (s *adminService) checkProjectPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
 	switch action {
 	case "create":
-		return admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin
+		return admin.Role == database.AdminRoleAdmin
 	case "read":
-		return true // All roles can read projects
-	case "update", "delete":
-		if admin.Role == database.AdminRoleSuperAdmin {
-			return true
+		if s.projectService != nil {
+			canAccess, err := s.projectService.CanAdminAccessProject(projectID, admin.ID)
+			if err != nil {
+				utils.Error("Failed to check project access", "projectID", projectID, "adminID", admin.ID, "error", err)
+				return false
+			}
+			return canAccess
 		}
-		return admin.Role == database.AdminRoleAdmin && admin.ID == resourceOwnerID
-	default:
 		return false
-	}
-}
-
-func (s *adminService) checkTaskPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
-	switch action {
-	case "create", "execute":
-		return true // All roles can create and execute tasks
-	case "read":
-		return true // All roles can read tasks
-	case "update":
-		if admin.Role == database.AdminRoleSuperAdmin {
-			return true
-		}
-		return admin.ID == resourceOwnerID // Only owner can update
-	case "delete":
-		if admin.Role == database.AdminRoleSuperAdmin {
-			return true
-		}
-		return admin.Role == database.AdminRoleAdmin && admin.ID == resourceOwnerID
-	default:
-		return false
-	}
-}
-
-func (s *adminService) checkConversationPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
-	switch action {
-	case "create", "execute":
-		return true // All roles can create and execute conversations
-	case "read":
-		return true // All roles can read conversations
 	case "update", "delete":
-		if admin.Role == database.AdminRoleSuperAdmin {
-			return true
+		if admin.Role == database.AdminRoleAdmin && s.projectService != nil {
+			canAccess, err := s.projectService.IsOwner(projectID, admin.ID)
+			if err != nil {
+				utils.Error("Failed to check project ownership", "projectID", projectID, "adminID", admin.ID, "error", err)
+				return false
+			}
+			return canAccess
 		}
-		return admin.ID == resourceOwnerID // Only owner can update/delete
-	default:
 		return false
-	}
-}
-
-func (s *adminService) checkCredentialPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
-	switch action {
-	case "create":
-		// Developer, Admin and SuperAdmin can all create credentials
-		return admin.Role == database.AdminRoleDeveloper || admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin
-	case "read":
-		return true // All roles can read credentials (masked)
-	case "update", "delete":
-		if admin.Role == database.AdminRoleSuperAdmin {
-			return true
-		}
-		// Admin and Developer can update/delete credentials they have admin access to
-		if admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleDeveloper {
-			// resourceOwnerID is the credential ID, check if admin has access to this credential
-			if s.gitCredService != nil {
-				canAccess, err := s.gitCredService.CanAdminAccessCredential(resourceOwnerID, admin.ID)
+	case "tasks":
+		if s.projectService != nil {
+			if admin.Role == database.AdminRoleAdmin {
+				canAccess, err := s.projectService.IsOwner(projectID, admin.ID)
 				if err != nil {
+					utils.Error("Failed to check project ownership for tasks", "projectID", projectID, "adminID", admin.ID, "error", err)
 					return false
 				}
 				return canAccess
 			}
-			// Fallback: if gitCredService is not set, deny access to prevent security issues
-			return false
+			if admin.Role == database.AdminRoleDeveloper {
+				canAccess, err := s.projectService.CanAdminAccessProject(projectID, admin.ID)
+				if err != nil {
+					utils.Error("Failed to check project access for tasks", "projectID", projectID, "adminID", admin.ID, "error", err)
+					return false
+				}
+				return canAccess
+			}
 		}
 		return false
 	default:
@@ -456,29 +461,99 @@ func (s *adminService) checkCredentialPermission(admin *database.Admin, action s
 	}
 }
 
-func (s *adminService) checkEnvironmentPermission(admin *database.Admin, action string, resourceOwnerID uint) bool {
-	switch action {
-	case "create":
-		// Developer, Admin and SuperAdmin can all create environments
-		return admin.Role == database.AdminRoleDeveloper || admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin
-	case "read":
-		return true // All roles can read environments
-	case "update", "delete":
-		if admin.Role == database.AdminRoleSuperAdmin {
-			return true
-		}
-		// Admin and Developer can update/delete environments they have admin access to
-		if admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleDeveloper {
-			// resourceOwnerID is the environment ID, check if admin has access to this environment
-			if s.devEnvService != nil {
-				canAccess, err := s.devEnvService.CanAdminAccessEnvironment(resourceOwnerID, admin.ID)
-				if err != nil {
-					return false
-				}
-				return canAccess
+func (s *adminService) checkTaskPermission(admin *database.Admin, action string, taskId uint) bool {
+	if admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin {
+		return true
+	}
+
+	if admin.Role == database.AdminRoleDeveloper && s.taskService != nil {
+		switch action {
+		case "delete":
+			task, err := s.taskService.GetTask(taskId)
+			if err != nil {
+				utils.Error("Failed to get task for permission check", "taskID", taskId, "adminID", admin.ID, "error", err)
+				return false
 			}
-			// Fallback: if devEnvService is not set, deny access to prevent security issues
+			return task.AdminID != nil && *task.AdminID == admin.ID
+		default:
 			return false
+		}
+	}
+
+	return false
+}
+
+func (s *adminService) checkConversationPermission(admin *database.Admin, action string, convId uint) bool {
+	if admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleSuperAdmin {
+		return true
+	}
+
+	if admin.Role == database.AdminRoleDeveloper && s.taskConvService != nil {
+		switch action {
+		case "delete":
+			conversation, err := s.taskConvService.GetConversation(convId)
+			if err != nil {
+				utils.Error("Failed to get conversation for permission check", "conversationID", convId, "adminID", admin.ID, "error", err)
+				return false
+			}
+			return conversation.AdminID != nil && *conversation.AdminID == admin.ID
+		default:
+			return false
+		}
+	}
+
+	return false
+}
+
+func (s *adminService) checkCredentialPermission(admin *database.Admin, action string, resourceId uint) bool {
+	if admin.Role == database.AdminRoleSuperAdmin {
+		return true
+	}
+
+	if s.gitCredService == nil {
+		utils.Error("GitCredentialService not initialized for permission check", "adminID", admin.ID)
+		return false
+	}
+
+	switch action {
+	case "read", "create":
+		return true
+	case "update", "delete":
+		if admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleDeveloper {
+			canAccess, err := s.gitCredService.IsOwner(resourceId, admin.ID)
+			if err != nil {
+				utils.Error("Failed to check credential access permission", "credentialID", resourceId, "adminID", admin.ID, "error", err)
+				return false
+			}
+			return canAccess
+		}
+		return false
+	default:
+		return false
+	}
+}
+
+func (s *adminService) checkEnvironmentPermission(admin *database.Admin, action string, resourceId uint) bool {
+	if admin.Role == database.AdminRoleSuperAdmin {
+		return true
+	}
+
+	if s.devEnvService == nil {
+		utils.Error("DevEnvironmentService not initialized for permission check", "adminID", admin.ID)
+		return false
+	}
+
+	switch action {
+	case "read", "create":
+		return true
+	case "update", "delete":
+		if admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleDeveloper {
+			canAccess, err := s.devEnvService.IsOwner(resourceId, admin.ID)
+			if err != nil {
+				utils.Error("Failed to check environment access permission", "environmentID", resourceId, "adminID", admin.ID, "error", err)
+				return false
+			}
+			return canAccess
 		}
 		return false
 	default:

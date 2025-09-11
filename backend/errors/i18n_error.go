@@ -49,6 +49,12 @@ var (
 	ErrIncompatibleCredential = &I18nError{Key: "project.incompatible_credential"}
 	ErrInvalidProtocol        = &I18nError{Key: "project.invalid_protocol"}
 
+	// Project admin management errors
+	ErrProjectAdminAlreadyAssigned     = &I18nError{Key: "project.admin_already_assigned"}
+	ErrProjectAdminNotAssigned         = &I18nError{Key: "project.admin_not_assigned"}
+	ErrProjectCannotRemoveLastAdmin    = &I18nError{Key: "project.cannot_remove_last_admin"}
+	ErrProjectCannotRemovePrimaryAdmin = &I18nError{Key: "project.cannot_remove_primary_admin"}
+
 	ErrCredentialNameExists              = &I18nError{Key: "git_credential.name_exists"}
 	ErrCredentialUseFailed               = &I18nError{Key: "git_credential.use_failed"}
 	ErrInvalidCredentialType             = &I18nError{Key: "git_credential.invalid_type"}
@@ -115,8 +121,12 @@ var (
 	ErrAdminInactive              = &I18nError{Key: "admin.inactive"}
 	ErrInvalidCredentials         = &I18nError{Key: "admin.invalid_credentials"}
 	ErrCannotDeleteLastAdmin      = &I18nError{Key: "admin.cannot_delete_last"}
-	ErrCannotDeleteSystemAdmin    = &I18nError{Key: "admin.cannot_delete_system"}
-	ErrCannotRemoveLastSuperAdmin = &I18nError{Key: "admin.cannot_remove_last_super_admin"}
+	ErrCannotDeleteSystemAdmin       = &I18nError{Key: "admin.cannot_delete_system"}
+	ErrCannotModifySystemAdminRole   = &I18nError{Key: "admin.cannot_modify_system_role"}
+	ErrCannotRemoveLastSuperAdmin    = &I18nError{Key: "admin.cannot_remove_last_super_admin"}
+	ErrAdminHasEnvironments          = &I18nError{Key: "admin.has_environments"}
+	ErrAdminHasCredentials           = &I18nError{Key: "admin.has_credentials"}
+	ErrAdminHasTasks                 = &I18nError{Key: "admin.has_tasks"}
 
 	// Environment admin management errors
 	ErrAdminAlreadyAssigned     = &I18nError{Key: "dev_environment.admin_already_assigned"}

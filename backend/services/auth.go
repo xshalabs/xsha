@@ -57,7 +57,7 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 		loginSuccess = true
 
 		// Generate JWT token
-		token, err = utils.GenerateJWT(username, s.config.JWTSecret)
+		token, err = utils.GenerateJWT(admin.ID, s.config.JWTSecret)
 		if err != nil {
 			go func() {
 				if logErr := s.operationLogService.LogLogin(username, adminID, clientIP, userAgent, false, "token_generation_failed"); logErr != nil {
@@ -132,11 +132,24 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 }
 
 func (s *authService) Logout(token, username, clientIP, userAgent string) error {
+	// Get claims to extract admin_id
+	claims, err := utils.ValidateJWT(token, s.config.JWTSecret)
+	if err != nil {
+		go func() {
+			if logErr := s.operationLogService.LogLogout(username, nil, clientIP, userAgent, false, err.Error()); logErr != nil {
+				utils.Error("Failed to record admin operation log for logout failure",
+					"username", username,
+					"client_ip", clientIP,
+					"error", logErr.Error(),
+				)
+			}
+		}()
+		return err
+	}
+
 	// Try to get admin info for logging
 	var adminID *uint
-	if admin, err := s.adminService.GetAdminByUsername(username); err == nil {
-		adminID = &admin.ID
-	}
+	adminID = &claims.AdminID
 
 	// Get token expiration
 	expiresAt, err := utils.GetTokenExpiration(token, s.config.JWTSecret)
@@ -168,7 +181,7 @@ func (s *authService) Logout(token, username, clientIP, userAgent string) error 
 		return err
 	}
 
-	err = s.tokenRepo.Add(tokenID, username, expiresAt, "logout")
+	err = s.tokenRepo.Add(tokenID, claims.AdminID, expiresAt, "logout")
 
 	go func() {
 		logoutSuccess := err == nil
@@ -208,8 +221,8 @@ func (s *authService) CleanExpiredTokens() error {
 	return s.tokenRepo.CleanExpired()
 }
 
-func (s *authService) CheckAdminStatus(username string) (bool, error) {
-	admin, err := s.adminRepo.GetByUsername(username)
+func (s *authService) CheckAdminStatus(adminID uint) (bool, error) {
+	admin, err := s.adminService.GetAdmin(adminID)
 	if err != nil {
 		return false, err
 	}

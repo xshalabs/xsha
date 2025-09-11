@@ -93,7 +93,7 @@ export function UpdateAdminDialog({
         name: data.name !== admin.name ? data.name : undefined,
         email: data.email !== admin.email ? data.email : undefined,
         is_active: data.is_active !== admin.is_active ? data.is_active : undefined,
-        role: data.role !== admin.role ? data.role as AdminRole : undefined,
+        role: admin.created_by !== 'system' && data.role !== admin.role ? data.role as AdminRole : undefined,
       });
       toast.success(t('admin.messages.updateSuccess'));
       onSuccess();
@@ -178,7 +178,7 @@ export function UpdateAdminDialog({
               )}
             />
 
-            {permissions.canManageAdminRole() && 
+            {permissions.canManageAdminRole() && admin.created_by !== 'system' &&
               <FormField
                 control={form.control}
                 name="role"

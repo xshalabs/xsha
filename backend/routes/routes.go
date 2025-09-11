@@ -16,14 +16,12 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, adminService services.AdminService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, adminAvatarHandlers *handlers.AdminAvatarHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, taskExecLogHandlers *handlers.TaskExecutionLogHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, staticFiles *embed.FS) {
+func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, adminService services.AdminService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, adminAvatarHandlers *handlers.AdminAvatarHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, staticFiles *embed.FS) {
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
-
 	r.NoMethod(middleware.MethodNotAllowedHandler())
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
 	r.GET("/health", handlers.HealthHandler)
 
 	auth := r.Group("/api/v1/auth")
@@ -31,27 +29,34 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		auth.POST("/login", middleware.LoginRateLimitMiddleware(), authHandlers.LoginHandler)
 	}
 
+	r.GET("/api/v1/admin/avatar/preview/:uuid", adminAvatarHandlers.PreviewAvatarHandler)
+
 	api := r.Group("/api/v1")
 	api.Use(middleware.AuthMiddlewareWithService(authService, adminService, cfg))
 	api.Use(middleware.OperationLogMiddleware(operationLogHandlers.OperationLogService))
 	{
-		r.GET("/api/v1/admin/avatar/preview/:uuid", adminAvatarHandlers.PreviewAvatarHandler)
 		api.GET("/user/current", authHandlers.CurrentUserHandler)
 		api.PUT("/user/change-password", authHandlers.ChangeOwnPasswordHandler)
 		api.PUT("/user/update-avatar", authHandlers.UpdateOwnAvatarHandler)
 		api.POST("/auth/logout", authHandlers.LogoutHandler)
 		api.GET("/admins", adminHandlers.PublicListAdminsHandler)
+		api.POST("/avatar/upload", adminAvatarHandlers.UploadAvatarHandler)
+
+		dashboard := api.Group("/dashboard")
+		{
+			dashboard.GET("/stats", middleware.RequireSuperAdmin(), dashboardHandlers.GetDashboardStats)
+			dashboard.GET("/recent-tasks", dashboardHandlers.GetRecentTasks)
+		}
 
 		admin := api.Group("/admin")
 		admin.Use(middleware.RequireSuperAdmin())
 		{
+			// logs
 			admin.GET("/login-logs", authHandlers.GetLoginLogsHandler)
-
 			admin.GET("/operation-logs", operationLogHandlers.GetOperationLogs)
 			admin.GET("/operation-logs/:id", operationLogHandlers.GetOperationLog)
 			admin.GET("/operation-stats", operationLogHandlers.GetOperationStats)
 
-			// Admin user management
 			admin.POST("/users", adminHandlers.CreateAdminHandler)
 			admin.GET("/users", adminHandlers.ListAdminsHandler)
 			admin.GET("/users/:id", adminHandlers.GetAdminHandler)
@@ -59,17 +64,36 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			admin.DELETE("/users/:id", adminHandlers.DeleteAdminHandler)
 			admin.PUT("/users/:id/password", adminHandlers.ChangePasswordHandler)
 			admin.PUT("/avatar/:uuid", adminAvatarHandlers.UpdateAdminAvatarHandler)
-			admin.POST("/avatar/upload", adminAvatarHandlers.UploadAvatarHandler)
 
-			// Role management
-			admin.GET("/roles", adminHandlers.GetAvailableRolesHandler)
+		}
+
+		// settings
+		systemConfigs := api.Group("/settings")
+		systemConfigs.Use(middleware.RequireSuperAdmin())
+		{
+			systemConfigs.GET("", systemConfigHandlers.ListAllConfigs)
+			systemConfigs.PUT("", systemConfigHandlers.BatchUpdateConfigs)
+		}
+
+		devEnvs := api.Group("/environments")
+		{
+			devEnvs.POST("", middleware.RequirePermission("environment", "create"), devEnvHandlers.CreateEnvironment)
+			devEnvs.GET("", devEnvHandlers.ListEnvironments)
+			devEnvs.GET("/available-images", middleware.RequirePermission("environment", "create"), devEnvHandlers.GetAvailableImages)
+			devEnvs.GET("/:id", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetEnvironment)
+			devEnvs.PUT("/:id", middleware.RequirePermission("environment", "update"), devEnvHandlers.UpdateEnvironment)
+			devEnvs.DELETE("/:id", middleware.RequirePermission("environment", "delete"), devEnvHandlers.DeleteEnvironment)
+
+			devEnvs.GET("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetEnvironmentAdmins)
+			devEnvs.POST("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.AddAdminToEnvironment)
+			devEnvs.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("environment", "update"), devEnvHandlers.RemoveAdminFromEnvironment)
 		}
 
 		gitCreds := api.Group("/credentials")
 		{
-			gitCreds.POST("", middleware.RequirePermission("credential", "create"), gitCredHandlers.CreateCredential)
 			gitCreds.GET("", gitCredHandlers.ListCredentials)
-			gitCreds.GET("/:id", gitCredHandlers.GetCredential)
+			gitCreds.POST("", middleware.RequirePermission("credential", "create"), gitCredHandlers.CreateCredential)
+			gitCreds.GET("/:id", middleware.RequirePermission("credential", "update"), gitCredHandlers.GetCredential)
 			gitCreds.PUT("/:id", middleware.RequirePermission("credential", "update"), gitCredHandlers.UpdateCredential)
 			gitCreds.DELETE("/:id", middleware.RequirePermission("credential", "delete"), gitCredHandlers.DeleteCredential)
 
@@ -80,85 +104,57 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 
 		projects := api.Group("/projects")
 		{
-			projects.POST("", middleware.RequireAdminOrSuperAdmin(), projectHandlers.CreateProject)
 			projects.GET("", projectHandlers.ListProjects)
-			projects.POST("/parse-url", projectHandlers.ParseRepositoryURL)
-			projects.POST("/branches", projectHandlers.FetchRepositoryBranches)
-			projects.POST("/validate-access", projectHandlers.ValidateRepositoryAccess)
-			projects.GET("/credentials", projectHandlers.GetCompatibleCredentials)
-			projects.GET("/:id", projectHandlers.GetProject)
+			projects.GET("/:id", middleware.RequirePermission("project", "read"), projectHandlers.GetProject)
+			projects.POST("/:id/branches", middleware.RequirePermission("project", "read"), projectHandlers.FetchRepositoryBranches)
+			// create
+			projects.POST("", middleware.RequireAdminOrSuperAdmin(), projectHandlers.CreateProject)
+			projects.GET("/credentials", middleware.RequireAdminOrSuperAdmin(), projectHandlers.GetCompatibleCredentials)
+			// update
 			projects.PUT("/:id", middleware.RequirePermission("project", "update"), projectHandlers.UpdateProject)
 			projects.DELETE("/:id", middleware.RequirePermission("project", "delete"), projectHandlers.DeleteProject)
-			projects.GET("/:id/kanban", taskHandlers.GetKanbanTasks)
-		}
+			projects.GET("/:id/admins", middleware.RequirePermission("project", "update"), projectHandlers.GetProjectAdmins)
+			projects.POST("/:id/admins", middleware.RequirePermission("project", "update"), projectHandlers.AddAdminToProject)
+			// delete
+			projects.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("project", "delete"), projectHandlers.RemoveAdminFromProject)
+			// kanban
+			projects.GET("/:id/kanban", middleware.RequirePermission("project", "read"), taskHandlers.GetKanbanTasks)
 
-		tasks := api.Group("/tasks")
-		{
-			tasks.POST("", taskHandlers.CreateTask)
-			tasks.GET("", taskHandlers.ListTasks)
-			tasks.GET("/:id", taskHandlers.GetTask)
-			tasks.PUT("/:id", middleware.RequirePermission("task", "update"), taskHandlers.UpdateTask)
-			tasks.PUT("/:id/status", middleware.RequirePermission("task", "update"), taskHandlers.UpdateTaskStatus)
-			tasks.PUT("/batch/status", taskHandlers.BatchUpdateTaskStatus)
-			tasks.DELETE("/:id", middleware.RequirePermission("task", "delete"), taskHandlers.DeleteTask)
-			tasks.GET("/:id/git-diff", taskHandlers.GetTaskGitDiff)
-			tasks.GET("/:id/git-diff/file", taskHandlers.GetTaskGitDiffFile)
-			tasks.POST("/:id/push", taskHandlers.PushTaskBranch)
-		}
+			tasks := projects.Group("/:id/tasks")
+			tasks.Use(middleware.RequirePermission("project", "tasks"))
+			{
+				tasks.POST("", taskHandlers.CreateTask)
+				tasks.PUT("/:taskId", taskHandlers.UpdateTask)
+				tasks.DELETE("/:taskId", middleware.RequirePermission("task", "delete"), taskHandlers.DeleteTask)
+				tasks.GET("/:taskId/git-diff", taskHandlers.GetTaskGitDiff)
+				tasks.GET("/:taskId/git-diff/file", taskHandlers.GetTaskGitDiffFile)
+				tasks.POST("/:taskId/push", taskHandlers.PushTaskBranch)
+				tasks.PUT("/batch/status", taskHandlers.BatchUpdateTaskStatus)
 
-		conversations := api.Group("/conversations")
-		{
-			conversations.POST("", taskConvHandlers.CreateConversation)
-			conversations.GET("", taskConvHandlers.ListConversations)
-			conversations.GET("/latest", taskConvHandlers.GetLatestConversation)
-			conversations.GET("/:id", taskConvHandlers.GetConversation)
-			conversations.GET("/:id/details", taskConvHandlers.GetConversationDetails)
-			conversations.PUT("/:id", middleware.RequirePermission("conversation", "update"), taskConvHandlers.UpdateConversation)
-			conversations.DELETE("/:id", middleware.RequirePermission("conversation", "delete"), taskConvHandlers.DeleteConversation)
-			conversations.GET("/:id/git-diff", taskConvHandlers.GetConversationGitDiff)
-			conversations.GET("/:id/git-diff/file", taskConvHandlers.GetConversationGitDiffFile)
-			conversations.GET("/:id/logs/stream", taskConvHandlers.StreamConversationLogs)
-		}
+				conversations := tasks.Group("/:taskId/conversations")
+				{
+					conversations.POST("", taskConvHandlers.CreateConversation)
+					conversations.GET("", taskConvHandlers.ListConversations)
+					conversations.GET("/:convId/details", taskConvHandlers.GetConversationDetails)
+					conversations.DELETE("/:convId", middleware.RequirePermission("conversation", "delete"), taskConvHandlers.DeleteConversation)
+					conversations.GET("/:convId/git-diff", taskConvHandlers.GetConversationGitDiff)
+					conversations.GET("/:convId/git-diff/file", taskConvHandlers.GetConversationGitDiffFile)
+					conversations.GET("/:convId/logs/stream", taskConvHandlers.StreamConversationLogs)
+					conversations.POST("/:convId/execution/cancel", taskConvHandlers.CancelExecution)
+					conversations.POST("/:convId/execution/retry", taskConvHandlers.RetryExecution)
+				}
+			}
 
-		attachments := api.Group("/attachments")
-		{
-			attachments.POST("/upload", attachmentHandlers.UploadAttachment)
-			attachments.GET("", attachmentHandlers.GetConversationAttachments)
-
-			attachments.GET("/:id", attachmentHandlers.GetAttachment)
-			attachments.GET("/:id/download", attachmentHandlers.DownloadAttachment)
-			attachments.GET("/:id/preview", attachmentHandlers.PreviewAttachment)
-			attachments.DELETE("/:id", attachmentHandlers.DeleteAttachment)
-		}
-
-		api.GET("/task-conversations/:conversationId/execution-log", taskExecLogHandlers.GetExecutionLog)
-		api.POST("/task-conversations/:conversationId/execution/cancel", taskExecLogHandlers.CancelExecution)
-		api.POST("/task-conversations/:conversationId/execution/retry", taskExecLogHandlers.RetryExecution)
-
-		devEnvs := api.Group("/environments")
-		{
-			devEnvs.POST("", middleware.RequirePermission("environment", "create"), devEnvHandlers.CreateEnvironment)
-			devEnvs.GET("", devEnvHandlers.ListEnvironments)
-			devEnvs.GET("/available-images", devEnvHandlers.GetAvailableImages)
-			devEnvs.GET("/:id", devEnvHandlers.GetEnvironment)
-			devEnvs.PUT("/:id", middleware.RequirePermission("environment", "update"), devEnvHandlers.UpdateEnvironment)
-			devEnvs.DELETE("/:id", middleware.RequirePermission("environment", "delete"), devEnvHandlers.DeleteEnvironment)
-			devEnvs.GET("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetEnvironmentAdmins)
-			devEnvs.POST("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.AddAdminToEnvironment)
-			devEnvs.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("environment", "update"), devEnvHandlers.RemoveAdminFromEnvironment)
-		}
-
-		systemConfigs := api.Group("/settings")
-		systemConfigs.Use(middleware.RequireSuperAdmin())
-		{
-			systemConfigs.GET("", systemConfigHandlers.ListAllConfigs)
-			systemConfigs.PUT("", systemConfigHandlers.BatchUpdateConfigs)
-		}
-
-		dashboard := api.Group("/dashboard")
-		{
-			dashboard.GET("/stats", middleware.RequireSuperAdmin(), dashboardHandlers.GetDashboardStats)
-			dashboard.GET("/recent-tasks", dashboardHandlers.GetRecentTasks)
+			// Project-based attachment routes
+			attachments := projects.Group("/:id/attachments")
+			attachments.Use(middleware.RequirePermission("project", "read"))
+			{
+				attachments.POST("/upload", attachmentHandlers.UploadAttachment)
+				attachments.GET("", attachmentHandlers.GetConversationAttachments)
+				attachments.GET("/:attachmentId/download", attachmentHandlers.DownloadAttachment)
+				attachments.GET("/:attachmentId/preview", attachmentHandlers.PreviewAttachment)
+				attachments.DELETE("/:attachmentId", attachmentHandlers.DeleteAttachment)
+			}
 		}
 	}
 
