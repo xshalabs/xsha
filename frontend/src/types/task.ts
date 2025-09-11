@@ -1,3 +1,5 @@
+import type { AdminAvatarMinimal } from "./credentials";
+
 export type TaskStatus = "todo" | "in_progress" | "done" | "cancelled";
 
 export interface Task {
@@ -30,13 +32,14 @@ export interface Task {
     id: number;
     name: string;
     username: string;
+    email: string;
+    avatar?: AdminAvatarMinimal;
   };
 }
 
-export interface CreateTaskRequest {
+export interface CreateTaskApiRequest {
   title: string;
   start_branch: string;
-  project_id: number;
   dev_environment_id?: number;
   requirement_desc?: string;
   include_branches?: boolean;
@@ -71,10 +74,6 @@ export interface TaskListResponse {
   };
 }
 
-export interface TaskDetailResponse {
-  message: string;
-  data: Task;
-}
 
 export interface CreateTaskResponse {
   message: string;

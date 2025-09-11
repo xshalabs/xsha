@@ -11,10 +11,12 @@ export interface LoginResponse {
 
 export interface UserResponse {
   user: string;
+  admin_id: number;
   name: string;
   authenticated: boolean;
   message: string;
   avatar?: AdminAvatar;
+  role: AdminRole;
 }
 
 export interface ApiErrorResponse {
@@ -32,6 +34,9 @@ export interface AdminAvatar {
   created_at: string;
 }
 
+// Admin role types
+export type AdminRole = 'super_admin' | 'admin' | 'developer';
+
 // Admin types
 export interface Admin {
   id: number;
@@ -40,6 +45,7 @@ export interface Admin {
   username: string;
   name: string;
   email: string;
+  role: AdminRole;
   is_active: boolean;
   last_login_at?: string;
   last_login_ip?: string;
@@ -53,6 +59,7 @@ export interface CreateAdminRequest {
   password: string;
   name: string;
   email?: string;
+  role?: AdminRole;
 }
 
 export interface UpdateAdminRequest {
@@ -60,6 +67,7 @@ export interface UpdateAdminRequest {
   name?: string;
   email?: string;
   is_active?: boolean;
+  role?: AdminRole;
 }
 
 export interface ChangePasswordRequest {
@@ -110,3 +118,4 @@ export interface AvatarUploadResponse {
 export interface UpdateAvatarRequest {
   avatar_id: number;
 }
+

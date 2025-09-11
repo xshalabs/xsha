@@ -14,6 +14,7 @@ import { toast } from "sonner";
 
 import { Plus, Save } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { usePermissions } from "@/hooks/usePermissions";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 
@@ -51,6 +52,7 @@ const EnvironmentListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { setItems } = useBreadcrumb();
   const { setActions } = usePageActions();
+  const { canCreateEnvironment, canEditEnvironment, canDeleteEnvironment, canManageEnvironmentAdmins, adminId } = usePermissions();
   
   usePageTitle(t("navigation.environments"));
 
@@ -72,12 +74,17 @@ const EnvironmentListPage: React.FC = () => {
       setIsCreateSheetOpen(true);
     };
 
-    setActions(
-      <Button onClick={handleCreateNew} size="sm">
-        <Plus className="h-4 w-4 mr-2" />
-        {t("devEnvironments.create")}
-      </Button>
-    );
+    // Only show create button if user has permission
+    if (canCreateEnvironment) {
+      setActions(
+        <Button onClick={handleCreateNew} size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          {t("devEnvironments.create")}
+        </Button>
+      );
+    } else {
+      setActions(null);
+    }
 
     // Clear breadcrumb items (we're at the root level)
     setItems([]);
@@ -87,9 +94,9 @@ const EnvironmentListPage: React.FC = () => {
       setActions(null);
       setItems([]);
     };
-  }, [setActions, setItems, t]);
+  }, [setActions, setItems, t, canCreateEnvironment]);
 
-  const [environments, setEnvironments] = useState<DevEnvironmentDisplay[]>([]);
+  const [environments, setEnvironments] = useState<DevEnvironment[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -111,29 +118,6 @@ const EnvironmentListPage: React.FC = () => {
   
   const pageSize = 10;
 
-  const transformEnvironments = (
-    envs: DevEnvironment[]
-  ): DevEnvironmentDisplay[] => {
-    return envs.map((env) => {
-      let envVarsMap: Record<string, string> = {};
-      try {
-        if (env.env_vars) {
-          envVarsMap = JSON.parse(env.env_vars);
-        }
-      } catch (error) {
-        console.warn(
-          "Failed to parse env_vars for environment:",
-          env.id,
-          error
-        );
-      }
-
-      return {
-        ...env,
-        env_vars_map: envVarsMap,
-      };
-    });
-  };
 
   // Separate URL update function to avoid dependency issues
   const updateUrl = useCallback((page: number, filters: ColumnFiltersState) => {
@@ -190,10 +174,7 @@ const EnvironmentListPage: React.FC = () => {
         });
 
         const response = await apiService.devEnvironments.list(apiParams);
-        const transformedEnvironments = transformEnvironments(
-          response.environments
-        );
-        setEnvironments(transformedEnvironments);
+        setEnvironments(response.environments);
         setTotalPages(response.total_pages);
         setTotal(response.total);
         setCurrentPage(page);
@@ -239,11 +220,37 @@ const EnvironmentListPage: React.FC = () => {
 
 
   const handleEditEnvironment = useCallback(
-    (environment: DevEnvironmentDisplay) => {
-      setEditingEnvironment(environment);
-      setIsEditSheetOpen(true);
+    async (environment: DevEnvironment) => {
+      try {
+        setIsSubmitting(true);
+        // Fetch full environment details including env_vars
+        const response = await apiService.devEnvironments.get(environment.id);
+        
+        // Transform the environment to include env_vars_map for the form
+        let envVarsMap: Record<string, string> = {};
+        try {
+          if (response.environment.env_vars) {
+            envVarsMap = JSON.parse(response.environment.env_vars);
+          }
+        } catch (error) {
+          console.warn("Failed to parse env_vars for environment:", environment.id, error);
+        }
+
+        const environmentWithEnvVars: DevEnvironmentDisplay = {
+          ...response.environment,
+          env_vars_map: envVarsMap,
+        };
+
+        setEditingEnvironment(environmentWithEnvVars);
+        setIsEditSheetOpen(true);
+      } catch (error) {
+        console.error("Failed to fetch environment details:", error);
+        toast.error(t("devEnvironments.fetch_details_failed"));
+      } finally {
+        setIsSubmitting(false);
+      }
     },
-    []
+    [apiService.devEnvironments, t]
   );
 
   // Sheet handlers
@@ -295,14 +302,24 @@ const EnvironmentListPage: React.FC = () => {
     setEditingEnvironment(null);
   };
 
+  const handleAdminChanged = useCallback(() => {
+    // Refresh the environments list when admin assignments change
+    loadEnvironmentsData(currentPage, columnFilters, false);
+  }, [currentPage, columnFilters, loadEnvironmentsData]);
+
   const columns = useMemo(
     () =>
       createDevEnvironmentColumns({
         onEdit: handleEditEnvironment,
         onDelete: handleDeleteEnvironment,
+        onAdminChanged: handleAdminChanged,
         t,
+        canEditEnvironment,
+        canDeleteEnvironment,
+        canManageEnvironmentAdmins,
+        currentAdminId: adminId || undefined,
       }),
-    [handleEditEnvironment, handleDeleteEnvironment, t]
+    [handleEditEnvironment, handleDeleteEnvironment, handleAdminChanged, t, canEditEnvironment, canDeleteEnvironment, canManageEnvironmentAdmins, adminId]
   );
 
   // Initialize from URL on component mount (only once)

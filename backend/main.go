@@ -88,11 +88,20 @@ func main() {
 	// Initialize workspace manager
 	workspaceManager := utils.NewWorkspaceManager(cfg.WorkspaceBaseDir, gitCloneTimeout)
 	devEnvService := services.NewDevEnvironmentService(devEnvRepo, taskRepo, systemConfigService, cfg)
+
+	// Set up circular dependencies - adminService needs devEnvService and gitCredService for permission checks
+	adminService.SetDevEnvironmentService(devEnvService)
+	adminService.SetGitCredentialService(gitCredService)
 	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, taskRepo, systemConfigService, cfg)
 	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, taskConvRepo, execLogRepo, taskConvResultRepo, taskConvAttachmentRepo, workspaceManager, cfg, gitCredService, systemConfigService)
 	taskConvResultService := services.NewTaskConversationResultService(taskConvResultRepo, taskConvRepo, taskRepo, projectRepo)
 	taskConvAttachmentService := services.NewTaskConversationAttachmentService(taskConvAttachmentRepo, cfg)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, taskService, taskConvAttachmentService, workspaceManager)
+
+	// Set up additional dependencies for adminService permission checks
+	adminService.SetProjectService(projectService)
+	adminService.SetTaskService(taskService)
+	adminService.SetTaskConversationService(taskConvService)
 
 	// Create shared execution manager
 	maxConcurrency := 5
@@ -118,8 +127,7 @@ func main() {
 	projectHandlers := handlers.NewProjectHandlers(projectService)
 	devEnvHandlers := handlers.NewDevEnvironmentHandlers(devEnvService)
 	taskHandlers := handlers.NewTaskHandlers(taskService, taskConvService, projectService)
-	taskConvHandlers := handlers.NewTaskConversationHandlers(taskConvService, logStreamingService)
-	taskExecLogHandlers := handlers.NewTaskExecutionLogHandlers(aiTaskExecutor)
+	taskConvHandlers := handlers.NewTaskConversationHandlers(taskConvService, logStreamingService, aiTaskExecutor)
 	taskConvAttachmentHandlers := handlers.NewTaskConversationAttachmentHandlers(taskConvAttachmentService)
 	systemConfigHandlers := handlers.NewSystemConfigHandlers(systemConfigService)
 	dashboardHandlers := handlers.NewDashboardHandlers(dashboardService)
@@ -143,28 +151,24 @@ func main() {
 		utils.Error("Failed to create attachment storage directory", "directory", cfg.AttachmentsDir, "error", err)
 		os.Exit(1)
 	}
-	utils.Info("Attachment storage directory initialized", "directory", cfg.AttachmentsDir)
 
 	// Create avatar storage directory
 	if err := os.MkdirAll(cfg.AvatarsDir, 0755); err != nil {
 		utils.Error("Failed to create avatar storage directory", "directory", cfg.AvatarsDir, "error", err)
 		os.Exit(1)
 	}
-	utils.Info("Avatar storage directory initialized", "directory", cfg.AvatarsDir)
 
 	// Create workspace base directory
 	if err := os.MkdirAll(cfg.WorkspaceBaseDir, 0755); err != nil {
 		utils.Error("Failed to create workspace base directory", "directory", cfg.WorkspaceBaseDir, "error", err)
 		os.Exit(1)
 	}
-	utils.Info("Workspace base directory initialized", "directory", cfg.WorkspaceBaseDir)
 
 	// Create dev sessions directory
 	if err := os.MkdirAll(cfg.DevSessionsDir, 0755); err != nil {
 		utils.Error("Failed to create dev sessions directory", "directory", cfg.DevSessionsDir, "error", err)
 		os.Exit(1)
 	}
-	utils.Info("Dev sessions directory initialized", "directory", cfg.DevSessionsDir)
 
 	// Initialize default admin user
 	if err := adminService.InitializeDefaultAdmin(); err != nil {
@@ -173,7 +177,7 @@ func main() {
 	}
 
 	// Setup routes - Pass all handler instances including static files
-	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, adminAvatarHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskExecLogHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
+	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, adminAvatarHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {
@@ -203,7 +207,6 @@ func main() {
 	}()
 
 	// Start server
-	utils.Info("Server starting...")
 	utils.Info("Server starting on port", "port", cfg.Port)
 
 	if err := r.Run(":" + cfg.Port); err != nil {

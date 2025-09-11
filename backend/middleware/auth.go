@@ -62,7 +62,7 @@ func AuthMiddlewareWithService(authService services.AuthService, adminService se
 		}
 
 		// Check if admin is still active
-		isActive, err := authService.CheckAdminStatus(claims.Username)
+		isActive, err := authService.CheckAdminStatus(claims.AdminID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": i18n.T(lang, "auth.server_error"),
@@ -72,11 +72,18 @@ func AuthMiddlewareWithService(authService services.AuthService, adminService se
 		}
 
 		if !isActive {
+			// Get admin for username (for logging purposes)
+			admin, adminErr := adminService.GetAdmin(claims.AdminID)
+			username := "unknown"
+			if adminErr == nil {
+				username = admin.Username
+			}
+			
 			// Add token to blacklist with reason "admin_deactivated"
 			go func() {
-				if blacklistErr := authService.Logout(token, claims.Username, c.ClientIP(), c.GetHeader("User-Agent")); blacklistErr != nil {
+				if blacklistErr := authService.Logout(token, username, c.ClientIP(), c.GetHeader("User-Agent")); blacklistErr != nil {
 					utils.Error("Failed to blacklist token for deactivated admin",
-						"username", claims.Username,
+						"admin_id", claims.AdminID,
 						"error", blacklistErr.Error(),
 					)
 				}
@@ -89,11 +96,11 @@ func AuthMiddlewareWithService(authService services.AuthService, adminService se
 			return
 		}
 
-		// Get admin details to set admin_id in context
-		admin, err := adminService.GetAdminByUsername(claims.Username)
+		// Get admin details to set in context
+		admin, err := adminService.GetAdmin(claims.AdminID)
 		if err != nil {
 			utils.Error("Failed to get admin details for context",
-				"username", claims.Username,
+				"admin_id", claims.AdminID,
 				"error", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": i18n.T(lang, "auth.server_error"),
@@ -102,8 +109,10 @@ func AuthMiddlewareWithService(authService services.AuthService, adminService se
 			return
 		}
 
-		c.Set("username", claims.Username)
-		c.Set("admin_id", admin.ID)
+		c.Set("username", admin.Username)
+		c.Set("admin_id", claims.AdminID)
+		c.Set("admin", admin)
+		c.Set("adminService", adminService)
 		c.Next()
 	}
 }

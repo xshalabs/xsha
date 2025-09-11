@@ -42,7 +42,6 @@ func (s *schedulerManager) Start() error {
 	s.wg.Add(1)
 	go s.run()
 
-	utils.Info("Scheduler started", "interval", s.interval)
 	return nil
 }
 

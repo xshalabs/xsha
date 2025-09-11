@@ -16,10 +16,10 @@ func NewTokenBlacklistRepository(db *gorm.DB) TokenBlacklistRepository {
 	return &tokenBlacklistRepository{db: db}
 }
 
-func (r *tokenBlacklistRepository) Add(tokenID string, username string, expiresAt time.Time, reason string) error {
-	blacklistEntry := database.TokenBlacklist{
+func (r *tokenBlacklistRepository) Add(tokenID string, adminID uint, expiresAt time.Time, reason string) error {
+	blacklistEntry := database.TokenBlacklistV2{
 		TokenID:   tokenID,
-		Username:  username,
+		AdminID:   adminID,
 		ExpiresAt: expiresAt,
 		Reason:    reason,
 	}
@@ -29,7 +29,7 @@ func (r *tokenBlacklistRepository) Add(tokenID string, username string, expiresA
 
 func (r *tokenBlacklistRepository) IsBlacklisted(tokenID string) (bool, error) {
 	var count int64
-	err := r.db.Model(&database.TokenBlacklist{}).
+	err := r.db.Model(&database.TokenBlacklistV2{}).
 		Where("token_id = ? AND expires_at > ?", tokenID, utils.Now()).
 		Count(&count).Error
 
@@ -41,5 +41,5 @@ func (r *tokenBlacklistRepository) IsBlacklisted(tokenID string) (bool, error) {
 }
 
 func (r *tokenBlacklistRepository) CleanExpired() error {
-	return r.db.Where("expires_at < ?", utils.Now()).Delete(&database.TokenBlacklist{}).Error
+	return r.db.Where("expires_at < ?", utils.Now()).Delete(&database.TokenBlacklistV2{}).Error
 }

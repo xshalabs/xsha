@@ -8,16 +8,18 @@
   "invalid_id": "无效的环境ID",
   "create_success": "环境创建成功",
   "update_success": "环境更新成功",
+  "fetch_details_failed": "获取环境详情失败",
   "table": {
     "name": "名称",
     "description": "描述",
     "cpu": "CPU",
     "memory": "内存",
-    "env_vars": "环境变量",
+    "admins": "成员",
     "created": "创建时间",
     "no_description": "无描述",
     "core": "核",
-    "cores": "核"
+    "cores": "核",
+    "admin": "成员"
   },
   "filters": {
     "name": "环境名称",
@@ -75,5 +77,24 @@
     "empty_message": "暂无环境变量配置，请在下方添加。",
     "key_required": "变量名不能为空",
     "key_exists": "变量名已存在"
+  },
+  "admin": {
+    "manage": "管理成员",
+    "manage_title": "管理环境成员",
+    "manage_description": "管理{{name}}环境的成员",
+    "current_admins": "当前成员",
+    "no_admins": "未分配成员",
+    "add_admin": "添加成员",
+    "select_placeholder": "请选择要添加的成员",
+    "select_admin": "请选择一个成员",
+    "load_failed": "加载成员失败",
+    "added_success": "成员添加成功",
+    "add_failed": "添加成员失败",
+    "removed_success": "{{name}}移除成功",
+    "remove_failed": "移除成员失败",
+    "confirm_remove_title": "确认移除成员",
+    "confirm_remove_description": "您确定要将{{adminName}}从{{environmentName}}环境的成员中移除吗？",
+    "creator": "创建者",
+    "cannot_remove_creator": "无法移除环境创建者"
   }
 }

@@ -1,26 +1,28 @@
 {
-  "title": "管理员用户",
-  "description": "管理系统管理员账户",
+  "title": "用户",
+  "description": "管理用户账户",
   "pageTitle": {
-    "list": "管理员用户 - XSha"
+    "list": "用户 - XSha"
   },
   "table": {
     "username": "用户名",
     "name": "姓名",
     "email": "邮箱",
+    "role": "角色",
     "status": "状态",
     "lastLogin": "最后登录",
     "createdBy": "创建者",
     "createdAt": "创建时间",
-    "noData": "暂无管理员用户"
+    "noData": "暂无用户"
   },
   "fields": {
     "username": "用户名",
     "password": "密码",
     "name": "姓名",
     "email": "邮箱",
+    "role": "角色",
     "status": "状态",
-    "statusDescription": "启用或禁用此管理员账户",
+    "statusDescription": "启用或禁用此用户账户",
     "newPassword": "新密码",
     "confirmPassword": "确认密码"
   },
@@ -29,56 +31,64 @@
     "password": "请输入密码（最少6位字符）",
     "name": "请输入真实姓名",
     "email": "请输入邮箱地址（可选）",
+    "role": "请选择角色",
     "newPassword": "请输入新密码",
     "confirmPassword": "请确认新密码"
   },
   "filters": {
+    "role": "角色",
     "status": "状态",
     "allStatus": "全部状态",
     "active": "启用",
-    "inactive": "禁用"
+    "inactive": "禁用",
+    "search_placeholder": "搜索邮箱、姓名、用户名..."
+  },
+  "roles": {
+    "super_admin": "超级管理员",
+    "admin": "管理员",
+    "developer": "开发者"
   },
   "status": {
     "active": "启用",
     "inactive": "禁用"
   },
   "actions": {
-    "create": "创建管理员",
+    "create": "创建用户",
     "changePassword": "修改密码",
     "changingPassword": "修改中..."
   },
   "dialogs": {
     "create": {
-      "title": "创建管理员用户",
-      "description": "创建新的管理员账户"
+      "title": "创建用户",
+      "description": "创建新的用户账户"
     },
     "update": {
-      "title": "更新管理员用户",
-      "description": "更新管理员账户：{{username}}"
+      "title": "更新用户",
+      "description": "更新用户账户：{{username}}"
     },
     "changePassword": {
       "title": "修改密码",
-      "description": "修改管理员密码：{{username}}"
+      "description": "修改用户密码：{{username}}"
     },
     "delete": {
-      "title": "删除管理员用户",
-      "description": "确定要删除管理员：{{username}}？",
+      "title": "删除用户",
+      "description": "确定要删除用户：{{username}}？",
       "warning": "此操作不可撤销。"
     }
   },
   "messages": {
-    "createSuccess": "管理员用户创建成功",
-    "updateSuccess": "管理员用户更新成功",
-    "deleteSuccess": "管理员用户删除成功",
+    "createSuccess": "用户创建成功",
+    "updateSuccess": "用户更新成功",
+    "deleteSuccess": "用户删除成功",
     "passwordChangeSuccess": "密码修改成功"
   },
   "errors": {
-    "loadFailed": "加载管理员用户失败",
-    "createFailed": "创建管理员用户失败",
-    "updateFailed": "更新管理员用户失败",
-    "deleteFailed": "删除管理员用户失败",
+    "loadFailed": "加载用户失败",
+    "createFailed": "创建用户失败",
+    "updateFailed": "更新用户失败",
+    "deleteFailed": "删除用户失败",
     "passwordChangeFailed": "修改密码失败",
-    "cannotDeleteSystemAdmin": "不能删除系统创建的管理员账户"
+    "cannotDeleteSystemAdmin": "不能删除系统创建的用户账户"
   },
   "avatar": {
     "title": "头像",

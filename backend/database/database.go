@@ -67,17 +67,16 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 		panic(fmt.Sprintf("Unsupported database type: %s", cfg.DatabaseType))
 	}
 
-	// Run custom migrations first (including TokenBlacklist structure changes)
+	// AutoMigrate all tables first to create the base structure
+	if err := db.AutoMigrate(&Migration{}, &TokenBlacklistV2{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}, &AdminAvatar{}); err != nil {
+		return nil, err
+	}
+
+	// Run custom migrations after AutoMigrate (for data migrations and custom changes)
 	if err := runMigrations(db, cfg); err != nil {
 		utils.Error("Failed to run custom migrations", "error", err)
 		return nil, err
 	}
-
-	// AutoMigrate all tables (TokenBlacklist is handled by custom migration)
-	if err := db.AutoMigrate(&Migration{}, &TokenBlacklist{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}, &AdminAvatar{}); err != nil {
-		return nil, err
-	}
-	utils.Info("Database table migration completed")
 
 	return &DatabaseManager{db: db}, nil
 }
@@ -120,20 +119,10 @@ func GetDB() *gorm.DB {
 
 // runMigrations executes custom migrations
 func runMigrations(db *gorm.DB, cfg *config.Config) error {
-	utils.Info("Running custom migrations")
-
-	// Use the new migration manager to run migrations
 	migrationManager := migrations.NewMigrationManager(db, cfg)
 	if err := migrationManager.RunAll(); err != nil {
 		return fmt.Errorf("migration manager failed: %v", err)
 	}
-
-	// Run token blacklist token ID migration (keeping this separate as it's already in its own file)
-	if err := runTokenBlacklistTokenIDMigration(db); err != nil {
-		return fmt.Errorf("token blacklist token ID migration failed: %v", err)
-	}
-
-	utils.Info("Custom migrations completed successfully")
 	return nil
 }
 

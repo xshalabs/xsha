@@ -55,12 +55,7 @@ export interface CreateConversationRequest {
   attachment_ids?: number[]; // Optional array of attachment IDs
 }
 
-export interface UpdateConversationRequest {
-  content?: string;
-}
-
 export interface ConversationListParams {
-  task_id: number;
   page?: number;
   page_size?: number;
 }
@@ -80,11 +75,6 @@ export interface ConversationListResponse {
   };
 }
 
-export interface ConversationDetailResponse {
-  message: string;
-  data: TaskConversation;
-}
-
 export interface ConversationWithResultAndLogResponse {
   message: string;
   data: {
@@ -92,11 +82,6 @@ export interface ConversationWithResultAndLogResponse {
     result?: TaskConversationResult;
     execution_log?: TaskExecutionLog;
   };
-}
-
-export interface LatestConversationResponse {
-  message: string;
-  data: TaskConversation;
 }
 
 export interface ConversationFormData {
@@ -129,7 +114,7 @@ export interface ConversationGitDiffFileResponse {
 // Import GitDiffSummary type from tasks
 export interface GitDiffFile {
   path: string;
-  status: 'added' | 'modified' | 'deleted' | 'renamed';
+  status: "added" | "modified" | "deleted" | "renamed";
   additions: number;
   deletions: number;
   is_binary: boolean;

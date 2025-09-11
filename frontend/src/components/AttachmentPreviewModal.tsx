@@ -42,7 +42,7 @@ export function AttachmentPreviewModal({
       setPreviewUrl('');
 
       try {
-        const blobUrl = await attachmentApi.getPreviewBlob(attachment.id);
+        const blobUrl = await attachmentApi.getPreviewBlob(attachment.id, attachment.project_id);
         if (mounted) {
           setPreviewUrl(blobUrl);
         }
@@ -82,7 +82,7 @@ export function AttachmentPreviewModal({
     if (!attachment) return;
     
     try {
-      await attachmentApi.downloadAttachment(attachment.id, attachment.original_name);
+      await attachmentApi.downloadAttachment(attachment.id, attachment.original_name, attachment.project_id);
     } catch (error) {
       console.error('Download failed:', error);
     }

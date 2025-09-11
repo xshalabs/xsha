@@ -109,7 +109,7 @@ var (
 
 func getLoginRateLimiter() *RateLimiter {
 	once.Do(func() {
-		loginRateLimiter = NewRateLimiter(5, 15*time.Minute)
+		loginRateLimiter = NewRateLimiter(60, 60*time.Minute)
 	})
 	return loginRateLimiter
 }

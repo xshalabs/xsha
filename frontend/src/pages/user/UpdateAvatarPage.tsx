@@ -31,7 +31,7 @@ export default function UpdateAvatarPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { user, name, avatar, refreshUser } = useAuth();
+  const { user, name, avatar, checkAuth } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [newAvatar, setNewAvatar] = useState<AvatarUploadResponse | null>(null);
@@ -62,7 +62,7 @@ export default function UpdateAvatarPage() {
     try {
       setUploading(true);
       const uploadResponse = await adminApi.uploadAvatar(file);
-      setNewAvatar(uploadResponse.data);
+      setNewAvatar(uploadResponse);
       toast.success(t('user.updateAvatarPage.uploadSuccess'));
     } catch (error) {
       console.error('Failed to upload avatar:', error);
@@ -82,12 +82,12 @@ export default function UpdateAvatarPage() {
     try {
       setLoading(true);
       await apiService.updateOwnAvatar({
-        avatar_uuid: newAvatar.uuid,
+        avatar_uuid: newAvatar.data.uuid,
       });
       toast.success(t('user.updateAvatarPage.updateSuccess'));
       
       // Refresh user data to get the updated avatar
-      await refreshUser();
+      await checkAuth();
       
       // Clear the new avatar state
       setNewAvatar(null);
@@ -154,14 +154,14 @@ export default function UpdateAvatarPage() {
                   <div className="space-y-4">
                     <div className="flex items-center space-x-4">
                       <img
-                        src={newAvatar.preview_url}
+                        src={newAvatar.data.preview_url}
                         alt={t('user.updateAvatarPage.newAvatarPreview')}
                         className="h-12 w-12 rounded-lg object-cover"
                       />
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium">{newAvatar.original_name}</span>
+                        <span className="text-sm font-medium">{newAvatar.data.original_name}</span>
                         <span className="text-xs text-muted-foreground">
-                          {(newAvatar.file_size / 1024).toFixed(1)} KB
+                          {(newAvatar.data.file_size / 1024).toFixed(1)} KB
                         </span>
                       </div>
                     </div>

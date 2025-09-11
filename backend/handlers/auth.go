@@ -102,10 +102,11 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 		return
 	}
 
-	claims, err := utils.ValidateJWT(token, "")
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": i18n.T(lang, "logout.invalid_token_with_details", err.Error()),
+	// Get username from context (set by auth middleware)
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "logout.failed"),
 		})
 		return
 	}
@@ -113,7 +114,7 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 	clientIP := c.ClientIP()
 	userAgent := c.GetHeader("User-Agent")
 
-	if err := h.authService.Logout(token, claims.Username, clientIP, userAgent); err != nil {
+	if err := h.authService.Logout(token, username.(string), clientIP, userAgent); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "logout.failed"),
 		})
@@ -132,32 +133,23 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} object{username=string,name=string,avatar=object} "User information"
+// @Success 200 {object} object{username=string,name=string,role=string,avatar=object} "User information"
 // @Failure 500 {object} object{error=string} "Failed to get user information"
 // @Router /user/current [get]
 func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "user.get_info_error"),
-		})
-		return
-	}
-
-	// Get admin info to retrieve the name
-	admin, err := h.adminService.GetAdminByUsername(username.(string))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "user.get_info_error"),
-		})
+	admin := middleware.GetAdminFromContext(c)
+	if admin == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"user":          username,
+		"user":          admin.Username,
+		"admin_id":      admin.ID,
 		"name":          admin.Name,
+		"role":          admin.Role,
 		"avatar":        admin.Avatar,
 		"authenticated": true,
 		"message":       i18n.T(lang, "user.authenticated"),
@@ -260,11 +252,9 @@ func (h *AuthHandlers) GetLoginLogsHandler(c *gin.Context) {
 func (h *AuthHandlers) ChangeOwnPasswordHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "user.get_info_error"),
-		})
+	admin := middleware.GetAdminFromContext(c)
+	if admin == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
@@ -280,17 +270,8 @@ func (h *AuthHandlers) ChangeOwnPasswordHandler(c *gin.Context) {
 		return
 	}
 
-	// Get user by username to get their ID
-	admin, err := h.adminService.GetAdminByUsername(username.(string))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "user.get_info_error"),
-		})
-		return
-	}
-
 	// Verify current password
-	_, err = h.adminService.ValidateCredentials(username.(string), passwordData.CurrentPassword)
+	_, err := h.adminService.ValidateCredentials(admin.Username, passwordData.CurrentPassword)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": i18n.T(lang, "user.current_password_incorrect"),
@@ -326,22 +307,9 @@ func (h *AuthHandlers) ChangeOwnPasswordHandler(c *gin.Context) {
 func (h *AuthHandlers) UpdateOwnAvatarHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "user.get_info_error"),
-		})
-		return
-	}
-
-	adminIDInterface, exists := c.Get("admin_id")
-	if !exists {
+	admin := middleware.GetAdminFromContext(c)
+	if admin == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
-		return
-	}
-	_, ok := adminIDInterface.(uint)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": i18n.T(lang, "common.internal_error")})
 		return
 	}
 
@@ -352,15 +320,6 @@ func (h *AuthHandlers) UpdateOwnAvatarHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&avatarData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
-		})
-		return
-	}
-
-	// Get admin service from handler dependencies
-	admin, err := h.adminService.GetAdminByUsername(username.(string))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "user.get_info_error"),
 		})
 		return
 	}

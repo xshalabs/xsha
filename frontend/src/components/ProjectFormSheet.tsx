@@ -25,16 +25,13 @@ export function ProjectFormSheet({
     formData,
     loading,
     credentialsLoading,
-    urlParsing,
     credentialValidating,
     error,
     errors,
     accessError,
-    accessValidated,
     credentials,
     handleInputChange,
     handleSubmit: onFormSubmit,
-    validateAccessAndFetchBranches,
   } = useProjectForm({ project, onSubmit });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,9 +39,6 @@ export function ProjectFormSheet({
     await onFormSubmit();
   };
 
-  const handleRetryValidation = () => {
-    validateAccessAndFetchBranches(formData.repo_url, formData.credential_id);
-  };
 
   return (
     <form id={formId} onSubmit={handleSubmit} className="my-4 space-y-6">
@@ -67,7 +61,6 @@ export function ProjectFormSheet({
           formData={formData}
           errors={errors}
           disabled={loading}
-          urlParsing={urlParsing}
           onChange={handleInputChange}
         />
 
@@ -77,10 +70,8 @@ export function ProjectFormSheet({
           disabled={loading}
           credentialsLoading={credentialsLoading}
           credentialValidating={credentialValidating}
-          accessValidated={accessValidated}
           accessError={accessError}
           onChange={handleInputChange}
-          onRetryValidation={handleRetryValidation}
         />
       </div>
     </form>

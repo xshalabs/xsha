@@ -14,10 +14,12 @@ export interface Project {
   repo_url: string;
   protocol: GitProtocolType;
   credential_id?: number;
+  admin_id?: number;
   created_by: string;
   created_at: string;
   updated_at: string;
   task_count?: number;
+  admin_count?: number;
   credential?: {
     id: number;
     name: string;
@@ -30,7 +32,7 @@ export interface CreateProjectRequest {
   description?: string;
   system_prompt?: string;
   repo_url: string;
-  protocol: GitProtocolType;
+  protocol?: GitProtocolType;
   credential_id?: number;
 }
 
@@ -89,20 +91,6 @@ export interface ProjectFormData {
   credential_id?: number;
 }
 
-export interface ParseRepositoryURLRequest {
-  repo_url: string;
-}
-
-export interface ParseRepositoryURLResponse {
-  message: string;
-  result: {
-    protocol: string;
-    host: string;
-    owner: string;
-    repo: string;
-    is_valid: boolean;
-  };
-}
 
 export interface FetchRepositoryBranchesRequest {
   repo_url: string;
@@ -118,13 +106,26 @@ export interface FetchRepositoryBranchesResponse {
   };
 }
 
-export interface ValidateRepositoryAccessRequest {
-  repo_url: string;
-  credential_id?: number;
+// Project admin management types
+export interface AddAdminToProjectRequest {
+  admin_id: number;
 }
 
-export interface ValidateRepositoryAccessResponse {
-  message: string;
-  can_access: boolean;
-  error?: string;
+export interface ProjectAdminsResponse {
+  admins: Array<{
+    id: number;
+    username: string;
+    name: string;
+    email: string;
+    role: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    last_login_at?: string;
+    avatar?: {
+      uuid: string;
+      original_name: string;
+    };
+  }>;
 }
+

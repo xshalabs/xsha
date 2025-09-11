@@ -29,7 +29,7 @@ type CreateProjectRequest struct {
 	Description  string `json:"description"`
 	SystemPrompt string `json:"system_prompt"`
 	RepoURL      string `json:"repo_url" binding:"required"`
-	Protocol     string `json:"protocol" binding:"required,oneof=https ssh"`
+	Protocol     string `json:"protocol" binding:"omitempty,oneof=https ssh"`
 	CredentialID *uint  `json:"credential_id"`
 }
 
@@ -80,6 +80,13 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
 		})
 		return
+	}
+
+	// Auto-detect protocol from repository URL
+	urlInfo := utils.ParseGitURL(req.RepoURL)
+	if urlInfo.IsValid {
+		// Use detected protocol instead of user input
+		req.Protocol = string(urlInfo.Protocol)
 	}
 
 	project, err := h.projectService.CreateProject(
@@ -200,7 +207,16 @@ func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 		protocol = &protocolValue
 	}
 
-	projects, total, err := h.projectService.ListProjectsWithTaskCount(name, protocol, sortBy, sortDirection, page, pageSize)
+	admin := middleware.GetAdminFromContext(c)
+
+	var projects interface{}
+	var total int64
+	var err error
+	if admin.Role == database.AdminRoleSuperAdmin {
+		projects, total, err = h.projectService.ListProjectsWithTaskCount(name, protocol, sortBy, sortDirection, page, pageSize)
+	} else {
+		projects, total, err = h.projectService.ListProjectsByAdminAccess(admin.ID, name, protocol, sortBy, sortDirection, page, pageSize)
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "common.internal_error"),
@@ -317,28 +333,48 @@ func (h *ProjectHandlers) DeleteProject(c *gin.Context) {
 
 // GetCompatibleCredentials gets credential list compatible with protocol
 // @Summary Get compatible credentials
-// @Description Get Git credential list compatible with protocol type
+// @Description Get Git credential list compatible with protocol type, auto-detected from repo URL or specified protocol
 // @Tags Project
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param protocol query string true "Protocol type (https/ssh)"
+// @Param repo_url query string false "Repository URL for protocol auto-detection"
+// @Param protocol query string false "Protocol type (https/ssh) - fallback if repo_url not provided"
 // @Success 200 {object} object{message=string,credentials=[]object} "Get credential list successfully"
 // @Failure 400 {object} object{error=string} "Request parameter error"
 // @Router /projects/credentials [get]
 func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
+	repoURL := c.Query("repo_url")
 	protocol := c.Query("protocol")
-	if protocol == "" {
+
+	var protocolType database.GitProtocolType
+
+	if repoURL != "" {
+		// Auto-detect protocol from repository URL
+		urlInfo := utils.ParseGitURL(repoURL)
+		if urlInfo.IsValid {
+			protocolType = database.GitProtocolType(urlInfo.Protocol)
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": i18n.T(lang, "validation.invalid_repo_url"),
+			})
+			return
+		}
+	} else if protocol != "" {
+		// Use provided protocol as fallback
+		protocolType = database.GitProtocolType(protocol)
+	} else {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.required_protocol"),
+			"error": i18n.T(lang, "validation.required_repo_url_or_protocol"),
 		})
 		return
 	}
 
-	protocolType := database.GitProtocolType(protocol)
-	credentials, err := h.projectService.GetCompatibleCredentials(protocolType)
+	admin := middleware.GetAdminFromContext(c)
+
+	credentials, err := h.projectService.GetCompatibleCredentials(protocolType, admin)
 	if err != nil {
 		helper := i18n.NewHelper(lang)
 		helper.ErrorResponseFromError(c, http.StatusBadRequest, err)
@@ -351,94 +387,48 @@ func (h *ProjectHandlers) GetCompatibleCredentials(c *gin.Context) {
 	})
 }
 
-// @Description Parse repository URL request
-type ParseRepositoryURLRequest struct {
-	RepoURL string `json:"repo_url" binding:"required" example:"https://github.com/user/repo.git"`
-}
-
-// @Description Parse repository URL response
-type ParseRepositoryURLResponse struct {
-	Protocol string `json:"protocol" example:"https"`
-	Host     string `json:"host" example:"github.com"`
-	Owner    string `json:"owner" example:"user"`
-	Repo     string `json:"repo" example:"repo"`
-	IsValid  bool   `json:"is_valid" example:"true"`
-}
-
-// @Summary Parse repository URL
-// @Description Parse repository URL automatically detect protocol type and parse URL information
-// @Tags Project
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body ParseRepositoryURLRequest true "Repository URL"
-// @Success 200 {object} object{message=string,result=ParseRepositoryURLResponse} "Parse successfully"
-// @Failure 400 {object} object{error=string} "Request parameter error"
-// @Router /projects/parse-url [post]
-func (h *ProjectHandlers) ParseRepositoryURL(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	var req ParseRepositoryURLRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
-		})
-		return
-	}
-
-	urlInfo := utils.ParseGitURL(req.RepoURL)
-
-	response := ParseRepositoryURLResponse{
-		Protocol: string(urlInfo.Protocol),
-		Host:     urlInfo.Host,
-		Owner:    urlInfo.Owner,
-		Repo:     urlInfo.Repo,
-		IsValid:  urlInfo.IsValid,
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "common.success"),
-		"result":  response,
-	})
-}
-
-// @Description Request parameters for fetching Git repository branch list
-type FetchRepositoryBranchesRequest struct {
-	RepoURL      string `json:"repo_url" binding:"required" example:"https://github.com/user/repo.git"`
-	CredentialID *uint  `json:"credential_id" example:"1"`
-}
-
 // @Description Response for fetching Git repository branch list
 type FetchRepositoryBranchesResponse struct {
 	CanAccess    bool     `json:"can_access" example:"true"`
 	ErrorMessage string   `json:"error_message" example:""`
-	Branches     []string `json:"branches" example:"[\"main\",\"develop\",\"feature-1\"]"`
+	Branches     []string `json:"branches" example:"main,develop,feature-1"`
 }
 
 // FetchRepositoryBranches fetches repository branch list
 // @Summary Fetch Git repository branch list
-// @Description Fetch Git repository branch list using provided credentials and verify access permissions
+// @Description Fetch Git repository branch list using project's repository and credentials
 // @Tags Project
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body FetchRepositoryBranchesRequest true "Repository information"
+// @Param id path int true "Project ID"
 // @Success 200 {object} object{message=string,result=FetchRepositoryBranchesResponse} "Fetch branch list successfully"
-// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 400 {object} object{error=string} "Invalid project ID"
+// @Failure 404 {object} object{error=string} "Project not found"
 // @Failure 500 {object} object{error=string} "Failed to fetch branch list"
-// @Router /projects/branches [post]
+// @Router /projects/{id}/branches [post]
 func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	var req FetchRepositoryBranchesRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
+			"error": i18n.T(lang, "validation.invalid_format"),
 		})
 		return
 	}
 
-	result, err := h.projectService.FetchRepositoryBranches(req.RepoURL, req.CredentialID)
+	// Get project details
+	project, err := h.projectService.GetProject(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": i18n.T(lang, "project.not_found"),
+		})
+		return
+	}
+
+	result, err := h.projectService.FetchRepositoryBranches(project.RepoURL, project.CredentialID)
 	if err != nil {
 		helper := i18n.NewHelper(lang)
 		helper.ErrorResponseFromError(c, http.StatusInternalServerError, err)
@@ -457,26 +447,80 @@ func (h *ProjectHandlers) FetchRepositoryBranches(c *gin.Context) {
 	})
 }
 
-// @Description Request parameters for validating Git repository access permissions
-type ValidateRepositoryAccessRequest struct {
-	RepoURL      string `json:"repo_url" binding:"required" example:"https://github.com/user/repo.git"`
-	CredentialID *uint  `json:"credential_id" example:"1"`
+// @Description Add admin to project request
+type AddAdminToProjectRequest struct {
+	AdminID uint `json:"admin_id" binding:"required"`
 }
 
-// @Summary Validate Git repository access permissions
-// @Description Validate whether the specified Git repository can be accessed using provided credentials
+// @Description Project admins response
+type ProjectAdminsResponse struct {
+	Admins []database.AdminListResponse `json:"admins"`
+}
+
+// GetProjectAdmins gets all admins for a specific project
+// @Summary Get project admins
+// @Description Get all admins that have access to a specific project
 // @Tags Project
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body ValidateRepositoryAccessRequest true "Repository information"
-// @Success 200 {object} object{message=string,can_access=bool} "Validation successful"
-// @Failure 400 {object} object{error=string} "Request parameter error or validation failed"
-// @Router /projects/validate-access [post]
-func (h *ProjectHandlers) ValidateRepositoryAccess(c *gin.Context) {
+// @Param id path int true "Project ID"
+// @Success 200 {object} ProjectAdminsResponse "Project admins"
+// @Failure 404 {object} object{error=string} "Project not found"
+// @Router /projects/{id}/admins [get]
+func (h *ProjectHandlers) GetProjectAdmins(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	var req ValidateRepositoryAccessRequest
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "project.invalid_id"),
+		})
+		return
+	}
+
+	admins, err := h.projectService.GetProjectAdmins(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	// Transform to list response with minimal avatar data
+	adminResponses := database.ToAdminListResponses(admins)
+	c.JSON(http.StatusOK, ProjectAdminsResponse{
+		Admins: adminResponses,
+	})
+}
+
+// AddAdminToProject adds an admin to the project
+// @Summary Add admin to project
+// @Description Add an admin to the project's admin list
+// @Tags Project
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Project ID"
+// @Param admin body AddAdminToProjectRequest true "Admin information"
+// @Success 200 {object} object{message=string} "Admin added successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 404 {object} object{error=string} "Project not found"
+// @Router /projects/{id}/admins [post]
+func (h *ProjectHandlers) AddAdminToProject(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	idStr := c.Param("id")
+	projectID, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "project.invalid_id"),
+		})
+		return
+	}
+
+	var req AddAdminToProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
@@ -484,21 +528,62 @@ func (h *ProjectHandlers) ValidateRepositoryAccess(c *gin.Context) {
 		return
 	}
 
-	err := h.projectService.ValidateRepositoryAccess(req.RepoURL, req.CredentialID)
+	err = h.projectService.AddAdminToProject(uint(projectID), req.AdminID)
 	if err != nil {
-		helper := i18n.NewHelper(lang)
-		response := gin.H{
-			"can_access": false,
-		}
-		if helper != nil {
-			response["error"] = helper.T("git.test_connection_failed")
-		}
-		c.JSON(http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":    i18n.T(lang, "project.access_validation_success"),
-		"can_access": true,
+		"message": i18n.T(lang, "project.admin_added_success"),
+	})
+}
+
+// RemoveAdminFromProject removes an admin from the project
+// @Summary Remove admin from project
+// @Description Remove an admin from the project's admin list
+// @Tags Project
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Project ID"
+// @Param admin_id path int true "Admin ID"
+// @Success 200 {object} object{message=string} "Admin removed successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 404 {object} object{error=string} "Project not found"
+// @Router /projects/{id}/admins/{admin_id} [delete]
+func (h *ProjectHandlers) RemoveAdminFromProject(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	idStr := c.Param("id")
+	projectID, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "project.invalid_id"),
+		})
+		return
+	}
+
+	adminIDStr := c.Param("admin_id")
+	adminID, err := strconv.ParseUint(adminIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "admin.invalid_id"),
+		})
+		return
+	}
+
+	err = h.projectService.RemoveAdminFromProject(uint(projectID), uint(adminID))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "project.admin_removed_success"),
 	})
 }

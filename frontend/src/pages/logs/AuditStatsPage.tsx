@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { apiService } from "@/lib/api/index";
-import { logError } from "@/lib/errors";
+import { logError, handleApiError } from "@/lib/errors";
+import { toast } from "sonner";
 import {
   Section,
   SectionDescription,
@@ -45,6 +46,7 @@ export const AuditStatsPage: React.FC = () => {
     } catch (err: any) {
       logError(err, "Failed to load stats");
       console.error("Failed to load stats:", err);
+      toast.error(handleApiError(err));
     } finally {
       setLoading(false);
     }

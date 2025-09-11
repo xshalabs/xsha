@@ -20,7 +20,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { adminApi } from '@/lib/api';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { adminApi, type AdminRole } from '@/lib/api';
+import { usePermissions } from '@/hooks/usePermissions';
 import { toast } from 'sonner';
 
 const formSchema = z.object({
@@ -38,6 +40,7 @@ const formSchema = z.object({
     .min(2, 'Name must be at least 2 characters')
     .max(100, 'Name must be at most 100 characters'),
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
+  role: z.enum(['super_admin', 'admin', 'developer']).optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -55,6 +58,7 @@ export function CreateAdminDialog({
 }: CreateAdminDialogProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+  const permissions = usePermissions();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -63,6 +67,7 @@ export function CreateAdminDialog({
       password: '',
       name: '',
       email: '',
+      role: 'admin',
     },
   });
 
@@ -74,6 +79,7 @@ export function CreateAdminDialog({
         password: data.password,
         name: data.name,
         email: data.email || undefined,
+        role: data.role as AdminRole,
       });
       toast.success(t('admin.messages.createSuccess'));
       form.reset();
@@ -180,6 +186,37 @@ export function CreateAdminDialog({
                 </FormItem>
               )}
             />
+
+            {permissions.canManageAdminRole() && 
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('admin.fields.role')}</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger disabled={loading}>
+                          <SelectValue placeholder={t('admin.placeholders.role')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="admin">
+                          {t('admin.roles.admin')}
+                        </SelectItem>
+                        <SelectItem value="developer">
+                          {t('admin.roles.developer')}
+                        </SelectItem>
+                        <SelectItem value="super_admin">
+                          {t('admin.roles.super_admin')}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            }
 
             <div className="flex justify-end space-x-2 pt-4">
               <Button

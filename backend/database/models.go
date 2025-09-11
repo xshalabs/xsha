@@ -14,14 +14,14 @@ type Migration struct {
 	AppliedAt time.Time `gorm:"not null" json:"applied_at"`
 }
 
-type TokenBlacklist struct {
+type TokenBlacklistV2 struct {
 	ID        uint           `gorm:"primarykey" json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	TokenID   string         `gorm:"uniqueIndex;not null" json:"token_id"`
 	ExpiresAt time.Time      `gorm:"not null" json:"expires_at"`
-	Username  string         `gorm:"not null" json:"username"`
+	AdminID   uint           `gorm:"not null;index" json:"admin_id"`
 	Reason    string         `gorm:"default:'logout'" json:"reason"`
 }
 
@@ -38,6 +38,14 @@ type LoginLog struct {
 	LoginTime time.Time      `gorm:"not null;index" json:"login_time"`
 }
 
+type AdminRole string
+
+const (
+	AdminRoleSuperAdmin AdminRole = "super_admin"
+	AdminRoleAdmin      AdminRole = "admin"
+	AdminRoleDeveloper  AdminRole = "developer"
+)
+
 type Admin struct {
 	ID           uint           `gorm:"primarykey" json:"id"`
 	CreatedAt    time.Time      `json:"created_at"`
@@ -47,6 +55,7 @@ type Admin struct {
 	PasswordHash string         `gorm:"not null" json:"-"`
 	Name         string         `gorm:"not null;default:'Admin User'" json:"name"`
 	Email        string         `gorm:"default:''" json:"email"`
+	Role         AdminRole      `gorm:"not null;default:'admin';index" json:"role"`
 	IsActive     bool           `gorm:"not null;default:true" json:"is_active"`
 	LastLoginAt  *time.Time     `json:"last_login_at"`
 	LastLoginIP  string         `gorm:"default:''" json:"last_login_ip"`
@@ -79,8 +88,13 @@ type GitCredential struct {
 	PrivateKey   string `gorm:"type:text" json:"-"`
 	PublicKey    string `gorm:"type:text" json:"public_key"`
 
-	AdminID   *uint  `gorm:"index" json:"admin_id"`
-	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+	// Legacy single admin relationship (for backward compatibility)
+	AdminID *uint  `gorm:"index" json:"admin_id"`
+	Admin   *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+
+	// Many-to-many relationship for credential admins
+	Admins []Admin `gorm:"many2many:git_credential_admins;" json:"admins,omitempty"`
+
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 
@@ -106,8 +120,12 @@ type Project struct {
 	CredentialID *uint           `gorm:"index" json:"credential_id"`
 	Credential   *GitCredential  `gorm:"foreignKey:CredentialID" json:"credential"`
 
-	AdminID   *uint  `gorm:"index" json:"admin_id"`
-	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+	AdminID *uint  `gorm:"index" json:"admin_id"`
+	Admin   *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+
+	// Many-to-many relationship for project admins
+	Admins []Admin `gorm:"many2many:project_admins;" json:"admins,omitempty"`
+
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 
@@ -170,8 +188,13 @@ type DevEnvironment struct {
 	EnvVars    string `gorm:"type:text" json:"env_vars"`
 	SessionDir string `gorm:"type:text" json:"session_dir"`
 
-	AdminID   *uint  `gorm:"index" json:"admin_id"`
-	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+	// Legacy single admin relationship (for backward compatibility)
+	AdminID *uint  `gorm:"index" json:"admin_id"`
+	Admin   *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+
+	// Many-to-many relationship for environment admins
+	Admins []Admin `gorm:"many2many:dev_environment_admins;" json:"admins,omitempty"`
+
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 }
 
@@ -345,6 +368,8 @@ type TaskConversationAttachment struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
+	ProjectID      *uint             `gorm:"index" json:"project_id"`
+	Project        *Project          `gorm:"foreignKey:ProjectID" json:"project"`
 	ConversationID *uint             `gorm:"index" json:"conversation_id"`
 	Conversation   *TaskConversation `gorm:"foreignKey:ConversationID" json:"conversation"`
 
@@ -377,4 +402,142 @@ type AdminAvatar struct {
 	AdminID      *uint          `gorm:"index" json:"admin_id"`
 	Admin        *Admin         `gorm:"foreignKey:AdminID" json:"admin"`
 	CreatedBy    string         `gorm:"not null;index" json:"created_by"`
+}
+
+// AdminAvatarMinimal represents minimal avatar information for API responses
+type AdminAvatarMinimal struct {
+	UUID         string `json:"uuid"`
+	OriginalName string `json:"original_name"`
+}
+
+// AdminListResponse represents admin information for list API responses
+type AdminListResponse struct {
+	ID          uint                `json:"id"`
+	CreatedAt   time.Time           `json:"created_at"`
+	UpdatedAt   time.Time           `json:"updated_at"`
+	Username    string              `json:"username"`
+	Name        string              `json:"name"`
+	Email       string              `json:"email"`
+	Role        AdminRole           `json:"role"`
+	IsActive    bool                `json:"is_active"`
+	LastLoginAt *time.Time          `json:"last_login_at"`
+	LastLoginIP string              `json:"last_login_ip"`
+	AvatarID    *uint               `json:"avatar_id"`
+	Avatar      *AdminAvatarMinimal `json:"avatar,omitempty"`
+	CreatedBy   string              `json:"created_by"`
+}
+
+// MinimalAdminResponse represents minimal admin information for environment list responses
+type MinimalAdminResponse struct {
+	ID       uint                `json:"id"`
+	Username string              `json:"username"`
+	Name     string              `json:"name"`
+	Email    string              `json:"email"`
+	Avatar   *AdminAvatarMinimal `json:"avatar,omitempty"`
+}
+
+// AdminKanbanResponse represents admin information for kanban task responses
+type AdminKanbanResponse struct {
+	ID       uint                `json:"id"`
+	Username string              `json:"username"`
+	Name     string              `json:"name"`
+	Email    string              `json:"email"`
+	Avatar   *AdminAvatarMinimal `json:"avatar,omitempty"`
+}
+
+// DevEnvironmentKanbanResponse represents limited dev environment information for kanban responses
+type DevEnvironmentKanbanResponse struct {
+	ID           uint    `json:"id"`
+	CreatedBy    string  `json:"created_by"`
+	Description  string  `json:"description"`
+	DockerImage  string  `json:"docker_image"`
+	CPULimit     float64 `json:"cpu_limit"`
+	MemoryLimit  int64   `json:"memory_limit"`
+	Name         string  `json:"name"`
+	SystemPrompt string  `json:"system_prompt"`
+	Type         string  `json:"type"`
+	AdminID      *uint   `json:"admin_id"`
+}
+
+// ProjectKanbanResponse represents limited project information for kanban responses
+type ProjectKanbanResponse struct {
+	ID           uint   `json:"id"`
+	AdminID      *uint  `json:"admin_id"`
+	CreatedBy    string `json:"created_by"`
+	Description  string `json:"description"`
+	Name         string `json:"name"`
+	SystemPrompt string `json:"system_prompt"`
+}
+
+// TaskKanbanResponse represents task information for kanban view with limited dev environment fields
+type TaskKanbanResponse struct {
+	ID                  uint                          `json:"id"`
+	CreatedAt           time.Time                     `json:"created_at"`
+	UpdatedAt           time.Time                     `json:"updated_at"`
+	Title               string                        `json:"title"`
+	StartBranch         string                        `json:"start_branch"`
+	WorkBranch          string                        `json:"work_branch"`
+	Status              TaskStatus                    `json:"status"`
+	HasPullRequest      bool                          `json:"has_pull_request"`
+	WorkspacePath       string                        `json:"workspace_path"`
+	SessionID           string                        `json:"session_id"`
+	ProjectID           uint                          `json:"project_id"`
+	Project             *ProjectKanbanResponse        `json:"project"`
+	DevEnvironmentID    *uint                         `json:"dev_environment_id"`
+	DevEnvironment      *DevEnvironmentKanbanResponse `json:"dev_environment"`
+	AdminID             *uint                         `json:"admin_id"`
+	Admin               *AdminKanbanResponse          `json:"admin"`
+	CreatedBy           string                        `json:"created_by"`
+	ConversationCount   int64                         `json:"conversation_count"`
+	LatestExecutionTime *time.Time                    `json:"latest_execution_time"`
+}
+
+// EnvironmentListItemResponse represents environment information with minimal admin data for list responses
+type EnvironmentListItemResponse struct {
+	ID           uint                   `json:"id"`
+	CreatedAt    time.Time              `json:"created_at"`
+	UpdatedAt    time.Time              `json:"updated_at"`
+	Name         string                 `json:"name"`
+	Description  string                 `json:"description"`
+	SystemPrompt string                 `json:"system_prompt"`
+	Type         string                 `json:"type"`
+	DockerImage  string                 `json:"docker_image"`
+	CPULimit     float64                `json:"cpu_limit"`
+	MemoryLimit  int64                  `json:"memory_limit"`
+	SessionDir   string                 `json:"session_dir"`
+	AdminID      *uint                  `json:"admin_id"`
+	Admin        *MinimalAdminResponse  `json:"admin,omitempty"`
+	Admins       []MinimalAdminResponse `json:"admins,omitempty"`
+	CreatedBy    string                 `json:"created_by"`
+}
+
+// CredentialListItemResponse represents credential information with minimal admin data for list responses
+type CredentialListItemResponse struct {
+	ID          uint                   `json:"id"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Type        GitCredentialType      `json:"type"`
+	Username    string                 `json:"username"`
+	AdminID     *uint                  `json:"admin_id"`
+	Admin       *MinimalAdminResponse  `json:"admin,omitempty"`
+	Admins      []MinimalAdminResponse `json:"admins,omitempty"`
+	CreatedBy   string                 `json:"created_by"`
+}
+
+// ProjectListItemResponse represents project information with minimal admin data for list responses
+type ProjectListItemResponse struct {
+	ID          uint                   `json:"id"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	RepoURL     string                 `json:"repo_url"`
+	Protocol    GitProtocolType        `json:"protocol"`
+	AdminID     *uint                  `json:"admin_id"`
+	Admin       *MinimalAdminResponse  `json:"admin,omitempty"`
+	Admins      []MinimalAdminResponse `json:"admins,omitempty"`
+	AdminCount  int64                  `json:"admin_count"`
+	CreatedBy   string                 `json:"created_by"`
 }

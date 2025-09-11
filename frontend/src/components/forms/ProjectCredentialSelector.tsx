@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -8,7 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, GitBranch, Loader2, RefreshCw } from "lucide-react";
+import { AlertCircle, GitBranch, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { ProjectFormData } from "@/types/project";
 
@@ -25,10 +24,8 @@ interface ProjectCredentialSelectorProps {
   disabled?: boolean;
   credentialsLoading?: boolean;
   credentialValidating?: boolean;
-  accessValidated?: boolean;
   accessError?: string | null;
   onChange: (field: keyof ProjectFormData, value: number | undefined) => void;
-  onRetryValidation: () => void;
 }
 
 export function ProjectCredentialSelector({
@@ -37,10 +34,8 @@ export function ProjectCredentialSelector({
   disabled = false,
   credentialsLoading = false,
   credentialValidating = false,
-  accessValidated = false,
   accessError = null,
   onChange,
-  onRetryValidation,
 }: ProjectCredentialSelectorProps) {
   const { t } = useTranslation();
 
@@ -111,26 +106,11 @@ export function ProjectCredentialSelector({
         </div>
       )}
 
-      {accessValidated && !credentialValidating && (
-        <div className="text-sm text-green-600">
-          ✓ {t("projects.repository.accessValidated")}
-        </div>
-      )}
-
       {accessError && !credentialValidating && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between">
-            <span>{accessError}</span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onRetryValidation}
-              className="h-6 px-2"
-            >
-              <RefreshCw className="h-3 w-3" />
-            </Button>
+          <AlertDescription>
+            {accessError}
           </AlertDescription>
         </Alert>
       )}

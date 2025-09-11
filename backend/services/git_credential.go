@@ -59,6 +59,14 @@ func (s *gitCredentialService) CreateCredential(name, description, credType, use
 		return nil, err
 	}
 
+	// Add creator as admin to the credential if adminID is provided
+	if adminID != nil {
+		if err := s.repo.AddAdmin(credential.ID, *adminID); err != nil {
+			// Log the error but don't fail the creation
+			fmt.Printf("Warning: Failed to add creator as admin to credential %d: %v\n", credential.ID, err)
+		}
+	}
+
 	return credential, nil
 }
 
@@ -111,15 +119,18 @@ func (s *gitCredentialService) DeleteCredential(id uint) error {
 		return err
 	}
 
-	projects, _, err := s.projectRepo.List("", nil, "created_at", "desc", 1, 1000)
+	projects, err := s.projectRepo.GetByCredentialID(credential.ID)
 	if err != nil {
 		return fmt.Errorf("failed to check credential usage: %v", err)
 	}
 
-	for _, project := range projects {
-		if project.CredentialID != nil && *project.CredentialID == credential.ID {
-			return appErrors.ErrCredentialUsedByProjects
-		}
+	if len(projects) > 0 {
+		return appErrors.ErrCredentialUsedByProjects
+	}
+
+	// Clean up admin associations before deleting the credential
+	if err := s.repo.DeleteAdminAssociations(id); err != nil {
+		return fmt.Errorf("failed to delete admin associations: %v", err)
 	}
 
 	return s.repo.Delete(id)
@@ -127,6 +138,11 @@ func (s *gitCredentialService) DeleteCredential(id uint) error {
 
 func (s *gitCredentialService) ListActiveCredentials(credType *database.GitCredentialType) ([]database.GitCredential, error) {
 	credentials, _, err := s.repo.List(nil, credType, 1, 1000)
+	return credentials, err
+}
+
+func (s *gitCredentialService) ListActiveCredentialsByAdminAccess(adminID uint, credType *database.GitCredentialType) ([]database.GitCredential, error) {
+	credentials, _, err := s.repo.ListByAdminAccess(adminID, nil, credType, 1, 1000)
 	return credentials, err
 }
 
@@ -168,4 +184,60 @@ func (s *gitCredentialService) ValidateCredentialData(credType string, data map[
 		return appErrors.ErrCredentialUnsupportedType
 	}
 	return nil
+}
+
+// GetCredentialWithAdmins retrieves a credential with its admin relationships preloaded
+func (s *gitCredentialService) GetCredentialWithAdmins(id uint) (*database.GitCredential, error) {
+	return s.repo.GetByIDWithAdmins(id)
+}
+
+// ListCredentialsByAdminAccess lists credentials that an admin has access to
+func (s *gitCredentialService) ListCredentialsByAdminAccess(adminID uint, name *string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error) {
+	return s.repo.ListByAdminAccess(adminID, name, credType, page, pageSize)
+}
+
+// AddAdminToCredential adds an admin to the credential's admin list
+func (s *gitCredentialService) AddAdminToCredential(credentialID, adminID uint) error {
+	_, err := s.repo.GetByID(credentialID)
+	if err != nil {
+		return appErrors.ErrCredentialNotFound
+	}
+	return s.repo.AddAdmin(credentialID, adminID)
+}
+
+// RemoveAdminFromCredential removes an admin from the credential's admin list
+func (s *gitCredentialService) RemoveAdminFromCredential(credentialID, adminID uint) error {
+	// Check if credential exists
+	credential, err := s.repo.GetByID(credentialID)
+	if err != nil {
+		return appErrors.ErrCredentialNotFound
+	}
+
+	// Check if trying to remove the primary admin
+	if credential.AdminID != nil && *credential.AdminID == adminID {
+		return appErrors.ErrCannotRemovePrimaryAdmin
+	}
+
+	// Remove the admin from the credential
+	return s.repo.RemoveAdmin(credentialID, adminID)
+}
+
+// GetCredentialAdmins retrieves all admins for a specific credential
+func (s *gitCredentialService) GetCredentialAdmins(credentialID uint) ([]database.Admin, error) {
+	_, err := s.repo.GetByID(credentialID)
+	if err != nil {
+		return nil, appErrors.ErrCredentialNotFound
+	}
+
+	return s.repo.GetAdmins(credentialID)
+}
+
+// IsOwner checks if an admin is owner of a specific credential
+func (s *gitCredentialService) IsOwner(credentialID, adminID uint) (bool, error) {
+	return s.repo.IsOwner(credentialID, adminID)
+}
+
+// CountByAdminID counts the number of git credentials created by a specific admin
+func (s *gitCredentialService) CountByAdminID(adminID uint) (int64, error) {
+	return s.repo.CountByAdminID(adminID)
 }

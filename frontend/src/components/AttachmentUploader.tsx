@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { attachmentApi, type Attachment } from '@/lib/api/attachments';
 
 interface AttachmentUploaderProps {
+  projectId: number;
   existingAttachments?: Attachment[];
   onUploadSuccess?: (attachment: Attachment) => void;
   onUploadError?: (error: string) => void;
@@ -32,6 +33,7 @@ const ACCEPTED_TYPES = {
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export function AttachmentUploader({
+  projectId,
   existingAttachments = [],
   onUploadSuccess,
   onUploadError,
@@ -96,7 +98,7 @@ export function AttachmentUploader({
     );
 
     try {
-      const attachment = await attachmentApi.uploadAttachment(uploadFile.file);
+      const attachment = await attachmentApi.uploadAttachment(uploadFile.file, projectId);
       
       setUploadFiles(prev =>
         prev.map(f => f.id === uploadFile.id ? { 

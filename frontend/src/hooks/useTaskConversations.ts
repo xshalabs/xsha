@@ -21,9 +21,10 @@ export function useTaskConversations(task: Task | null) {
 
     setConversationsLoading(true);
     try {
-      const response = await apiService.taskConversations.list({
-        task_id: task.id,
-      });
+      const response = await apiService.taskConversations.list(
+        task.project_id,
+        task.id
+      );
       setConversations(response.data.conversations);
     } catch (error) {
       console.error("Failed to load conversations:", error);
@@ -56,13 +57,17 @@ export function useTaskConversations(task: Task | null) {
         }
       }
 
-      await apiService.taskConversations.create({
-        task_id: task.id,
-        content: newMessage.trim(),
-        execution_time: executionTime?.toISOString(),
-        env_params: envParams,
-        attachment_ids: attachmentIds,
-      });
+      await apiService.taskConversations.create(
+        task.project_id,
+        task.id,
+        {
+          task_id: task.id,
+          content: newMessage.trim(),
+          execution_time: executionTime?.toISOString(),
+          env_params: envParams,
+          attachment_ids: attachmentIds,
+        }
+      );
 
       // Clear form and refresh conversations list
       setNewMessage("");

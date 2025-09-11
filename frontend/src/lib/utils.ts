@@ -19,7 +19,11 @@ export function formatDateToLocal(date: Date): string {
 /**
  * Format a date string or Date object to localized date and time
  */
-export function formatDateTime(dateInput: string | Date, options?: Intl.DateTimeFormatOptions): string {
+export function formatDateTime(dateInput: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions): string {
+  if (!dateInput) {
+    return '-';
+  }
+  
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
   
   if (isNaN(date.getTime())) {
@@ -42,7 +46,7 @@ export function formatDateTime(dateInput: string | Date, options?: Intl.DateTime
 /**
  * Format a date string or Date object to localized date only
  */
-export function formatDate(dateInput: string | Date, options?: Intl.DateTimeFormatOptions): string {
+export function formatDate(dateInput: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions): string {
   return formatDateTime(dateInput, {
     year: 'numeric',
     month: '2-digit',

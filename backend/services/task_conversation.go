@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"strings"
 	"time"
 	"xsha-backend/database"
@@ -29,44 +30,6 @@ func NewTaskConversationService(repo repository.TaskConversationRepository, task
 		attachmentService: attachmentService,
 		workspaceManager:  workspaceManager,
 	}
-}
-
-func (s *taskConversationService) CreateConversation(taskID uint, content, createdBy string, adminID *uint) (*database.TaskConversation, error) {
-	if err := s.ValidateConversationData(taskID, content); err != nil {
-		return nil, err
-	}
-
-	task, err := s.taskRepo.GetByID(taskID)
-	if err != nil {
-		return nil, appErrors.ErrTaskNotFound
-	}
-
-	if task.Status == database.TaskStatusDone || task.Status == database.TaskStatusCancelled {
-		return nil, appErrors.ErrConversationTaskCompleted
-	}
-
-	hasPendingOrRunning, err := s.repo.HasPendingOrRunningConversations(taskID)
-	if err != nil {
-		return nil, appErrors.ErrConversationGetFailed
-	}
-	if hasPendingOrRunning {
-		return nil, appErrors.ErrConversationCreateFailed
-	}
-
-	conversation := &database.TaskConversation{
-		TaskID:    taskID,
-		Content:   strings.TrimSpace(content),
-		Status:    database.ConversationStatusPending,
-		AdminID:   adminID,
-		CreatedBy: createdBy,
-	}
-
-	if err := s.repo.Create(conversation); err != nil {
-		return nil, err
-	}
-
-	conversation.Task = task
-	return conversation, nil
 }
 
 func (s *taskConversationService) CreateConversationWithExecutionTime(taskID uint, content, createdBy string, executionTime *time.Time, envParams string, adminID *uint) (*database.TaskConversation, error) {
@@ -142,7 +105,6 @@ func (s *taskConversationService) CreateConversationWithExecutionTimeAndAttachme
 	}
 
 	// Validate and process attachments
-	var attachments []database.TaskConversationAttachment
 	if len(attachmentIDs) > 0 {
 		// First create the conversation, then associate attachments
 		// For now, we'll handle attachments after conversation creation
@@ -177,24 +139,21 @@ func (s *taskConversationService) CreateConversationWithExecutionTimeAndAttachme
 				utils.Error("Failed to associate attachment with conversation", "attachmentID", attachmentID, "conversationID", conversation.ID, "error", err)
 				continue
 			}
-
-			// Get the updated attachment
-			attachment, err := s.attachmentService.GetAttachment(attachmentID)
-			if err != nil {
-				utils.Warn("Attachment not found after association", "attachmentID", attachmentID, "conversationID", conversation.ID)
-				continue
-			}
-
-			attachments = append(attachments, *attachment)
 		}
 
-		// Update conversation content with attachment tags
-		processedContent = s.attachmentService.ProcessContentWithAttachments(content, attachments, conversation.ID)
-		conversation.Content = processedContent
+		// Get all attachments for this conversation after association
+		attachments, err := s.attachmentService.GetAttachmentsByConversation(conversation.ID)
+		if err != nil {
+			utils.Error("Failed to get attachments for conversation", "conversationID", conversation.ID, "error", err)
+		} else {
+			// Update conversation content with attachment tags
+			processedContent = s.attachmentService.ProcessContentWithAttachments(content, attachments, conversation.ID)
+			conversation.Content = processedContent
 
-		// Save the updated content
-		if err := s.repo.Update(conversation); err != nil {
-			utils.Error("Failed to update conversation content with attachment tags", "conversationID", conversation.ID, "error", err)
+			// Save the updated content
+			if err := s.repo.Update(conversation); err != nil {
+				utils.Error("Failed to update conversation content with attachment tags", "conversationID", conversation.ID, "error", err)
+			}
 		}
 	}
 
@@ -232,30 +191,6 @@ func (s *taskConversationService) ListConversations(taskID uint, page, pageSize 
 	return s.repo.List(taskID, page, pageSize)
 }
 
-func (s *taskConversationService) UpdateConversation(id uint, updates map[string]interface{}) error {
-	conversation, err := s.repo.GetByID(id)
-	if err != nil {
-		return err
-	}
-
-	if content, ok := updates["content"]; ok {
-		if contentStr, ok := content.(string); ok && strings.TrimSpace(contentStr) == "" {
-			return appErrors.ErrRequired
-		}
-	}
-
-	for key, value := range updates {
-		switch key {
-		case "content":
-			if v, ok := value.(string); ok {
-				conversation.Content = strings.TrimSpace(v)
-			}
-		}
-	}
-
-	return s.repo.Update(conversation)
-}
-
 func (s *taskConversationService) DeleteConversation(id uint) error {
 	conversation, err := s.repo.GetByID(id)
 	if err != nil {
@@ -276,7 +211,9 @@ func (s *taskConversationService) DeleteConversation(id uint) error {
 	}
 
 	if conversation.CommitHash != "" && conversation.Task != nil && conversation.Task.WorkspacePath != "" {
-		if err := utils.GitResetToPreviousCommit(conversation.Task.WorkspacePath, conversation.CommitHash); err != nil {
+		// Convert relative workspace path to absolute for git operations
+		absoluteWorkspacePath := s.workspaceManager.GetAbsolutePath(conversation.Task.WorkspacePath)
+		if err := utils.GitResetToPreviousCommit(absoluteWorkspacePath, conversation.CommitHash); err != nil {
 			utils.Error("Failed to reset git repository to previous commit",
 				"conversation_id", id,
 				"commit_hash", conversation.CommitHash,
@@ -340,10 +277,6 @@ func (s *taskConversationService) DeleteConversation(id uint) error {
 	return nil
 }
 
-func (s *taskConversationService) GetLatestConversation(taskID uint) (*database.TaskConversation, error) {
-	return s.repo.GetLatestByTask(taskID)
-}
-
 func (s *taskConversationService) ValidateConversationData(taskID uint, content string) error {
 	if strings.TrimSpace(content) == "" {
 		return appErrors.ErrRequired
@@ -395,6 +328,15 @@ func (s *taskConversationService) GetConversationGitDiffFile(conversationID uint
 		return "", appErrors.ErrFilePathEmpty
 	}
 
+	// Additional security validation at service layer
+	if err := utils.ValidateGitFilePath(filePath); err != nil {
+		utils.Warn("Service layer security validation failed",
+			"conversationID", conversationID,
+			"filePath", filePath,
+			"error", err)
+		return "", fmt.Errorf("invalid file path: %v", err)
+	}
+
 	conversation, err := s.repo.GetByID(conversationID)
 	if err != nil {
 		return "", appErrors.ErrTaskNotFound
@@ -413,11 +355,25 @@ func (s *taskConversationService) GetConversationGitDiffFile(conversationID uint
 		return "", appErrors.ErrWorkspacePathEmpty
 	}
 
+	// Log the file access attempt for security monitoring
+	utils.Info("Git diff file access",
+		"conversationID", conversationID,
+		"taskID", task.ID,
+		"filePath", filePath,
+		"commitHash", conversation.CommitHash,
+		"workspacePath", task.WorkspacePath)
+
 	// Convert relative workspace path to absolute for git operations
 	absoluteWorkspacePath := s.workspaceManager.GetAbsolutePath(task.WorkspacePath)
 
 	diffContent, err := utils.GetCommitFileDiff(absoluteWorkspacePath, conversation.CommitHash, filePath)
 	if err != nil {
+		utils.Error("Failed to get commit file diff",
+			"conversationID", conversationID,
+			"filePath", filePath,
+			"commitHash", conversation.CommitHash,
+			"workspacePath", absoluteWorkspacePath,
+			"error", err)
 		return "", err
 	}
 
