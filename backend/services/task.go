@@ -444,7 +444,60 @@ func (s *taskService) PushTaskBranch(id uint, forcePush bool) (string, error) {
 	return output, nil
 }
 
-func (s *taskService) GetKanbanTasks(projectID uint) (map[database.TaskStatus][]database.Task, error) {
+// convertToKanbanResponse converts a database.Task to TaskKanbanResponse with limited dev environment and project fields
+func convertToKanbanResponse(task database.Task) database.TaskKanbanResponse {
+	response := database.TaskKanbanResponse{
+		ID:                  task.ID,
+		CreatedAt:           task.CreatedAt,
+		UpdatedAt:           task.UpdatedAt,
+		Title:               task.Title,
+		StartBranch:         task.StartBranch,
+		WorkBranch:          task.WorkBranch,
+		Status:              task.Status,
+		HasPullRequest:      task.HasPullRequest,
+		WorkspacePath:       task.WorkspacePath,
+		SessionID:           task.SessionID,
+		ProjectID:           task.ProjectID,
+		DevEnvironmentID:    task.DevEnvironmentID,
+		AdminID:             task.AdminID,
+		Admin:               task.Admin,
+		CreatedBy:           task.CreatedBy,
+		ConversationCount:   task.ConversationCount,
+		LatestExecutionTime: task.LatestExecutionTime,
+	}
+
+	// Convert Project to limited response if it exists
+	if task.Project != nil {
+		response.Project = &database.ProjectKanbanResponse{
+			ID:           task.Project.ID,
+			AdminID:      task.Project.AdminID,
+			CreatedBy:    task.Project.CreatedBy,
+			Description:  task.Project.Description,
+			Name:         task.Project.Name,
+			SystemPrompt: task.Project.SystemPrompt,
+		}
+	}
+
+	// Convert DevEnvironment to limited response if it exists
+	if task.DevEnvironment != nil {
+		response.DevEnvironment = &database.DevEnvironmentKanbanResponse{
+			ID:           task.DevEnvironment.ID,
+			CreatedBy:    task.DevEnvironment.CreatedBy,
+			Description:  task.DevEnvironment.Description,
+			DockerImage:  task.DevEnvironment.DockerImage,
+			CPULimit:     task.DevEnvironment.CPULimit,
+			MemoryLimit:  task.DevEnvironment.MemoryLimit,
+			Name:         task.DevEnvironment.Name,
+			SystemPrompt: task.DevEnvironment.SystemPrompt,
+			Type:         task.DevEnvironment.Type,
+			AdminID:      task.DevEnvironment.AdminID,
+		}
+	}
+
+	return response
+}
+
+func (s *taskService) GetKanbanTasks(projectID uint) (map[database.TaskStatus][]database.TaskKanbanResponse, error) {
 	// Validate project exists
 	_, err := s.projectRepo.GetByID(projectID)
 	if err != nil {
@@ -489,18 +542,19 @@ func (s *taskService) GetKanbanTasks(projectID uint) (map[database.TaskStatus][]
 		}
 	}
 
-	// Group tasks by status
-	kanbanData := make(map[database.TaskStatus][]database.Task)
+	// Group tasks by status and convert to kanban response format
+	kanbanData := make(map[database.TaskStatus][]database.TaskKanbanResponse)
 
 	// Initialize all status groups to ensure they exist even if empty
-	kanbanData[database.TaskStatusTodo] = []database.Task{}
-	kanbanData[database.TaskStatusInProgress] = []database.Task{}
-	kanbanData[database.TaskStatusDone] = []database.Task{}
-	kanbanData[database.TaskStatusCancelled] = []database.Task{}
+	kanbanData[database.TaskStatusTodo] = []database.TaskKanbanResponse{}
+	kanbanData[database.TaskStatusInProgress] = []database.TaskKanbanResponse{}
+	kanbanData[database.TaskStatusDone] = []database.TaskKanbanResponse{}
+	kanbanData[database.TaskStatusCancelled] = []database.TaskKanbanResponse{}
 
-	// Group tasks by their status
+	// Group tasks by their status and convert to response format
 	for _, task := range tasks {
-		kanbanData[task.Status] = append(kanbanData[task.Status], task)
+		kanbanResponse := convertToKanbanResponse(task)
+		kanbanData[task.Status] = append(kanbanData[task.Status], kanbanResponse)
 	}
 
 	return kanbanData, nil

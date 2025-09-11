@@ -124,7 +124,7 @@ type TaskService interface {
 	CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint, adminID *uint, createdBy string) (*database.Task, error)
 	GetTask(id uint) (*database.Task, error)
 	GetTaskByIDAndProject(taskID, projectID uint) (*database.Task, error)
-	GetKanbanTasks(projectID uint) (map[database.TaskStatus][]database.Task, error)
+	GetKanbanTasks(projectID uint) (map[database.TaskStatus][]database.TaskKanbanResponse, error)
 	UpdateTask(id uint, updates map[string]interface{}) error
 	UpdateTaskStatus(id uint, status database.TaskStatus) error
 	UpdateTaskSessionID(id uint, sessionID string) error

@@ -436,6 +436,53 @@ type MinimalAdminResponse struct {
 	Avatar   *AdminAvatarMinimal `json:"avatar,omitempty"`
 }
 
+// DevEnvironmentKanbanResponse represents limited dev environment information for kanban responses
+type DevEnvironmentKanbanResponse struct {
+	ID           uint    `json:"id"`
+	CreatedBy    string  `json:"created_by"`
+	Description  string  `json:"description"`
+	DockerImage  string  `json:"docker_image"`
+	CPULimit     float64 `json:"cpu_limit"`
+	MemoryLimit  int64   `json:"memory_limit"`
+	Name         string  `json:"name"`
+	SystemPrompt string  `json:"system_prompt"`
+	Type         string  `json:"type"`
+	AdminID      *uint   `json:"admin_id"`
+}
+
+// ProjectKanbanResponse represents limited project information for kanban responses
+type ProjectKanbanResponse struct {
+	ID           uint   `json:"id"`
+	AdminID      *uint  `json:"admin_id"`
+	CreatedBy    string `json:"created_by"`
+	Description  string `json:"description"`
+	Name         string `json:"name"`
+	SystemPrompt string `json:"system_prompt"`
+}
+
+// TaskKanbanResponse represents task information for kanban view with limited dev environment fields
+type TaskKanbanResponse struct {
+	ID                  uint                          `json:"id"`
+	CreatedAt           time.Time                     `json:"created_at"`
+	UpdatedAt           time.Time                     `json:"updated_at"`
+	Title               string                        `json:"title"`
+	StartBranch         string                        `json:"start_branch"`
+	WorkBranch          string                        `json:"work_branch"`
+	Status              TaskStatus                    `json:"status"`
+	HasPullRequest      bool                          `json:"has_pull_request"`
+	WorkspacePath       string                        `json:"workspace_path"`
+	SessionID           string                        `json:"session_id"`
+	ProjectID           uint                          `json:"project_id"`
+	Project             *ProjectKanbanResponse        `json:"project"`
+	DevEnvironmentID    *uint                         `json:"dev_environment_id"`
+	DevEnvironment      *DevEnvironmentKanbanResponse `json:"dev_environment"`
+	AdminID             *uint                         `json:"admin_id"`
+	Admin               *Admin                        `json:"admin"`
+	CreatedBy           string                        `json:"created_by"`
+	ConversationCount   int64                         `json:"conversation_count"`
+	LatestExecutionTime *time.Time                    `json:"latest_execution_time"`
+}
+
 // EnvironmentListItemResponse represents environment information with minimal admin data for list responses
 type EnvironmentListItemResponse struct {
 	ID           uint                   `json:"id"`

@@ -536,10 +536,10 @@ func (h *TaskHandlers) PushTaskBranch(c *gin.Context) {
 
 // @Description Get kanban tasks response
 type GetKanbanTasksResponse struct {
-	Todo       []database.Task `json:"todo"`
-	InProgress []database.Task `json:"in_progress"`
-	Done       []database.Task `json:"done"`
-	Cancelled  []database.Task `json:"cancelled"`
+	Todo       []database.TaskKanbanResponse `json:"todo"`
+	InProgress []database.TaskKanbanResponse `json:"in_progress"`
+	Done       []database.TaskKanbanResponse `json:"done"`
+	Cancelled  []database.TaskKanbanResponse `json:"cancelled"`
 }
 
 // GetKanbanTasks retrieves tasks grouped by status for kanban view
