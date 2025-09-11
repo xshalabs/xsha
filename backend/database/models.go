@@ -436,6 +436,15 @@ type MinimalAdminResponse struct {
 	Avatar   *AdminAvatarMinimal `json:"avatar,omitempty"`
 }
 
+// AdminKanbanResponse represents admin information for kanban task responses
+type AdminKanbanResponse struct {
+	ID       uint                `json:"id"`
+	Username string              `json:"username"`
+	Name     string              `json:"name"`
+	Email    string              `json:"email"`
+	Avatar   *AdminAvatarMinimal `json:"avatar,omitempty"`
+}
+
 // DevEnvironmentKanbanResponse represents limited dev environment information for kanban responses
 type DevEnvironmentKanbanResponse struct {
 	ID           uint    `json:"id"`
@@ -477,7 +486,7 @@ type TaskKanbanResponse struct {
 	DevEnvironmentID    *uint                         `json:"dev_environment_id"`
 	DevEnvironment      *DevEnvironmentKanbanResponse `json:"dev_environment"`
 	AdminID             *uint                         `json:"admin_id"`
-	Admin               *Admin                        `json:"admin"`
+	Admin               *AdminKanbanResponse          `json:"admin"`
 	CreatedBy           string                        `json:"created_by"`
 	ConversationCount   int64                         `json:"conversation_count"`
 	LatestExecutionTime *time.Time                    `json:"latest_execution_time"`

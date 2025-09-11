@@ -460,7 +460,7 @@ func convertToKanbanResponse(task database.Task) database.TaskKanbanResponse {
 		ProjectID:           task.ProjectID,
 		DevEnvironmentID:    task.DevEnvironmentID,
 		AdminID:             task.AdminID,
-		Admin:               task.Admin,
+		Admin:               nil, // Will be set below
 		CreatedBy:           task.CreatedBy,
 		ConversationCount:   task.ConversationCount,
 		LatestExecutionTime: task.LatestExecutionTime,
@@ -492,6 +492,26 @@ func convertToKanbanResponse(task database.Task) database.TaskKanbanResponse {
 			Type:         task.DevEnvironment.Type,
 			AdminID:      task.DevEnvironment.AdminID,
 		}
+	}
+
+	// Convert Admin to limited response if it exists
+	if task.Admin != nil {
+		adminResponse := &database.AdminKanbanResponse{
+			ID:       task.Admin.ID,
+			Username: task.Admin.Username,
+			Name:     task.Admin.Name,
+			Email:    task.Admin.Email,
+		}
+
+		// Convert Avatar to minimal response if it exists
+		if task.Admin.Avatar != nil {
+			adminResponse.Avatar = &database.AdminAvatarMinimal{
+				UUID:         task.Admin.Avatar.UUID,
+				OriginalName: task.Admin.Avatar.OriginalName,
+			}
+		}
+
+		response.Admin = adminResponse
 	}
 
 	return response
