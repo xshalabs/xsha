@@ -43,6 +43,7 @@ type GitCredentialRepository interface {
 	// Admin management methods
 	AddAdmin(credentialID, adminID uint) error
 	RemoveAdmin(credentialID, adminID uint) error
+	DeleteAdminAssociations(credentialID uint) error
 	GetAdmins(credentialID uint) ([]database.Admin, error)
 	IsOwner(credentialID, adminID uint) (bool, error)
 }

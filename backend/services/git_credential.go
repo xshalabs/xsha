@@ -119,15 +119,18 @@ func (s *gitCredentialService) DeleteCredential(id uint) error {
 		return err
 	}
 
-	projects, _, err := s.projectRepo.List("", nil, "created_at", "desc", 1, 1000)
+	projects, err := s.projectRepo.GetByCredentialID(credential.ID)
 	if err != nil {
 		return fmt.Errorf("failed to check credential usage: %v", err)
 	}
 
-	for _, project := range projects {
-		if project.CredentialID != nil && *project.CredentialID == credential.ID {
-			return appErrors.ErrCredentialUsedByProjects
-		}
+	if len(projects) > 0 {
+		return appErrors.ErrCredentialUsedByProjects
+	}
+
+	// Clean up admin associations before deleting the credential
+	if err := s.repo.DeleteAdminAssociations(id); err != nil {
+		return fmt.Errorf("failed to delete admin associations: %v", err)
 	}
 
 	return s.repo.Delete(id)

@@ -167,6 +167,10 @@ func (r *gitCredentialRepository) RemoveAdmin(credentialID, adminID uint) error 
 	return r.db.Exec("DELETE FROM git_credential_admins WHERE git_credential_id = ? AND admin_id = ?", credentialID, adminID).Error
 }
 
+func (r *gitCredentialRepository) DeleteAdminAssociations(credentialID uint) error {
+	return r.db.Exec("DELETE FROM git_credential_admins WHERE git_credential_id = ?", credentialID).Error
+}
+
 func (r *gitCredentialRepository) GetAdmins(credentialID uint) ([]database.Admin, error) {
 	var admins []database.Admin
 	err := r.db.
