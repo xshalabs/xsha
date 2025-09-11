@@ -125,22 +125,19 @@ func (s *devEnvironmentService) DeleteEnvironment(id uint) error {
 		return err
 	}
 
-	tasks, _, err := s.taskRepo.List(nil, nil, nil, nil, &env.ID, "created_at", "desc", 1, 1)
+	taskCount, err := s.taskRepo.CountByDevEnvironmentID(env.ID)
 	if err != nil {
 		return fmt.Errorf("failed to check environment usage: %v", err)
 	}
-	if len(tasks) > 0 {
+	if taskCount > 0 {
 		return appErrors.ErrEnvironmentUsedByTasks
 	}
 
 	// Delete session directory if it exists
 	if env.SessionDir != "" {
-		// Convert relative path to absolute path for deletion
 		absoluteSessionDir := s.getAbsoluteSessionPath(env.SessionDir)
 		if err := os.RemoveAll(absoluteSessionDir); err != nil {
-			// Log the error but don't fail the deletion
-			// as the database record should still be removed
-			utils.Warn("Failed to delete session directory", "sessionDir", absoluteSessionDir, "error", err)
+			utils.Error("Failed to delete session directory", "sessionDir", absoluteSessionDir, "error", err)
 		}
 	}
 

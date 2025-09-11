@@ -240,3 +240,9 @@ func (r *taskRepository) UpdateStatusBatch(taskIDs []uint, status database.TaskS
 
 	return validTaskIDs, failedIDs, nil
 }
+
+func (r *taskRepository) CountByDevEnvironmentID(devEnvID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&database.Task{}).Where("dev_environment_id = ?", devEnvID).Count(&count).Error
+	return count, err
+}

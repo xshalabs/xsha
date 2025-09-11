@@ -136,7 +136,16 @@ func (r *devEnvironmentRepository) Update(env *database.DevEnvironment) error {
 }
 
 func (r *devEnvironmentRepository) Delete(id uint) error {
-	return r.db.Where("id = ?", id).Delete(&database.DevEnvironment{}).Error
+	// Use transaction to ensure both operations succeed or fail together
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// First, delete all admin relationships for this environment
+		if err := tx.Exec("DELETE FROM dev_environment_admins WHERE dev_environment_id = ?", id).Error; err != nil {
+			return err
+		}
+		
+		// Then delete the environment itself
+		return tx.Where("id = ?", id).Delete(&database.DevEnvironment{}).Error
+	})
 }
 
 // AddAdmin adds an admin to the environment's admin list

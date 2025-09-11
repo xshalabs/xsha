@@ -112,6 +112,7 @@ type TaskRepository interface {
 	GetConversationCounts(taskIDs []uint) (map[uint]int64, error)
 	GetLatestExecutionTimes(taskIDs []uint) (map[uint]*time.Time, error)
 	UpdateStatusBatch(taskIDs []uint, status database.TaskStatus, projectID uint) ([]uint, []uint, error)
+	CountByDevEnvironmentID(devEnvID uint) (int64, error)
 }
 
 type TaskConversationRepository interface {
