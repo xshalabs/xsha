@@ -1,0 +1,42 @@
+{
+  "changePassword": "Change Password",
+  "updateAvatar": "Update Avatar",
+  "changePasswordPage": {
+    "title": "Change Password",
+    "description": "Update your account password to keep your account secure",
+    "formTitle": "Password Update",
+    "formDescription": "Enter your current password and choose a new secure password",
+    "currentPassword": "Current Password",
+    "currentPasswordPlaceholder": "Enter your current password",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Enter your new password",
+    "confirmPassword": "Confirm New Password", 
+    "confirmPasswordPlaceholder": "Confirm your new password",
+    "submit": "Change Password",
+    "changing": "Changing Password...",
+    "success": "Password changed successfully",
+    "error": "Failed to change password"
+  },
+  "updateAvatarPage": {
+    "title": "Update Avatar",
+    "description": "Upload and update your profile avatar image",
+    "formTitle": "Avatar Management",
+    "formDescription": "Upload a new image to use as your profile avatar",
+    "currentAvatar": "Current Avatar",
+    "newAvatar": "New Avatar",
+    "newAvatarPreview": "New Avatar Preview",
+    "selectFile": "Select Avatar Image",
+    "fileHint": "PNG, JPG, GIF, WEBP up to 5MB",
+    "chooseAnother": "Choose Another Image",
+    "uploading": "Uploading...",
+    "uploadSuccess": "Avatar uploaded successfully",
+    "uploadError": "Failed to upload avatar",
+    "update": "Update Avatar",
+    "updating": "Updating Avatar...",
+    "updateSuccess": "Avatar updated successfully",
+    "updateError": "Failed to update avatar",
+    "invalidFileType": "Please select a valid image file",
+    "fileTooLarge": "File size must be less than 5MB",
+    "noAvatarSelected": "Please upload an avatar image first"
+  }
+}

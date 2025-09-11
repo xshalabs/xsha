@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 	"xsha-backend/config"
+	"xsha-backend/database/migrations"
 	"xsha-backend/utils"
 
 	"github.com/glebarez/sqlite"
@@ -66,12 +67,12 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 		panic(fmt.Sprintf("Unsupported database type: %s", cfg.DatabaseType))
 	}
 
-	if err := db.AutoMigrate(&Migration{}, &TokenBlacklist{}, &LoginLog{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}); err != nil {
+	// AutoMigrate all tables first to create the base structure
+	if err := db.AutoMigrate(&Migration{}, &TokenBlacklistV2{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}, &AdminAvatar{}); err != nil {
 		return nil, err
 	}
-	utils.Info("Database table migration completed")
 
-	// Run custom migrations
+	// Run custom migrations after AutoMigrate (for data migrations and custom changes)
 	if err := runMigrations(db, cfg); err != nil {
 		utils.Error("Failed to run custom migrations", "error", err)
 		return nil, err
@@ -118,19 +119,10 @@ func GetDB() *gorm.DB {
 
 // runMigrations executes custom migrations
 func runMigrations(db *gorm.DB, cfg *config.Config) error {
-	utils.Info("Running custom migrations")
-
-	// Run workspace relative paths migration
-	if err := runWorkspaceRelativePathsMigration(db, cfg.WorkspaceBaseDir); err != nil {
-		return fmt.Errorf("workspace relative paths migration failed: %v", err)
+	migrationManager := migrations.NewMigrationManager(db, cfg)
+	if err := migrationManager.RunAll(); err != nil {
+		return fmt.Errorf("migration manager failed: %v", err)
 	}
-
-	// Run dev environment session dir relative paths migration
-	if err := runDevEnvironmentSessionDirMigration(db, cfg.DevSessionsDir); err != nil {
-		return fmt.Errorf("dev environment session dir migration failed: %v", err)
-	}
-
-	utils.Info("Custom migrations completed successfully")
 	return nil
 }
 

@@ -7,11 +7,15 @@
   "language": "Language",
   "groups": {
     "workspace": "Workspace",
-    "logs": "Logs"
+    "logs": "Logs",
+    "admin": "Administration"
   },
   "logs": {
     "operationLogs": "Operation",
     "loginLogs": "Login",
     "stats": "Statistics"
+  },
+  "admin": {
+    "users": "Users"
   }
 } 

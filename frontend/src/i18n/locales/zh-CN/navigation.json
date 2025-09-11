@@ -7,11 +7,15 @@
   "language": "语言",
   "groups": {
     "workspace": "工作区",
-    "logs": "日志"
+    "logs": "日志",
+    "admin": "系统管理"
   },
   "logs": {
     "operationLogs": "操作",
     "loginLogs": "登录",
     "stats": "统计"
+  },
+  "admin": {
+    "users": "用户"
   }
 }

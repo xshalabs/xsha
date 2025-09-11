@@ -6,6 +6,7 @@ import type {
   GitCredentialListResponse,
   GitCredentialDetailResponse,
   GitCredentialListParams,
+  MinimalAdminResponse,
 } from "@/types/credentials";
 
 export const gitCredentialsApi = {
@@ -49,6 +50,24 @@ export const gitCredentialsApi = {
 
   delete: async (id: number): Promise<{ message: string }> => {
     return request<{ message: string }>(`/credentials/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  // Admin management endpoints
+  getAdmins: async (credentialId: number): Promise<{ admins: MinimalAdminResponse[] }> => {
+    return request<{ admins: MinimalAdminResponse[] }>(`/credentials/${credentialId}/admins`);
+  },
+
+  addAdmin: async (credentialId: number, data: { admin_id: number }): Promise<{ message: string }> => {
+    return request<{ message: string }>(`/credentials/${credentialId}/admins`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  removeAdmin: async (credentialId: number, adminId: number): Promise<{ message: string }> => {
+    return request<{ message: string }>(`/credentials/${credentialId}/admins/${adminId}`, {
       method: "DELETE",
     });
   },

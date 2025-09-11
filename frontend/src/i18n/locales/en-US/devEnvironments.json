@@ -8,16 +8,18 @@
   "invalid_id": "Invalid environment ID",
   "create_success": "Environment created successfully",
   "update_success": "Environment updated successfully",
+  "fetch_details_failed": "Failed to fetch environment details",
   "table": {
     "name": "Name",
     "description": "Description",
     "cpu": "CPU",
     "memory": "Memory",
-    "env_vars": "Env Vars",
+    "admins": "Members",
     "created": "Created",
     "no_description": "No description",
     "core": "core",
-    "cores": "cores"
+    "cores": "cores",
+    "admin": "member"
   },
   "filters": {
     "name": "Environment Name",
@@ -58,5 +60,24 @@
     "empty_message": "No environment variables configured. Add one below.",
     "key_required": "Variable name cannot be empty",
     "key_exists": "Variable name already exists"
+  },
+  "admin": {
+    "manage": "Manage Members",
+    "manage_title": "Manage Environment Members",
+    "manage_description": "Manage members for {{name}} environment",
+    "current_admins": "Current Members",
+    "no_admins": "No members assigned",
+    "add_admin": "Add Member",
+    "select_placeholder": "Select a member to add",
+    "select_admin": "Please select a member",
+    "load_failed": "Failed to load members",
+    "added_success": "Member added successfully",
+    "add_failed": "Failed to add member",
+    "removed_success": "{{name}} removed successfully",
+    "remove_failed": "Failed to remove member",
+    "confirm_remove_title": "Confirm Remove Member", 
+    "confirm_remove_description": "Are you sure you want to remove {{adminName}} as a member from {{environmentName}}?",
+    "creator": "Creator",
+    "cannot_remove_creator": "Cannot remove environment creator"
   }
 }

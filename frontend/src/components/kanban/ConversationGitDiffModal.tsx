@@ -31,6 +31,7 @@ interface ConversationGitDiffModalProps {
   isOpen: boolean;
   onClose: () => void;
   conversation: TaskConversation | null;
+  projectId?: number;
 }
 
 const getDefaultDiffSummary = (): GitDiffSummary => ({
@@ -46,6 +47,7 @@ export const ConversationGitDiffModal: React.FC<ConversationGitDiffModalProps> =
   isOpen,
   onClose,
   conversation,
+  projectId,
 }) => {
   const { t } = useTranslation();
 
@@ -69,7 +71,7 @@ export const ConversationGitDiffModal: React.FC<ConversationGitDiffModalProps> =
   const [loadingFiles, setLoadingFiles] = useState<Set<string>>(new Set());
 
   const loadDiffSummary = async () => {
-    if (!conversation || !conversation.commit_hash) {
+    if (!conversation || !conversation.commit_hash || !projectId) {
       setError(t("taskConversations.gitDiff.noCommitHash.description"));
       return;
     }
@@ -78,6 +80,8 @@ export const ConversationGitDiffModal: React.FC<ConversationGitDiffModalProps> =
       setLoading(true);
       setError(null);
       const response = await apiService.taskConversations.getGitDiff(
+        projectId,
+        conversation.task_id,
         conversation.id,
         { include_content: false }
       );
@@ -102,13 +106,15 @@ export const ConversationGitDiffModal: React.FC<ConversationGitDiffModalProps> =
   };
 
   const loadFileContent = async (filePath: string) => {
-    if (!conversation || fileContents.has(filePath) || loadingFiles.has(filePath)) {
+    if (!conversation || !projectId || fileContents.has(filePath) || loadingFiles.has(filePath)) {
       return;
     }
 
     try {
       setLoadingFiles((prev) => new Set(prev).add(filePath));
       const response = await apiService.taskConversations.getGitDiffFile(
+        projectId,
+        conversation.task_id,
         conversation.id,
         { file_path: filePath }
       );

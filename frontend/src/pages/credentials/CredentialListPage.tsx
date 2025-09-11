@@ -31,6 +31,7 @@ import {
 } from "@/components/forms/form-sheet";
 import { FormCard, FormCardContent } from "@/components/forms/form-card";
 import { CredentialFormSheet } from "@/components/CredentialFormSheet";
+import { CredentialAdminManagementSheet } from "@/components/credentials/CredentialAdminManagementSheet";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTablePaginationServer } from "@/components/ui/data-table/data-table-pagination-server";
 import { createGitCredentialColumns } from "@/components/data-table/credentials/columns";
@@ -43,6 +44,7 @@ import type {
   GitCredentialListParams,
 } from "@/types/credentials";
 import { Plus, Save } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 
 const CredentialListPage: React.FC = () => {
@@ -50,6 +52,7 @@ const CredentialListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { setItems } = useBreadcrumb();
   const { setActions } = usePageActions();
+  const { canCreateCredential, canEditCredential, canDeleteCredential, canManageCredentialAdmins } = usePermissions();
 
   const [credentials, setCredentials] = useState<GitCredential[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +66,7 @@ const CredentialListPage: React.FC = () => {
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [editingCredential, setEditingCredential] = useState<GitCredential | null>(null);
+  const [managingCredential, setManagingCredential] = useState<GitCredential | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add request deduplication
@@ -91,12 +95,17 @@ const CredentialListPage: React.FC = () => {
       setIsCreateSheetOpen(true);
     };
 
-    setActions(
-      <Button onClick={handleCreateNew} size="sm">
-        <Plus className="h-4 w-4 mr-2" />
-        {t("gitCredentials.create")}
-      </Button>
-    );
+    // Only show create button if user has permission
+    if (canCreateCredential) {
+      setActions(
+        <Button onClick={handleCreateNew} size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          {t("gitCredentials.create")}
+        </Button>
+      );
+    } else {
+      setActions(null);
+    }
 
     // Clear breadcrumb items (we're at root level)
     setItems([]);
@@ -106,7 +115,7 @@ const CredentialListPage: React.FC = () => {
       setActions(null);
       setItems([]);
     };
-  }, [setActions, setItems, t]);
+  }, [setActions, setItems, t, canCreateCredential]);
 
   const loadCredentialsData = useCallback(
     async (page: number, filters: ColumnFiltersState, updateUrl = true) => {
@@ -261,6 +270,13 @@ const CredentialListPage: React.FC = () => {
     [loadCredentialsData, currentPage, columnFilters]
   );
 
+  const handleManageAdmins = useCallback(
+    (credential: GitCredential) => {
+      setManagingCredential(credential);
+    },
+    []
+  );
+
 
 
 
@@ -318,9 +334,13 @@ const CredentialListPage: React.FC = () => {
       createGitCredentialColumns({
         onEdit: handleEdit,
         onDelete: handleDelete,
+        onManageAdmins: handleManageAdmins,
         t: (key: string) => t(key),
+        canEditCredential,
+        canDeleteCredential,
+        canManageCredentialAdmins,
       }),
-    [handleEdit, handleDelete, t]
+    [handleEdit, handleDelete, handleManageAdmins, t, canEditCredential, canDeleteCredential, canManageCredentialAdmins]
   );
 
 
@@ -442,6 +462,19 @@ const CredentialListPage: React.FC = () => {
           </FormSheetFooter>
         </FormSheetContent>
       </FormSheet>
+
+      {/* Admin Management Sheet */}
+      {managingCredential && (
+        <CredentialAdminManagementSheet
+          credential={managingCredential}
+          open={!!managingCredential}
+          onOpenChange={(open) => {
+            if (!open) {
+              setManagingCredential(null);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

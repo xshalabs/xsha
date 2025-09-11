@@ -5,19 +5,22 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 type Claims struct {
-	Username string `json:"username"`
+	AdminID uint `json:"admin_id"`
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(username, secret string) (string, error) {
+func GenerateJWT(adminID uint, secret string) (string, error) {
 	expirationTime := Now().Add(24 * time.Hour)
+	jti := uuid.New().String()
 
 	claims := &Claims{
-		Username: username,
+		AdminID: adminID,
 		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        jti,
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(Now()),
 		},
@@ -81,4 +84,17 @@ func ExtractTokenFromAuthHeader(authHeader string) (string, error) {
 	}
 
 	return token, nil
+}
+
+func GetTokenID(tokenString, secret string) (string, error) {
+	claims, err := ValidateJWT(tokenString, secret)
+	if err != nil {
+		return "", err
+	}
+
+	if claims.ID == "" {
+		return "", fmt.Errorf("token has no ID")
+	}
+
+	return claims.ID, nil
 }

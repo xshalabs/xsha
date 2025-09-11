@@ -19,12 +19,14 @@ import (
 type TaskConversationHandlers struct {
 	conversationService services.TaskConversationService
 	logStreamingService executor.LogStreamingService
+	aiTaskExecutor      services.AITaskExecutorService
 }
 
-func NewTaskConversationHandlers(conversationService services.TaskConversationService, logStreamingService executor.LogStreamingService) *TaskConversationHandlers {
+func NewTaskConversationHandlers(conversationService services.TaskConversationService, logStreamingService executor.LogStreamingService, aiTaskExecutor services.AITaskExecutorService) *TaskConversationHandlers {
 	return &TaskConversationHandlers{
 		conversationService: conversationService,
 		logStreamingService: logStreamingService,
+		aiTaskExecutor:      aiTaskExecutor,
 	}
 }
 
@@ -34,12 +36,7 @@ type CreateConversationRequest struct {
 	Content       string     `json:"content" binding:"required" example:"Please implement the user authentication feature"`
 	ExecutionTime *time.Time `json:"execution_time" example:"2024-01-01T10:00:00Z"`
 	EnvParams     string     `json:"env_params" example:"{\"model\":\"sonnet\"}"`
-	AttachmentIDs []uint     `json:"attachment_ids,omitempty" example:"[1,2]"`
-}
-
-// @Description Update conversation request
-type UpdateConversationRequest struct {
-	Content string `json:"content" example:"Updated conversation content"`
+	AttachmentIDs []uint     `json:"attachment_ids,omitempty" swaggertype:"array,integer" example:"1,2"`
 }
 
 // CreateConversation creates a new task conversation
@@ -49,33 +46,48 @@ type UpdateConversationRequest struct {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Param id path int true "Project ID"
+// @Param taskId path int true "Task ID"
 // @Param conversation body CreateConversationRequest true "Conversation information"
 // @Success 201 {object} object{message=string,data=object} "Conversation created successfully"
 // @Failure 400 {object} object{error=string} "Request parameter error"
 // @Failure 401 {object} object{error=string} "Authentication failed"
-// @Router /conversations [post]
+// @Router /projects/{id}/tasks/{taskId}/conversations [post]
 func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+	// Extract project ID from URL path
+	projectIDStr := c.Param("id")
+	_, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
+
+	// Extract task ID from URL path
+	taskIDStr := c.Param("taskId")
+	taskID, err := strconv.ParseUint(taskIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	username, _ := c.Get("username")
+	adminIDInterface, _ := c.Get("admin_id")
+	adminID, _ := adminIDInterface.(uint)
 
 	var req CreateConversationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error())})
 		return
 	}
+	req.TaskID = uint(taskID)
 
 	var conversation *database.TaskConversation
-	var err error
-
 	if len(req.AttachmentIDs) > 0 {
-		conversation, err = h.conversationService.CreateConversationWithExecutionTimeAndAttachments(req.TaskID, req.Content, username.(string), req.ExecutionTime, req.EnvParams, req.AttachmentIDs)
+		conversation, err = h.conversationService.CreateConversationWithExecutionTimeAndAttachments(req.TaskID, req.Content, username.(string), req.ExecutionTime, req.EnvParams, req.AttachmentIDs, &adminID)
 	} else {
-		conversation, err = h.conversationService.CreateConversationWithExecutionTime(req.TaskID, req.Content, username.(string), req.ExecutionTime, req.EnvParams)
+		conversation, err = h.conversationService.CreateConversationWithExecutionTime(req.TaskID, req.Content, username.(string), req.ExecutionTime, req.EnvParams, &adminID)
 	}
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
@@ -88,41 +100,6 @@ func (h *TaskConversationHandlers) CreateConversation(c *gin.Context) {
 	})
 }
 
-// GetConversation retrieves a specific conversation
-// @Summary Get task conversation
-// @Description Get a conversation by ID
-// @Tags Task Conversations
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "Conversation ID"
-// @Success 200 {object} object{message=string,data=object} "Conversation retrieved successfully"
-// @Failure 400 {object} object{error=string} "Invalid conversation ID"
-// @Failure 401 {object} object{error=string} "Authentication failed"
-// @Failure 404 {object} object{error=string} "Conversation not found"
-// @Router /conversations/{id} [get]
-func (h *TaskConversationHandlers) GetConversation(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
-		return
-	}
-
-	conversation, err := h.conversationService.GetConversation(uint(id))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.not_found")})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "taskConversation.get_success"),
-		"data":    conversation,
-	})
-}
-
 // GetConversationDetails retrieves a conversation with its result details
 // @Summary Get conversation details
 // @Description Get a conversation with its associated result information
@@ -130,23 +107,42 @@ func (h *TaskConversationHandlers) GetConversation(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Conversation ID"
+// @Param id path int true "Project ID"
+// @Param taskId path int true "Task ID"
+// @Param convId path int true "Conversation ID"
 // @Success 200 {object} object{message=string,data=object} "Conversation details retrieved successfully"
 // @Failure 400 {object} object{error=string} "Invalid conversation ID"
 // @Failure 401 {object} object{error=string} "Authentication failed"
 // @Failure 404 {object} object{error=string} "Conversation not found"
-// @Router /conversations/{id}/details [get]
+// @Router /projects/{id}/tasks/{taskId}/conversations/{convId}/details [get]
 func (h *TaskConversationHandlers) GetConversationDetails(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
+	// Extract project ID from URL path
+	projectIDStr := c.Param("id")
+	_, err := strconv.ParseUint(projectIDStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
-	details, err := h.conversationService.GetConversationWithResult(uint(id))
+	// Extract task ID from URL path
+	taskIDStr := c.Param("taskId")
+	_, err = strconv.ParseUint(taskIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	// Extract conversation ID from URL path
+	convIDStr := c.Param("convId")
+	convID, err := strconv.ParseUint(convIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	details, err := h.conversationService.GetConversationWithResult(uint(convID))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.not_found")})
 		return
@@ -165,23 +161,28 @@ func (h *TaskConversationHandlers) GetConversationDetails(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param task_id query int true "Task ID"
+// @Param id path int true "Project ID"
+// @Param taskId path int true "Task ID"
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Page size" default(20)
 // @Success 200 {object} object{message=string,data=object{conversations=[]object,total=int,page=int,page_size=int}} "Conversations retrieved successfully"
 // @Failure 400 {object} object{error=string} "Request parameter error"
 // @Failure 401 {object} object{error=string} "Authentication failed"
 // @Failure 500 {object} object{error=string} "Internal server error"
-// @Router /conversations [get]
+// @Router /projects/{id}/tasks/{taskId}/conversations [get]
 func (h *TaskConversationHandlers) ListConversations(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	taskIDStr := c.Query("task_id")
-	if taskIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "task.project_id_required")})
+	// Extract project ID from URL path
+	projectIDStr := c.Param("id")
+	_, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
+	// Extract task ID from URL path
+	taskIDStr := c.Param("taskId")
 	taskID, err := strconv.ParseUint(taskIDStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
@@ -208,48 +209,6 @@ func (h *TaskConversationHandlers) ListConversations(c *gin.Context) {
 	})
 }
 
-// UpdateConversation updates a conversation
-// @Summary Update task conversation
-// @Description Update a conversation's content
-// @Tags Task Conversations
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "Conversation ID"
-// @Param conversation body UpdateConversationRequest true "Conversation update information"
-// @Success 200 {object} object{message=string} "Conversation updated successfully"
-// @Failure 400 {object} object{error=string} "Request parameter error"
-// @Failure 401 {object} object{error=string} "Authentication failed"
-// @Router /conversations/{id} [put]
-func (h *TaskConversationHandlers) UpdateConversation(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
-		return
-	}
-
-	var req UpdateConversationRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error())})
-		return
-	}
-
-	updates := make(map[string]interface{})
-	if req.Content != "" {
-		updates["content"] = req.Content
-	}
-
-	if err := h.conversationService.UpdateConversation(uint(id), updates); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "taskConversation.update_success")})
-}
-
 // DeleteConversation deletes a conversation
 // @Summary Delete task conversation
 // @Description Delete a conversation by ID
@@ -257,68 +216,47 @@ func (h *TaskConversationHandlers) UpdateConversation(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Conversation ID"
+// @Param id path int true "Project ID"
+// @Param taskId path int true "Task ID"
+// @Param convId path int true "Conversation ID"
 // @Success 200 {object} object{message=string} "Conversation deleted successfully"
 // @Failure 400 {object} object{error=string} "Invalid conversation ID"
 // @Failure 401 {object} object{error=string} "Authentication failed"
 // @Failure 404 {object} object{error=string} "Conversation not found"
-// @Router /conversations/{id} [delete]
+// @Router /projects/{id}/tasks/{taskId}/conversations/{convId} [delete]
 func (h *TaskConversationHandlers) DeleteConversation(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
+	// Extract project ID from URL path
+	projectIDStr := c.Param("id")
+	_, err := strconv.ParseUint(projectIDStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
 		return
 	}
 
-	if err := h.conversationService.DeleteConversation(uint(id)); err != nil {
+	// Extract task ID from URL path
+	taskIDStr := c.Param("taskId")
+	_, err = strconv.ParseUint(taskIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	// Extract conversation ID from URL path
+	convIDStr := c.Param("convId")
+	convID, err := strconv.ParseUint(convIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	if err := h.conversationService.DeleteConversation(uint(convID)); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "taskConversation.update_success")})
-}
-
-// GetLatestConversation retrieves the latest conversation for a task
-// @Summary Get latest task conversation
-// @Description Get the most recent conversation for a specific task
-// @Tags Task Conversations
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param task_id query int true "Task ID"
-// @Success 200 {object} object{message=string,data=object} "Latest conversation retrieved successfully"
-// @Failure 400 {object} object{error=string} "Request parameter error"
-// @Failure 401 {object} object{error=string} "Authentication failed"
-// @Failure 404 {object} object{error=string} "Conversation not found"
-// @Router /conversations/latest [get]
-func (h *TaskConversationHandlers) GetLatestConversation(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	taskIDStr := c.Query("task_id")
-	if taskIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "task.project_id_required")})
-		return
-	}
-
-	taskID, err := strconv.ParseUint(taskIDStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
-		return
-	}
-
-	conversation, err := h.conversationService.GetLatestConversation(uint(taskID))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": i18n.T(lang, "taskConversation.not_found")})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "taskConversation.get_success"),
-		"data":    conversation,
-	})
 }
 
 // GetConversationGitDiff retrieves Git diff for a conversation
@@ -328,17 +266,40 @@ func (h *TaskConversationHandlers) GetLatestConversation(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Conversation ID"
+// @Param id path int true "Project ID"
+// @Param taskId path int true "Task ID"
+// @Param convId path int true "Conversation ID"
 // @Param include_content query bool false "Include file content in diff" default(false)
 // @Success 200 {object} object{data=object} "Git diff retrieved successfully"
 // @Failure 400 {object} object{error=string} "Invalid conversation ID"
 // @Failure 401 {object} object{error=string} "Authentication failed"
 // @Failure 500 {object} object{error=string} "Failed to get Git diff"
-// @Router /conversations/{id}/git-diff [get]
+// @Router /projects/{id}/tasks/{taskId}/conversations/{convId}/git-diff [get]
 func (h *TaskConversationHandlers) GetConversationGitDiff(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	conversationIDStr := c.Param("id")
+	// Extract project ID from URL path
+	projectIDStr := c.Param("id")
+	_, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_id"),
+		})
+		return
+	}
+
+	// Extract task ID from URL path
+	taskIDStr := c.Param("taskId")
+	_, err = strconv.ParseUint(taskIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_id"),
+		})
+		return
+	}
+
+	// Extract conversation ID from URL path
+	conversationIDStr := c.Param("convId")
 	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -370,17 +331,40 @@ func (h *TaskConversationHandlers) GetConversationGitDiff(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Conversation ID"
+// @Param id path int true "Project ID"
+// @Param taskId path int true "Task ID"
+// @Param convId path int true "Conversation ID"
 // @Param file_path query string true "File path"
 // @Success 200 {object} object{data=object{file_path=string,diff_content=string}} "File Git diff retrieved successfully"
 // @Failure 400 {object} object{error=string} "Request parameter error"
 // @Failure 401 {object} object{error=string} "Authentication failed"
 // @Failure 500 {object} object{error=string} "Failed to get file Git diff"
-// @Router /conversations/{id}/git-diff/file [get]
+// @Router /projects/{id}/tasks/{taskId}/conversations/{convId}/git-diff/file [get]
 func (h *TaskConversationHandlers) GetConversationGitDiffFile(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	conversationIDStr := c.Param("id")
+	// Extract project ID from URL path
+	projectIDStr := c.Param("id")
+	_, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_id"),
+		})
+		return
+	}
+
+	// Extract task ID from URL path
+	taskIDStr := c.Param("taskId")
+	_, err = strconv.ParseUint(taskIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_id"),
+		})
+		return
+	}
+
+	// Extract conversation ID from URL path
+	conversationIDStr := c.Param("convId")
 	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -393,6 +377,15 @@ func (h *TaskConversationHandlers) GetConversationGitDiffFile(c *gin.Context) {
 	if filePath == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.T(lang, "validation.file_path_required"),
+		})
+		return
+	}
+
+	// Validate file path for security
+	if err := utils.ValidateGitFilePath(filePath); err != nil {
+		utils.Warn("Invalid file path detected", "filePath", filePath, "error", err, "clientIP", c.ClientIP())
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_file_path"),
 		})
 		return
 	}
@@ -421,17 +414,40 @@ func (h *TaskConversationHandlers) GetConversationGitDiffFile(c *gin.Context) {
 // @Accept json
 // @Produce text/event-stream
 // @Security BearerAuth
-// @Param id path int true "Conversation ID"
+// @Param id path int true "Project ID"
+// @Param taskId path int true "Task ID"
+// @Param convId path int true "Conversation ID"
 // @Success 200 {string} string "Real-time log stream"
 // @Failure 400 {object} object{error=string} "Invalid conversation ID"
 // @Failure 401 {object} object{error=string} "Authentication failed"
 // @Failure 404 {object} object{error=string} "Conversation not found"
 // @Failure 500 {object} object{error=string} "Failed to stream logs"
-// @Router /conversations/{id}/logs/stream [get]
+// @Router /projects/{id}/tasks/{taskId}/conversations/{convId}/logs/stream [get]
 func (h *TaskConversationHandlers) StreamConversationLogs(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	conversationIDStr := c.Param("id")
+	// Extract project ID from URL path
+	projectIDStr := c.Param("id")
+	_, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_id"),
+		})
+		return
+	}
+
+	// Extract task ID from URL path
+	taskIDStr := c.Param("taskId")
+	_, err = strconv.ParseUint(taskIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_id"),
+		})
+		return
+	}
+
+	// Extract conversation ID from URL path
+	conversationIDStr := c.Param("convId")
 	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -502,4 +518,110 @@ func (h *TaskConversationHandlers) StreamConversationLogs(c *gin.Context) {
 			return
 		}
 	}
+}
+
+// CancelExecution cancels task execution
+// @Summary Cancel task execution
+// @Description Cancel AI task that is executing or pending
+// @Tags Task Execution Log
+// @Accept json
+// @Produce json
+// @Param id path int true "Project ID"
+// @Param taskId path int true "Task ID"
+// @Param convId path int true "Conversation ID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security BearerAuth
+// @Router /projects/{id}/tasks/{taskId}/conversations/{convId}/execution/cancel [post]
+func (h *TaskConversationHandlers) CancelExecution(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	// Extract project ID from URL path
+	projectIDStr := c.Param("id")
+	_, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	// Extract task ID from URL path
+	taskIDStr := c.Param("taskId")
+	_, err = strconv.ParseUint(taskIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	// Extract conversation ID from URL path
+	conversationIDStr := c.Param("convId")
+	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	username, _ := c.Get("username")
+	createdBy, _ := username.(string)
+
+	if err := h.aiTaskExecutor.CancelExecution(uint(conversationID), createdBy); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task_execution_log.cancel_success")})
+}
+
+// RetryExecution retries task execution
+// @Summary Retry task execution
+// @Description Retry failed or cancelled AI task
+// @Tags Task Execution Log
+// @Accept json
+// @Produce json
+// @Param id path int true "Project ID"
+// @Param taskId path int true "Task ID"
+// @Param convId path int true "Conversation ID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security BearerAuth
+// @Router /projects/{id}/tasks/{taskId}/conversations/{convId}/execution/retry [post]
+func (h *TaskConversationHandlers) RetryExecution(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	// Extract project ID from URL path
+	projectIDStr := c.Param("id")
+	_, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	// Extract task ID from URL path
+	taskIDStr := c.Param("taskId")
+	_, err = strconv.ParseUint(taskIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	// Extract conversation ID from URL path
+	conversationIDStr := c.Param("convId")
+	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.T(lang, "common.invalid_id")})
+		return
+	}
+
+	username, _ := c.Get("username")
+	createdBy, _ := username.(string)
+
+	if err := h.aiTaskExecutor.RetryExecution(uint(conversationID), createdBy); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": i18n.T(lang, "task_execution_log.retry_success")})
 }

@@ -12,12 +12,14 @@ const loadModularTranslations = async (locale: string) => {
       dashboard,
       gitCredentials,
       projects,
+      admin,
       adminLogs,
       devEnvironments,
       tasks,
       taskConversations,
       gitDiff,
       systemConfig,
+      user,
     ] = await Promise.all([
       import(`./locales/${locale}/common.json`),
       import(`./locales/${locale}/auth.json`),
@@ -26,12 +28,14 @@ const loadModularTranslations = async (locale: string) => {
       import(`./locales/${locale}/dashboard.json`),
       import(`./locales/${locale}/gitCredentials.json`),
       import(`./locales/${locale}/projects.json`),
+      import(`./locales/${locale}/admin.json`),
       import(`./locales/${locale}/adminLogs.json`),
       import(`./locales/${locale}/devEnvironments.json`),
       import(`./locales/${locale}/tasks.json`),
       import(`./locales/${locale}/taskConversations.json`),
       import(`./locales/${locale}/gitDiff.json`),
       import(`./locales/${locale}/systemConfig.json`),
+      import(`./locales/${locale}/user.json`),
     ]);
 
     return {
@@ -42,12 +46,14 @@ const loadModularTranslations = async (locale: string) => {
       dashboard: dashboard.default,
       gitCredentials: gitCredentials.default,
       projects: projects.default,
+      admin: admin.default,
       adminLogs: adminLogs.default,
       devEnvironments: devEnvironments.default,
       tasks: tasks.default,
       taskConversations: taskConversations.default,
       gitDiff: gitDiff.default,
       systemConfig: systemConfig.default,
+      user: user.default,
     };
   } catch (error) {
     console.error(`Failed to load translations for locale: ${locale}`, error);

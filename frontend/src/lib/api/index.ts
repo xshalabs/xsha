@@ -7,30 +7,40 @@ export type {
   LoginResponse,
   UserResponse,
   ApiErrorResponse,
+  Admin,
+  AdminRole,
+  AdminAvatar,
+  CreateAdminRequest,
+  UpdateAdminRequest,
+  ChangePasswordRequest,
+  ChangeOwnPasswordRequest,
+  UpdateOwnAvatarRequest,
+  AdminListResponse,
+  AdminResponse,
+  CreateAdminResponse,
+  AvatarUploadResponse,
 } from "./types";
 
 import { authApi } from "./auth";
+import { adminApi } from "./admin";
 import { gitCredentialsApi } from "./credentials";
 import { adminLogsApi } from "./admin-logs";
 import { projectsApi } from "./projects";
 import { devEnvironmentsApi } from "./environments";
 import { tasksApi } from "./tasks";
 import { taskConversationsApi } from "./task-conversations";
-import { taskConversationResultsApi } from "./task-conversation-results";
-import { taskExecutionLogsApi } from "./task-execution-logs";
 import { dashboardApi } from "./dashboard";
 import { attachmentApi } from "./attachments";
 
 export {
   authApi,
+  adminApi,
   gitCredentialsApi,
   adminLogsApi,
   projectsApi,
   devEnvironmentsApi,
   tasksApi,
   taskConversationsApi,
-  taskConversationResultsApi,
-  taskExecutionLogsApi,
   dashboardApi,
   attachmentApi,
 };
@@ -39,7 +49,11 @@ export const apiService = {
   login: authApi.login,
   logout: authApi.logout,
   getCurrentUser: authApi.getCurrentUser,
+  changeOwnPassword: authApi.changeOwnPassword,
+  updateOwnAvatar: authApi.updateOwnAvatar,
   healthCheck: authApi.healthCheck,
+
+  admin: adminApi,
 
   gitCredentials: gitCredentialsApi,
 
@@ -52,10 +66,6 @@ export const apiService = {
   tasks: tasksApi,
 
   taskConversations: taskConversationsApi,
-
-  taskConversationResults: taskConversationResultsApi,
-
-  taskExecutionLogs: taskExecutionLogsApi,
 
   dashboard: dashboardApi,
 

@@ -29,7 +29,7 @@ func NewDevEnvironmentService(repo repository.DevEnvironmentRepository, taskRepo
 	}
 }
 
-func (s *devEnvironmentService) CreateEnvironment(name, description, systemPrompt, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, createdBy string) (*database.DevEnvironment, error) {
+func (s *devEnvironmentService) CreateEnvironment(name, description, systemPrompt, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, adminID uint, createdBy string) (*database.DevEnvironment, error) {
 	if err := s.validateEnvironmentData(name, envType, cpuLimit, memoryLimit); err != nil {
 		return nil, err
 	}
@@ -67,11 +67,16 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, systemPromp
 		MemoryLimit:  memoryLimit,
 		EnvVars:      string(envVarsJSON),
 		SessionDir:   sessionDir,
+		AdminID:      &adminID,
 		CreatedBy:    createdBy,
 	}
 
 	if err := s.repo.Create(env); err != nil {
 		return nil, err
+	}
+
+	if err := s.repo.AddAdmin(env.ID, adminID); err != nil {
+		utils.Error("Failed to add creator as admin to environment", "envID", env.ID, "adminID", adminID, "error", err)
 	}
 
 	return env, nil
@@ -120,22 +125,19 @@ func (s *devEnvironmentService) DeleteEnvironment(id uint) error {
 		return err
 	}
 
-	tasks, _, err := s.taskRepo.List(nil, nil, nil, nil, &env.ID, "created_at", "desc", 1, 1)
+	taskCount, err := s.taskRepo.CountByDevEnvironmentID(env.ID)
 	if err != nil {
 		return fmt.Errorf("failed to check environment usage: %v", err)
 	}
-	if len(tasks) > 0 {
+	if taskCount > 0 {
 		return appErrors.ErrEnvironmentUsedByTasks
 	}
 
 	// Delete session directory if it exists
 	if env.SessionDir != "" {
-		// Convert relative path to absolute path for deletion
 		absoluteSessionDir := s.getAbsoluteSessionPath(env.SessionDir)
 		if err := os.RemoveAll(absoluteSessionDir); err != nil {
-			// Log the error but don't fail the deletion
-			// as the database record should still be removed
-			utils.Warn("Failed to delete session directory", "sessionDir", absoluteSessionDir, "error", err)
+			utils.Error("Failed to delete session directory", "sessionDir", absoluteSessionDir, "error", err)
 		}
 	}
 
@@ -153,26 +155,6 @@ func (s *devEnvironmentService) ValidateEnvVars(envVars map[string]string) error
 		_ = value
 	}
 	return nil
-}
-
-func (s *devEnvironmentService) GetEnvironmentVars(id uint) (map[string]string, error) {
-	env, err := s.repo.GetByID(id)
-	if err != nil {
-		return nil, err
-	}
-
-	var envVars map[string]string
-	if env.EnvVars != "" {
-		if err := json.Unmarshal([]byte(env.EnvVars), &envVars); err != nil {
-			return nil, fmt.Errorf("failed to parse environment variables: %v", err)
-		}
-	}
-
-	if envVars == nil {
-		envVars = make(map[string]string)
-	}
-
-	return envVars, nil
 }
 
 func (s *devEnvironmentService) UpdateEnvironmentVars(id uint, envVars map[string]string) error {
@@ -285,6 +267,58 @@ func (s *devEnvironmentService) getAbsoluteSessionPath(relativePath string) stri
 	return filepath.Join(s.config.DevSessionsDir, relativePath)
 }
 
-func (s *devEnvironmentService) GetStats() (map[string]interface{}, error) {
-	return s.repo.GetStats()
+// GetEnvironmentWithAdmins retrieves an environment with its admin relationships preloaded
+func (s *devEnvironmentService) GetEnvironmentWithAdmins(id uint) (*database.DevEnvironment, error) {
+	return s.repo.GetByIDWithAdmins(id)
+}
+
+// ListEnvironmentsByAdminAccess lists environments that an admin has access to
+func (s *devEnvironmentService) ListEnvironmentsByAdminAccess(adminID uint, name *string, dockerImage *string, page, pageSize int) ([]database.DevEnvironment, int64, error) {
+	return s.repo.ListByAdminAccess(adminID, name, dockerImage, page, pageSize)
+}
+
+// AddAdminToEnvironment adds an admin to the environment's admin list
+func (s *devEnvironmentService) AddAdminToEnvironment(envID, adminID uint) error {
+	_, err := s.repo.GetByID(envID)
+	if err != nil {
+		return appErrors.ErrDevEnvironmentNotFound
+	}
+	return s.repo.AddAdmin(envID, adminID)
+}
+
+// RemoveAdminFromEnvironment removes an admin from the environment's admin list
+func (s *devEnvironmentService) RemoveAdminFromEnvironment(envID, adminID uint) error {
+	// Check if environment exists
+	env, err := s.repo.GetByID(envID)
+	if err != nil {
+		return appErrors.ErrDevEnvironmentNotFound
+	}
+
+	// Check if trying to remove the primary admin
+	if env.AdminID != nil && *env.AdminID == adminID {
+		return appErrors.ErrCannotRemovePrimaryAdmin
+	}
+
+	// Remove the admin from the environment
+	return s.repo.RemoveAdmin(envID, adminID)
+}
+
+// GetEnvironmentAdmins retrieves all admins for a specific environment
+func (s *devEnvironmentService) GetEnvironmentAdmins(envID uint) ([]database.Admin, error) {
+	_, err := s.repo.GetByID(envID)
+	if err != nil {
+		return nil, appErrors.ErrDevEnvironmentNotFound
+	}
+
+	return s.repo.GetAdmins(envID)
+}
+
+// IsOwner checks if an admin is the owner of a specific environment
+func (s *devEnvironmentService) IsOwner(envID, adminID uint) (bool, error) {
+	return s.repo.IsOwner(envID, adminID)
+}
+
+// CountByAdminID counts the number of dev environments created by a specific admin
+func (s *devEnvironmentService) CountByAdminID(adminID uint) (int64, error) {
+	return s.repo.CountByAdminID(adminID)
 }

@@ -14,17 +14,19 @@
   "repoUrl": "仓库地址",
   "credential": "访问凭据",
   "taskCount": "任务数量",
+  "adminCount": "成员",
+  "createdBy": "创建者",
   "credentialHelp": "选择用于访问此仓库的凭据（可选）",
   "protocolAutoDetected": "自动检测协议",
   "messages": {
     "loadFailed": "加载项目失败",
+    "loadDetailsFailed": "加载项目详情失败",
     "createSuccess": "项目创建成功",
     "createFailed": "创建项目失败",
     "updateSuccess": "项目更新成功",
     "updateFailed": "更新项目失败",
     "accessFailed": "仓库访问验证失败",
-    "fetchBranchesFailed": "获取仓库分支失败",
-    "validateAccessFailed": "验证仓库访问失败"
+    "fetchBranchesFailed": "获取仓库分支失败"
   },
   "placeholders": {
     "name": "输入项目名称",
@@ -50,5 +52,21 @@
   "createAndCustomize": "创建并开始自定义",
   "createHelpText": "配置您的项目仓库设置，添加访问凭据，开始自动化您的开发工作流程。",
   "editAndUpdate": "编辑并更新设置",
-  "editHelpText": "修改您的项目配置，更新仓库设置，管理访问凭据。"
+  "editHelpText": "修改您的项目配置，更新仓库设置，管理访问凭据。",
+  "admin": {
+    "manage": "管理成员",
+    "manage_title": "管理项目成员",
+    "manage_description": "管理有权访问项目 {{name}} 的成员",
+    "add_admin": "添加成员",
+    "current_admins": "当前成员",
+    "select_admin": "请选择要添加的成员",
+    "select_placeholder": "选择要添加的成员",
+    "no_admins": "此项目未分配成员",
+    "creator": "创建者",
+    "cannot_remove_creator": "无法移除项目创建者",
+    "added_success": "成员成功添加到项目",
+    "removed_success": "成员 {{name}} 成功从项目中移除",
+    "confirm_remove_title": "确认移除成员",
+    "confirm_remove_description": "确定要将 {{adminName}} 从 {{projectName}} 的成员中移除吗？"
+  }
 }

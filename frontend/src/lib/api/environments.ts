@@ -5,9 +5,10 @@ import type {
   UpdateDevEnvironmentRequest,
   DevEnvironmentDetailResponse,
   DevEnvironmentListResponse,
-  DevEnvironmentVarsResponse,
   DevEnvironmentListParams,
   DevEnvironmentImageConfig,
+  AddAdminToEnvironmentRequest,
+  EnvironmentAdminsResponse,
 } from "@/types/dev-environment";
 
 export const devEnvironmentsApi = {
@@ -58,21 +59,6 @@ export const devEnvironmentsApi = {
     });
   },
 
-  getEnvVars: async (id: number): Promise<DevEnvironmentVarsResponse> => {
-    return request<DevEnvironmentVarsResponse>(
-      `/environments/${id}/env-vars`
-    );
-  },
-
-  updateEnvVars: async (
-    id: number,
-    envVars: Record<string, string>
-  ): Promise<{ message: string }> => {
-    return request<{ message: string }>(`/environments/${id}/env-vars`, {
-      method: "PUT",
-      body: JSON.stringify(envVars),
-    });
-  },
 
   getAvailableImages: async (): Promise<{
     images: DevEnvironmentImageConfig[];
@@ -82,9 +68,31 @@ export const devEnvironmentsApi = {
     );
   },
 
-  getStats: async (): Promise<{ stats: Record<string, any> }> => {
-    return request<{ stats: Record<string, any> }>(
-      "/environments/stats"
+  // Admin management methods
+  getAdmins: async (id: number): Promise<EnvironmentAdminsResponse> => {
+    return request<EnvironmentAdminsResponse>(`/environments/${id}/admins`);
+  },
+
+  addAdmin: async (
+    id: number,
+    data: AddAdminToEnvironmentRequest
+  ): Promise<{ message: string }> => {
+    return request<{ message: string }>(`/environments/${id}/admins`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  removeAdmin: async (
+    id: number,
+    adminId: number
+  ): Promise<{ message: string }> => {
+    return request<{ message: string }>(
+      `/environments/${id}/admins/${adminId}`,
+      {
+        method: "DELETE",
+      }
     );
   },
+
 };

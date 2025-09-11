@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import { apiService } from "@/lib/api/index";
-import { logError } from "@/lib/errors";
+import { logError, handleApiError } from "@/lib/errors";
 import { formatDateToLocal } from "@/lib/utils";
 import { formatDateRangeForAPI, formatToLocal } from "@/lib/timezone";
 import { useTranslation } from "react-i18next";
@@ -159,6 +159,7 @@ export const AdminOperationLogList: React.FC = () => {
         } catch (err: any) {
           logError(err, "Failed to load operation logs");
           console.error("Failed to load operation logs:", err);
+          toast.error(handleApiError(err));
         } finally {
           setLoading(false);
           // Clear the request tracking after a short delay
@@ -190,7 +191,7 @@ export const AdminOperationLogList: React.FC = () => {
     } catch (err: any) {
       logError(err, "Failed to load operation log detail");
       console.error("Failed to load operation log detail:", err);
-      toast.error(t("adminLogs.operationLogs.messages.loadDetailFailed"));
+      toast.error(handleApiError(err));
     }
   };
 

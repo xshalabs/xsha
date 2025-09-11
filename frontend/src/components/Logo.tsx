@@ -26,11 +26,21 @@ export const Logo: React.FC<LogoProps> = ({
     sidebarState = null;
   }
 
+  // Get the actual applied theme
+  const getResolvedTheme = () => {
+    if (theme === "system") {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    return theme;
+  };
+
+  const resolvedTheme = getResolvedTheme();
+
   // 当侧边栏收缩时使用 logo.png，否则根据主题使用相应的logo
   // If no sidebar context, default to theme-based logo
   const logoSrc = sidebarState === "collapsed" 
     ? logoImage 
-    : (theme === 'dark' ? xshaDarkLogo : xshaLightLogo);
+    : (resolvedTheme === 'dark' ? xshaDarkLogo : xshaLightLogo);
 
   return (
     <img

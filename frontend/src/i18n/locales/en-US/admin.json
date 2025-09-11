@@ -1,0 +1,104 @@
+{
+  "title": "Users",
+  "description": "Manage user accounts",
+  "pageTitle": {
+    "list": "Users - XSha"
+  },
+  "table": {
+    "username": "Username",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "lastLogin": "Last Login",
+    "createdBy": "Created By",
+    "createdAt": "Created At",
+    "noData": "No users found"
+  },
+  "fields": {
+    "username": "Username",
+    "password": "Password",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "statusDescription": "Enable or disable this user account",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password"
+  },
+  "placeholders": {
+    "username": "Enter username (letters, numbers, underscore only)",
+    "password": "Enter password (minimum 6 characters)",
+    "name": "Enter full name",
+    "email": "Enter email address (optional)",
+    "role": "Select role",
+    "newPassword": "Enter new password",
+    "confirmPassword": "Confirm new password"
+  },
+  "filters": {
+    "role": "Role",
+    "status": "Status",
+    "allStatus": "All Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "search_placeholder": "Search by email, name, username..."
+  },
+  "roles": {
+    "super_admin": "Super Admin",
+    "admin": "Admin",
+    "developer": "Developer"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "actions": {
+    "create": "Create User",
+    "changePassword": "Change Password",
+    "changingPassword": "Changing..."
+  },
+  "dialogs": {
+    "create": {
+      "title": "Create User",
+      "description": "Create a new user account"
+    },
+    "update": {
+      "title": "Update User",
+      "description": "Update user account: {{username}}"
+    },
+    "changePassword": {
+      "title": "Change Password",
+      "description": "Change password for user: {{username}}"
+    },
+    "delete": {
+      "title": "Delete User",
+      "description": "Are you sure you want to delete user: {{username}}?",
+      "warning": "This action cannot be undone."
+    }
+  },
+  "messages": {
+    "createSuccess": "User created successfully",
+    "updateSuccess": "User updated successfully",
+    "deleteSuccess": "User deleted successfully",
+    "passwordChangeSuccess": "Password changed successfully"
+  },
+  "errors": {
+    "loadFailed": "Failed to load users",
+    "createFailed": "Failed to create user",
+    "updateFailed": "Failed to update user",
+    "deleteFailed": "Failed to delete user",
+    "passwordChangeFailed": "Failed to change password",
+    "cannotDeleteSystemAdmin": "Cannot delete system-created user accounts"
+  },
+  "avatar": {
+    "title": "Avatar",
+    "upload": "Upload Avatar",
+    "change": "Change Avatar", 
+    "uploading": "Uploading...",
+    "confirm": "Upload",
+    "uploadSuccess": "Avatar uploaded successfully",
+    "uploadFailed": "Avatar upload failed",
+    "fileTooLarge": "File too large (max 5MB)",
+    "unsupportedFormat": "Only image files are supported (JPG, PNG, GIF, WebP)"
+  }
+}

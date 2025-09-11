@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { Plus, Save } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { usePermissions } from "@/hooks/usePermissions";
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
 import {
@@ -35,6 +36,7 @@ import {
 } from "@/components/forms/form-sheet";
 import { FormCard, FormCardContent } from "@/components/forms/form-card";
 import { ProjectFormSheet } from "@/components/ProjectFormSheet";
+import { AdminManagementSheet } from "@/components/projects/AdminManagementSheet";
 
 import { createProjectColumns } from "@/components/data-table/projects/columns";
 import { ProjectDataTableToolbar } from "@/components/data-table/projects/data-table-toolbar";
@@ -50,6 +52,7 @@ const ProjectListPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { canCreateProject, canEditProject, canDeleteProject } = usePermissions();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +65,7 @@ const ProjectListPage: React.FC = () => {
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [managingProject, setManagingProject] = useState<Project | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add request deduplication
@@ -245,12 +249,17 @@ const ProjectListPage: React.FC = () => {
       setIsCreateSheetOpen(true);
     };
 
-    setActions(
-      <Button onClick={handleCreateNew} size="sm">
-        <Plus className="h-4 w-4 mr-2" />
-        {t("projects.create")}
-      </Button>
-    );
+    // Only show create button if user has permission
+    if (canCreateProject) {
+      setActions(
+        <Button onClick={handleCreateNew} size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          {t("projects.create")}
+        </Button>
+      );
+    } else {
+      setActions(null);
+    }
 
     // Clear breadcrumb items (we're at the root level)
     setItems([]);
@@ -260,14 +269,22 @@ const ProjectListPage: React.FC = () => {
       setActions(null);
       setItems([]);
     };
-  }, [setActions, setItems, t]);
+  }, [setActions, setItems, t, canCreateProject]);
 
   const handleEdit = useCallback(
-    (project: Project) => {
-      setEditingProject(project);
-      setIsEditSheetOpen(true);
+    async (project: Project) => {
+      try {
+        // Fetch complete project details from API to ensure we have all fields
+        // The list data only contains ProjectListItemResponse which may be missing fields like system_prompt, credential_id
+        const response = await apiService.projects.get(project.id);
+        setEditingProject(response.project);
+        setIsEditSheetOpen(true);
+      } catch (error) {
+        logError(error as Error, "Failed to load project details for editing");
+        toast.error(t("projects.messages.loadDetailsFailed"));
+      }
     },
-    []
+    [t]
   );
 
   const handleDelete = useCallback(
@@ -290,6 +307,13 @@ const ProjectListPage: React.FC = () => {
       navigate(`/projects/${project.id}/kanban`);
     },
     [navigate]
+  );
+
+  const handleManageAdmins = useCallback(
+    (project: Project) => {
+      setManagingProject(project);
+    },
+    []
   );
 
   // Sheet handlers
@@ -348,8 +372,11 @@ const ProjectListPage: React.FC = () => {
         onEdit: handleEdit,
         onDelete: handleDelete,
         onKanban: handleKanban,
+        onManageAdmins: handleManageAdmins,
+        canEditProject,
+        canDeleteProject,
       }),
-    [t, handleEdit, handleDelete, handleKanban]
+    [t, handleEdit, handleDelete, handleKanban, handleManageAdmins, canEditProject, canDeleteProject]
   );
 
   return (
@@ -465,6 +492,23 @@ const ProjectListPage: React.FC = () => {
           </FormSheetFooter>
         </FormSheetContent>
       </FormSheet>
+
+      {/* Admin Management Sheet */}
+      {managingProject && (
+        <AdminManagementSheet
+          project={managingProject}
+          open={!!managingProject}
+          onOpenChange={(open) => {
+            if (!open) {
+              setManagingProject(null);
+            }
+          }}
+          onAdminChanged={() => {
+            // Optionally reload projects data to reflect changes
+            loadProjectsData(currentPage, columnFilters, sorting);
+          }}
+        />
+      )}
     </div>
   );
 };

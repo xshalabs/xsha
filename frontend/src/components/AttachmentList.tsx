@@ -21,6 +21,7 @@ import { AttachmentPreviewModal } from '@/components/AttachmentPreviewModal';
 
 interface AttachmentListProps {
   attachments: Attachment[];
+  projectId: number;
   onAttachmentDelete?: (attachmentId: number) => void;
   readonly?: boolean;
   className?: string;
@@ -28,6 +29,7 @@ interface AttachmentListProps {
 
 export function AttachmentList({
   attachments,
+  projectId,
   onAttachmentDelete,
   readonly = false,
   className
@@ -38,7 +40,7 @@ export function AttachmentList({
 
   const handleDownload = async (attachment: Attachment) => {
     try {
-      await attachmentApi.downloadAttachment(attachment.id, attachment.original_name);
+      await attachmentApi.downloadAttachment(attachment.id, attachment.original_name, projectId);
     } catch (error) {
       console.error('Download failed:', error);
     }
@@ -50,7 +52,7 @@ export function AttachmentList({
     } else {
       // For PDF files, create blob URL and open in new tab
       try {
-        const blobUrl = await attachmentApi.getPreviewBlob(attachment.id);
+        const blobUrl = await attachmentApi.getPreviewBlob(attachment.id, projectId);
         window.open(blobUrl, '_blank');
         // Clean up blob URL after a delay to ensure it loads
         setTimeout(() => {
@@ -65,7 +67,7 @@ export function AttachmentList({
   const handleDelete = async (attachmentId: number) => {
     setDeletingId(attachmentId);
     try {
-      await attachmentApi.deleteAttachment(attachmentId);
+      await attachmentApi.deleteAttachment(attachmentId, projectId);
       onAttachmentDelete?.(attachmentId);
     } catch (error) {
       console.error('Delete failed:', error);

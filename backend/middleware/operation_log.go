@@ -18,6 +18,14 @@ func OperationLogMiddleware(operationLogService services.AdminOperationLogServic
 			return
 		}
 
+		adminID, _ := c.Get("admin_id")
+		var adminIDPtr *uint
+		if adminID != nil {
+			if id, ok := adminID.(uint); ok {
+				adminIDPtr = &id
+			}
+		}
+
 		clientIP := c.ClientIP()
 		userAgent := c.GetHeader("User-Agent")
 		method := c.Request.Method
@@ -47,17 +55,17 @@ func OperationLogMiddleware(operationLogService services.AdminOperationLogServic
 
 			switch operation {
 			case "create":
-				operationLogService.LogCreate(username.(string), resource, resourceID,
+				operationLogService.LogCreate(username.(string), adminIDPtr, resource, resourceID,
 					description, clientIP, userAgent, path, success, errorMsg)
 			case "update":
-				operationLogService.LogUpdate(username.(string), resource, resourceID,
+				operationLogService.LogUpdate(username.(string), adminIDPtr, resource, resourceID,
 					description, clientIP, userAgent, path, success, errorMsg)
 			case "delete":
-				operationLogService.LogDelete(username.(string), resource, resourceID,
+				operationLogService.LogDelete(username.(string), adminIDPtr, resource, resourceID,
 					description, clientIP, userAgent, path, success, errorMsg)
 			case "read":
 				if success {
-					operationLogService.LogRead(username.(string), resource, resourceID,
+					operationLogService.LogRead(username.(string), adminIDPtr, resource, resourceID,
 						description, clientIP, userAgent, path)
 				}
 			}
@@ -99,9 +107,6 @@ func determineOperationInfo(method, path, id string) (operation, resource, resou
 		} else if strings.Contains(path, "/branches") {
 			operation = "read"
 			description = "get repository branches list"
-		} else if strings.Contains(path, "/validate-access") {
-			operation = "read"
-			description = "validate repository access"
 		} else {
 			description = "create " + getResourceDisplayName(resource)
 		}

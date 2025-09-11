@@ -1,7 +1,7 @@
-import { ChevronsUpDown, LogOut, Languages } from "lucide-react";
+import { ChevronsUpDown, LogOut, Languages, Lock, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,7 +28,7 @@ import { SUPPORTED_LANGUAGES, STORAGE_KEYS } from "@/lib/constants";
 export function NavUser() {
   const { isMobile } = useSidebar();
   const { t, i18n } = useTranslation();
-  const { user, logout } = useAuth();
+  const { user, name, avatar, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -46,11 +46,17 @@ export function NavUser() {
     localStorage.setItem(STORAGE_KEYS.language, languageCode);
   };
 
+  const handleChangePassword = () => {
+    navigate("/user/change-password");
+  };
+
+  const handleUpdateAvatar = () => {
+    navigate("/user/update-avatar");
+  };
+
   if (!user) {
     return null;
   }
-
-  const userInitials = user.charAt(0).toUpperCase();
 
   return (
     <SidebarMenu>
@@ -61,15 +67,15 @@ export function NavUser() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src="" alt={user} />
-                <AvatarFallback className="rounded-lg uppercase">
-                  {userInitials}
-                </AvatarFallback>
-              </Avatar>
+              <UserAvatar 
+                user={user || undefined}
+                name={name || undefined}
+                avatar={avatar || undefined}
+                size="md"
+              />
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user}</span>
-                <span className="truncate text-xs">Admin</span>
+                <span className="truncate text-xs">{name || "Admin"}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -82,15 +88,15 @@ export function NavUser() {
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src="" alt={user} />
-                  <AvatarFallback className="rounded-lg uppercase">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar 
+                  user={user || undefined}
+                  name={name || undefined}
+                  avatar={avatar || undefined}
+                  size="md"
+                />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user}</span>
-                  <span className="truncate text-xs">Admin</span>
+                  <span className="truncate text-xs">{name || "Admin"}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -119,6 +125,15 @@ export function NavUser() {
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
             </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleUpdateAvatar}>
+              <User />
+              {t("user.updateAvatar")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleChangePassword}>
+              <Lock />
+              {t("user.changePassword")}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />

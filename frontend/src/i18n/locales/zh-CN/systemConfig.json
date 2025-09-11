@@ -16,17 +16,11 @@
   "no_proxy_placeholder": "例如：localhost,127.0.0.1,.local",
   "update_success": "配置更新成功",
   "categories": {
-    "auth": "认证配置",
     "devEnvironment": "开发环境",
     "git": "Git配置"
   },
   "categoryDescriptions": {
-    "auth": "管理认证和用户访问设置",
     "devEnvironment": "配置开发环境镜像和设置",
     "git": "配置Git代理和网络设置"
-  },
-  "admin_user": "管理员用户名",
-  "admin_user_desc": "系统登录的管理员用户名",
-  "admin_password": "管理员密码",
-  "admin_password_desc": "系统登录的管理员密码"
+  }
 }

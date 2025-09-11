@@ -5,9 +5,10 @@ import type { Attachment } from "@/lib/api/attachments";
 interface UseTaskFormFileHandlingOptions {
   requirementDesc: string;
   onRequirementDescChange: (value: string) => void;
+  projectId: number;
 }
 
-export function useTaskFormFileHandling({ requirementDesc, onRequirementDescChange }: UseTaskFormFileHandlingOptions) {
+export function useTaskFormFileHandling({ requirementDesc, onRequirementDescChange, projectId }: UseTaskFormFileHandlingOptions) {
   const {
     attachments,
     uploading: uploadingAttachments,
@@ -15,7 +16,7 @@ export function useTaskFormFileHandling({ requirementDesc, onRequirementDescChan
     removeAttachment,
     clearAttachments,
     getAttachmentIds,
-  } = useAttachments();
+  } = useAttachments(projectId);
 
   // Use refs to avoid dependency chain issues
   const requirementDescRef = useRef(requirementDesc);

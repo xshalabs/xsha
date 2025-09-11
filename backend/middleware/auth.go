@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddlewareWithService(authService services.AuthService, cfg *config.Config) gin.HandlerFunc {
+func AuthMiddlewareWithService(authService services.AuthService, adminService services.AdminService, cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		lang := GetLangFromContext(c)
 
@@ -61,7 +61,58 @@ func AuthMiddlewareWithService(authService services.AuthService, cfg *config.Con
 			return
 		}
 
-		c.Set("username", claims.Username)
+		// Check if admin is still active
+		isActive, err := authService.CheckAdminStatus(claims.AdminID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": i18n.T(lang, "auth.server_error"),
+			})
+			c.Abort()
+			return
+		}
+
+		if !isActive {
+			// Get admin for username (for logging purposes)
+			admin, adminErr := adminService.GetAdmin(claims.AdminID)
+			username := "unknown"
+			if adminErr == nil {
+				username = admin.Username
+			}
+			
+			// Add token to blacklist with reason "admin_deactivated"
+			go func() {
+				if blacklistErr := authService.Logout(token, username, c.ClientIP(), c.GetHeader("User-Agent")); blacklistErr != nil {
+					utils.Error("Failed to blacklist token for deactivated admin",
+						"admin_id", claims.AdminID,
+						"error", blacklistErr.Error(),
+					)
+				}
+			}()
+
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": i18n.T(lang, "auth.admin_deactivated"),
+			})
+			c.Abort()
+			return
+		}
+
+		// Get admin details to set in context
+		admin, err := adminService.GetAdmin(claims.AdminID)
+		if err != nil {
+			utils.Error("Failed to get admin details for context",
+				"admin_id", claims.AdminID,
+				"error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": i18n.T(lang, "auth.server_error"),
+			})
+			c.Abort()
+			return
+		}
+
+		c.Set("username", admin.Username)
+		c.Set("admin_id", claims.AdminID)
+		c.Set("admin", admin)
+		c.Set("adminService", adminService)
 		c.Next()
 	}
 }

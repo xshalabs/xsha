@@ -71,6 +71,7 @@ export function PushBranchDialog({
 
     try {
       const response = await apiService.tasks.pushTaskBranch(
+        task.project_id,
         task.id,
         forcePush
       );

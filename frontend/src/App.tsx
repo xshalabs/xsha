@@ -21,6 +21,9 @@ import ProjectKanbanPage from "@/pages/projects/ProjectKanbanPage";
 import EnvironmentListPage from "@/pages/environments/EnvironmentListPage";
 import CredentialListPage from "@/pages/credentials/CredentialListPage";
 import SettingsPage from "@/pages/settings/Settings";
+import AdminListPage from "@/pages/admin/AdminListPage";
+import ChangePasswordPage from "@/pages/user/ChangePasswordPage";
+import UpdateAvatarPage from "@/pages/user/UpdateAvatarPage";
 
 import "./App.css";
 
@@ -137,6 +140,39 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <SettingsPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AdminListPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/user/change-password"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ChangePasswordPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/user/update-avatar"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <UpdateAvatarPage />
                   </Layout>
                 </ProtectedRoute>
               }

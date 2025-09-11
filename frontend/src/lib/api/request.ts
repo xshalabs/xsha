@@ -12,7 +12,8 @@ export const request = async <T>(
 
   const config: RequestInit = {
     headers: {
-      "Content-Type": "application/json",
+      // Don't set Content-Type for FormData - let browser handle it
+      ...(!(options.body instanceof FormData) && { "Content-Type": "application/json" }),
       "Accept-Language": currentLanguage,
       ...(token && { Authorization: `Bearer ${token}` }),
       ...options.headers,
@@ -25,6 +26,22 @@ export const request = async <T>(
 
     if (!response.ok) {
       const errorData: ApiErrorResponse = await response.json();
+      
+      // Handle 401 Unauthorized responses - token is invalid or user is deactivated
+      if (response.status === 401) {
+        tokenManager.removeToken();
+        // Redirect to login page if not already there (using hash routing)
+        if (window.location.hash !== '#/login') {
+          window.location.hash = '#/login';
+          return Promise.reject(new ApiError(
+            errorData.error || 'Session expired, please login again',
+            response.status,
+            undefined,
+            errorData.details
+          ));
+        }
+      }
+      
       throw new ApiError(
         errorData.error || `HTTP error! status: ${response.status}`,
         response.status,

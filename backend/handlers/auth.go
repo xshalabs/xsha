@@ -14,12 +14,16 @@ import (
 type AuthHandlers struct {
 	authService     services.AuthService
 	loginLogService services.LoginLogService
+	adminService    services.AdminService
+	avatarService   services.AdminAvatarService
 }
 
-func NewAuthHandlers(authService services.AuthService, loginLogService services.LoginLogService) *AuthHandlers {
+func NewAuthHandlers(authService services.AuthService, loginLogService services.LoginLogService, adminService services.AdminService, avatarService services.AdminAvatarService) *AuthHandlers {
 	return &AuthHandlers{
 		authService:     authService,
 		loginLogService: loginLogService,
+		adminService:    adminService,
+		avatarService:   avatarService,
 	}
 }
 
@@ -98,10 +102,11 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 		return
 	}
 
-	claims, err := utils.ValidateJWT(token, "")
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": i18n.T(lang, "logout.invalid_token_with_details", err.Error()),
+	// Get username from context (set by auth middleware)
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.T(lang, "logout.failed"),
 		})
 		return
 	}
@@ -109,7 +114,7 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 	clientIP := c.ClientIP()
 	userAgent := c.GetHeader("User-Agent")
 
-	if err := h.authService.Logout(token, claims.Username, clientIP, userAgent); err != nil {
+	if err := h.authService.Logout(token, username.(string), clientIP, userAgent); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "logout.failed"),
 		})
@@ -128,22 +133,24 @@ func (h *AuthHandlers) LogoutHandler(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} object{username=string} "User information"
+// @Success 200 {object} object{username=string,name=string,role=string,avatar=object} "User information"
 // @Failure 500 {object} object{error=string} "Failed to get user information"
 // @Router /user/current [get]
 func (h *AuthHandlers) CurrentUserHandler(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "user.get_info_error"),
-		})
+	admin := middleware.GetAdminFromContext(c)
+	if admin == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"user":          username,
+		"user":          admin.Username,
+		"admin_id":      admin.ID,
+		"name":          admin.Name,
+		"role":          admin.Role,
+		"avatar":        admin.Avatar,
 		"authenticated": true,
 		"message":       i18n.T(lang, "user.authenticated"),
 	})
@@ -226,5 +233,104 @@ func (h *AuthHandlers) GetLoginLogsHandler(c *gin.Context) {
 		"page":        page,
 		"page_size":   pageSize,
 		"total_pages": totalPages,
+	})
+}
+
+// ChangeOwnPasswordHandler allows user to change their own password
+// @Summary Change own password
+// @Description Allow authenticated user to change their own password
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param passwordData body object{current_password=string,new_password=string} true "Password change data"
+// @Success 200 {object} object{message=string} "Password changed successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 401 {object} object{error=string} "Current password incorrect"
+// @Failure 500 {object} object{error=string} "Failed to change password"
+// @Router /user/change-password [put]
+func (h *AuthHandlers) ChangeOwnPasswordHandler(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	admin := middleware.GetAdminFromContext(c)
+	if admin == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+
+	var passwordData struct {
+		CurrentPassword string `json:"current_password" binding:"required"`
+		NewPassword     string `json:"new_password" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&passwordData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
+		})
+		return
+	}
+
+	// Verify current password
+	_, err := h.adminService.ValidateCredentials(admin.Username, passwordData.CurrentPassword)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": i18n.T(lang, "user.current_password_incorrect"),
+		})
+		return
+	}
+
+	// Change password using existing service
+	if err := h.adminService.ChangePassword(admin.ID, passwordData.NewPassword); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "user.password_change_success"),
+	})
+}
+
+// UpdateOwnAvatarHandler allows user to update their own avatar
+// @Summary Update own avatar
+// @Description Allow authenticated user to update their own avatar
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param avatarData body object{avatar_uuid=string} true "Avatar update data"
+// @Success 200 {object} object{message=string} "Avatar updated successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 404 {object} object{error=string} "Avatar not found"
+// @Router /user/update-avatar [put]
+func (h *AuthHandlers) UpdateOwnAvatarHandler(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	admin := middleware.GetAdminFromContext(c)
+	if admin == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": i18n.T(lang, "auth.unauthorized")})
+		return
+	}
+
+	var avatarData struct {
+		AvatarUUID string `json:"avatar_uuid" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&avatarData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
+		})
+		return
+	}
+
+	// Update admin's avatar using avatar service
+	if err := h.avatarService.UpdateAdminAvatarByUUID(avatarData.AvatarUUID, admin.ID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": i18n.MapErrorToI18nKey(err, lang)})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "user.avatar_update_success"),
 	})
 }

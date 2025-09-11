@@ -19,6 +19,6 @@ func (s *dashboardService) GetDashboardStats() (map[string]interface{}, error) {
 	return s.dashboardRepo.GetDashboardStats()
 }
 
-func (s *dashboardService) GetRecentTasks(limit int) ([]database.Task, error) {
-	return s.dashboardRepo.GetRecentTasks(limit)
+func (s *dashboardService) GetRecentTasks(limit int, admin *database.Admin) ([]database.Task, error) {
+	return s.dashboardRepo.GetRecentTasks(limit, admin.ID, admin.Role)
 }

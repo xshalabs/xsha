@@ -10,16 +10,18 @@ type authService struct {
 	tokenRepo           repository.TokenBlacklistRepository
 	loginLogRepo        repository.LoginLogRepository
 	operationLogService AdminOperationLogService
-	systemConfigRepo    repository.SystemConfigRepository
+	adminService        AdminService
+	adminRepo           repository.AdminRepository
 	config              *config.Config
 }
 
-func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, operationLogService AdminOperationLogService, systemConfigRepo repository.SystemConfigRepository, cfg *config.Config) AuthService {
+func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, operationLogService AdminOperationLogService, adminService AdminService, adminRepo repository.AdminRepository, cfg *config.Config) AuthService {
 	return &authService{
 		tokenRepo:           tokenRepo,
 		loginLogRepo:        loginLogRepo,
 		operationLogService: operationLogService,
-		systemConfigRepo:    systemConfigRepo,
+		adminService:        adminService,
+		adminRepo:           adminRepo,
 		config:              cfg,
 	}
 }
@@ -28,30 +30,37 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 	var loginSuccess bool
 	var failureReason string
 	var token string
+	var adminID *uint
 
-	// Get admin username and password from system config
-	adminUser, err := s.systemConfigRepo.GetValue("admin_user")
-	if err != nil {
-		utils.Error("Failed to get admin username from system config",
-			"error", err.Error(),
-		)
+	// Try to get admin info for logging (even if validation fails)
+	admin, adminErr := s.adminService.GetAdminByUsername(username)
+	if adminErr == nil {
+		adminID = &admin.ID
 	}
 
-	adminPassword, err := s.systemConfigRepo.GetValue("admin_password")
+	// Validate admin credentials using AdminService
+	_, err := s.adminService.ValidateCredentials(username, password)
 	if err != nil {
-		utils.Error("Failed to get admin password from system config",
-			"error", err.Error(),
-		)
-	}
-
-	if username == adminUser && password == adminPassword {
+		loginSuccess = false
+		if err.Error() == "admin.invalid_credentials" {
+			failureReason = "invalid_credentials"
+		} else if err.Error() == "admin.inactive" {
+			failureReason = "account_inactive"
+		} else {
+			failureReason = "validation_error"
+			utils.Error("Failed to validate admin credentials",
+				"username", username,
+				"error", err.Error(),
+			)
+		}
+	} else {
 		loginSuccess = true
 
-		var err error
-		token, err = utils.GenerateJWT(username, s.config.JWTSecret)
+		// Generate JWT token
+		token, err = utils.GenerateJWT(admin.ID, s.config.JWTSecret)
 		if err != nil {
 			go func() {
-				if logErr := s.operationLogService.LogLogin(username, clientIP, userAgent, false, "token_generation_failed"); logErr != nil {
+				if logErr := s.operationLogService.LogLogin(username, adminID, clientIP, userAgent, false, "token_generation_failed"); logErr != nil {
 					utils.Error("Failed to record admin operation log",
 						"username", username,
 						"client_ip", clientIP,
@@ -71,17 +80,21 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 			}()
 			return false, "", err
 		}
-	} else {
-		loginSuccess = false
-		if username != adminUser {
-			failureReason = "invalid_username"
-		} else {
-			failureReason = "invalid_password"
-		}
+
+		// Update admin's last login information
+		go func() {
+			if err := s.adminRepo.UpdateLastLogin(username, clientIP); err != nil {
+				utils.Error("Failed to update admin last login info",
+					"username", username,
+					"client_ip", clientIP,
+					"error", err.Error(),
+				)
+			}
+		}()
 	}
 
 	go func() {
-		if err := s.operationLogService.LogLogin(username, clientIP, userAgent, loginSuccess, failureReason); err != nil {
+		if err := s.operationLogService.LogLogin(username, adminID, clientIP, userAgent, loginSuccess, failureReason); err != nil {
 			utils.Error("Failed to record admin operation log",
 				"username", username,
 				"client_ip", clientIP,
@@ -119,10 +132,11 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 }
 
 func (s *authService) Logout(token, username, clientIP, userAgent string) error {
-	expiresAt, err := utils.GetTokenExpiration(token, s.config.JWTSecret)
+	// Get claims to extract admin_id
+	claims, err := utils.ValidateJWT(token, s.config.JWTSecret)
 	if err != nil {
 		go func() {
-			if logErr := s.operationLogService.LogLogout(username, clientIP, userAgent, false, err.Error()); logErr != nil {
+			if logErr := s.operationLogService.LogLogout(username, nil, clientIP, userAgent, false, err.Error()); logErr != nil {
 				utils.Error("Failed to record admin operation log for logout failure",
 					"username", username,
 					"client_ip", clientIP,
@@ -133,7 +147,41 @@ func (s *authService) Logout(token, username, clientIP, userAgent string) error 
 		return err
 	}
 
-	err = s.tokenRepo.Add(token, username, expiresAt, "logout")
+	// Try to get admin info for logging
+	var adminID *uint
+	adminID = &claims.AdminID
+
+	// Get token expiration
+	expiresAt, err := utils.GetTokenExpiration(token, s.config.JWTSecret)
+	if err != nil {
+		go func() {
+			if logErr := s.operationLogService.LogLogout(username, adminID, clientIP, userAgent, false, err.Error()); logErr != nil {
+				utils.Error("Failed to record admin operation log for logout failure",
+					"username", username,
+					"client_ip", clientIP,
+					"error", logErr.Error(),
+				)
+			}
+		}()
+		return err
+	}
+
+	// Get token ID
+	tokenID, err := utils.GetTokenID(token, s.config.JWTSecret)
+	if err != nil {
+		go func() {
+			if logErr := s.operationLogService.LogLogout(username, adminID, clientIP, userAgent, false, err.Error()); logErr != nil {
+				utils.Error("Failed to record admin operation log for logout failure",
+					"username", username,
+					"client_ip", clientIP,
+					"error", logErr.Error(),
+				)
+			}
+		}()
+		return err
+	}
+
+	err = s.tokenRepo.Add(tokenID, claims.AdminID, expiresAt, "logout")
 
 	go func() {
 		logoutSuccess := err == nil
@@ -142,7 +190,7 @@ func (s *authService) Logout(token, username, clientIP, userAgent string) error 
 			errorMsg = err.Error()
 		}
 
-		if logErr := s.operationLogService.LogLogout(username, clientIP, userAgent, logoutSuccess, errorMsg); logErr != nil {
+		if logErr := s.operationLogService.LogLogout(username, adminID, clientIP, userAgent, logoutSuccess, errorMsg); logErr != nil {
 			utils.Error("Failed to record admin operation log for logout",
 				"username", username,
 				"client_ip", clientIP,
@@ -162,9 +210,21 @@ func (s *authService) Logout(token, username, clientIP, userAgent string) error 
 }
 
 func (s *authService) IsTokenBlacklisted(token string) (bool, error) {
-	return s.tokenRepo.IsBlacklisted(token)
+	tokenID, err := utils.GetTokenID(token, s.config.JWTSecret)
+	if err != nil {
+		return false, err
+	}
+	return s.tokenRepo.IsBlacklisted(tokenID)
 }
 
 func (s *authService) CleanExpiredTokens() error {
 	return s.tokenRepo.CleanExpired()
+}
+
+func (s *authService) CheckAdminStatus(adminID uint) (bool, error) {
+	admin, err := s.adminService.GetAdmin(adminID)
+	if err != nil {
+		return false, err
+	}
+	return admin.IsActive, nil
 }

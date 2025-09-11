@@ -9,7 +9,9 @@ import {
   Shield,
   TrendingUp,
   Activity,
+  Users,
 } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions";
 
 import { NavMain } from "@/components/NavMain";
 import { NavSecondary } from "@/components/NavSecondary";
@@ -28,6 +30,7 @@ import {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { t } = useTranslation();
+  const { canViewLogs, canAccessAdminPanel, canAccessSettings } = usePermissions();
 
   const data = {
     navGroups: [
@@ -54,14 +57,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/environments",
             icon: Container,
           },
-          {
-            title: t("navigation.settings"),
-            url: "/settings",
-            icon: Cog,
-          },
         ],
       },
-      {
+      // Only show logs section for super admins
+      ...(canViewLogs ? [{
         title: t("navigation.groups.logs"),
         items: [
           {
@@ -80,7 +79,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             icon: TrendingUp,
           },
         ],
-      },
+      }] : []),
+      // Only show admin section for super admins
+      ...(canAccessAdminPanel || canAccessSettings ? [{
+        title: t("navigation.groups.admin"),
+        items: [
+          // Admin users management - only for super admin
+          ...(canAccessAdminPanel ? [{
+            title: t("navigation.admin.users"),
+            url: "/admin",
+            icon: Users,
+          }] : []),
+          // System settings - only for super admin  
+          ...(canAccessSettings ? [{
+            title: t("navigation.settings"),
+            url: "/settings",
+            icon: Cog,
+          }] : []),
+        ],
+      }] : []),
     ],
     navSecondary: [],
   };

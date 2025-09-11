@@ -14,17 +14,19 @@
   "repoUrl": "Repository URL",
   "credential": "Credential",
   "taskCount": "Tasks",
+  "adminCount": "Members",
+  "createdBy": "Created By",
   "credentialHelp": "Select a credential to access this repository (optional)",
   "protocolAutoDetected": "Auto-detected protocol",
   "messages": {
     "loadFailed": "Failed to load projects",
+    "loadDetailsFailed": "Failed to load project details",
     "createSuccess": "Project created successfully",
     "createFailed": "Failed to create project",
     "updateSuccess": "Project updated successfully",
     "updateFailed": "Failed to update project",
     "accessFailed": "Repository access validation failed",
-    "fetchBranchesFailed": "Failed to fetch repository branches",
-    "validateAccessFailed": "Failed to validate repository access"
+    "fetchBranchesFailed": "Failed to fetch repository branches"
   },
   "placeholders": {
     "name": "Enter project name",
@@ -50,5 +52,21 @@
   "createAndCustomize": "Create and start customizing",
   "createHelpText": "Configure your project repository settings, add credentials, and start automating your development workflow.",
   "editAndUpdate": "Edit and update settings",
-  "editHelpText": "Modify your project configuration, update repository settings, and manage access credentials."
+  "editHelpText": "Modify your project configuration, update repository settings, and manage access credentials.",
+  "admin": {
+    "manage": "Manage Members",
+    "manage_title": "Manage Project Members",
+    "manage_description": "Manage members who have access to project {{name}}",
+    "add_admin": "Add Member",
+    "current_admins": "Current Members",
+    "select_admin": "Please select a member to add",
+    "select_placeholder": "Select a member to add",
+    "no_admins": "No members assigned to this project",
+    "creator": "Creator",
+    "cannot_remove_creator": "Cannot remove the project creator",
+    "added_success": "Member successfully added to project",
+    "removed_success": "Member {{name}} successfully removed from project",
+    "confirm_remove_title": "Confirm Remove Member", 
+    "confirm_remove_description": "Are you sure you want to remove {{adminName}} as a member from {{projectName}}?"
+  }
 } 

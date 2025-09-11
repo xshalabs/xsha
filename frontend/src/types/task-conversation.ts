@@ -32,6 +32,12 @@ export interface TaskConversation {
   execution_time?: string; // ISO 8601 date string
   commit_hash: string;
   env_params: string; // JSON string containing environment parameters
+  admin_id?: number;
+  admin?: {
+    id: number;
+    username: string;
+    name: string;
+  };
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -49,12 +55,7 @@ export interface CreateConversationRequest {
   attachment_ids?: number[]; // Optional array of attachment IDs
 }
 
-export interface UpdateConversationRequest {
-  content?: string;
-}
-
 export interface ConversationListParams {
-  task_id: number;
   page?: number;
   page_size?: number;
 }
@@ -74,11 +75,6 @@ export interface ConversationListResponse {
   };
 }
 
-export interface ConversationDetailResponse {
-  message: string;
-  data: TaskConversation;
-}
-
 export interface ConversationWithResultAndLogResponse {
   message: string;
   data: {
@@ -86,11 +82,6 @@ export interface ConversationWithResultAndLogResponse {
     result?: TaskConversationResult;
     execution_log?: TaskExecutionLog;
   };
-}
-
-export interface LatestConversationResponse {
-  message: string;
-  data: TaskConversation;
 }
 
 export interface ConversationFormData {
@@ -123,7 +114,7 @@ export interface ConversationGitDiffFileResponse {
 // Import GitDiffSummary type from tasks
 export interface GitDiffFile {
   path: string;
-  status: 'added' | 'modified' | 'deleted' | 'renamed';
+  status: "added" | "modified" | "deleted" | "renamed";
   additions: number;
   deletions: number;
   is_binary: boolean;

@@ -25,6 +25,11 @@ type ProjectWithTaskCount struct {
 	TaskCount int64 `json:"task_count"`
 }
 
+type ProjectListItemWithCounts struct {
+	*database.ProjectListItemResponse
+	TaskCount int64 `json:"task_count"`
+}
+
 func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository.GitCredentialRepository, gitCredService GitCredentialService, taskRepo repository.TaskRepository, systemConfigService SystemConfigService, cfg *config.Config) ProjectService {
 	return &projectService{
 		repo:                repo,
@@ -36,7 +41,7 @@ func NewProjectService(repo repository.ProjectRepository, gitCredRepo repository
 	}
 }
 
-func (s *projectService) CreateProject(name, description, systemPrompt, repoURL, protocol string, credentialID *uint, createdBy string) (*database.Project, error) {
+func (s *projectService) CreateProject(name, description, systemPrompt, repoURL, protocol string, credentialID *uint, adminID *uint, createdBy string) (*database.Project, error) {
 	if err := s.validateProjectData(name, repoURL, protocol); err != nil {
 		return nil, err
 	}
@@ -61,11 +66,19 @@ func (s *projectService) CreateProject(name, description, systemPrompt, repoURL,
 		RepoURL:      repoURL,
 		Protocol:     protocolType,
 		CredentialID: credentialID,
+		AdminID:      adminID,
 		CreatedBy:    createdBy,
 	}
 
 	if err := s.repo.Create(project); err != nil {
 		return nil, err
+	}
+
+	// Add creator as admin to the project
+	if adminID != nil {
+		if err := s.repo.AddAdmin(project.ID, *adminID); err != nil {
+			utils.Error("Failed to add creator as admin to project", "projectID", project.ID, "adminID", *adminID, "error", err)
+		}
 	}
 
 	return project, nil
@@ -86,7 +99,7 @@ func (s *projectService) ListProjectsWithTaskCount(name string, protocol *databa
 	}
 
 	if len(projects) == 0 {
-		return []ProjectWithTaskCount{}, total, nil
+		return []database.ProjectListItemResponse{}, total, nil
 	}
 
 	projectIDs := make([]uint, len(projects))
@@ -94,20 +107,33 @@ func (s *projectService) ListProjectsWithTaskCount(name string, protocol *databa
 		projectIDs[i] = project.ID
 	}
 
+	// Get task counts and admin counts for these projects
 	taskCounts, err := s.repo.GetTaskCounts(projectIDs)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	projectsWithTaskCount := make([]ProjectWithTaskCount, len(projects))
-	for i, project := range projects {
-		projectsWithTaskCount[i] = ProjectWithTaskCount{
-			Project:   &project,
-			TaskCount: taskCounts[project.ID],
+	adminCounts, err := s.repo.GetAdminCounts(projectIDs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Convert to ProjectListItemResponse with counts
+	responses := database.ToProjectListItemResponses(projects)
+	for i := range responses {
+		responses[i].AdminCount = adminCounts[responses[i].ID]
+	}
+
+	// Create response with task counts (keeping existing structure for compatibility)
+	projectsWithCounts := make([]ProjectListItemWithCounts, len(responses))
+	for i, response := range responses {
+		projectsWithCounts[i] = ProjectListItemWithCounts{
+			ProjectListItemResponse: &response,
+			TaskCount:               taskCounts[response.ID],
 		}
 	}
 
-	return projectsWithTaskCount, total, nil
+	return projectsWithCounts, total, nil
 }
 
 func (s *projectService) UpdateProject(id uint, updates map[string]interface{}) error {
@@ -149,9 +175,15 @@ func (s *projectService) UpdateProject(id uint, updates map[string]interface{}) 
 		if err := s.ValidateProtocolCredential(project.Protocol, project.CredentialID); err != nil {
 			return err
 		}
+		// Clear the stale credential relationship since credential_id has changed
+		project.Credential = nil
 	}
 
-	return s.repo.Update(project)
+	if err := s.repo.Update(project); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *projectService) DeleteProject(id uint) error {
@@ -198,19 +230,37 @@ func (s *projectService) ValidateProtocolCredential(protocol database.GitProtoco
 	return nil
 }
 
-func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolType) ([]database.GitCredential, error) {
+func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolType, admin *database.Admin) ([]database.GitCredential, error) {
 	switch protocol {
 	case database.GitProtocolHTTPS:
 		passwordType := database.GitCredentialTypePassword
-		passwordCreds, err := s.gitCredService.ListActiveCredentials(&passwordType)
-		if err != nil {
-			return nil, err
-		}
-
 		tokenType := database.GitCredentialTypeToken
-		tokenCreds, err := s.gitCredService.ListActiveCredentials(&tokenType)
-		if err != nil {
-			return nil, err
+
+		var passwordCreds, tokenCreds []database.GitCredential
+		var err error
+
+		if admin.Role == database.AdminRoleSuperAdmin {
+			// Super admin can see all credentials
+			passwordCreds, err = s.gitCredService.ListActiveCredentials(&passwordType)
+			if err != nil {
+				return nil, err
+			}
+
+			tokenCreds, err = s.gitCredService.ListActiveCredentials(&tokenType)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			// Regular admin can only see credentials they have access to
+			passwordCreds, err = s.gitCredService.ListActiveCredentialsByAdminAccess(admin.ID, &passwordType)
+			if err != nil {
+				return nil, err
+			}
+
+			tokenCreds, err = s.gitCredService.ListActiveCredentialsByAdminAccess(admin.ID, &tokenType)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		credentials := append(passwordCreds, tokenCreds...)
@@ -218,7 +268,14 @@ func (s *projectService) GetCompatibleCredentials(protocol database.GitProtocolT
 
 	case database.GitProtocolSSH:
 		sshType := database.GitCredentialTypeSSHKey
-		return s.gitCredService.ListActiveCredentials(&sshType)
+
+		if admin.Role == database.AdminRoleSuperAdmin {
+			// Super admin can see all credentials
+			return s.gitCredService.ListActiveCredentials(&sshType)
+		} else {
+			// Regular admin can only see credentials they have access to
+			return s.gitCredService.ListActiveCredentialsByAdminAccess(admin.ID, &sshType)
+		}
 
 	default:
 		return nil, appErrors.ErrInvalidProtocol
@@ -280,19 +337,6 @@ func (s *projectService) getGitProxyConfig() (*utils.GitProxyConfig, error) {
 	return s.systemConfigService.GetGitProxyConfig()
 }
 
-func (s *projectService) ValidateRepositoryAccess(repoURL string, credentialID *uint) error {
-	result, err := s.FetchRepositoryBranches(repoURL, credentialID)
-	if err != nil {
-		return err
-	}
-
-	if !result.CanAccess {
-		return fmt.Errorf(result.ErrorMessage)
-	}
-
-	return nil
-}
-
 func (s *projectService) validateProjectData(name, repoURL, protocol string) error {
 	if strings.TrimSpace(name) == "" {
 		return appErrors.ErrRequired
@@ -323,4 +367,124 @@ func (s *projectService) validateRepositoryURL(repoURL string, protocol database
 		return appErrors.ErrInvalidProtocol
 	}
 	return nil
+}
+
+// GetProjectWithAdmins retrieves a project with its admin relationships preloaded
+func (s *projectService) GetProjectWithAdmins(id uint) (*database.Project, error) {
+	return s.repo.GetByIDWithAdmins(id)
+}
+
+// ListProjectsByAdminAccess lists projects that an admin has access to with task counts
+func (s *projectService) ListProjectsByAdminAccess(adminID uint, name string, protocol *database.GitProtocolType, sortBy, sortDirection string, page, pageSize int) (interface{}, int64, error) {
+	projects, total, err := s.repo.ListByAdminAccess(adminID, name, protocol, sortBy, sortDirection, page, pageSize)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if len(projects) == 0 {
+		return []database.ProjectListItemResponse{}, total, nil
+	}
+
+	// Get project IDs for count lookups
+	projectIDs := make([]uint, len(projects))
+	for i, project := range projects {
+		projectIDs[i] = project.ID
+	}
+
+	// Get task counts and admin counts for these projects
+	taskCounts, err := s.repo.GetTaskCounts(projectIDs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	adminCounts, err := s.repo.GetAdminCounts(projectIDs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Convert to ProjectListItemResponse with counts
+	responses := database.ToProjectListItemResponses(projects)
+	for i := range responses {
+		responses[i].AdminCount = adminCounts[responses[i].ID]
+	}
+
+	// Create response with task counts (keeping existing structure for compatibility)
+	result := make([]ProjectListItemWithCounts, len(responses))
+	for i, response := range responses {
+		result[i] = ProjectListItemWithCounts{
+			ProjectListItemResponse: &response,
+			TaskCount:               taskCounts[response.ID],
+		}
+	}
+
+	return result, total, nil
+}
+
+// AddAdminToProject adds an admin to the project's admin list
+func (s *projectService) AddAdminToProject(projectID, adminID uint) error {
+	_, err := s.repo.GetByID(projectID)
+	if err != nil {
+		return appErrors.ErrProjectNotFound
+	}
+	return s.repo.AddAdmin(projectID, adminID)
+}
+
+// RemoveAdminFromProject removes an admin from the project's admin list
+func (s *projectService) RemoveAdminFromProject(projectID, adminID uint) error {
+	// Check if project exists
+	project, err := s.repo.GetByID(projectID)
+	if err != nil {
+		return appErrors.ErrProjectNotFound
+	}
+
+	// Check if trying to remove the primary admin
+	if project.AdminID != nil && *project.AdminID == adminID {
+		return appErrors.ErrProjectCannotRemovePrimaryAdmin
+	}
+
+	return s.repo.RemoveAdmin(projectID, adminID)
+}
+
+// GetProjectAdmins gets all admins for a specific project
+func (s *projectService) GetProjectAdmins(projectID uint) ([]database.Admin, error) {
+	_, err := s.repo.GetByID(projectID)
+	if err != nil {
+		return nil, appErrors.ErrProjectNotFound
+	}
+	return s.repo.GetAdmins(projectID)
+}
+
+// CanAdminAccessProject checks if an admin can access a project
+func (s *projectService) CanAdminAccessProject(projectID, adminID uint) (bool, error) {
+	project, err := s.repo.GetByIDWithAdmins(projectID)
+	if err != nil {
+		return false, err
+	}
+
+	// Check if admin is the primary admin
+	if project.AdminID != nil && *project.AdminID == adminID {
+		return true, nil
+	}
+
+	// Check if admin is in the many-to-many relationship
+	for _, admin := range project.Admins {
+		if admin.ID == adminID {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func (s *projectService) IsOwner(projectID, adminID uint) (bool, error) {
+	project, err := s.repo.GetByID(projectID)
+	if err != nil {
+		return false, err
+	}
+
+	if project.AdminID != nil && *project.AdminID == adminID {
+		return true, nil
+	}
+
+	return false, nil
 }

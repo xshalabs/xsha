@@ -4,6 +4,16 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)，项目遵循 [语义化版本控制](https://semver.org/spec/v2.0.0.html)。
 
+## v0.7.0 - 20250911
+
+### 新增
+
+- 多用户支持，基于角色的访问控制（开发者、管理员、超级管理员）
+
+### 修复
+
+- 修复git diff权限漏洞
+
 ## v0.6.0 - 20250901
 
 ### 新增

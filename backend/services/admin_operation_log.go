@@ -14,11 +14,12 @@ func NewAdminOperationLogService(repo repository.AdminOperationLogRepository) Ad
 	return &adminOperationLogService{repo: repo}
 }
 
-func (s *adminOperationLogService) LogOperation(username, operation, resource, resourceID,
+func (s *adminOperationLogService) LogOperation(username string, adminID *uint, operation, resource, resourceID,
 	description, details string, success bool, errorMsg, ip, userAgent, method, path string) error {
 
 	log := &database.AdminOperationLog{
 		Username:    username,
+		AdminID:     adminID,
 		Operation:   database.AdminOperationType(operation),
 		Resource:    resource,
 		ResourceID:  resourceID,
@@ -35,37 +36,37 @@ func (s *adminOperationLogService) LogOperation(username, operation, resource, r
 	return s.repo.Add(log)
 }
 
-func (s *adminOperationLogService) LogCreate(username, resource, resourceID, description,
+func (s *adminOperationLogService) LogCreate(username string, adminID *uint, resource, resourceID, description,
 	ip, userAgent, path string, success bool, errorMsg string) error {
-	return s.LogOperation(username, string(database.AdminOperationCreate), resource, resourceID,
+	return s.LogOperation(username, adminID, string(database.AdminOperationCreate), resource, resourceID,
 		description, "", success, errorMsg, ip, userAgent, "POST", path)
 }
 
-func (s *adminOperationLogService) LogUpdate(username, resource, resourceID, description,
+func (s *adminOperationLogService) LogUpdate(username string, adminID *uint, resource, resourceID, description,
 	ip, userAgent, path string, success bool, errorMsg string) error {
-	return s.LogOperation(username, string(database.AdminOperationUpdate), resource, resourceID,
+	return s.LogOperation(username, adminID, string(database.AdminOperationUpdate), resource, resourceID,
 		description, "", success, errorMsg, ip, userAgent, "PUT", path)
 }
 
-func (s *adminOperationLogService) LogDelete(username, resource, resourceID, description,
+func (s *adminOperationLogService) LogDelete(username string, adminID *uint, resource, resourceID, description,
 	ip, userAgent, path string, success bool, errorMsg string) error {
-	return s.LogOperation(username, string(database.AdminOperationDelete), resource, resourceID,
+	return s.LogOperation(username, adminID, string(database.AdminOperationDelete), resource, resourceID,
 		description, "", success, errorMsg, ip, userAgent, "DELETE", path)
 }
 
-func (s *adminOperationLogService) LogRead(username, resource, resourceID, description,
+func (s *adminOperationLogService) LogRead(username string, adminID *uint, resource, resourceID, description,
 	ip, userAgent, path string) error {
-	return s.LogOperation(username, string(database.AdminOperationRead), resource, resourceID,
+	return s.LogOperation(username, adminID, string(database.AdminOperationRead), resource, resourceID,
 		description, "", true, "", ip, userAgent, "GET", path)
 }
 
-func (s *adminOperationLogService) LogLogin(username, ip, userAgent string, success bool, errorMsg string) error {
-	return s.LogOperation(username, string(database.AdminOperationLogin), "auth", username,
+func (s *adminOperationLogService) LogLogin(username string, adminID *uint, ip, userAgent string, success bool, errorMsg string) error {
+	return s.LogOperation(username, adminID, string(database.AdminOperationLogin), "auth", username,
 		"user login", "", success, errorMsg, ip, userAgent, "POST", "/api/v1/auth/login")
 }
 
-func (s *adminOperationLogService) LogLogout(username, ip, userAgent string, success bool, errorMsg string) error {
-	return s.LogOperation(username, string(database.AdminOperationLogout), "auth", username,
+func (s *adminOperationLogService) LogLogout(username string, adminID *uint, ip, userAgent string, success bool, errorMsg string) error {
+	return s.LogOperation(username, adminID, string(database.AdminOperationLogout), "auth", username,
 		"user logout", "", success, errorMsg, ip, userAgent, "POST", "/api/v1/auth/logout")
 }
 

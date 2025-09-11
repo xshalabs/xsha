@@ -32,7 +32,7 @@ func (r *RequiredRule) Validate(field string, value interface{}) *ValidationErro
 			Code:     "FIELD_REQUIRED",
 		}
 	}
-	
+
 	if str, ok := value.(string); ok && str == "" {
 		return &ValidationError{
 			Field:    field,
@@ -42,7 +42,7 @@ func (r *RequiredRule) Validate(field string, value interface{}) *ValidationErro
 			Code:     "FIELD_EMPTY",
 		}
 	}
-	
+
 	return nil
 }
 
@@ -68,7 +68,7 @@ func (r *TypeRule) Validate(field string, value interface{}) *ValidationError {
 			Code:     "INVALID_TYPE",
 		}
 	}
-	
+
 	if str != "result" {
 		return &ValidationError{
 			Field:    field,
@@ -78,7 +78,7 @@ func (r *TypeRule) Validate(field string, value interface{}) *ValidationError {
 			Code:     "INVALID_VALUE",
 		}
 	}
-	
+
 	return nil
 }
 
@@ -109,7 +109,7 @@ func (r *StringRule) Validate(field string, value interface{}) *ValidationError 
 			Code:     "INVALID_TYPE",
 		}
 	}
-	
+
 	return nil
 }
 
@@ -134,7 +134,7 @@ func (r *BoolRule) Validate(field string, value interface{}) *ValidationError {
 			Code:     "INVALID_TYPE",
 		}
 	}
-	
+
 	return nil
 }
 
@@ -164,7 +164,7 @@ func (r *NumberRule) Validate(field string, value interface{}) *ValidationError 
 	case "total_cost_usd":
 		return r.validateFloat(field, value)
 	}
-	
+
 	return nil
 }
 
@@ -179,7 +179,7 @@ func (r *NumberRule) validateInt64(field string, value interface{}) *ValidationE
 			return nil
 		}
 	}
-	
+
 	return &ValidationError{
 		Field:    field,
 		Value:    value,
@@ -202,7 +202,7 @@ func (r *NumberRule) validateInt(field string, value interface{}) *ValidationErr
 			return nil
 		}
 	}
-	
+
 	return &ValidationError{
 		Field:    field,
 		Value:    value,
@@ -219,7 +219,7 @@ func (r *NumberRule) validateFloat(field string, value interface{}) *ValidationE
 	case int, int64:
 		return nil
 	}
-	
+
 	return &ValidationError{
 		Field:    field,
 		Value:    value,
@@ -255,13 +255,13 @@ func (r *RangeRule) Validate(field string, value interface{}) *ValidationError {
 	case "total_cost_usd":
 		return r.validateCostRange(field, value)
 	}
-	
+
 	return nil
 }
 
 func (r *RangeRule) validateDurationRange(field string, value interface{}) *ValidationError {
 	var num int64
-	
+
 	switch v := value.(type) {
 	case int64:
 		num = v
@@ -272,7 +272,7 @@ func (r *RangeRule) validateDurationRange(field string, value interface{}) *Vali
 	default:
 		return nil // 类型验证由其他规则处理
 	}
-	
+
 	if num < 0 {
 		return &ValidationError{
 			Field:    field,
@@ -282,7 +282,7 @@ func (r *RangeRule) validateDurationRange(field string, value interface{}) *Vali
 			Code:     "INVALID_RANGE",
 		}
 	}
-	
+
 	if num > 24*60*60*1000 { // 24小时
 		return &ValidationError{
 			Field:    field,
@@ -292,13 +292,13 @@ func (r *RangeRule) validateDurationRange(field string, value interface{}) *Vali
 			Code:     "INVALID_RANGE",
 		}
 	}
-	
+
 	return nil
 }
 
 func (r *RangeRule) validateTurnsRange(field string, value interface{}) *ValidationError {
 	var num int
-	
+
 	switch v := value.(type) {
 	case int:
 		num = v
@@ -309,7 +309,7 @@ func (r *RangeRule) validateTurnsRange(field string, value interface{}) *Validat
 	default:
 		return nil
 	}
-	
+
 	if num < 1 {
 		return &ValidationError{
 			Field:    field,
@@ -319,7 +319,7 @@ func (r *RangeRule) validateTurnsRange(field string, value interface{}) *Validat
 			Code:     "INVALID_RANGE",
 		}
 	}
-	
+
 	if num > 1000 {
 		return &ValidationError{
 			Field:    field,
@@ -329,13 +329,13 @@ func (r *RangeRule) validateTurnsRange(field string, value interface{}) *Validat
 			Code:     "INVALID_RANGE",
 		}
 	}
-	
+
 	return nil
 }
 
 func (r *RangeRule) validateCostRange(field string, value interface{}) *ValidationError {
 	var num float64
-	
+
 	switch v := value.(type) {
 	case float64:
 		num = v
@@ -348,7 +348,7 @@ func (r *RangeRule) validateCostRange(field string, value interface{}) *Validati
 	default:
 		return nil
 	}
-	
+
 	if num < 0 {
 		return &ValidationError{
 			Field:    field,
@@ -358,7 +358,7 @@ func (r *RangeRule) validateCostRange(field string, value interface{}) *Validati
 			Code:     "INVALID_RANGE",
 		}
 	}
-	
+
 	if num > 10000 { // $10,000 上限
 		return &ValidationError{
 			Field:    field,
@@ -368,7 +368,7 @@ func (r *RangeRule) validateCostRange(field string, value interface{}) *Validati
 			Code:     "INVALID_RANGE",
 		}
 	}
-	
+
 	return nil
 }
 
@@ -387,7 +387,7 @@ func (r *EnumRule) Validate(field string, value interface{}) *ValidationError {
 	if field == "subtype" {
 		return r.validateSubtype(field, value)
 	}
-	
+
 	return nil
 }
 
@@ -396,14 +396,14 @@ func (r *EnumRule) validateSubtype(field string, value interface{}) *ValidationE
 	if !ok {
 		return nil // 类型验证由其他规则处理
 	}
-	
+
 	validSubtypes := []string{"success", "error", "timeout", "cancelled", "fallback"}
 	for _, valid := range validSubtypes {
 		if str == valid {
 			return nil
 		}
 	}
-	
+
 	return &ValidationError{
 		Field:    field,
 		Value:    value,
@@ -435,7 +435,7 @@ func (r *LengthRule) Validate(field string, value interface{}) *ValidationError 
 	if !ok {
 		return nil // 类型验证由其他规则处理
 	}
-	
+
 	switch field {
 	case "session_id":
 		return r.validateSessionIDLength(field, str)
@@ -444,7 +444,7 @@ func (r *LengthRule) Validate(field string, value interface{}) *ValidationError 
 	case "usage":
 		return r.validateUsageLength(field, str)
 	}
-	
+
 	return nil
 }
 
@@ -458,7 +458,7 @@ func (r *LengthRule) validateSessionIDLength(field, value string) *ValidationErr
 			Code:     "INVALID_LENGTH",
 		}
 	}
-	
+
 	if len(value) > 100 {
 		return &ValidationError{
 			Field:    field,
@@ -468,7 +468,7 @@ func (r *LengthRule) validateSessionIDLength(field, value string) *ValidationErr
 			Code:     "INVALID_LENGTH",
 		}
 	}
-	
+
 	return nil
 }
 
@@ -482,7 +482,7 @@ func (r *LengthRule) validateResultLength(field, value string) *ValidationError 
 			Code:     "INVALID_LENGTH",
 		}
 	}
-	
+
 	return nil
 }
 
@@ -496,7 +496,7 @@ func (r *LengthRule) validateUsageLength(field, value string) *ValidationError {
 			Code:     "INVALID_LENGTH",
 		}
 	}
-	
+
 	return nil
 }
 
@@ -521,7 +521,7 @@ func (r *FormatRule) Validate(field string, value interface{}) *ValidationError 
 	if field == "session_id" {
 		return r.validateSessionIDFormat(field, value)
 	}
-	
+
 	return nil
 }
 
@@ -530,13 +530,13 @@ func (r *FormatRule) validateSessionIDFormat(field string, value interface{}) *V
 	if !ok {
 		return nil // 类型验证由其他规则处理
 	}
-	
+
 	// 检查是否包含有效字符（字母、数字、连字符、下划线）
 	for _, char := range str {
-		if !((char >= 'a' && char <= 'z') || 
-			 (char >= 'A' && char <= 'Z') || 
-			 (char >= '0' && char <= '9') || 
-			 char == '-' || char == '_') {
+		if !((char >= 'a' && char <= 'z') ||
+			(char >= 'A' && char <= 'Z') ||
+			(char >= '0' && char <= '9') ||
+			char == '-' || char == '_') {
 			return &ValidationError{
 				Field:    field,
 				Value:    value,
@@ -546,15 +546,15 @@ func (r *FormatRule) validateSessionIDFormat(field string, value interface{}) *V
 			}
 		}
 	}
-	
+
 	return nil
 }
 
 // CustomRule 自定义验证规则
 type CustomRule struct {
-	name       string
-	fields     []string
-	validator  func(field string, value interface{}) *ValidationError
+	name      string
+	fields    []string
+	validator func(field string, value interface{}) *ValidationError
 }
 
 // NewCustomRule 创建自定义规则

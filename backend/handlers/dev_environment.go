@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"xsha-backend/database"
 	"xsha-backend/i18n"
 	"xsha-backend/middleware"
 	"xsha-backend/services"
@@ -56,13 +57,8 @@ type UpdateEnvironmentRequest struct {
 func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": i18n.T(lang, "auth.unauthorized"),
-		})
-		return
-	}
+	username, _ := c.Get("username")
+	adminID, _ := c.Get("admin_id")
 
 	var req CreateEnvironmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -78,7 +74,7 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 
 	env, err := h.devEnvService.CreateEnvironment(
 		req.Name, req.Description, req.SystemPrompt, req.Type, req.DockerImage,
-		req.CPULimit, req.MemoryLimit, req.EnvVars, username.(string),
+		req.CPULimit, req.MemoryLimit, req.EnvVars, adminID.(uint), username.(string),
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -167,7 +163,16 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 		dockerImage = &di
 	}
 
-	environments, total, err := h.devEnvService.ListEnvironments(name, dockerImage, page, pageSize)
+	admin := middleware.GetAdminFromContext(c)
+
+	var environments []database.DevEnvironment
+	var total int64
+	var err error
+	if admin.Role == database.AdminRoleSuperAdmin {
+		environments, total, err = h.devEnvService.ListEnvironments(name, dockerImage, page, pageSize)
+	} else {
+		environments, total, err = h.devEnvService.ListEnvironmentsByAdminAccess(admin.ID, name, dockerImage, page, pageSize)
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "dev_environment.list_failed"),
@@ -177,9 +182,11 @@ func (h *DevEnvironmentHandlers) ListEnvironments(c *gin.Context) {
 
 	totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
 
+	environmentResponses := database.ToEnvironmentListItemResponses(environments)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":      i18n.T(lang, "dev_environment.list_success"),
-		"environments": environments,
+		"environments": environmentResponses,
 		"total":        total,
 		"page":         page,
 		"page_size":    pageSize,
@@ -223,9 +230,7 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	if req.Name != "" {
 		updates["name"] = req.Name
 	}
-	// Always update description field, even if empty (user might want to clear it)
 	updates["description"] = req.Description
-	// Always update system_prompt field, even if empty (user might want to clear it)
 	updates["system_prompt"] = req.SystemPrompt
 	if req.CPULimit > 0 {
 		updates["cpu_limit"] = req.CPULimit
@@ -293,87 +298,6 @@ func (h *DevEnvironmentHandlers) DeleteEnvironment(c *gin.Context) {
 	})
 }
 
-// GetEnvironmentVars gets environment variables
-// @Summary Get environment variables
-// @Description Get environment variables of specified environment
-// @Tags Development Environment
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "Environment ID"
-// @Success 200 {object} object{env_vars=object} "Environment variables"
-// @Failure 400 {object} object{error=string} "Get failed"
-// @Router /environments/{id}/env-vars [get]
-func (h *DevEnvironmentHandlers) GetEnvironmentVars(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "dev_environment.invalid_id"),
-		})
-		return
-	}
-
-	envVars, err := h.devEnvService.GetEnvironmentVars(uint(id))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.MapErrorToI18nKey(err, lang),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"env_vars": envVars,
-	})
-}
-
-// UpdateEnvironmentVars updates environment variables
-// @Summary Update environment variables
-// @Description Update environment variables of specified environment
-// @Tags Development Environment
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "Environment ID"
-// @Param env_vars body map[string]string true "Environment variables"
-// @Success 200 {object} object{message=string} "Update successful"
-// @Failure 400 {object} object{error=string} "Update failed"
-// @Router /environments/{id}/env-vars [put]
-func (h *DevEnvironmentHandlers) UpdateEnvironmentVars(c *gin.Context) {
-	lang := middleware.GetLangFromContext(c)
-
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "dev_environment.invalid_id"),
-		})
-		return
-	}
-
-	var envVars map[string]string
-	if err := c.ShouldBindJSON(&envVars); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.T(lang, "dev_environment.invalid_request_with_details", err.Error()),
-		})
-		return
-	}
-
-	err = h.devEnvService.UpdateEnvironmentVars(uint(id), envVars)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": i18n.MapErrorToI18nKey(err, lang),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": i18n.T(lang, "dev_environment.env_vars_update_success"),
-	})
-}
-
 // GetAvailableImages gets available environment images
 // @Summary Get available environment images
 // @Description Get available environment images from system configuration
@@ -399,28 +323,143 @@ func (h *DevEnvironmentHandlers) GetAvailableImages(c *gin.Context) {
 	})
 }
 
-// GetStats gets development environment statistics
-// @Summary Get development environment statistics
-// @Description Get statistics about development environments
+// @Description Add admin to environment request
+type AddAdminToEnvironmentRequest struct {
+	AdminID uint `json:"admin_id" binding:"required"`
+}
+
+// @Description Environment admins response
+type EnvironmentAdminsResponse struct {
+	Admins []database.AdminListResponse `json:"admins"`
+}
+
+// GetEnvironmentAdmins gets all admins for a specific environment
+// @Summary Get environment admins
+// @Description Get all admins that have access to a specific environment
 // @Tags Development Environment
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} object{stats=map[string]interface{}} "Environment statistics"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
-// @Router /environments/stats [get]
-func (h *DevEnvironmentHandlers) GetStats(c *gin.Context) {
+// @Param id path int true "Environment ID"
+// @Success 200 {object} EnvironmentAdminsResponse "Environment admins"
+// @Failure 404 {object} object{error=string} "Environment not found"
+// @Router /environments/{id}/admins [get]
+func (h *DevEnvironmentHandlers) GetEnvironmentAdmins(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	stats, err := h.devEnvService.GetStats()
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "dev_environment.invalid_id"),
+		})
+		return
+	}
+
+	admins, err := h.devEnvService.GetEnvironmentAdmins(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	// Transform to list response with minimal avatar data
+	adminResponses := database.ToAdminListResponses(admins)
+	c.JSON(http.StatusOK, EnvironmentAdminsResponse{
+		Admins: adminResponses,
+	})
+}
+
+// AddAdminToEnvironment adds an admin to the environment
+// @Summary Add admin to environment
+// @Description Add an admin to the environment's admin list
+// @Tags Development Environment
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Environment ID"
+// @Param admin body AddAdminToEnvironmentRequest true "Admin information"
+// @Success 200 {object} object{message=string} "Admin added successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 404 {object} object{error=string} "Environment not found"
+// @Router /environments/{id}/admins [post]
+func (h *DevEnvironmentHandlers) AddAdminToEnvironment(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	idStr := c.Param("id")
+	envID, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "dev_environment.invalid_id"),
+		})
+		return
+	}
+
+	var req AddAdminToEnvironmentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "validation.invalid_format_with_details", err.Error()),
+		})
+		return
+	}
+
+	err = h.devEnvService.AddAdminToEnvironment(uint(envID), req.AdminID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"stats": stats,
+		"message": i18n.T(lang, "dev_environment.admin_added_success"),
+	})
+}
+
+// RemoveAdminFromEnvironment removes an admin from the environment
+// @Summary Remove admin from environment
+// @Description Remove an admin from the environment's admin list
+// @Tags Development Environment
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Environment ID"
+// @Param admin_id path int true "Admin ID"
+// @Success 200 {object} object{message=string} "Admin removed successfully"
+// @Failure 400 {object} object{error=string} "Request parameter error"
+// @Failure 404 {object} object{error=string} "Environment not found"
+// @Router /environments/{id}/admins/{admin_id} [delete]
+func (h *DevEnvironmentHandlers) RemoveAdminFromEnvironment(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+
+	idStr := c.Param("id")
+	envID, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "dev_environment.invalid_id"),
+		})
+		return
+	}
+
+	adminIDStr := c.Param("admin_id")
+	adminID, err := strconv.ParseUint(adminIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.T(lang, "admin.invalid_id"),
+		})
+		return
+	}
+
+	err = h.devEnvService.RemoveAdminFromEnvironment(uint(envID), uint(adminID))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": i18n.T(lang, "dev_environment.admin_removed_success"),
 	})
 }

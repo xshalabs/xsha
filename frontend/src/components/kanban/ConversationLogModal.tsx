@@ -15,12 +15,16 @@ import {
 
 interface ConversationLogModalProps {
   conversationId: number | null;
+  projectId?: number;
+  taskId?: number;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export const ConversationLogModal = memo<ConversationLogModalProps>(({
   conversationId,
+  projectId,
+  taskId,
   isOpen,
   onClose,
 }) => {
@@ -29,7 +33,7 @@ export const ConversationLogModal = memo<ConversationLogModalProps>(({
     logs,
     connectionStatus,
     isStreaming,
-  } = useLogStreaming({ conversationId, isOpen });
+  } = useLogStreaming({ conversationId, projectId, taskId, isOpen });
 
   const { autoScroll, toggleAutoScroll } = useAutoScroll(true);
   

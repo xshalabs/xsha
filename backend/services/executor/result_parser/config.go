@@ -11,14 +11,14 @@ type Config struct {
 	ParseTimeout time.Duration `json:"parse_timeout"`
 
 	// 验证配置
-	StrictValidation bool `json:"strict_validation"`
-	RequiredFields  []string `json:"required_fields"`
+	StrictValidation bool     `json:"strict_validation"`
+	RequiredFields   []string `json:"required_fields"`
 }
 
 // DefaultConfig 返回默认配置
 func DefaultConfig() *Config {
 	return &Config{
-		ParseTimeout: 30 * time.Second,
+		ParseTimeout:     30 * time.Second,
 		StrictValidation: false,
 		RequiredFields: []string{
 			"type",

@@ -1,6 +1,10 @@
 {
   "operationLogs": {
     "title": "Operation Logs",
+    "overview": {
+      "title": "Operation Logs",
+      "description": "View and analyze system operation logs to track user activities and system events"
+    },
     "columns": {
       "id": "ID",
       "username": "User",

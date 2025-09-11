@@ -1,4 +1,4 @@
-.PHONY: help clean build-amd64 build-arm64 build-arm build-all build-embedded-amd64 build-embedded-arm64 build-embedded-arm build-embedded-all frontend-build
+.PHONY: help clean build-amd64 build-arm64 build-arm build-all build-embedded-amd64 build-embedded-arm64 build-embedded-arm build-embedded-all frontend-build test test-handlers test-coverage
 
 # Default target
 help: ## Show help information
@@ -78,4 +78,19 @@ deploy: build-embedded-amd64 ## Build production embedded version for AMD64 (mos
 deploy-all: build-embedded-all ## Build production embedded versions for all architectures
 	@echo "All production deployment binaries ready!"
 	@echo "Available binaries:"
-	@ls -la $(BACKEND_DIR)/$(BUILD_DIR)/ | grep embedded 
+	@ls -la $(BACKEND_DIR)/$(BUILD_DIR)/ | grep embedded
+
+# Testing commands
+test: ## Run all backend tests
+	@echo "Running all backend tests..."
+	cd $(BACKEND_DIR) && go test -v ./...
+
+test-handlers: ## Run handler tests only
+	@echo "Running handler tests..."
+	cd $(BACKEND_DIR) && go test -v ./handlers
+
+test-coverage: ## Run tests with coverage report
+	@echo "Running tests with coverage..."
+	cd $(BACKEND_DIR) && go test -v -cover ./... -coverprofile=coverage.out
+	cd $(BACKEND_DIR) && go tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report generated: $(BACKEND_DIR)/coverage.html" 

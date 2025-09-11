@@ -15,3 +15,42 @@ export function formatDateToLocal(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
+/**
+ * Format a date string or Date object to localized date and time
+ */
+export function formatDateTime(dateInput: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions): string {
+  if (!dateInput) {
+    return '-';
+  }
+  
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  
+  if (isNaN(date.getTime())) {
+    return '-';
+  }
+
+  const defaultOptions: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    ...options,
+  };
+
+  return new Intl.DateTimeFormat(navigator.language || 'en-US', defaultOptions).format(date);
+}
+
+/**
+ * Format a date string or Date object to localized date only
+ */
+export function formatDate(dateInput: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions): string {
+  return formatDateTime(dateInput, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    ...options,
+  });
+}

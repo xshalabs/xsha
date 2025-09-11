@@ -1,0 +1,42 @@
+{
+  "changePassword": "修改密码",
+  "updateAvatar": "更新头像",
+  "changePasswordPage": {
+    "title": "修改密码",
+    "description": "更新您的账户密码以保持账户安全",
+    "formTitle": "密码更新",
+    "formDescription": "输入您的当前密码并选择一个新的安全密码",
+    "currentPassword": "当前密码",
+    "currentPasswordPlaceholder": "请输入当前密码",
+    "newPassword": "新密码",
+    "newPasswordPlaceholder": "请输入新密码",
+    "confirmPassword": "确认新密码",
+    "confirmPasswordPlaceholder": "请确认您的新密码",
+    "submit": "修改密码",
+    "changing": "修改密码中...",
+    "success": "密码修改成功",
+    "error": "密码修改失败"
+  },
+  "updateAvatarPage": {
+    "title": "更新头像",
+    "description": "上传并更新您的个人资料头像图片",
+    "formTitle": "头像管理",
+    "formDescription": "上传一张新图片作为您的个人资料头像",
+    "currentAvatar": "当前头像",
+    "newAvatar": "新头像",
+    "newAvatarPreview": "新头像预览",
+    "selectFile": "选择头像图片",
+    "fileHint": "支持PNG、JPG、GIF、WEBP格式，最大5MB",
+    "chooseAnother": "选择其他图片",
+    "uploading": "上传中...",
+    "uploadSuccess": "头像上传成功",
+    "uploadError": "头像上传失败",
+    "update": "更新头像",
+    "updating": "更新头像中...",
+    "updateSuccess": "头像更新成功",
+    "updateError": "头像更新失败",
+    "invalidFileType": "请选择有效的图片文件",
+    "fileTooLarge": "文件大小必须小于5MB",
+    "noAvatarSelected": "请先上传头像图片"
+  }
+}

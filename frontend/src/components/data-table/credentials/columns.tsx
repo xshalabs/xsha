@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Edit, Key, Shield, User } from "lucide-react";
+import { Edit, Key, Shield, User, Users } from "lucide-react";
 import { QuickActions } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
 import type { GitCredential } from "@/types/credentials";
@@ -8,13 +8,21 @@ import { GitCredentialType } from "@/types/credentials";
 interface GitCredentialColumnsProps {
   onEdit: (credential: GitCredential) => void;
   onDelete: (id: number) => void;
+  onManageAdmins: (credential: GitCredential) => void;
   t: (key: string) => string;
+  canEditCredential: (resourceAdminId?: number) => boolean;
+  canDeleteCredential: (resourceAdminId?: number) => boolean;
+  canManageCredentialAdmins: (resourceAdminId?: number) => boolean;
 }
 
 export const createGitCredentialColumns = ({
   onEdit,
   onDelete,
+  onManageAdmins,
   t,
+  canEditCredential,
+  canDeleteCredential,
+  canManageCredentialAdmins,
 }: GitCredentialColumnsProps): ColumnDef<GitCredential>[] => [
   {
     accessorKey: "name",
@@ -85,6 +93,19 @@ export const createGitCredentialColumns = ({
     },
   },
   {
+    id: "admin_count",
+    header: t("gitCredentials.columns.admins"),
+    cell: ({ row }) => {
+      const admins = row.original.admins || [];
+      const count = admins.length;
+      return (
+        <Badge variant="secondary">
+          {count} {count === 1 ? t("gitCredentials.columns.admin") : t("gitCredentials.columns.admins")}
+        </Badge>
+      );
+    },
+  },
+  {
     accessorKey: "created_at",
     header: t("gitCredentials.columns.created"),
     cell: ({ row }) => {
@@ -105,22 +126,37 @@ export const createGitCredentialColumns = ({
     cell: ({ row }) => {
       const credential = row.original;
 
-      const actions = [
-        {
+      // Build actions based on permissions
+      const actions = [];
+
+      // Add edit action if user has permission
+      if (canEditCredential(credential.admin_id)) {
+        actions.push({
           id: "edit",
           label: t("gitCredentials.edit"),
           icon: Edit,
           onClick: () => onEdit(credential),
-        },
-      ];
+        });
+      }
 
-      const deleteAction = {
+      // Add manage admins action if user has permission
+      if (canManageCredentialAdmins(credential.admin_id)) {
+        actions.push({
+          id: "manageAdmins",
+          label: t("gitCredentials.manageAdmins"),
+          icon: Users,
+          onClick: () => onManageAdmins(credential),
+        });
+      }
+
+      // Only show delete action if user has permission
+      const deleteAction = canDeleteCredential(credential.admin_id) ? {
         title: credential.name,
         confirmationValue: credential.name,
         submitAction: async () => {
           await onDelete(credential.id);
         },
-      };
+      } : undefined;
 
       return (
         <QuickActions 

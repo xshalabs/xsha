@@ -19,12 +19,16 @@ import { getConversationStatusColor, formatTime } from "@/components/kanban/task
 
 interface ConversationDetailModalProps {
   conversationId: number | null;
+  projectId?: number;
+  taskId?: number;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = ({
   conversationId,
+  projectId,
+  taskId,
   isOpen,
   onClose,
 }) => {
@@ -41,18 +45,18 @@ export const ConversationDetailModal: React.FC<ConversationDetailModalProps> = (
   const [copiedResult, setCopiedResult] = useState(false);
 
   const loadConversationDetails = useCallback(async () => {
-    if (!conversationId) return;
+    if (!conversationId || !projectId || !taskId) return;
 
     setLoading(true);
     try {
-      const response = await taskConversationsApi.getDetails(conversationId);
+      const response = await taskConversationsApi.getDetails(projectId, taskId, conversationId);
       setDetails(response.data);
     } catch (error) {
       console.error("Failed to load conversation details:", error);
     } finally {
       setLoading(false);
     }
-  }, [conversationId]);
+  }, [conversationId, projectId, taskId]);
 
   useEffect(() => {
     if (isOpen && conversationId) {

@@ -44,7 +44,7 @@ func NewTaskService(repo repository.TaskRepository, projectRepo repository.Proje
 	}
 }
 
-func (s *taskService) CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint, createdBy string) (*database.Task, error) {
+func (s *taskService) CreateTask(title, startBranch string, projectID uint, devEnvironmentID *uint, adminID *uint, createdBy string) (*database.Task, error) {
 	if err := s.ValidateTaskData(title, startBranch, projectID); err != nil {
 		return nil, err
 	}
@@ -71,6 +71,7 @@ func (s *taskService) CreateTask(title, startBranch string, projectID uint, devE
 		Status:           database.TaskStatusTodo,
 		ProjectID:        projectID,
 		DevEnvironmentID: devEnvironmentID,
+		AdminID:          adminID,
 		CreatedBy:        createdBy,
 	}
 
@@ -87,46 +88,8 @@ func (s *taskService) GetTask(id uint) (*database.Task, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *taskService) ListTasks(projectID *uint, statuses []database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 || pageSize > 100 {
-		pageSize = 20
-	}
-
-	tasks, total, err := s.repo.List(projectID, statuses, title, branch, devEnvID, sortBy, sortDirection, page, pageSize)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	if len(tasks) == 0 {
-		return tasks, total, nil
-	}
-
-	taskIDs := make([]uint, len(tasks))
-	for i, task := range tasks {
-		taskIDs[i] = task.ID
-	}
-
-	conversationCounts, err := s.repo.GetConversationCounts(taskIDs)
-	if err != nil {
-		utils.Error("Failed to get conversation counts", "error", err)
-		return tasks, total, nil
-	}
-
-	executionTimes, err := s.repo.GetLatestExecutionTimes(taskIDs)
-	if err != nil {
-		utils.Error("Failed to get latest execution times", "error", err)
-		return tasks, total, nil
-	}
-
-	for i := range tasks {
-		tasks[i].ConversationCount = conversationCounts[tasks[i].ID]
-		tasks[i].LatestExecutionTime = executionTimes[tasks[i].ID]
-	}
-
-	return tasks, total, nil
+func (s *taskService) GetTaskByIDAndProject(taskID, projectID uint) (*database.Task, error) {
+	return s.repo.GetByIDAndProjectID(taskID, projectID)
 }
 
 func (s *taskService) UpdateTask(id uint, updates map[string]interface{}) error {
@@ -251,10 +214,6 @@ func (s *taskService) DeleteTask(id uint) error {
 		return err
 	}
 
-	utils.Info("Task deleted",
-		"task_id", id,
-		"created_by", "admin",
-	)
 	return nil
 }
 
@@ -278,7 +237,7 @@ func (s *taskService) ValidateTaskData(title, startBranch string, projectID uint
 	return nil
 }
 
-func (s *taskService) UpdateTaskStatusBatch(taskIDs []uint, status database.TaskStatus) ([]uint, []uint, error) {
+func (s *taskService) UpdateTaskStatusBatch(taskIDs []uint, status database.TaskStatus, projectID uint) ([]uint, []uint, error) {
 	if len(taskIDs) == 0 {
 		return nil, nil, appErrors.ErrTaskIDsEmpty
 	}
@@ -287,40 +246,28 @@ func (s *taskService) UpdateTaskStatusBatch(taskIDs []uint, status database.Task
 		return nil, nil, appErrors.ErrTooManyTasksForBatch
 	}
 
-	var successIDs []uint
-	var failedIDs []uint
+	// Use repository batch update with project ID filter
+	successIDs, failedIDs, err := s.repo.UpdateStatusBatch(taskIDs, status, projectID)
+	if err != nil {
+		return nil, taskIDs, err
+	}
 
-	for _, taskID := range taskIDs {
-		task, err := s.repo.GetByID(taskID)
-		if err != nil {
-			failedIDs = append(failedIDs, taskID)
-			utils.Warn("Failed to get task for batch status update",
-				"task_id", taskID,
-				"created_by", "admin",
-				"error", err.Error(),
-			)
-			continue
-		}
-
-		oldStatus := task.Status
-		task.Status = status
-
-		if err := s.repo.Update(task); err != nil {
-			failedIDs = append(failedIDs, taskID)
-			utils.Error("Failed to update task status in batch",
-				"task_id", taskID,
-				"created_by", "admin",
-				"error", err.Error(),
-			)
-			continue
-		}
-
-		successIDs = append(successIDs, taskID)
+	// Log successful updates
+	for _, taskID := range successIDs {
 		utils.Info("Task status updated in batch",
 			"task_id", taskID,
+			"project_id", projectID,
 			"created_by", "admin",
-			"old_status", string(oldStatus),
 			"new_status", string(status),
+		)
+	}
+
+	// Log failed updates
+	for _, taskID := range failedIDs {
+		utils.Warn("Failed to update task status in batch (task not found in project or does not exist)",
+			"task_id", taskID,
+			"project_id", projectID,
+			"created_by", "admin",
 		)
 	}
 
@@ -491,15 +438,86 @@ func (s *taskService) PushTaskBranch(id uint, forcePush bool) (string, error) {
 	)
 
 	if err != nil {
-		utils.Error("Failed to push task branch", "taskID", id, "branch", task.WorkBranch, "error", err)
 		return output, err
 	}
 
-	utils.Info("Successfully pushed task branch", "taskID", id, "branch", task.WorkBranch)
 	return output, nil
 }
 
-func (s *taskService) GetKanbanTasks(projectID uint) (map[database.TaskStatus][]database.Task, error) {
+// convertToKanbanResponse converts a database.Task to TaskKanbanResponse with limited dev environment and project fields
+func convertToKanbanResponse(task database.Task) database.TaskKanbanResponse {
+	response := database.TaskKanbanResponse{
+		ID:                  task.ID,
+		CreatedAt:           task.CreatedAt,
+		UpdatedAt:           task.UpdatedAt,
+		Title:               task.Title,
+		StartBranch:         task.StartBranch,
+		WorkBranch:          task.WorkBranch,
+		Status:              task.Status,
+		HasPullRequest:      task.HasPullRequest,
+		WorkspacePath:       task.WorkspacePath,
+		SessionID:           task.SessionID,
+		ProjectID:           task.ProjectID,
+		DevEnvironmentID:    task.DevEnvironmentID,
+		AdminID:             task.AdminID,
+		Admin:               nil, // Will be set below
+		CreatedBy:           task.CreatedBy,
+		ConversationCount:   task.ConversationCount,
+		LatestExecutionTime: task.LatestExecutionTime,
+	}
+
+	// Convert Project to limited response if it exists
+	if task.Project != nil {
+		response.Project = &database.ProjectKanbanResponse{
+			ID:           task.Project.ID,
+			AdminID:      task.Project.AdminID,
+			CreatedBy:    task.Project.CreatedBy,
+			Description:  task.Project.Description,
+			Name:         task.Project.Name,
+			SystemPrompt: task.Project.SystemPrompt,
+		}
+	}
+
+	// Convert DevEnvironment to limited response if it exists
+	if task.DevEnvironment != nil {
+		response.DevEnvironment = &database.DevEnvironmentKanbanResponse{
+			ID:           task.DevEnvironment.ID,
+			CreatedBy:    task.DevEnvironment.CreatedBy,
+			Description:  task.DevEnvironment.Description,
+			DockerImage:  task.DevEnvironment.DockerImage,
+			CPULimit:     task.DevEnvironment.CPULimit,
+			MemoryLimit:  task.DevEnvironment.MemoryLimit,
+			Name:         task.DevEnvironment.Name,
+			SystemPrompt: task.DevEnvironment.SystemPrompt,
+			Type:         task.DevEnvironment.Type,
+			AdminID:      task.DevEnvironment.AdminID,
+		}
+	}
+
+	// Convert Admin to limited response if it exists
+	if task.Admin != nil {
+		adminResponse := &database.AdminKanbanResponse{
+			ID:       task.Admin.ID,
+			Username: task.Admin.Username,
+			Name:     task.Admin.Name,
+			Email:    task.Admin.Email,
+		}
+
+		// Convert Avatar to minimal response if it exists
+		if task.Admin.Avatar != nil {
+			adminResponse.Avatar = &database.AdminAvatarMinimal{
+				UUID:         task.Admin.Avatar.UUID,
+				OriginalName: task.Admin.Avatar.OriginalName,
+			}
+		}
+
+		response.Admin = adminResponse
+	}
+
+	return response
+}
+
+func (s *taskService) GetKanbanTasks(projectID uint) (map[database.TaskStatus][]database.TaskKanbanResponse, error) {
 	// Validate project exists
 	_, err := s.projectRepo.GetByID(projectID)
 	if err != nil {
@@ -544,18 +562,19 @@ func (s *taskService) GetKanbanTasks(projectID uint) (map[database.TaskStatus][]
 		}
 	}
 
-	// Group tasks by status
-	kanbanData := make(map[database.TaskStatus][]database.Task)
+	// Group tasks by status and convert to kanban response format
+	kanbanData := make(map[database.TaskStatus][]database.TaskKanbanResponse)
 
 	// Initialize all status groups to ensure they exist even if empty
-	kanbanData[database.TaskStatusTodo] = []database.Task{}
-	kanbanData[database.TaskStatusInProgress] = []database.Task{}
-	kanbanData[database.TaskStatusDone] = []database.Task{}
-	kanbanData[database.TaskStatusCancelled] = []database.Task{}
+	kanbanData[database.TaskStatusTodo] = []database.TaskKanbanResponse{}
+	kanbanData[database.TaskStatusInProgress] = []database.TaskKanbanResponse{}
+	kanbanData[database.TaskStatusDone] = []database.TaskKanbanResponse{}
+	kanbanData[database.TaskStatusCancelled] = []database.TaskKanbanResponse{}
 
-	// Group tasks by their status
+	// Group tasks by their status and convert to response format
 	for _, task := range tasks {
-		kanbanData[task.Status] = append(kanbanData[task.Status], task)
+		kanbanResponse := convertToKanbanResponse(task)
+		kanbanData[task.Status] = append(kanbanData[task.Status], kanbanResponse)
 	}
 
 	return kanbanData, nil
@@ -572,7 +591,9 @@ func (s *taskService) deleteConversationCascade(conversationID uint, workspacePa
 
 	// Handle git repository reset if needed
 	if conversation.CommitHash != "" && workspacePath != "" {
-		if err := utils.GitResetToPreviousCommit(workspacePath, conversation.CommitHash); err != nil {
+		// Convert relative workspace path to absolute for git operations
+		absoluteWorkspacePath := s.workspaceManager.GetAbsolutePath(workspacePath)
+		if err := utils.GitResetToPreviousCommit(absoluteWorkspacePath, conversation.CommitHash); err != nil {
 			utils.Error("Failed to reset git repository to previous commit",
 				"conversation_id", conversationID,
 				"commit_hash", conversation.CommitHash,
@@ -640,4 +661,9 @@ func (s *taskService) deleteConversationCascade(conversationID uint, workspacePa
 
 func (s *taskService) getGitProxyConfig() (*utils.GitProxyConfig, error) {
 	return s.systemConfigService.GetGitProxyConfig()
+}
+
+// CountByAdminID counts the number of tasks created by a specific admin
+func (s *taskService) CountByAdminID(adminID uint) (int64, error) {
+	return s.repo.CountByAdminID(adminID)
 }

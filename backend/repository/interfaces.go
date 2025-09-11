@@ -6,8 +6,8 @@ import (
 )
 
 type TokenBlacklistRepository interface {
-	Add(token string, username string, expiresAt time.Time, reason string) error
-	IsBlacklisted(token string) (bool, error)
+	Add(tokenID string, adminID uint, expiresAt time.Time, reason string) error
+	IsBlacklisted(tokenID string) (bool, error)
 	CleanExpired() error
 }
 
@@ -17,13 +17,37 @@ type LoginLogRepository interface {
 	CleanOld(days int) error
 }
 
+type AdminRepository interface {
+	Create(admin *database.Admin) error
+	GetByID(id uint) (*database.Admin, error)
+	GetByUsername(username string) (*database.Admin, error)
+	List(search *string, isActive *bool, roles []string, page, pageSize int) ([]database.Admin, int64, error)
+	Update(id uint, updates map[string]interface{}) error
+	Delete(id uint) error
+	DeleteAdminAssociations(adminID uint) error
+	UpdateLastLogin(username, ip string) error
+	CountAdmins() (int64, error)
+	CountActiveAdminsByRole(role database.AdminRole) (int64, error)
+	InitializeDefaultAdmin() error
+}
+
 type GitCredentialRepository interface {
 	Create(credential *database.GitCredential) error
 	GetByID(id uint) (*database.GitCredential, error)
+	GetByIDWithAdmins(id uint) (*database.GitCredential, error)
 	GetByName(name string) (*database.GitCredential, error)
 	List(name *string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
+	ListByAdminAccess(adminID uint, name *string, credType *database.GitCredentialType, page, pageSize int) ([]database.GitCredential, int64, error)
 	Update(credential *database.GitCredential) error
 	Delete(id uint) error
+
+	// Admin management methods
+	AddAdmin(credentialID, adminID uint) error
+	RemoveAdmin(credentialID, adminID uint) error
+	DeleteAdminAssociations(credentialID uint) error
+	GetAdmins(credentialID uint) ([]database.Admin, error)
+	IsOwner(credentialID, adminID uint) (bool, error)
+	CountByAdminID(adminID uint) (int64, error)
 }
 
 type ProjectRepository interface {
@@ -37,6 +61,15 @@ type ProjectRepository interface {
 	UpdateLastUsed(id uint) error
 	GetByCredentialID(credentialID uint) ([]database.Project, error)
 	GetTaskCounts(projectIDs []uint) (map[uint]int64, error)
+	GetAdminCounts(projectIDs []uint) (map[uint]int64, error)
+
+	// Admin management methods
+	GetByIDWithAdmins(id uint) (*database.Project, error)
+	ListByAdminAccess(adminID uint, name string, protocol *database.GitProtocolType, sortBy, sortDirection string, page, pageSize int) ([]database.Project, int64, error)
+	AddAdmin(projectID, adminID uint) error
+	RemoveAdmin(projectID, adminID uint) error
+	GetAdmins(projectID uint) ([]database.Admin, error)
+	IsAdminForProject(projectID, adminID uint) (bool, error)
 }
 
 type AdminOperationLogRepository interface {
@@ -55,16 +88,25 @@ type AdminOperationLogRepository interface {
 type DevEnvironmentRepository interface {
 	Create(env *database.DevEnvironment) error
 	GetByID(id uint) (*database.DevEnvironment, error)
+	GetByIDWithAdmins(id uint) (*database.DevEnvironment, error)
 	GetByName(name string) (*database.DevEnvironment, error)
 	List(name *string, dockerImage *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
+	ListByAdminAccess(adminID uint, name *string, dockerImage *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
 	Update(env *database.DevEnvironment) error
 	Delete(id uint) error
-	GetStats() (map[string]interface{}, error)
+
+	// Admin management methods
+	AddAdmin(envID, adminID uint) error
+	RemoveAdmin(envID, adminID uint) error
+	GetAdmins(envID uint) ([]database.Admin, error)
+	IsOwner(envID, adminID uint) (bool, error)
+	CountByAdminID(adminID uint) (int64, error)
 }
 
 type TaskRepository interface {
 	Create(task *database.Task) error
 	GetByID(id uint) (*database.Task, error)
+	GetByIDAndProjectID(taskID, projectID uint) (*database.Task, error)
 	List(projectID *uint, statuses []database.TaskStatus, title *string, branch *string, devEnvID *uint, sortBy, sortDirection string, page, pageSize int) ([]database.Task, int64, error)
 	Update(task *database.Task) error
 	Delete(id uint) error
@@ -72,6 +114,9 @@ type TaskRepository interface {
 	ListByProject(projectID uint) ([]database.Task, error)
 	GetConversationCounts(taskIDs []uint) (map[uint]int64, error)
 	GetLatestExecutionTimes(taskIDs []uint) (map[uint]*time.Time, error)
+	UpdateStatusBatch(taskIDs []uint, status database.TaskStatus, projectID uint) ([]uint, []uint, error)
+	CountByDevEnvironmentID(devEnvID uint) (int64, error)
+	CountByAdminID(adminID uint) (int64, error)
 }
 
 type TaskConversationRepository interface {
@@ -103,18 +148,6 @@ type TaskExecutionLogRepository interface {
 
 type TaskConversationResultRepository interface {
 	Create(result *database.TaskConversationResult) error
-	GetByID(id uint) (*database.TaskConversationResult, error)
-	GetByConversationID(conversationID uint) (*database.TaskConversationResult, error)
-	Update(result *database.TaskConversationResult) error
-	Delete(id uint) error
-
-	ListByTaskID(taskID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error)
-	ListByProjectID(projectID uint, page, pageSize int) ([]database.TaskConversationResult, int64, error)
-
-	GetSuccessRate(taskID uint) (float64, error)
-	GetTotalCost(taskID uint) (float64, error)
-	GetAverageDuration(taskID uint) (float64, error)
-
 	ExistsByConversationID(conversationID uint) (bool, error)
 	DeleteByConversationID(conversationID uint) error
 	GetLatestByTaskID(taskID uint) (*database.TaskConversationResult, error)
@@ -134,14 +167,26 @@ type SystemConfigRepository interface {
 
 type DashboardRepository interface {
 	GetDashboardStats() (map[string]interface{}, error)
-	GetRecentTasks(limit int) ([]database.Task, error)
+	GetRecentTasks(limit int, adminID uint, adminRole database.AdminRole) ([]database.Task, error)
 }
 
 type TaskConversationAttachmentRepository interface {
 	Create(attachment *database.TaskConversationAttachment) error
 	GetByID(id uint) (*database.TaskConversationAttachment, error)
+	GetByIDAndProjectID(id, projectID uint) (*database.TaskConversationAttachment, error)
 	GetByConversationID(conversationID uint) ([]database.TaskConversationAttachment, error)
+	GetByProjectID(projectID uint) ([]database.TaskConversationAttachment, error)
 	Update(attachment *database.TaskConversationAttachment) error
 	Delete(id uint) error
 	DeleteByConversationID(conversationID uint) error
+	DeleteByProjectID(projectID uint) error
+}
+
+type AdminAvatarRepository interface {
+	Create(avatar *database.AdminAvatar) error
+	GetByID(id uint) (*database.AdminAvatar, error)
+	GetByUUID(uuid string) (*database.AdminAvatar, error)
+	GetByAdminID(adminID uint) (*database.AdminAvatar, error)
+	Update(avatar *database.AdminAvatar) error
+	Delete(id uint) error
 }

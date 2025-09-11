@@ -26,13 +26,14 @@ func NewTaskConversationAttachmentService(repo repository.TaskConversationAttach
 	}
 }
 
-func (s *taskConversationAttachmentService) UploadAttachment(fileName, originalName, contentType string, fileSize int64, filePath string, attachmentType database.AttachmentType, createdBy string) (*database.TaskConversationAttachment, error) {
+func (s *taskConversationAttachmentService) UploadAttachment(fileName, originalName, contentType string, fileSize int64, filePath string, attachmentType database.AttachmentType, projectID, adminID uint, createdBy string) (*database.TaskConversationAttachment, error) {
 	// Validate file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return nil, appErrors.NewI18nError("attachment.file_not_found", "File does not exist")
 	}
 
 	attachment := &database.TaskConversationAttachment{
+		ProjectID:      &projectID,
 		ConversationID: nil, // Will be set later when associating with conversation
 		FileName:       fileName,
 		OriginalName:   originalName,
@@ -41,6 +42,7 @@ func (s *taskConversationAttachmentService) UploadAttachment(fileName, originalN
 		ContentType:    contentType,
 		Type:           attachmentType,
 		SortOrder:      0, // Will be set when associating with conversation
+		AdminID:        &adminID,
 		CreatedBy:      createdBy,
 	}
 
@@ -74,8 +76,16 @@ func (s *taskConversationAttachmentService) GetAttachment(id uint) (*database.Ta
 	return s.repo.GetByID(id)
 }
 
+func (s *taskConversationAttachmentService) GetAttachmentByProjectID(id, projectID uint) (*database.TaskConversationAttachment, error) {
+	return s.repo.GetByIDAndProjectID(id, projectID)
+}
+
 func (s *taskConversationAttachmentService) GetAttachmentsByConversation(conversationID uint) ([]database.TaskConversationAttachment, error) {
 	return s.repo.GetByConversationID(conversationID)
+}
+
+func (s *taskConversationAttachmentService) GetAttachmentsByProjectID(projectID uint) ([]database.TaskConversationAttachment, error) {
+	return s.repo.GetByProjectID(projectID)
 }
 
 func (s *taskConversationAttachmentService) UpdateAttachment(id uint, attachment *database.TaskConversationAttachment) error {
@@ -113,6 +123,23 @@ func (s *taskConversationAttachmentService) DeleteAttachmentsByConversation(conv
 	}
 
 	return s.repo.DeleteByConversationID(conversationID)
+}
+
+func (s *taskConversationAttachmentService) DeleteAttachmentsByProjectID(projectID uint) error {
+	attachments, err := s.repo.GetByProjectID(projectID)
+	if err != nil {
+		return err
+	}
+
+	// Delete physical files
+	for _, attachment := range attachments {
+		if err := os.Remove(attachment.FilePath); err != nil {
+			// Log error but continue with other files
+			utils.Warn("Failed to delete physical file", "filePath", attachment.FilePath, "error", err)
+		}
+	}
+
+	return s.repo.DeleteByProjectID(projectID)
 }
 
 func (s *taskConversationAttachmentService) ProcessContentWithAttachments(content string, attachments []database.TaskConversationAttachment, conversationID uint) string {
