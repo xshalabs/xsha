@@ -90,6 +90,11 @@ func (s *adminService) CreateAdminWithRole(username, password, name, email strin
 	}
 
 	if err := s.adminRepo.Create(admin); err != nil {
+		// Check if it's already an internationalized error
+		if _, ok := err.(*appErrors.I18nError); ok {
+			return nil, err
+		}
+		// For other errors, wrap with generic message
 		return nil, fmt.Errorf("failed to create admin: %v", err)
 	}
 

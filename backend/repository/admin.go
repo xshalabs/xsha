@@ -18,7 +18,11 @@ func NewAdminRepository(db *gorm.DB) AdminRepository {
 }
 
 func (r *adminRepository) Create(admin *database.Admin) error {
-	return r.db.Create(admin).Error
+	err := r.db.Create(admin).Error
+	if err != nil {
+		return utils.ParseDBError(err)
+	}
+	return nil
 }
 
 func (r *adminRepository) GetByID(id uint) (*database.Admin, error) {
