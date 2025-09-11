@@ -62,17 +62,18 @@ export const DashboardPage: React.FC = () => {
         setError(null);
         
         // Only super admin users should request dashboard stats
-        const promises = [dashboardApi.getRecentTasks(6)];
         if (isSuperAdmin) {
-          promises.unshift(dashboardApi.getDashboardStats());
+          const [statsData, tasksData] = await Promise.all([
+            dashboardApi.getDashboardStats(),
+            dashboardApi.getRecentTasks(6)
+          ]);
+          setStats(statsData);
+          setRecentTasks(tasksData);
+        } else {
+          const tasksData = await dashboardApi.getRecentTasks(6);
+          setStats(null);
+          setRecentTasks(tasksData);
         }
-        
-        const results = await Promise.all(promises);
-        const tasksData = results[isSuperAdmin ? 1 : 0];
-        const statsData = isSuperAdmin ? results[0] : null;
-        
-        setStats(statsData);
-        setRecentTasks(tasksData);
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err);
         setError("Failed to load dashboard data");

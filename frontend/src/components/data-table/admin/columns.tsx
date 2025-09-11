@@ -37,7 +37,7 @@ export const createAdminColumns = ({
     enableSorting: false,
     enableHiding: false,
     enableColumnFilter: true,
-    filterFn: (row, columnId, value) => {
+    filterFn: (row, _, value) => {
       if (!value) return true;
       
       const searchValue = value.toLowerCase();

@@ -33,7 +33,7 @@ import { Plus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { apiService } from "@/lib/api/index";
 import { logError, handleApiError } from "@/lib/errors";
-import type { Project } from "@/types/project";
+import type { Project, ProjectAdminsResponse } from "@/types/project";
 import type { Admin } from "@/lib/api/types";
 
 interface AdminManagementSheetProps {
@@ -57,14 +57,14 @@ export function AdminManagementSheet({
   // Use external open state if provided, otherwise use internal state
   const open = externalOpen !== undefined ? externalOpen : internalOpen;
   const setOpen = externalOnOpenChange !== undefined ? externalOnOpenChange : setInternalOpen;
-  const [projectAdmins, setProjectAdmins] = useState<Admin[]>([]);
+  const [projectAdmins, setProjectAdmins] = useState<ProjectAdminsResponse['admins']>([]);
   const [availableAdmins, setAvailableAdmins] = useState<Admin[]>([]);
   const [selectedAdminId, setSelectedAdminId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isAddingAdmin, setIsAddingAdmin] = useState(false);
   const [isRemovingAdmin, setIsRemovingAdmin] = useState(false);
   const [showRemoveConfirmDialog, setShowRemoveConfirmDialog] = useState(false);
-  const [adminToRemove, setAdminToRemove] = useState<Admin | null>(null);
+  const [adminToRemove, setAdminToRemove] = useState<ProjectAdminsResponse['admins'][0] | null>(null);
 
   // Load project admins and available admins when sheet opens
   useEffect(() => {
@@ -120,7 +120,7 @@ export function AdminManagementSheet({
     }
   };
 
-  const handleRemoveAdmin = (admin: Admin) => {
+  const handleRemoveAdmin = (admin: ProjectAdminsResponse['admins'][0]) => {
     setAdminToRemove(admin);
     setShowRemoveConfirmDialog(true);
   };
