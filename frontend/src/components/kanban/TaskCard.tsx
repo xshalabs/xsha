@@ -10,6 +10,7 @@ import {
 } from "@/components/kanban";
 import { formatFutureExecutionTime } from "@/lib/timezone";
 import { useTranslation } from "react-i18next";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import type { Task } from "@/types/task";
 
 interface TaskCardProps {
@@ -36,7 +37,25 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
 
   return (
     <KanbanBoardCard data={{ id: task.id.toString() }} onClick={handleClick}>
-      <KanbanBoardCardTitle>{task.title}</KanbanBoardCardTitle>
+      <div className="flex items-start">
+        {task.admin && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex-shrink-0 mr-2">
+                <UserAvatar
+                  name={task.admin.name}
+                  avatar={task.admin.avatar}
+                  size="sm"
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{task.admin.name}</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+        <KanbanBoardCardTitle className="flex-1">{task.title}</KanbanBoardCardTitle>
+      </div>
       {showAlarmIcon && (
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center space-x-2">
