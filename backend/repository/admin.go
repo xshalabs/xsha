@@ -119,14 +119,11 @@ func (r *adminRepository) CountAdmins() (int64, error) {
 }
 
 func (r *adminRepository) InitializeDefaultAdmin() error {
-	// Check if any admin exists
 	count, err := r.CountAdmins()
 	if err != nil {
 		return err
 	}
-
 	if count > 0 {
-		utils.Info("Admin users already exist, skipping default admin creation")
 		return nil
 	}
 

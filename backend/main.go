@@ -151,28 +151,24 @@ func main() {
 		utils.Error("Failed to create attachment storage directory", "directory", cfg.AttachmentsDir, "error", err)
 		os.Exit(1)
 	}
-	utils.Info("Attachment storage directory initialized", "directory", cfg.AttachmentsDir)
 
 	// Create avatar storage directory
 	if err := os.MkdirAll(cfg.AvatarsDir, 0755); err != nil {
 		utils.Error("Failed to create avatar storage directory", "directory", cfg.AvatarsDir, "error", err)
 		os.Exit(1)
 	}
-	utils.Info("Avatar storage directory initialized", "directory", cfg.AvatarsDir)
 
 	// Create workspace base directory
 	if err := os.MkdirAll(cfg.WorkspaceBaseDir, 0755); err != nil {
 		utils.Error("Failed to create workspace base directory", "directory", cfg.WorkspaceBaseDir, "error", err)
 		os.Exit(1)
 	}
-	utils.Info("Workspace base directory initialized", "directory", cfg.WorkspaceBaseDir)
 
 	// Create dev sessions directory
 	if err := os.MkdirAll(cfg.DevSessionsDir, 0755); err != nil {
 		utils.Error("Failed to create dev sessions directory", "directory", cfg.DevSessionsDir, "error", err)
 		os.Exit(1)
 	}
-	utils.Info("Dev sessions directory initialized", "directory", cfg.DevSessionsDir)
 
 	// Initialize default admin user
 	if err := adminService.InitializeDefaultAdmin(); err != nil {
