@@ -13,6 +13,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"os"
 	"os/signal"
@@ -20,6 +21,8 @@ import (
 	"time"
 	"xsha-backend/config"
 	"xsha-backend/database"
+	"xsha-backend/events"
+	eventHandlers "xsha-backend/events/handlers"
 	"xsha-backend/handlers"
 	"xsha-backend/repository"
 	"xsha-backend/routes"
@@ -65,10 +68,25 @@ func main() {
 	systemConfigRepo := repository.NewSystemConfigRepository(dbManager.GetDB())
 	dashboardRepo := repository.NewDashboardRepository(dbManager.GetDB())
 
+	// Initialize event system
+	eventBusConfig := events.DefaultEventBusConfig()
+	eventStore := events.NewDBEventStore(dbManager.GetDB())
+	deadLetterQueue := events.NewDBDeadLetterQueue(dbManager.GetDB())
+	eventBus := events.NewEventBus(eventBusConfig,
+		events.WithEventStore(eventStore),
+		events.WithDeadLetterQueue(deadLetterQueue),
+	)
+
+	// Start event bus
+	if err := eventBus.Start(context.Background()); err != nil {
+		utils.Error("Failed to start event bus", "error", err)
+		os.Exit(1)
+	}
+
 	// Initialize services
 	loginLogService := services.NewLoginLogService(loginLogRepo)
 	adminOperationLogService := services.NewAdminOperationLogService(adminOperationLogRepo)
-	adminService := services.NewAdminService(adminRepo)
+	adminService := services.NewAdminService(adminRepo, eventBus)
 	adminAvatarService := services.NewAdminAvatarService(adminAvatarRepo, adminRepo, cfg)
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, adminService, adminRepo, cfg)
 
@@ -93,10 +111,48 @@ func main() {
 	adminService.SetDevEnvironmentService(devEnvService)
 	adminService.SetGitCredentialService(gitCredService)
 	projectService := services.NewProjectService(projectRepo, gitCredRepo, gitCredService, taskRepo, systemConfigService, cfg)
-	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, taskConvRepo, execLogRepo, taskConvResultRepo, taskConvAttachmentRepo, workspaceManager, cfg, gitCredService, systemConfigService)
+	taskService := services.NewTaskService(taskRepo, projectRepo, devEnvRepo, taskConvRepo, execLogRepo, taskConvResultRepo, taskConvAttachmentRepo, workspaceManager, cfg, gitCredService, systemConfigService, eventBus)
 	taskConvResultService := services.NewTaskConversationResultService(taskConvResultRepo, taskConvRepo, taskRepo, projectRepo)
 	taskConvAttachmentService := services.NewTaskConversationAttachmentService(taskConvAttachmentRepo, cfg)
 	taskConvService := services.NewTaskConversationService(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, taskService, taskConvAttachmentService, workspaceManager)
+
+	// Initialize event handlers
+	taskEventHandlers := eventHandlers.NewTaskEventHandlers(
+		adminOperationLogService,
+		workspaceManager,
+		taskService,
+		projectService,
+		gitCredService,
+		systemConfigService,
+	)
+
+	adminEventHandlers := eventHandlers.NewAdminEventHandlers(
+		adminOperationLogService,
+		authService,
+		adminService,
+		gitCredService,
+		projectService,
+		devEnvService,
+		taskService,
+		taskConvService,
+	)
+
+	// Register event handlers
+	eventBus.Subscribe(events.EventTypeTaskCreated, taskEventHandlers.HandleTaskCreated)
+	eventBus.Subscribe(events.EventTypeTaskStatusChanged, taskEventHandlers.HandleTaskStatusChanged)
+	eventBus.Subscribe(events.EventTypeTaskCompleted, taskEventHandlers.HandleTaskCompleted)
+	eventBus.Subscribe(events.EventTypeTaskFailed, taskEventHandlers.HandleTaskFailed)
+	eventBus.Subscribe(events.EventTypeTaskDeleted, taskEventHandlers.HandleTaskDeleted)
+	eventBus.Subscribe(events.EventTypeTaskWorkspaceReady, taskEventHandlers.HandleTaskWorkspaceReady)
+
+	eventBus.Subscribe(events.EventTypeAdminCreated, adminEventHandlers.HandleAdminCreated)
+	eventBus.Subscribe(events.EventTypeAdminUpdated, adminEventHandlers.HandleAdminUpdated)
+	eventBus.Subscribe(events.EventTypeAdminDeleted, adminEventHandlers.HandleAdminDeleted)
+	eventBus.Subscribe(events.EventTypeAdminRoleChanged, adminEventHandlers.HandleAdminRoleChanged)
+	eventBus.Subscribe(events.EventTypeAdminLogin, adminEventHandlers.HandleAdminLogin)
+	eventBus.Subscribe(events.EventTypeAdminLogout, adminEventHandlers.HandleAdminLogout)
+	eventBus.Subscribe(events.EventTypePermissionGranted, adminEventHandlers.HandlePermissionGranted)
+	eventBus.Subscribe(events.EventTypePermissionRevoked, adminEventHandlers.HandlePermissionRevoked)
 
 	// Set up additional dependencies for adminService permission checks
 	adminService.SetProjectService(projectService)
@@ -196,6 +252,13 @@ func main() {
 		// Stop scheduler
 		if err := schedulerManager.Stop(); err != nil {
 			utils.Error("Failed to stop scheduler", "error", err)
+		}
+
+		// Stop event bus
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if err := eventBus.Stop(shutdownCtx); err != nil {
+			utils.Error("Failed to stop event bus", "error", err)
 		}
 
 		// Sync logger before exit

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"xsha-backend/database"
 	appErrors "xsha-backend/errors"
+	"xsha-backend/events"
 	"xsha-backend/repository"
 	"xsha-backend/utils"
 
@@ -21,11 +22,13 @@ type adminService struct {
 	projectService  ProjectService
 	taskService     TaskService
 	taskConvService TaskConversationService
+	eventBus        events.EventBus
 }
 
-func NewAdminService(adminRepo repository.AdminRepository) AdminService {
+func NewAdminService(adminRepo repository.AdminRepository, eventBus events.EventBus) AdminService {
 	return &adminService{
 		adminRepo: adminRepo,
+		eventBus:  eventBus,
 	}
 }
 
@@ -96,6 +99,12 @@ func (s *adminService) CreateAdminWithRole(username, password, name, email strin
 		}
 		// For other errors, wrap with generic message
 		return nil, fmt.Errorf("failed to create admin: %v", err)
+	}
+
+	// 发布管理员创建事件
+	if s.eventBus != nil {
+		event := events.NewAdminCreatedEvent(admin)
+		s.eventBus.PublishAsync(event)
 	}
 
 	return admin, nil
@@ -231,6 +240,12 @@ func (s *adminService) DeleteAdmin(id uint) error {
 		}
 	}
 
+	// 发布管理员删除事件
+	if s.eventBus != nil {
+		event := events.NewAdminDeletedEvent(admin, "admin", "Manual deletion")
+		s.eventBus.PublishAsync(event)
+	}
+
 	// Delete admin associations first, then delete the admin
 	if err := s.adminRepo.DeleteAdminAssociations(id); err != nil {
 		return fmt.Errorf("failed to delete admin associations: %v", err)
@@ -261,7 +276,18 @@ func (s *adminService) ChangePassword(id uint, newPassword string) error {
 	updates := map[string]interface{}{
 		"password_hash": string(passwordHash),
 	}
-	return s.adminRepo.Update(admin.ID, updates)
+	
+	if err := s.adminRepo.Update(admin.ID, updates); err != nil {
+		return err
+	}
+
+	// 发布密码变更事件
+	if s.eventBus != nil {
+		event := events.NewAdminPasswordChangedEvent(admin.ID, admin.Username, "admin", "Password changed", true)
+		s.eventBus.PublishAsync(event)
+	}
+
+	return nil
 }
 
 func (s *adminService) ValidateCredentials(username, password string) (*database.Admin, error) {

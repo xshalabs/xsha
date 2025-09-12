@@ -10,6 +10,7 @@ import (
 	"xsha-backend/config"
 	"xsha-backend/database"
 	appErrors "xsha-backend/errors"
+	"xsha-backend/events"
 	"xsha-backend/repository"
 	"xsha-backend/utils"
 )
@@ -26,9 +27,10 @@ type taskService struct {
 	config                         *config.Config
 	gitCredService                 GitCredentialService
 	systemConfigService            SystemConfigService
+	eventBus                       events.EventBus
 }
 
-func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository, taskConversationRepo repository.TaskConversationRepository, taskExecutionLogRepo repository.TaskExecutionLogRepository, taskConversationResultRepo repository.TaskConversationResultRepository, taskConversationAttachmentRepo repository.TaskConversationAttachmentRepository, workspaceManager *utils.WorkspaceManager, cfg *config.Config, gitCredService GitCredentialService, systemConfigService SystemConfigService) TaskService {
+func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository, taskConversationRepo repository.TaskConversationRepository, taskExecutionLogRepo repository.TaskExecutionLogRepository, taskConversationResultRepo repository.TaskConversationResultRepository, taskConversationAttachmentRepo repository.TaskConversationAttachmentRepository, workspaceManager *utils.WorkspaceManager, cfg *config.Config, gitCredService GitCredentialService, systemConfigService SystemConfigService, eventBus events.EventBus) TaskService {
 	return &taskService{
 		repo:                           repo,
 		projectRepo:                    projectRepo,
@@ -41,6 +43,7 @@ func NewTaskService(repo repository.TaskRepository, projectRepo repository.Proje
 		config:                         cfg,
 		gitCredService:                 gitCredService,
 		systemConfigService:            systemConfigService,
+		eventBus:                       eventBus,
 	}
 }
 
@@ -81,6 +84,13 @@ func (s *taskService) CreateTask(title, startBranch string, projectID uint, devE
 
 	task.Project = project
 	task.DevEnvironment = devEnv
+
+	// 发布任务创建事件
+	if s.eventBus != nil {
+		event := events.NewTaskCreatedEvent(task)
+		s.eventBus.PublishAsync(event)
+	}
+
 	return task, nil
 }
 
@@ -114,7 +124,20 @@ func (s *taskService) UpdateTask(id uint, updates map[string]interface{}) error 
 
 	task.Title = strings.TrimSpace(titleStr)
 
-	return s.repo.Update(task)
+	if err := s.repo.Update(task); err != nil {
+		return err
+	}
+
+	// 发布任务更新事件
+	if s.eventBus != nil {
+		changes := map[string]interface{}{
+			"title": titleStr,
+		}
+		event := events.NewTaskUpdatedEvent(task.ID, task.ProjectID, changes, "admin")
+		s.eventBus.PublishAsync(event)
+	}
+
+	return nil
 }
 
 func (s *taskService) UpdateTaskStatus(id uint, status database.TaskStatus) error {
@@ -128,6 +151,14 @@ func (s *taskService) UpdateTaskStatus(id uint, status database.TaskStatus) erro
 
 	if err := s.repo.Update(task); err != nil {
 		return err
+	}
+
+	// 发布任务状态变更事件
+	if s.eventBus != nil {
+		event := events.NewTaskStatusChangedEvent(
+			id, task.ProjectID, oldStatus, status, "system", "Status updated",
+		)
+		s.eventBus.PublishAsync(event)
 	}
 
 	utils.Info("Task status updated",
@@ -207,6 +238,12 @@ func (s *taskService) DeleteTask(id uint) error {
 				"workspace_path", task.WorkspacePath,
 			)
 		}
+	}
+
+	// 发布任务删除事件
+	if s.eventBus != nil {
+		event := events.NewTaskDeletedEvent(task, "admin", "Manual deletion")
+		s.eventBus.PublishAsync(event)
 	}
 
 	// Finally, delete the task record
