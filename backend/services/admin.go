@@ -103,23 +103,34 @@ func (s *adminService) CreateAdminWithRole(username, password, name, email strin
 		return nil, fmt.Errorf("failed to create admin: %v", err)
 	}
 
-	// Send welcome email if email service is available and user has email
+	// Send welcome email asynchronously if email service is available and user has email
 	if s.emailService != nil && admin.Email != "" {
-		// Determine language based on context, default to English
-		lang := "en-US"
-		// You could potentially get this from request context in future
+		// Make a copy of admin data for the goroutine to avoid potential race conditions
+		adminCopy := *admin
 
-		if err := s.emailService.SendWelcomeEmail(admin, lang); err != nil {
-			// Log the error but don't fail the admin creation
-			utils.Error("Failed to send welcome email to new admin",
-				"username", admin.Username,
-				"email", admin.Email,
-				"error", err)
-		} else {
-			utils.Info("Welcome email sent successfully to new admin",
-				"username", admin.Username,
-				"email", admin.Email)
-		}
+		// Send email asynchronously to avoid blocking the API request
+		go func() {
+			// Determine language based on context, default to English
+			lang := "en-US"
+			// You could potentially get this from request context in future
+
+			if err := s.emailService.SendWelcomeEmail(&adminCopy, lang); err != nil {
+				// Log the error but don't fail the admin creation
+				utils.Error("Failed to send welcome email to new admin",
+					"username", adminCopy.Username,
+					"email", adminCopy.Email,
+					"error", err)
+			} else {
+				utils.Info("Welcome email sent successfully to new admin",
+					"username", adminCopy.Username,
+					"email", adminCopy.Email)
+			}
+		}()
+
+		// Log that email sending was initiated
+		utils.Info("Welcome email sending initiated for new admin",
+			"username", admin.Username,
+			"email", admin.Email)
 	}
 
 	return admin, nil
