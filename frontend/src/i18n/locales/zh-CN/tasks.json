@@ -159,5 +159,9 @@
     "defaultDescription": "使用默认模型",
     "sonnet": "Sonnet",
     "opus": "Opus"
+  },
+  "editTitle": {
+    "dialogTitle": "编辑任务标题",
+    "dialogDescription": "更新任务的标题"
   }
 }

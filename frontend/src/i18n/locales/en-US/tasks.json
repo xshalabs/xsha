@@ -160,5 +160,9 @@
     "defaultDescription": "Use default model",
     "sonnet": "Sonnet",
     "opus": "Opus"
+  },
+  "editTitle": {
+    "dialogTitle": "Edit Task Title",
+    "dialogDescription": "Update the title for this task"
   }
 }

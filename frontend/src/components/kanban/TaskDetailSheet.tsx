@@ -1,7 +1,7 @@
-import { useState, useCallback, memo, useMemo, useRef, useEffect } from "react";
+import { useState, useCallback, memo, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Edit3, Check, X } from "lucide-react";
+import { Edit3 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -20,12 +20,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { PushBranchDialog } from "@/components/PushBranchDialog";
 import { TaskGitDiffModal } from "./TaskGitDiffModal";
 import { ConversationGitDiffModal } from "./ConversationGitDiffModal";
 import { ConversationDetailModal } from "@/components/ConversationDetailModal";
 import { ConversationLogModal } from "./ConversationLogModal";
+import { TaskTitleEditDialog } from "./TaskTitleEditDialog";
 import { useTaskConversations } from "@/hooks/useTaskConversations";
 import { taskConversationsApi } from "@/lib/api/task-conversations";
 import { tasksApi } from "@/lib/api/tasks";
@@ -67,10 +67,7 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
   const [deletingConversation, setDeletingConversation] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [editingTitle, setEditingTitle] = useState("");
-  const [updatingTitle, setUpdatingTitle] = useState(false);
-  const titleInputRef = useRef<HTMLInputElement>(null);
+  const [isTitleEditDialogOpen, setIsTitleEditDialogOpen] = useState(false);
 
   const {
     conversations,
@@ -291,63 +288,19 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
     setIsDeleteDialogOpen(false);
   }, []);
 
-  const handleStartEditTitle = useCallback(() => {
-    if (!task) return;
-    setEditingTitle(task.title);
-    setIsEditingTitle(true);
-    // Focus the input after state update
-    setTimeout(() => {
-      titleInputRef.current?.focus();
-      titleInputRef.current?.select();
-    }, 0);
-  }, [task]);
-
-  const handleCancelEditTitle = useCallback(() => {
-    setIsEditingTitle(false);
-    setEditingTitle("");
+  const handleOpenTitleEditDialog = useCallback(() => {
+    setIsTitleEditDialogOpen(true);
   }, []);
 
-  const handleSaveTitle = useCallback(async () => {
-    if (!task) return;
-    
-    const trimmedTitle = editingTitle.trim();
-    if (!trimmedTitle) {
-      toast.error(t("tasks.validation.titleRequired"));
-      return;
-    }
-    
-    if (trimmedTitle === task.title) {
-      handleCancelEditTitle();
-      return;
-    }
-    
-    setUpdatingTitle(true);
-    try {
-      await tasksApi.update(task.project_id, task.id, { title: trimmedTitle });
-      toast.success(t("tasks.messages.updateSuccess"));
-      
-      // Update local task data
-      task.title = trimmedTitle;
-      
-      setIsEditingTitle(false);
-      setEditingTitle("");
-    } catch (error) {
-      console.error("Failed to update task title:", error);
-      toast.error(t("tasks.messages.updateFailed"));
-    } finally {
-      setUpdatingTitle(false);
-    }
-  }, [task, editingTitle, t, handleCancelEditTitle]);
+  const handleCloseTitleEditDialog = useCallback(() => {
+    setIsTitleEditDialogOpen(false);
+  }, []);
 
-  const handleTitleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleSaveTitle();
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      handleCancelEditTitle();
+  const handleTitleUpdateSuccess = useCallback((updatedTitle: string) => {
+    if (task) {
+      task.title = updatedTitle;
     }
-  }, [handleSaveTitle, handleCancelEditTitle]);
+  }, [task]);
 
   // Memoized computed values
   const canSend = useMemo(() => canSendMessage(), [canSendMessage]);
@@ -366,53 +319,19 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
         >
           <SheetHeader className="border-b sticky top-0 bg-background z-10">
             <div className="w-full">
-              {isEditingTitle ? (
-                <div className="flex items-center gap-2">
-                  <Input
-                    ref={titleInputRef}
-                    value={editingTitle}
-                    onChange={(e) => setEditingTitle(e.target.value)}
-                    onKeyDown={handleTitleKeyDown}
-                    disabled={updatingTitle}
-                    className="flex-1 text-lg font-semibold"
-                    placeholder={t("tasks.fields.title")}
-                  />
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleSaveTitle}
-                      disabled={updatingTitle}
-                      className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950"
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleCancelEditTitle}
-                      disabled={updatingTitle}
-                      className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <SheetTitle className="text-foreground font-semibold">
-                    {task.title}
-                  </SheetTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleStartEditTitle}
-                    className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-800 shrink-0"
-                  >
-                    <Edit3 className="h-3 w-3" />
-                  </Button>
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                <SheetTitle className="text-foreground font-semibold">
+                  {task.title}
+                </SheetTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleOpenTitleEditDialog}
+                  className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-800 shrink-0"
+                >
+                  <Edit3 className="h-3 w-3" />
+                </Button>
+              </div>
             </div>
             <SheetDescription 
               id="task-detail-description"
@@ -612,6 +531,13 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <TaskTitleEditDialog
+        open={isTitleEditDialogOpen}
+        onOpenChange={handleCloseTitleEditDialog}
+        task={task}
+        onSuccess={handleTitleUpdateSuccess}
+      />
     </>
   );
 });
