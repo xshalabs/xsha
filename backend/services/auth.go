@@ -12,16 +12,18 @@ type authService struct {
 	operationLogService AdminOperationLogService
 	adminService        AdminService
 	adminRepo           repository.AdminRepository
+	emailService        EmailService
 	config              *config.Config
 }
 
-func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, operationLogService AdminOperationLogService, adminService AdminService, adminRepo repository.AdminRepository, cfg *config.Config) AuthService {
+func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, operationLogService AdminOperationLogService, adminService AdminService, adminRepo repository.AdminRepository, emailService EmailService, cfg *config.Config) AuthService {
 	return &authService{
 		tokenRepo:           tokenRepo,
 		loginLogRepo:        loginLogRepo,
 		operationLogService: operationLogService,
 		adminService:        adminService,
 		adminRepo:           adminRepo,
+		emailService:        emailService,
 		config:              cfg,
 	}
 }
@@ -85,6 +87,17 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 		go func() {
 			if err := s.adminRepo.UpdateLastLogin(username, clientIP); err != nil {
 				utils.Error("Failed to update admin last login info",
+					"username", username,
+					"client_ip", clientIP,
+					"error", err.Error(),
+				)
+			}
+		}()
+
+		// Send login notification email
+		go func() {
+			if err := s.emailService.SendLoginNotificationEmail(admin, clientIP, userAgent, "en-US"); err != nil {
+				utils.Error("Failed to send login notification email",
 					"username", username,
 					"client_ip", clientIP,
 					"error", err.Error(),

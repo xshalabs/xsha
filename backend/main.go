@@ -70,13 +70,13 @@ func main() {
 	adminOperationLogService := services.NewAdminOperationLogService(adminOperationLogRepo)
 	adminService := services.NewAdminService(adminRepo)
 	adminAvatarService := services.NewAdminAvatarService(adminAvatarRepo, adminRepo, cfg)
-	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, adminService, adminRepo, cfg)
+	systemConfigService := services.NewSystemConfigService(systemConfigRepo)
+	emailService := services.NewEmailService(systemConfigService)
+	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, adminService, adminRepo, emailService, cfg)
 
 	// Set up circular dependency - adminService needs authService for session invalidation
 	adminService.SetAuthService(authService)
 	gitCredService := services.NewGitCredentialService(gitCredRepo, projectRepo, cfg)
-	systemConfigService := services.NewSystemConfigService(systemConfigRepo)
-	emailService := services.NewEmailService(systemConfigService)
 	dashboardService := services.NewDashboardService(dashboardRepo)
 
 	// Get git clone timeout from system config

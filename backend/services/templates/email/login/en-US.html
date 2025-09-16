@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Login Notification - XSha Platform</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #007bff; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
+        .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #007bff; }
+        .security-box { background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        .detail-item { margin: 8px 0; }
+        .detail-label { font-weight: bold; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Login Notification</h1>
+        </div>
+        <div class="content">
+            <p>Hello <strong>{{.Name}}</strong>,</p>
+            <p>We're notifying you that your XSha Platform account was successfully accessed.</p>
+
+            <div class="info-box">
+                <h3>📋 Login Details</h3>
+                <div class="detail-item">
+                    <span class="detail-label">Account:</span> {{.Username}}
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Login Time:</span> {{.LoginTime}}
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">IP Address:</span> {{.IPAddress}}
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Device/Browser:</span> {{.UserAgent}}
+                </div>
+            </div>
+
+            <div class="security-box">
+                <h3>🛡️ Security Notice</h3>
+                <p>If this login was not performed by you, please:</p>
+                <ul>
+                    <li>Change your password immediately</li>
+                    <li>Review your account activity</li>
+                    <li>Contact our support team if needed</li>
+                </ul>
+            </div>
+
+            <p>This notification helps keep your account secure by alerting you to all login activities.</p>
+            <p>Thank you for using XSha Platform!</p>
+        </div>
+        <div class="footer">
+            <p>This email was sent automatically by XSha Platform. Please do not reply.</p>
+        </div>
+    </div>
+</body>
+</html>
