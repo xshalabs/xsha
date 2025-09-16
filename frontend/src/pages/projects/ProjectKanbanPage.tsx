@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { Plus, Save, ArrowLeft } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { Logo } from "@/components/Logo";
 import { ProjectSwitcher } from "@/components/ProjectSwitcher";
 import {
   FormSheet,
@@ -198,11 +197,6 @@ export default function ProjectKanbanPage() {
             <div
               className={`flex items-center ${isMobile ? "gap-2" : "gap-4"}`}
             >
-              <Logo
-                className={`${
-                  isMobile ? "h-6 w-auto" : "h-8 w-auto"
-                } flex-shrink-0`}
-              />
               <Skeleton className={`h-10 ${isMobile ? "w-44" : "w-64"}`} />
             </div>
           </AppHeaderContent>
@@ -262,13 +256,6 @@ export default function ProjectKanbanPage() {
       <AppHeader>
         <AppHeaderContent>
           <div className={`flex items-center ${isMobile ? "gap-2" : "gap-4"}`}>
-            {/* Logo */}
-            <Logo
-              className={`${
-                isMobile ? "h-6 w-auto" : "h-8 w-auto"
-              } flex-shrink-0`}
-            />
-
             {/* Project Switcher */}
             {project && (
               <ProjectSwitcher
