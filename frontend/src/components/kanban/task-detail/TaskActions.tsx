@@ -12,7 +12,7 @@ interface TaskActionsProps {
 }
 
 export const TaskActions = memo<TaskActionsProps>(
-  ({ task, onPushBranch, onViewGitDiff, onDelete }) => {
+  ({ task: _task, onPushBranch, onViewGitDiff, onDelete }) => {
     const { t } = useTranslation();
 
     const handlePushBranch = useCallback(() => {
