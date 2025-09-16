@@ -21,6 +21,7 @@ type adminService struct {
 	projectService  ProjectService
 	taskService     TaskService
 	taskConvService TaskConversationService
+	emailService    EmailService
 }
 
 func NewAdminService(adminRepo repository.AdminRepository) AdminService {
@@ -51,6 +52,10 @@ func (s *adminService) SetTaskService(taskService TaskService) {
 
 func (s *adminService) SetTaskConversationService(taskConvService TaskConversationService) {
 	s.taskConvService = taskConvService
+}
+
+func (s *adminService) SetEmailService(emailService EmailService) {
+	s.emailService = emailService
 }
 
 func (s *adminService) CreateAdmin(username, password, name, email, createdBy string) (*database.Admin, error) {
@@ -96,6 +101,25 @@ func (s *adminService) CreateAdminWithRole(username, password, name, email strin
 		}
 		// For other errors, wrap with generic message
 		return nil, fmt.Errorf("failed to create admin: %v", err)
+	}
+
+	// Send welcome email if email service is available and user has email
+	if s.emailService != nil && admin.Email != "" {
+		// Determine language based on context, default to English
+		lang := "en-US"
+		// You could potentially get this from request context in future
+
+		if err := s.emailService.SendWelcomeEmail(admin, lang); err != nil {
+			// Log the error but don't fail the admin creation
+			utils.Error("Failed to send welcome email to new admin",
+				"username", admin.Username,
+				"email", admin.Email,
+				"error", err)
+		} else {
+			utils.Info("Welcome email sent successfully to new admin",
+				"username", admin.Username,
+				"email", admin.Email)
+		}
 	}
 
 	return admin, nil

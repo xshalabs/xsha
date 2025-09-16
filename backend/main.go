@@ -76,6 +76,7 @@ func main() {
 	adminService.SetAuthService(authService)
 	gitCredService := services.NewGitCredentialService(gitCredRepo, projectRepo, cfg)
 	systemConfigService := services.NewSystemConfigService(systemConfigRepo)
+	emailService := services.NewEmailService(systemConfigService)
 	dashboardService := services.NewDashboardService(dashboardRepo)
 
 	// Get git clone timeout from system config
@@ -102,6 +103,7 @@ func main() {
 	adminService.SetProjectService(projectService)
 	adminService.SetTaskService(taskService)
 	adminService.SetTaskConversationService(taskConvService)
+	adminService.SetEmailService(emailService)
 
 	// Create shared execution manager
 	maxConcurrency := 5

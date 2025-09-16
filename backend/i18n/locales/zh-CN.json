@@ -197,5 +197,12 @@
   "admin.password_change_success": "管理员密码修改成功",
   "admin.list_success": "管理员用户获取成功",
   "git_credential.admin_added_success": "管理员已成功添加到凭据",
-  "git_credential.admin_removed_success": "管理员已从凭据中移除"
+  "git_credential.admin_removed_success": "管理员已从凭据中移除",
+  "email.welcome.subject": "欢迎加入 XSha 平台！",
+  "email.welcome.title": "欢迎加入 XSha 平台！",
+  "email.welcome.content": "欢迎您加入 XSha AI 驱动的项目管理和开发平台！您的账户已成功创建。",
+  "email.send.failed": "邮件发送失败",
+  "email.send.success": "邮件发送成功",
+  "email.service.disabled": "邮件服务已禁用",
+  "email.service.not_configured": "邮件服务未正确配置"
 }

@@ -95,6 +95,10 @@ func (s *systemConfigService) isOptionalConfig(key string) bool {
 		"git_proxy_http",
 		"git_proxy_https",
 		"git_proxy_no_proxy",
+		"smtp_host",
+		"smtp_username",
+		"smtp_password",
+		"smtp_from",
 	}
 
 	for _, optionalKey := range optionalConfigs {
@@ -192,4 +196,43 @@ func (s *systemConfigService) GetDockerTimeout() (time.Duration, error) {
 	}
 
 	return timeout, nil
+}
+
+// GetSMTPEnabled returns whether SMTP email service is enabled
+func (s *systemConfigService) GetSMTPEnabled() (bool, error) {
+	enabled, err := s.repo.GetValue("smtp_enabled")
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to get smtp_enabled: %v", err)
+	}
+
+	return enabled == "true", nil
+}
+
+// IsEmailServiceConfigured checks if all required email configurations are set
+func (s *systemConfigService) IsEmailServiceConfigured() (bool, error) {
+	enabled, err := s.GetSMTPEnabled()
+	if err != nil {
+		return false, err
+	}
+
+	if !enabled {
+		return false, nil
+	}
+
+	// Check required fields
+	requiredFields := []string{"smtp_host", "smtp_username", "smtp_password", "smtp_from"}
+	for _, field := range requiredFields {
+		value, err := s.repo.GetValue(field)
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return false, fmt.Errorf("failed to get %s: %v", field, err)
+		}
+		if value == "" {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }

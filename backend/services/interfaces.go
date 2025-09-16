@@ -37,6 +37,7 @@ type AdminService interface {
 	SetProjectService(projectService ProjectService)
 	SetTaskService(taskService TaskService)
 	SetTaskConversationService(taskConvService TaskConversationService)
+	SetEmailService(emailService EmailService)
 	HasPermission(admin *database.Admin, resource, action string, resourceId uint) bool
 }
 
@@ -179,6 +180,8 @@ type SystemConfigService interface {
 	GetGitCloneTimeout() (time.Duration, error)
 	GetGitSSLVerify() (bool, error)
 	GetDockerTimeout() (time.Duration, error)
+	GetSMTPEnabled() (bool, error)
+	IsEmailServiceConfigured() (bool, error)
 }
 
 type DashboardService interface {
@@ -213,4 +216,8 @@ type AdminAvatarService interface {
 	GetAvatarStorageDir() string
 	GenerateAvatarFileName(originalName string) string
 	GetFullAvatarPath(relativePath string) string
+}
+
+type EmailService interface {
+	SendWelcomeEmail(admin *database.Admin, lang string) error
 }
