@@ -3,7 +3,6 @@ package services
 import (
 	"crypto/tls"
 	"fmt"
-	"html/template"
 	"strconv"
 	"strings"
 	"xsha-backend/database"
@@ -25,10 +24,6 @@ type SMTPConfig struct {
 	SkipVerify bool
 }
 
-type EmailTemplate struct {
-	Subject string
-	Body    string
-}
 
 type emailService struct {
 	systemConfigService SystemConfigService
@@ -203,140 +198,19 @@ func (s *emailService) generateWelcomeEmailContent(admin *database.Admin, lang s
 		lang = "en-US"
 	}
 
-	var subject, bodyTemplate string
-
+	// Map Chinese language variants to zh-CN
 	if strings.HasPrefix(lang, "zh") {
-		subject = "欢迎加入 XSha 平台！"
-		bodyTemplate = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>欢迎加入 XSha 平台</title>
-    <style>
-        body { font-family: 'Microsoft YaHei', Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #007bff; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
-        .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #007bff; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-        .btn { display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎉 欢迎加入 XSha 平台！</h1>
-        </div>
-        <div class="content">
-            <p>亲爱的 <strong>{{.Name}}</strong>，</p>
-            <p>欢迎您加入 XSha AI 驱动的项目管理和开发平台！您的账户已成功创建。</p>
-
-            <div class="info-box">
-                <h3>📋 您的账户信息</h3>
-                <p><strong>用户名：</strong>{{.Username}}</p>
-                <p><strong>邮箱：</strong>{{.Email}}</p>
-                <p><strong>角色：</strong>{{.Role}}</p>
-            </div>
-
-            <div class="info-box">
-                <h3>🚀 开始使用</h3>
-                <p>您现在可以使用您的用户名和密码登录平台：</p>
-                <a href="#" class="btn">立即登录</a>
-            </div>
-
-            <div class="info-box">
-                <h3>💡 平台特性</h3>
-                <ul>
-                    <li>AI 驱动的任务开发和管理</li>
-                    <li>与 Claude Code 的无缝集成</li>
-                    <li>Git 仓库和凭证管理</li>
-                    <li>Docker 容器化的开发环境</li>
-                </ul>
-            </div>
-
-            <p>如果您有任何问题或需要帮助，请随时联系我们的支持团队。</p>
-            <p>祝您使用愉快！</p>
-        </div>
-        <div class="footer">
-            <p>此邮件由 XSha 平台自动发送，请勿回复。</p>
-        </div>
-    </div>
-</body>
-</html>`
-	} else {
-		subject = "Welcome to XSha Platform!"
-		bodyTemplate = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Welcome to XSha Platform</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #007bff; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
-        .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #007bff; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-        .btn { display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎉 Welcome to XSha Platform!</h1>
-        </div>
-        <div class="content">
-            <p>Dear <strong>{{.Name}}</strong>,</p>
-            <p>Welcome to XSha, the AI-driven project management and development platform! Your account has been successfully created.</p>
-
-            <div class="info-box">
-                <h3>📋 Your Account Information</h3>
-                <p><strong>Username:</strong> {{.Username}}</p>
-                <p><strong>Email:</strong> {{.Email}}</p>
-                <p><strong>Role:</strong> {{.Role}}</p>
-            </div>
-
-            <div class="info-box">
-                <h3>🚀 Get Started</h3>
-                <p>You can now log in to the platform using your username and password:</p>
-                <a href="#" class="btn">Login Now</a>
-            </div>
-
-            <div class="info-box">
-                <h3>💡 Platform Features</h3>
-                <ul>
-                    <li>AI-driven task development and management</li>
-                    <li>Seamless integration with Claude Code</li>
-                    <li>Git repository and credential management</li>
-                    <li>Dockerized development environments</li>
-                </ul>
-            </div>
-
-            <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
-            <p>Happy coding!</p>
-        </div>
-        <div class="footer">
-            <p>This email was sent automatically by XSha Platform. Please do not reply.</p>
-        </div>
-    </div>
-</body>
-</html>`
+		lang = "zh-CN"
 	}
 
-	// Parse template
-	tmpl, err := template.New("welcome").Parse(bodyTemplate)
+	// Get template manager
+	templateManager := GetEmailTemplateManager()
+
+	// Render template with admin data
+	subject, body, err := templateManager.RenderTemplate("welcome", lang, admin)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to parse email template: %v", err)
+		return "", "", fmt.Errorf("failed to render welcome email template: %v", err)
 	}
 
-	// Execute template
-	var bodyBuilder strings.Builder
-	err = tmpl.Execute(&bodyBuilder, admin)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to execute email template: %v", err)
-	}
-
-	return subject, bodyBuilder.String(), nil
+	return subject, body, nil
 }
