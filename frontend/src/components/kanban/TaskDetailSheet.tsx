@@ -370,8 +370,8 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
               shouldShowExpandButton={shouldShowExpandButton}
             />
 
-            {/* 发送对话消息板块 - 仅在任务未完成时显示 */}
-            {task.status !== "done" && (
+            {/* 发送对话消息板块 - 仅在任务未完成且未取消时显示 */}
+            {task.status !== "done" && task.status !== "cancelled" && (
               <NewMessageForm
                 task={task}
                 newMessage={newMessage}
