@@ -318,9 +318,9 @@ export const TaskDetailSheet = memo<TaskDetailSheetProps>(({
           style={{ outline: "none" }}
         >
           <SheetHeader className="border-b sticky top-0 bg-background z-10">
-            <div className="w-full">
+            <div className="w-full pr-12">
               <div className="flex items-center gap-2">
-                <SheetTitle className="text-foreground font-semibold">
+                <SheetTitle className="text-foreground font-semibold truncate">
                   {task.title}
                 </SheetTitle>
                 <Button
