@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Added task title inline editing functionality in kanban board
 - Improved kanban page UI layout (moved return button to top-left, removed logo)
+- Enabled push branch button for completed and cancelled tasks in kanban board
 
 ### Fixed
 

@@ -27,9 +27,6 @@ export const TaskActions = memo<TaskActionsProps>(
       onDelete();
     }, [onDelete]);
 
-    const isPushDisabled =
-      task.status === "done" || task.status === "cancelled";
-
     return (
       <div className="border-y py-6 space-y-6 px-6">
         <h4 className="font-medium text-base text-foreground flex items-center gap-2">
@@ -40,7 +37,6 @@ export const TaskActions = memo<TaskActionsProps>(
           <Button
             onClick={handlePushBranch}
             className="flex items-center gap-2"
-            disabled={isPushDisabled}
             variant="outline"
             aria-label={t("tasks.actions.pushBranch")}
           >
