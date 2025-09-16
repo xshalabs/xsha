@@ -256,6 +256,18 @@ export default function ProjectKanbanPage() {
       <AppHeader>
         <AppHeaderContent>
           <div className={`flex items-center ${isMobile ? "gap-2" : "gap-4"}`}>
+            {/* Return Button */}
+            <Button
+              variant="ghost"
+              size={isMobile ? "sm" : "sm"}
+              onClick={() => navigate("/projects")}
+              className={`flex items-center ${
+                isMobile ? "gap-1 px-2" : "gap-2"
+              }`}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {!isMobile && t("navigation.projects")}
+            </Button>
             {/* Project Switcher */}
             {project && (
               <ProjectSwitcher
@@ -268,17 +280,6 @@ export default function ProjectKanbanPage() {
         </AppHeaderContent>
         <AppHeaderActions>
           <div className={`flex items-center ${isMobile ? "gap-1" : "gap-2"}`}>
-            <Button
-              variant="ghost"
-              size={isMobile ? "sm" : "sm"}
-              onClick={() => navigate("/projects")}
-              className={`flex items-center ${
-                isMobile ? "gap-1 px-2" : "gap-2"
-              }`}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {!isMobile && t("navigation.projects")}
-            </Button>
             <Button
               onClick={handleAddTask}
               size="sm"
