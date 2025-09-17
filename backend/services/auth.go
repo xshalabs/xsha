@@ -94,16 +94,8 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 			}
 		}()
 
-		// Send login notification email
-		go func() {
-			if err := s.emailService.SendLoginNotificationEmail(admin, clientIP, userAgent, "en-US"); err != nil {
-				utils.Error("Failed to send login notification email",
-					"username", username,
-					"client_ip", clientIP,
-					"error", err.Error(),
-				)
-			}
-		}()
+		// Send login notification email (handled asynchronously by email service)
+		s.emailService.SendLoginNotificationEmail(admin, clientIP, userAgent, "en-US")
 	}
 
 	go func() {

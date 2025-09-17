@@ -108,24 +108,10 @@ func (s *adminService) CreateAdminWithRole(username, password, name, email strin
 		// Make a copy of admin data for the goroutine to avoid potential race conditions
 		adminCopy := *admin
 
-		// Send email asynchronously to avoid blocking the API request
-		go func() {
-			// Determine language based on context, default to English
-			lang := "en-US"
-			// You could potentially get this from request context in future
-
-			if err := s.emailService.SendWelcomeEmail(&adminCopy, lang); err != nil {
-				// Log the error but don't fail the admin creation
-				utils.Error("Failed to send welcome email to new admin",
-					"username", adminCopy.Username,
-					"email", adminCopy.Email,
-					"error", err)
-			} else {
-				utils.Info("Welcome email sent successfully to new admin",
-					"username", adminCopy.Username,
-					"email", adminCopy.Email)
-			}
-		}()
+		// Send welcome email asynchronously (handled internally by email service)
+		lang := "en-US"
+		// You could potentially get this from request context in future
+		s.emailService.SendWelcomeEmail(&adminCopy, lang)
 
 		// Log that email sending was initiated
 		utils.Info("Welcome email sending initiated for new admin",

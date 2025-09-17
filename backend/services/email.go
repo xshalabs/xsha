@@ -212,37 +212,54 @@ func (s *emailService) isEmailEnabled() (bool, error) {
 }
 
 func (s *emailService) SendWelcomeEmail(admin *database.Admin, lang string) error {
-	return s.sendNotificationEmail(admin, "welcome", lang, admin)
+	go func() {
+		if err := s.sendNotificationEmail(admin, "welcome", lang, admin); err != nil {
+			utils.Error("Failed to send welcome email", "username", admin.Username, "email", admin.Email, "error", err)
+		} else {
+			utils.Info("Welcome email sent successfully", "username", admin.Username, "email", admin.Email)
+		}
+	}()
+	return nil
 }
 
 func (s *emailService) SendLoginNotificationEmail(admin *database.Admin, clientIP, userAgent, lang string) error {
-	loginData := struct {
-		*database.Admin
-		IPAddress string
-		UserAgent string
-		LoginTime string
-	}{
-		Admin:     admin,
-		IPAddress: clientIP,
-		UserAgent: userAgent,
-		LoginTime: time.Now().Format("2006-01-02 15:04:05 MST"),
-	}
+	go func() {
+		loginData := struct {
+			*database.Admin
+			IPAddress string
+			UserAgent string
+			LoginTime string
+		}{
+			Admin:     admin,
+			IPAddress: clientIP,
+			UserAgent: userAgent,
+			LoginTime: time.Now().Format("2006-01-02 15:04:05 MST"),
+		}
 
-	return s.sendNotificationEmail(admin, "login", lang, loginData)
+		if err := s.sendNotificationEmail(admin, "login", lang, loginData); err != nil {
+			utils.Error("Failed to send login notification email", "username", admin.Username, "client_ip", clientIP, "error", err)
+		}
+	}()
+	return nil
 }
 
 func (s *emailService) SendPasswordChangeEmail(admin *database.Admin, clientIP, userAgent, lang string) error {
-	passwordChangeData := struct {
-		*database.Admin
-		IPAddress  string
-		UserAgent  string
-		ChangeTime string
-	}{
-		Admin:      admin,
-		IPAddress:  clientIP,
-		UserAgent:  userAgent,
-		ChangeTime: time.Now().Format("2006-01-02 15:04:05 MST"),
-	}
+	go func() {
+		passwordChangeData := struct {
+			*database.Admin
+			IPAddress  string
+			UserAgent  string
+			ChangeTime string
+		}{
+			Admin:      admin,
+			IPAddress:  clientIP,
+			UserAgent:  userAgent,
+			ChangeTime: time.Now().Format("2006-01-02 15:04:05 MST"),
+		}
 
-	return s.sendNotificationEmail(admin, "password_change", lang, passwordChangeData)
+		if err := s.sendNotificationEmail(admin, "password_change", lang, passwordChangeData); err != nil {
+			utils.Error("Failed to send password change notification email", "username", admin.Username, "error", err)
+		}
+	}()
+	return nil
 }
