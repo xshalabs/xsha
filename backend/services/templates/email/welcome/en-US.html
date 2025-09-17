@@ -1,56 +1,70 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <title>Welcome to XSha Platform</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Welcome to xsha Platform</title>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #007bff; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
-        .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #007bff; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-        .btn { display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background: #007bff;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+      }
+      .content {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 0 0 8px 8px;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 30px;
+        color: #666;
+        font-size: 14px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="header">
-            <h1>🎉 Welcome to XSha Platform!</h1>
+      <div class="header">
+        <h1>🎉 Welcome to xsha Platform!</h1>
+      </div>
+      <div class="content">
+        <p>Dear <strong>{{.Name}}</strong>,</p>
+        <p>
+          Welcome to xsha, the AI-driven project management and development
+          platform! Your account has been successfully created.
+        </p>
+
+        <div class="info-box">
+          <h3>📋 Your Account Information</h3>
+          <p><strong>Username:</strong> {{.Username}}</p>
+          <p><strong>Email:</strong> {{.Email}}</p>
+          <p><strong>Role:</strong> {{.Role}}</p>
         </div>
-        <div class="content">
-            <p>Dear <strong>{{.Name}}</strong>,</p>
-            <p>Welcome to XSha, the AI-driven project management and development platform! Your account has been successfully created.</p>
 
-            <div class="info-box">
-                <h3>📋 Your Account Information</h3>
-                <p><strong>Username:</strong> {{.Username}}</p>
-                <p><strong>Email:</strong> {{.Email}}</p>
-                <p><strong>Role:</strong> {{.Role}}</p>
-            </div>
-
-            <div class="info-box">
-                <h3>🚀 Get Started</h3>
-                <p>You can now log in to the platform using your username and password:</p>
-                <a href="#" class="btn">Login Now</a>
-            </div>
-
-            <div class="info-box">
-                <h3>💡 Platform Features</h3>
-                <ul>
-                    <li>AI-driven task development and management</li>
-                    <li>Seamless integration with Claude Code</li>
-                    <li>Git repository and credential management</li>
-                    <li>Dockerized development environments</li>
-                </ul>
-            </div>
-
-            <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
-            <p>Happy coding!</p>
-        </div>
-        <div class="footer">
-            <p>This email was sent automatically by XSha Platform. Please do not reply.</p>
-        </div>
+        <p>
+          If you have any questions or need assistance, please don't hesitate to
+          contact our support team.
+        </p>
+        <p>Happy coding!</p>
+      </div>
+      <div class="footer">
+        <p>
+          This email was sent automatically by xsha Platform. Please do not
+          reply.
+        </p>
+      </div>
     </div>
-</body>
+  </body>
 </html>

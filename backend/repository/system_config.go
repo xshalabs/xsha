@@ -248,7 +248,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		},
 		{
 			key:         "smtp_from_name",
-			value:       "XSha Platform",
+			value:       "xsha Platform",
 			description: "Sender display name that appears in email",
 			category:    "email",
 			formType:    string(database.ConfigFormTypeInput),

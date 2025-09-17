@@ -1,61 +1,101 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <title>登录通知 - XSha 平台</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>登录通知 - xsha 平台</title>
     <style>
-        body { font-family: 'Microsoft YaHei', Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #007bff; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
-        .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #007bff; }
-        .security-box { background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-        .detail-item { margin: 8px 0; }
-        .detail-label { font-weight: bold; color: #555; }
+      body {
+        font-family: "Microsoft YaHei", Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background: #007bff;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+      }
+      .content {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 0 0 8px 8px;
+      }
+      .info-box {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+        border-left: 4px solid #007bff;
+      }
+      .security-box {
+        background: #fff3cd;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+        border-left: 4px solid #ffc107;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 30px;
+        color: #666;
+        font-size: 14px;
+      }
+      .detail-item {
+        margin: 8px 0;
+      }
+      .detail-label {
+        font-weight: bold;
+        color: #555;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="header">
-            <h1>🔐 登录通知</h1>
-        </div>
-        <div class="content">
-            <p>您好 <strong>{{.Name}}</strong>，</p>
-            <p>我们通知您，您的 XSha 平台账户已成功登录。</p>
+      <div class="header">
+        <h1>🔐 登录通知</h1>
+      </div>
+      <div class="content">
+        <p>您好 <strong>{{.Name}}</strong>，</p>
+        <p>我们通知您，您的 xsha 平台账户已成功登录。</p>
 
-            <div class="info-box">
-                <h3>📋 登录详情</h3>
-                <div class="detail-item">
-                    <span class="detail-label">账户：</span>{{.Username}}
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">登录时间：</span>{{.LoginTime}}
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">IP 地址：</span>{{.IPAddress}}
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">设备/浏览器：</span>{{.UserAgent}}
-                </div>
-            </div>
-
-            <div class="security-box">
-                <h3>🛡️ 安全提醒</h3>
-                <p>如果此次登录不是您本人操作，请立即：</p>
-                <ul>
-                    <li>更改您的密码</li>
-                    <li>检查您的账户活动</li>
-                    <li>如有需要，请联系我们的支持团队</li>
-                </ul>
-            </div>
-
-            <p>此通知有助于通过提醒您所有登录活动来保护您的账户安全。</p>
-            <p>感谢您使用 XSha 平台！</p>
+        <div class="info-box">
+          <h3>📋 登录详情</h3>
+          <div class="detail-item">
+            <span class="detail-label">账户：</span>{{.Username}}
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">登录时间：</span>{{.LoginTime}}
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">IP 地址：</span>{{.IPAddress}}
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">设备/浏览器：</span>{{.UserAgent}}
+          </div>
         </div>
-        <div class="footer">
-            <p>此邮件由 XSha 平台自动发送，请勿回复。</p>
+
+        <div class="security-box">
+          <h3>🛡️ 安全提醒</h3>
+          <p>如果此次登录不是您本人操作，请立即：</p>
+          <ul>
+            <li>更改您的密码</li>
+            <li>检查您的账户活动</li>
+            <li>如有需要，请联系我们的支持团队</li>
+          </ul>
         </div>
+
+        <p>此通知有助于通过提醒您所有登录活动来保护您的账户安全。</p>
+        <p>感谢您使用 xsha 平台！</p>
+      </div>
+      <div class="footer">
+        <p>此邮件由 xsha 平台自动发送，请勿回复。</p>
+      </div>
     </div>
-</body>
+  </body>
 </html>

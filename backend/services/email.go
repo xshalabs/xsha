@@ -25,7 +25,6 @@ type SMTPConfig struct {
 	SkipVerify bool
 }
 
-
 type emailService struct {
 	systemConfigService SystemConfigService
 }
@@ -159,7 +158,7 @@ func (s *emailService) loadSMTPConfig() (*SMTPConfig, error) {
 		return nil, fmt.Errorf("failed to get smtp_from_name: %v", err)
 	}
 	if config.FromName == "" {
-		config.FromName = "XSha Platform"
+		config.FromName = "xsha Platform"
 	}
 
 	// Get TLS setting
