@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 	"xsha-backend/config"
+	"xsha-backend/database"
 	"xsha-backend/i18n"
 	"xsha-backend/services"
 	"xsha-backend/utils"
@@ -78,7 +79,7 @@ func AuthMiddlewareWithService(authService services.AuthService, adminService se
 			if adminErr == nil {
 				username = admin.Username
 			}
-			
+
 			// Add token to blacklist with reason "admin_deactivated"
 			go func() {
 				if blacklistErr := authService.Logout(token, username, c.ClientIP(), c.GetHeader("User-Agent")); blacklistErr != nil {
@@ -113,6 +114,27 @@ func AuthMiddlewareWithService(authService services.AuthService, adminService se
 		c.Set("admin_id", claims.AdminID)
 		c.Set("admin", admin)
 		c.Set("adminService", adminService)
+
+		// Update admin language preference if current language is different from stored preference
+		updateAdminLanguagePreference(c, admin, adminService)
+
 		c.Next()
+	}
+}
+
+func updateAdminLanguagePreference(c *gin.Context, admin *database.Admin, adminService services.AdminService) {
+	currentLang := GetLangFromContext(c)
+
+	// Only update if the current language is different from stored preference
+	if admin.Lang != currentLang {
+		go func() {
+			if err := adminService.UpdateAdminLanguage(admin.ID, currentLang); err != nil {
+				utils.Error("Failed to update admin language preference",
+					"admin_id", admin.ID,
+					"new_lang", currentLang,
+					"error", err.Error(),
+				)
+			}
+		}()
 	}
 }

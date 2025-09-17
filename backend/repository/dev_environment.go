@@ -142,7 +142,7 @@ func (r *devEnvironmentRepository) Delete(id uint) error {
 		if err := tx.Exec("DELETE FROM dev_environment_admins WHERE dev_environment_id = ?", id).Error; err != nil {
 			return err
 		}
-		
+
 		// Then delete the environment itself
 		return tx.Where("id = ?", id).Delete(&database.DevEnvironment{}).Error
 	})

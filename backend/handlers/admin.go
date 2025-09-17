@@ -400,7 +400,6 @@ func (h *AdminHandlers) ChangePasswordHandler(c *gin.Context) {
 	})
 }
 
-
 // PublicListAdminsHandler lists admin users with authentication
 // @Summary List admin users (authenticated)
 // @Description Get list of all administrator users (requires authentication)

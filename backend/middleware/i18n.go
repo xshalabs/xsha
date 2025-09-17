@@ -4,7 +4,6 @@ import (
 	"strings"
 	"xsha-backend/database"
 	"xsha-backend/i18n"
-	"xsha-backend/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,8 +20,6 @@ func detectLanguage(c *gin.Context) string {
 	// Priority 1: Query parameter
 	if lang := c.Query("lang"); lang != "" {
 		if isValidLanguage(lang) {
-			// Update admin language preference if authenticated and different
-			updateAdminLanguagePreference(c, lang)
 			return lang
 		}
 	}
@@ -40,8 +37,6 @@ func detectLanguage(c *gin.Context) string {
 	if acceptLang := c.GetHeader("Accept-Language"); acceptLang != "" {
 		lang := parseAcceptLanguage(acceptLang)
 		if isValidLanguage(lang) {
-			// Update admin language preference if authenticated and different
-			updateAdminLanguagePreference(c, lang)
 			return lang
 		}
 	}
@@ -79,38 +74,6 @@ func isValidLanguage(lang string) bool {
 		}
 	}
 	return false
-}
-
-func updateAdminLanguagePreference(c *gin.Context, lang string) {
-	// Check if admin is authenticated
-	admin, adminExists := c.Get("admin")
-	adminService, serviceExists := c.Get("adminService")
-
-	if !adminExists || !serviceExists {
-		return
-	}
-
-	adminObj, ok := admin.(*database.Admin)
-	if !ok {
-		return
-	}
-
-	adminSvc, ok := adminService.(services.AdminService)
-	if !ok {
-		return
-	}
-
-	// Only update if the language is different from current preference
-	if adminObj.Lang != lang {
-		// Update asynchronously to avoid blocking the request
-		go func() {
-			if err := adminSvc.UpdateAdminLanguage(adminObj.ID, lang); err != nil {
-				// Log error but don't fail the request
-				// Note: We could use a logger here, but since this is middleware
-				// we'll keep it silent to avoid dependency issues
-			}
-		}()
-	}
 }
 
 func GetLangFromContext(c *gin.Context) string {
