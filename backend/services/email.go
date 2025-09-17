@@ -115,7 +115,6 @@ func (s *emailService) sendEmail(config *SMTPConfig, to, subject, body string) e
 		return fmt.Errorf("failed to send email: %v", err)
 	}
 
-	utils.Info("Email sent successfully", "to", to, "subject", subject)
 	return nil
 }
 
@@ -201,8 +200,6 @@ func (s *emailService) SendWelcomeEmail(admin *database.Admin, lang string) erro
 	go func() {
 		if err := s.sendNotificationEmail(admin, "welcome", lang, admin); err != nil {
 			utils.Error("Failed to send welcome email", "username", admin.Username, "email", admin.Email, "error", err)
-		} else {
-			utils.Info("Welcome email sent successfully", "username", admin.Username, "email", admin.Email)
 		}
 	}()
 	return nil
@@ -321,12 +318,6 @@ func (s *emailService) SendTaskConversationCompletedEmail(admin *database.Admin,
 				"conversation_id", conversation.ID,
 				"status", status,
 				"error", err)
-		} else {
-			utils.Info("Task conversation completion notification email sent successfully",
-				"username", admin.Username,
-				"task_id", task.ID,
-				"conversation_id", conversation.ID,
-				"status", status)
 		}
 	}()
 	return nil
@@ -367,12 +358,6 @@ func (s *emailService) SendProjectAdminAddedEmail(admin *database.Admin, project
 				"project_name", project.Name,
 				"action_by", actionByAdmin.Username,
 				"error", err)
-		} else {
-			utils.Info("Project admin added notification email sent successfully",
-				"username", admin.Username,
-				"project_id", project.ID,
-				"project_name", project.Name,
-				"action_by", actionByAdmin.Username)
 		}
 	}()
 	return nil
@@ -413,12 +398,6 @@ func (s *emailService) SendProjectAdminRemovedEmail(admin *database.Admin, proje
 				"project_name", project.Name,
 				"action_by", actionByAdmin.Username,
 				"error", err)
-		} else {
-			utils.Info("Project admin removed notification email sent successfully",
-				"username", admin.Username,
-				"project_id", project.ID,
-				"project_name", project.Name,
-				"action_by", actionByAdmin.Username)
 		}
 	}()
 	return nil
