@@ -105,6 +105,10 @@ func main() {
 	adminService.SetTaskConversationService(taskConvService)
 	adminService.SetEmailService(emailService)
 
+	// Set up dependencies for projectService
+	projectService.SetEmailService(emailService)
+	projectService.SetAdminService(adminService)
+
 	// Create shared execution manager
 	maxConcurrency := 5
 	if cfg.MaxConcurrentTasks > 0 {

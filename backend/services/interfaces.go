@@ -76,11 +76,15 @@ type ProjectService interface {
 	// Admin management methods
 	GetProjectWithAdmins(id uint) (*database.Project, error)
 	ListProjectsByAdminAccess(adminID uint, name string, protocol *database.GitProtocolType, sortBy, sortDirection string, page, pageSize int) (interface{}, int64, error)
-	AddAdminToProject(projectID, adminID uint) error
-	RemoveAdminFromProject(projectID, adminID uint) error
+	AddAdminToProject(projectID, adminID uint, actionByAdminID uint, lang string) error
+	RemoveAdminFromProject(projectID, adminID uint, actionByAdminID uint, lang string) error
 	GetProjectAdmins(projectID uint) ([]database.Admin, error)
 	CanAdminAccessProject(projectID, adminID uint) (bool, error)
 	IsOwner(projectID, adminID uint) (bool, error)
+
+	// Dependency injection methods
+	SetEmailService(emailService EmailService)
+	SetAdminService(adminService AdminService)
 }
 
 type AdminOperationLogService interface {
@@ -222,4 +226,6 @@ type EmailService interface {
 	SendLoginNotificationEmail(admin *database.Admin, clientIP, userAgent, lang string) error
 	SendPasswordChangeEmail(admin *database.Admin, clientIP, userAgent, lang string) error
 	SendTaskConversationCompletedEmail(admin *database.Admin, task *database.Task, conversation *database.TaskConversation, status database.ConversationStatus, completionTime time.Time, errorMsg string, lang string) error
+	SendProjectAdminAddedEmail(admin *database.Admin, project *database.Project, actionByAdmin *database.Admin, lang string) error
+	SendProjectAdminRemovedEmail(admin *database.Admin, project *database.Project, actionByAdmin *database.Admin, lang string) error
 }

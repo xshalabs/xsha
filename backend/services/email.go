@@ -331,3 +331,95 @@ func (s *emailService) SendTaskConversationCompletedEmail(admin *database.Admin,
 	}()
 	return nil
 }
+
+func (s *emailService) SendProjectAdminAddedEmail(admin *database.Admin, project *database.Project, actionByAdmin *database.Admin, lang string) error {
+	go func() {
+		// Get admin display names
+		adminName := admin.Name
+		if adminName == "" {
+			adminName = admin.Username
+		}
+
+		actionByName := actionByAdmin.Name
+		if actionByName == "" {
+			actionByName = actionByAdmin.Username
+		}
+
+		// Prepare template data
+		projectAdminData := struct {
+			*database.Admin
+			ProjectName  string
+			AdminName    string
+			ActionByName string
+			Timestamp    string
+		}{
+			Admin:        admin,
+			ProjectName:  project.Name,
+			AdminName:    adminName,
+			ActionByName: actionByName,
+			Timestamp:    time.Now().Format("2006-01-02 15:04:05 MST"),
+		}
+
+		if err := s.sendNotificationEmail(admin, "project_admin_added", lang, projectAdminData); err != nil {
+			utils.Error("Failed to send project admin added notification email",
+				"username", admin.Username,
+				"project_id", project.ID,
+				"project_name", project.Name,
+				"action_by", actionByAdmin.Username,
+				"error", err)
+		} else {
+			utils.Info("Project admin added notification email sent successfully",
+				"username", admin.Username,
+				"project_id", project.ID,
+				"project_name", project.Name,
+				"action_by", actionByAdmin.Username)
+		}
+	}()
+	return nil
+}
+
+func (s *emailService) SendProjectAdminRemovedEmail(admin *database.Admin, project *database.Project, actionByAdmin *database.Admin, lang string) error {
+	go func() {
+		// Get admin display names
+		adminName := admin.Name
+		if adminName == "" {
+			adminName = admin.Username
+		}
+
+		actionByName := actionByAdmin.Name
+		if actionByName == "" {
+			actionByName = actionByAdmin.Username
+		}
+
+		// Prepare template data
+		projectAdminData := struct {
+			*database.Admin
+			ProjectName  string
+			AdminName    string
+			ActionByName string
+			Timestamp    string
+		}{
+			Admin:        admin,
+			ProjectName:  project.Name,
+			AdminName:    adminName,
+			ActionByName: actionByName,
+			Timestamp:    time.Now().Format("2006-01-02 15:04:05 MST"),
+		}
+
+		if err := s.sendNotificationEmail(admin, "project_admin_removed", lang, projectAdminData); err != nil {
+			utils.Error("Failed to send project admin removed notification email",
+				"username", admin.Username,
+				"project_id", project.ID,
+				"project_name", project.Name,
+				"action_by", actionByAdmin.Username,
+				"error", err)
+		} else {
+			utils.Info("Project admin removed notification email sent successfully",
+				"username", admin.Username,
+				"project_id", project.ID,
+				"project_name", project.Name,
+				"action_by", actionByAdmin.Username)
+		}
+	}()
+	return nil
+}

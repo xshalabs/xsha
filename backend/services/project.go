@@ -18,6 +18,8 @@ type projectService struct {
 	taskRepo            repository.TaskRepository
 	systemConfigService SystemConfigService
 	config              *config.Config
+	emailService        EmailService
+	adminService        AdminService
 }
 
 type ProjectWithTaskCount struct {
@@ -421,16 +423,37 @@ func (s *projectService) ListProjectsByAdminAccess(adminID uint, name string, pr
 }
 
 // AddAdminToProject adds an admin to the project's admin list
-func (s *projectService) AddAdminToProject(projectID, adminID uint) error {
-	_, err := s.repo.GetByID(projectID)
+func (s *projectService) AddAdminToProject(projectID, adminID uint, actionByAdminID uint, lang string) error {
+	project, err := s.repo.GetByID(projectID)
 	if err != nil {
 		return appErrors.ErrProjectNotFound
 	}
-	return s.repo.AddAdmin(projectID, adminID)
+
+	// Add admin to project
+	err = s.repo.AddAdmin(projectID, adminID)
+	if err != nil {
+		return err
+	}
+
+	// Send email notifications if email service and admin service are available
+	if s.emailService != nil && s.adminService != nil {
+		// Get the added admin details
+		addedAdmin, err := s.adminService.GetAdmin(adminID)
+		if err == nil {
+			// Get the action performer admin details
+			actionByAdmin, err := s.adminService.GetAdmin(actionByAdminID)
+			if err == nil {
+				// Send email to the added admin using their language preference
+				s.emailService.SendProjectAdminAddedEmail(addedAdmin, project, actionByAdmin, addedAdmin.Lang)
+			}
+		}
+	}
+
+	return nil
 }
 
 // RemoveAdminFromProject removes an admin from the project's admin list
-func (s *projectService) RemoveAdminFromProject(projectID, adminID uint) error {
+func (s *projectService) RemoveAdminFromProject(projectID, adminID uint, actionByAdminID uint, lang string) error {
 	// Check if project exists
 	project, err := s.repo.GetByID(projectID)
 	if err != nil {
@@ -442,7 +465,29 @@ func (s *projectService) RemoveAdminFromProject(projectID, adminID uint) error {
 		return appErrors.ErrProjectCannotRemovePrimaryAdmin
 	}
 
-	return s.repo.RemoveAdmin(projectID, adminID)
+	// Get the admin details before removing them
+	var removedAdmin *database.Admin
+	if s.emailService != nil && s.adminService != nil {
+		removedAdmin, _ = s.adminService.GetAdmin(adminID)
+	}
+
+	// Remove admin from project
+	err = s.repo.RemoveAdmin(projectID, adminID)
+	if err != nil {
+		return err
+	}
+
+	// Send email notifications if email service and admin service are available
+	if s.emailService != nil && s.adminService != nil && removedAdmin != nil {
+		// Get the action performer admin details
+		actionByAdmin, err := s.adminService.GetAdmin(actionByAdminID)
+		if err == nil {
+			// Send email to the removed admin using their language preference
+			s.emailService.SendProjectAdminRemovedEmail(removedAdmin, project, actionByAdmin, removedAdmin.Lang)
+		}
+	}
+
+	return nil
 }
 
 // GetProjectAdmins gets all admins for a specific project
@@ -487,4 +532,14 @@ func (s *projectService) IsOwner(projectID, adminID uint) (bool, error) {
 	}
 
 	return false, nil
+}
+
+// SetEmailService sets the email service dependency
+func (s *projectService) SetEmailService(emailService EmailService) {
+	s.emailService = emailService
+}
+
+// SetAdminService sets the admin service dependency
+func (s *projectService) SetAdminService(adminService AdminService) {
+	s.adminService = adminService
 }
