@@ -292,7 +292,7 @@ func (h *AuthHandlers) ChangeOwnPasswordHandler(c *gin.Context) {
 	// Send password change notification email
 	clientIP := c.ClientIP()
 	userAgent := c.GetHeader("User-Agent")
-	if err := h.emailService.SendPasswordChangeEmail(admin, clientIP, userAgent, lang); err != nil {
+	if err := h.emailService.SendPasswordChangeEmail(admin, clientIP, userAgent, admin.Lang); err != nil {
 		// Log the error but don't fail the password change operation
 		utils.Error("Failed to send password change notification email", "error", err, "username", admin.Username)
 	}

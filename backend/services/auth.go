@@ -95,7 +95,7 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 		}()
 
 		// Send login notification email (handled asynchronously by email service)
-		s.emailService.SendLoginNotificationEmail(admin, clientIP, userAgent, "en-US")
+		s.emailService.SendLoginNotificationEmail(admin, clientIP, userAgent, admin.Lang)
 	}
 
 	go func() {
