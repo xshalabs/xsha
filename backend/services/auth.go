@@ -153,8 +153,7 @@ func (s *authService) Logout(token, username, clientIP, userAgent string) error 
 	}
 
 	// Try to get admin info for logging
-	var adminID *uint
-	adminID = &claims.AdminID
+	adminID := &claims.AdminID
 
 	// Get token expiration
 	expiresAt, err := utils.GetTokenExpiration(token, s.config.JWTSecret)
