@@ -58,6 +58,24 @@ func (s *systemConfigService) GetValue(key string) (string, error) {
 	return s.repo.GetValue(key)
 }
 
+func (s *systemConfigService) GetValuesByKeys(keys []string) (map[string]string, error) {
+	configs, err := s.repo.GetByKeys(keys)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]string)
+	for _, key := range keys {
+		if config, exists := configs[key]; exists {
+			result[key] = config.ConfigValue
+		} else {
+			result[key] = ""
+		}
+	}
+
+	return result, nil
+}
+
 func (s *systemConfigService) SetValue(key, value string) error {
 	return s.repo.SetValue(key, value)
 }

@@ -10,7 +10,6 @@ import (
 	"xsha-backend/utils"
 
 	"gopkg.in/gomail.v2"
-	"gorm.io/gorm"
 )
 
 type SMTPConfig struct {
@@ -123,28 +122,37 @@ func (s *emailService) sendEmail(config *SMTPConfig, to, subject, body string) e
 func (s *emailService) loadSMTPConfig() (*SMTPConfig, error) {
 	config := &SMTPConfig{}
 
-	// Get enabled status
-	enabledStr, err := s.systemConfigService.GetValue("smtp_enabled")
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, fmt.Errorf("failed to get smtp_enabled: %v", err)
+	// Define all SMTP config keys to fetch in one query
+	configKeys := []string{
+		"smtp_enabled",
+		"smtp_host",
+		"smtp_port",
+		"smtp_username",
+		"smtp_password",
+		"smtp_from",
+		"smtp_from_name",
+		"smtp_use_tls",
+		"smtp_skip_verify",
 	}
-	config.Enabled = enabledStr == "true"
+
+	// Batch fetch all SMTP configurations
+	configValues, err := s.systemConfigService.GetValuesByKeys(configKeys)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load SMTP configurations: %v", err)
+	}
+
+	// Parse enabled status
+	config.Enabled = configValues["smtp_enabled"] == "true"
 
 	if !config.Enabled {
 		return config, nil
 	}
 
-	// Get host
-	config.Host, err = s.systemConfigService.GetValue("smtp_host")
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, fmt.Errorf("failed to get smtp_host: %v", err)
-	}
+	// Parse host
+	config.Host = configValues["smtp_host"]
 
-	// Get port
-	portStr, err := s.systemConfigService.GetValue("smtp_port")
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, fmt.Errorf("failed to get smtp_port: %v", err)
-	}
+	// Parse port
+	portStr := configValues["smtp_port"]
 	if portStr == "" {
 		portStr = "587"
 	}
@@ -153,46 +161,24 @@ func (s *emailService) loadSMTPConfig() (*SMTPConfig, error) {
 		return nil, fmt.Errorf("invalid smtp_port: %v", err)
 	}
 
-	// Get username
-	config.Username, err = s.systemConfigService.GetValue("smtp_username")
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, fmt.Errorf("failed to get smtp_username: %v", err)
-	}
+	// Parse username and password
+	config.Username = configValues["smtp_username"]
+	config.Password = configValues["smtp_password"]
 
-	// Get password
-	config.Password, err = s.systemConfigService.GetValue("smtp_password")
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, fmt.Errorf("failed to get smtp_password: %v", err)
-	}
+	// Parse from address
+	config.From = configValues["smtp_from"]
 
-	// Get from address
-	config.From, err = s.systemConfigService.GetValue("smtp_from")
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, fmt.Errorf("failed to get smtp_from: %v", err)
-	}
-
-	// Get from name
-	config.FromName, err = s.systemConfigService.GetValue("smtp_from_name")
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, fmt.Errorf("failed to get smtp_from_name: %v", err)
-	}
+	// Parse from name
+	config.FromName = configValues["smtp_from_name"]
 	if config.FromName == "" {
 		config.FromName = "xsha Platform"
 	}
 
-	// Get TLS setting
-	useTLSStr, err := s.systemConfigService.GetValue("smtp_use_tls")
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, fmt.Errorf("failed to get smtp_use_tls: %v", err)
-	}
-	config.UseTLS = useTLSStr != "false"
+	// Parse TLS setting
+	config.UseTLS = configValues["smtp_use_tls"] != "false"
 
-	// Get skip verify setting
-	skipVerifyStr, err := s.systemConfigService.GetValue("smtp_skip_verify")
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, fmt.Errorf("failed to get smtp_skip_verify: %v", err)
-	}
-	config.SkipVerify = skipVerifyStr == "true"
+	// Parse skip verify setting
+	config.SkipVerify = configValues["smtp_skip_verify"] == "true"
 
 	return config, nil
 }

@@ -156,6 +156,7 @@ type TaskConversationResultRepository interface {
 type SystemConfigRepository interface {
 	Create(config *database.SystemConfig) error
 	GetByKey(key string) (*database.SystemConfig, error)
+	GetByKeys(keys []string) (map[string]*database.SystemConfig, error)
 	ListAll() ([]database.SystemConfig, error)
 	Update(config *database.SystemConfig) error
 

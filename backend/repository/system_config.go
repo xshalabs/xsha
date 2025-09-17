@@ -28,6 +28,21 @@ func (r *systemConfigRepository) GetByKey(key string) (*database.SystemConfig, e
 	return &config, nil
 }
 
+func (r *systemConfigRepository) GetByKeys(keys []string) (map[string]*database.SystemConfig, error) {
+	var configs []database.SystemConfig
+	err := r.db.Where("config_key IN ?", keys).Find(&configs).Error
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]*database.SystemConfig)
+	for i := range configs {
+		result[configs[i].ConfigKey] = &configs[i]
+	}
+
+	return result, nil
+}
+
 func (r *systemConfigRepository) ListAll() ([]database.SystemConfig, error) {
 	var configs []database.SystemConfig
 	err := r.db.Order("sort_order ASC").Find(&configs).Error
