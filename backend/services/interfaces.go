@@ -221,4 +221,5 @@ type AdminAvatarService interface {
 type EmailService interface {
 	SendWelcomeEmail(admin *database.Admin, lang string) error
 	SendLoginNotificationEmail(admin *database.Admin, clientIP, userAgent, lang string) error
+	SendPasswordChangeEmail(admin *database.Admin, clientIP, userAgent, lang string) error
 }

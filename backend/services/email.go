@@ -35,7 +35,22 @@ func NewEmailService(systemConfigService SystemConfigService) EmailService {
 	}
 }
 
-func (s *emailService) SendWelcomeEmail(admin *database.Admin, lang string) error {
+// normalizeLanguage normalizes language codes to supported formats
+func (s *emailService) normalizeLanguage(lang string) string {
+	if lang == "" {
+		return "en-US"
+	}
+
+	// Map Chinese language variants to zh-CN
+	if strings.HasPrefix(lang, "zh") {
+		return "zh-CN"
+	}
+
+	return lang
+}
+
+// sendNotificationEmail is a common method for sending notification emails
+func (s *emailService) sendNotificationEmail(admin *database.Admin, templateName, lang string, templateData interface{}) error {
 	// Check if email service is enabled
 	enabled, err := s.isEmailEnabled()
 	if err != nil {
@@ -44,13 +59,13 @@ func (s *emailService) SendWelcomeEmail(admin *database.Admin, lang string) erro
 	}
 
 	if !enabled {
-		utils.Info("Email service is disabled, skipping welcome email", "username", admin.Username)
+		utils.Info("Email service is disabled, skipping notification email", "username", admin.Username, "template", templateName)
 		return nil
 	}
 
 	// Check if admin has email
 	if admin.Email == "" {
-		utils.Info("Admin has no email address, skipping welcome email", "username", admin.Username)
+		utils.Info("Admin has no email address, skipping notification email", "username", admin.Username, "template", templateName)
 		return nil
 	}
 
@@ -61,10 +76,14 @@ func (s *emailService) SendWelcomeEmail(admin *database.Admin, lang string) erro
 		return err
 	}
 
-	// Generate email content
-	subject, body, err := s.generateWelcomeEmailContent(admin, lang)
+	// Normalize language
+	normalizedLang := s.normalizeLanguage(lang)
+
+	// Generate email content using template manager
+	templateManager := GetEmailTemplateManager()
+	subject, body, err := templateManager.RenderTemplate(templateName, normalizedLang, templateData)
 	if err != nil {
-		utils.Error("Failed to generate welcome email content", "error", err)
+		utils.Error("Failed to generate email content", "template", templateName, "error", err)
 		return err
 	}
 
@@ -192,78 +211,11 @@ func (s *emailService) isEmailEnabled() (bool, error) {
 	return true, nil
 }
 
+func (s *emailService) SendWelcomeEmail(admin *database.Admin, lang string) error {
+	return s.sendNotificationEmail(admin, "welcome", lang, admin)
+}
+
 func (s *emailService) SendLoginNotificationEmail(admin *database.Admin, clientIP, userAgent, lang string) error {
-	// Check if email service is enabled
-	enabled, err := s.isEmailEnabled()
-	if err != nil {
-		utils.Error("Failed to check if email service is enabled", "error", err)
-		return err
-	}
-
-	if !enabled {
-		utils.Info("Email service is disabled, skipping login notification email", "username", admin.Username)
-		return nil
-	}
-
-	// Check if admin has email
-	if admin.Email == "" {
-		utils.Info("Admin has no email address, skipping login notification email", "username", admin.Username)
-		return nil
-	}
-
-	// Load SMTP configuration
-	smtpConfig, err := s.loadSMTPConfig()
-	if err != nil {
-		utils.Error("Failed to load SMTP configuration", "error", err)
-		return err
-	}
-
-	// Generate email content
-	subject, body, err := s.generateLoginNotificationEmailContent(admin, clientIP, userAgent, lang)
-	if err != nil {
-		utils.Error("Failed to generate login notification email content", "error", err)
-		return err
-	}
-
-	// Send email
-	return s.sendEmail(smtpConfig, admin.Email, subject, body)
-}
-
-func (s *emailService) generateWelcomeEmailContent(admin *database.Admin, lang string) (string, string, error) {
-	// Determine language
-	if lang == "" {
-		lang = "en-US"
-	}
-
-	// Map Chinese language variants to zh-CN
-	if strings.HasPrefix(lang, "zh") {
-		lang = "zh-CN"
-	}
-
-	// Get template manager
-	templateManager := GetEmailTemplateManager()
-
-	// Render template with admin data
-	subject, body, err := templateManager.RenderTemplate("welcome", lang, admin)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to render welcome email template: %v", err)
-	}
-
-	return subject, body, nil
-}
-
-func (s *emailService) generateLoginNotificationEmailContent(admin *database.Admin, clientIP, userAgent, lang string) (string, string, error) {
-	// Determine language
-	if lang == "" {
-		lang = "en-US"
-	}
-
-	// Map Chinese language variants to zh-CN
-	if strings.HasPrefix(lang, "zh") {
-		lang = "zh-CN"
-	}
-
-	// Create login data structure
 	loginData := struct {
 		*database.Admin
 		IPAddress string
@@ -276,14 +228,21 @@ func (s *emailService) generateLoginNotificationEmailContent(admin *database.Adm
 		LoginTime: time.Now().Format("2006-01-02 15:04:05 MST"),
 	}
 
-	// Get template manager
-	templateManager := GetEmailTemplateManager()
+	return s.sendNotificationEmail(admin, "login", lang, loginData)
+}
 
-	// Render template with login data
-	subject, body, err := templateManager.RenderTemplate("login", lang, loginData)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to render login notification email template: %v", err)
+func (s *emailService) SendPasswordChangeEmail(admin *database.Admin, clientIP, userAgent, lang string) error {
+	passwordChangeData := struct {
+		*database.Admin
+		IPAddress  string
+		UserAgent  string
+		ChangeTime string
+	}{
+		Admin:      admin,
+		IPAddress:  clientIP,
+		UserAgent:  userAgent,
+		ChangeTime: time.Now().Format("2006-01-02 15:04:05 MST"),
 	}
 
-	return subject, body, nil
+	return s.sendNotificationEmail(admin, "password_change", lang, passwordChangeData)
 }
