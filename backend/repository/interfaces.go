@@ -162,7 +162,6 @@ type SystemConfigRepository interface {
 
 	GetValue(key string) (string, error)
 	SetValue(key, value string) error
-	SetValueWithCategoryAndSort(key, value, description, category, formType string, isEditable bool, sortOrder int) error
 	InitializeDefaultConfigs() error
 }
 

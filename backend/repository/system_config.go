@@ -80,7 +80,7 @@ func (r *systemConfigRepository) SetValue(key, value string) error {
 	return r.Update(config)
 }
 
-func (r *systemConfigRepository) SetValueWithCategoryAndSort(key, value, description, category, formType string, isEditable bool, sortOrder int) error {
+func (r *systemConfigRepository) CreateOrUpdate(key, value, name, description, category, formType string, isEditable bool, sortOrder int) error {
 	config, err := r.GetByKey(key)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -90,6 +90,7 @@ func (r *systemConfigRepository) SetValueWithCategoryAndSort(key, value, descrip
 			newConfig := &database.SystemConfig{
 				ConfigKey:   key,
 				ConfigValue: value,
+				Name:        name,
 				Description: description,
 				Category:    category,
 				FormType:    database.ConfigFormType(formType),
@@ -102,6 +103,7 @@ func (r *systemConfigRepository) SetValueWithCategoryAndSort(key, value, descrip
 	}
 
 	config.ConfigValue = value
+	config.Name = name
 	config.Description = description
 	config.Category = category
 	if formType != "" {
@@ -144,6 +146,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 	defaultConfigs := []struct {
 		key         string
 		value       string
+		name        string
 		description string
 		category    string
 		formType    string
@@ -152,6 +155,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "dev_environment_images",
 			value:       string(devEnvImagesJSON),
+			name:        "Development Environment Images",
 			description: "Development environment image configuration, defines available Docker images and their corresponding environment images",
 			category:    "dev_environment",
 			formType:    string(database.ConfigFormTypeTextarea),
@@ -160,6 +164,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "git_proxy_enabled",
 			value:       "false",
+			name:        "Enable Git Proxy",
 			description: "Enable or disable HTTP proxy for Git operations",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeSwitch),
@@ -168,6 +173,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "git_proxy_http",
 			value:       "",
+			name:        "HTTP Proxy URL",
 			description: "HTTP proxy URL for Git operations (e.g., http://proxy.example.com:8080)",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
@@ -176,6 +182,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "git_proxy_https",
 			value:       "",
+			name:        "HTTPS Proxy URL",
 			description: "HTTPS proxy URL for Git operations (e.g., https://proxy.example.com:8080)",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
@@ -184,6 +191,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "git_proxy_no_proxy",
 			value:       "",
+			name:        "No Proxy Domains",
 			description: "Comma-separated list of domains to bypass proxy (e.g., localhost,127.0.0.1,.local)",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
@@ -192,6 +200,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "git_clone_timeout",
 			value:       "5m",
+			name:        "Git Clone Timeout",
 			description: "Timeout for Git clone operations (e.g., 5m, 300s)",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
@@ -200,6 +209,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "git_ssl_verify",
 			value:       "false",
+			name:        "Enable SSL Verification",
 			description: "Enable or disable SSL verification for Git operations",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeSwitch),
@@ -208,6 +218,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "docker_timeout",
 			value:       "120m",
+			name:        "Docker Execution Timeout",
 			description: "Timeout for Docker execution operations (e.g., 120m, 7200s)",
 			category:    "docker",
 			formType:    string(database.ConfigFormTypeInput),
@@ -216,6 +227,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "smtp_enabled",
 			value:       "false",
+			name:        "Enable Email Service",
 			description: "Enable or disable email service for sending welcome emails and notifications",
 			category:    "email",
 			formType:    string(database.ConfigFormTypeSwitch),
@@ -224,6 +236,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "smtp_host",
 			value:       "",
+			name:        "SMTP Server Host",
 			description: "SMTP server hostname (e.g., smtp.gmail.com, smtp.163.com)",
 			category:    "email",
 			formType:    string(database.ConfigFormTypeInput),
@@ -232,6 +245,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "smtp_port",
 			value:       "587",
+			name:        "SMTP Server Port",
 			description: "SMTP server port (usually 587 for TLS, 465 for SSL, 25 for plain)",
 			category:    "email",
 			formType:    string(database.ConfigFormTypeInput),
@@ -240,6 +254,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "smtp_username",
 			value:       "",
+			name:        "SMTP Username",
 			description: "SMTP authentication username (usually your email address)",
 			category:    "email",
 			formType:    string(database.ConfigFormTypeInput),
@@ -248,6 +263,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "smtp_password",
 			value:       "",
+			name:        "SMTP Password",
 			description: "SMTP authentication password or app-specific password",
 			category:    "email",
 			formType:    string(database.ConfigFormTypePassword),
@@ -256,6 +272,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "smtp_from",
 			value:       "",
+			name:        "Email From Address",
 			description: "Sender email address (must be authorized by SMTP server)",
 			category:    "email",
 			formType:    string(database.ConfigFormTypeInput),
@@ -264,6 +281,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "smtp_from_name",
 			value:       "xsha Platform",
+			name:        "Sender Display Name",
 			description: "Sender display name that appears in email",
 			category:    "email",
 			formType:    string(database.ConfigFormTypeInput),
@@ -272,6 +290,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "smtp_use_tls",
 			value:       "true",
+			name:        "Use TLS Encryption",
 			description: "Use TLS encryption for SMTP connection",
 			category:    "email",
 			formType:    string(database.ConfigFormTypeSwitch),
@@ -280,6 +299,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "smtp_skip_verify",
 			value:       "false",
+			name:        "Skip TLS Verification",
 			description: "Skip TLS certificate verification (not recommended for production)",
 			category:    "email",
 			formType:    string(database.ConfigFormTypeSwitch),
@@ -288,18 +308,10 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 	}
 
 	for _, config := range defaultConfigs {
-		existingConfig, err := r.GetByKey(config.key)
-		if err != nil && err != gorm.ErrRecordNotFound {
-			return err
-		}
-
-		if existingConfig != nil {
-			continue
-		}
-
-		if err := r.SetValueWithCategoryAndSort(
+		if err := r.CreateOrUpdate(
 			config.key,
 			config.value,
+			config.name,
 			config.description,
 			config.category,
 			config.formType,

@@ -349,6 +349,7 @@ type SystemConfig struct {
 
 	ConfigKey   string         `gorm:"not null;uniqueIndex" json:"config_key"`
 	ConfigValue string         `gorm:"type:text;not null" json:"config_value"`
+	Name        string         `gorm:"not null;default:''" json:"name"`
 	Description string         `gorm:"type:text" json:"description"`
 	Category    string         `gorm:"not null;index;default:'general'" json:"category"`
 	FormType    ConfigFormType `gorm:"not null;default:'input'" json:"form_type"`

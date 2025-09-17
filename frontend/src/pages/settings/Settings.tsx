@@ -166,6 +166,11 @@ export default function SettingsPage() {
   };
 
   const getConfigLabel = (config: SystemConfig) => {
+    // Use the name field if available, otherwise fall back to translation
+    if (config.name && config.name.trim() !== "") {
+      return config.name;
+    }
+
     const configKeyMap = {
       dev_environment_images: t("systemConfig.dev_environment_images"),
       git_proxy_enabled: t("systemConfig.git_proxy_enabled"),

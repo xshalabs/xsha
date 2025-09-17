@@ -6,6 +6,7 @@ export interface SystemConfig {
   updated_at: string;
   config_key: string;
   config_value: string;
+  name: string;
   description: string;
   category: string;
   form_type: FormType;
