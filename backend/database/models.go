@@ -62,6 +62,7 @@ type Admin struct {
 	AvatarID     *uint          `gorm:"index" json:"avatar_id"`
 	Avatar       *AdminAvatar   `gorm:"foreignKey:ID;references:AvatarID" json:"avatar,omitempty"`
 	CreatedBy    string         `gorm:"not null;default:'system'" json:"created_by"`
+	Lang         string         `gorm:"not null;default:'en-US'" json:"lang"`
 }
 
 type GitCredentialType string
@@ -425,6 +426,7 @@ type AdminListResponse struct {
 	AvatarID    *uint               `json:"avatar_id"`
 	Avatar      *AdminAvatarMinimal `json:"avatar,omitempty"`
 	CreatedBy   string              `json:"created_by"`
+	Lang        string              `json:"lang"`
 }
 
 // MinimalAdminResponse represents minimal admin information for environment list responses

@@ -52,6 +52,7 @@ export interface Admin {
   created_by: string;
   avatar_id?: number;
   avatar?: AdminAvatar;
+  lang?: string;
 }
 
 export interface CreateAdminRequest {
@@ -60,6 +61,7 @@ export interface CreateAdminRequest {
   name: string;
   email?: string;
   role?: AdminRole;
+  lang?: string;
 }
 
 export interface UpdateAdminRequest {
@@ -68,6 +70,7 @@ export interface UpdateAdminRequest {
   email?: string;
   is_active?: boolean;
   role?: AdminRole;
+  lang?: string;
 }
 
 export interface ChangePasswordRequest {

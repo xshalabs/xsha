@@ -20,8 +20,7 @@ type LoginLogService interface {
 }
 
 type AdminService interface {
-	CreateAdmin(username, password, name, email, createdBy string) (*database.Admin, error)
-	CreateAdminWithRole(username, password, name, email string, role database.AdminRole, createdBy string) (*database.Admin, error)
+	CreateAdminWithRoleAndLang(username, password, name, email, lang string, role database.AdminRole, createdBy string) (*database.Admin, error)
 	GetAdmin(id uint) (*database.Admin, error)
 	GetAdminByUsername(username string) (*database.Admin, error)
 	ListAdmins(search *string, isActive *bool, roles []string, page, pageSize int) ([]database.Admin, int64, error)
@@ -29,6 +28,7 @@ type AdminService interface {
 	UpdateAdminRole(id uint, role database.AdminRole) error
 	DeleteAdmin(id uint) error
 	ChangePassword(id uint, newPassword string) error
+	UpdateAdminLanguage(id uint, lang string) error
 	ValidateCredentials(username, password string) (*database.Admin, error)
 	InitializeDefaultAdmin() error
 	SetAuthService(authService AuthService)

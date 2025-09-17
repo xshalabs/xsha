@@ -15,6 +15,7 @@ func ToAdminListResponse(admin Admin) AdminListResponse {
 		LastLoginIP: admin.LastLoginIP,
 		AvatarID:    admin.AvatarID,
 		CreatedBy:   admin.CreatedBy,
+		Lang:        admin.Lang,
 	}
 
 	// Convert avatar to minimal version
