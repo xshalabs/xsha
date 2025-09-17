@@ -2,25 +2,5 @@
   "title": "System Configuration",
   "edit_page_description": "Manage system-wide configuration settings organized by category",
   "readonly": "Read-only",
-  "dev_environment_images": "Development Environment Images",
-  "dev_environment_images_description": "Configure available Docker images and their corresponding environment types",
-  "git_proxy_enabled": "Enable Git Proxy",
-  "git_proxy_enabled_desc": "Whether to enable HTTP proxy for Git operations",
-  "git_proxy_http": "HTTP Proxy URL",
-  "git_proxy_http_desc": "Proxy server URL for Git HTTP operations",
-  "git_proxy_https": "HTTPS Proxy URL",
-  "git_proxy_https_desc": "Proxy server URL for Git HTTPS operations", 
-  "git_proxy_no_proxy": "Proxy Exclusion List",
-  "git_proxy_no_proxy_desc": "Comma-separated list of domains to bypass proxy",
-  "proxy_url_placeholder": "e.g., http://proxy.company.com:8080",
-  "no_proxy_placeholder": "e.g., localhost,127.0.0.1,.local",
-  "update_success": "Configuration updated successfully",
-  "categories": {
-    "devEnvironment": "Development Environment",
-    "git": "Git Configuration"
-  },
-  "categoryDescriptions": {
-    "devEnvironment": "Configure development environment images and settings",
-    "git": "Configure Git proxy and network settings"
-  }
+  "update_success": "Configuration updated successfully"
 } 

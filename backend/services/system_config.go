@@ -7,6 +7,7 @@ import (
 	"time"
 	"xsha-backend/database"
 	appErrors "xsha-backend/errors"
+	"xsha-backend/i18n"
 	"xsha-backend/repository"
 	"xsha-backend/utils"
 
@@ -23,8 +24,23 @@ func NewSystemConfigService(repo repository.SystemConfigRepository) SystemConfig
 	}
 }
 
-func (s *systemConfigService) ListAllConfigs() ([]database.SystemConfig, error) {
-	return s.repo.ListAll()
+func (s *systemConfigService) ListAllConfigsWithTranslation(lang string) ([]database.SystemConfig, error) {
+	configs, err := s.repo.ListAll()
+	if err != nil {
+		return nil, err
+	}
+
+	// Translate name and description for each config
+	for i := range configs {
+		if configs[i].Name != "" {
+			configs[i].Name = i18n.T(lang, configs[i].Name)
+		}
+		if configs[i].Description != "" {
+			configs[i].Description = i18n.T(lang, configs[i].Description)
+		}
+	}
+
+	return configs, nil
 }
 
 func (s *systemConfigService) BatchUpdateConfigs(configItems []ConfigUpdateItem) error {
@@ -74,10 +90,6 @@ func (s *systemConfigService) GetValuesByKeys(keys []string) (map[string]string,
 	}
 
 	return result, nil
-}
-
-func (s *systemConfigService) SetValue(key, value string) error {
-	return s.repo.SetValue(key, value)
 }
 
 func (s *systemConfigService) InitializeDefaultConfigs() error {
@@ -227,30 +239,4 @@ func (s *systemConfigService) GetSMTPEnabled() (bool, error) {
 	}
 
 	return enabled == "true", nil
-}
-
-// IsEmailServiceConfigured checks if all required email configurations are set
-func (s *systemConfigService) IsEmailServiceConfigured() (bool, error) {
-	enabled, err := s.GetSMTPEnabled()
-	if err != nil {
-		return false, err
-	}
-
-	if !enabled {
-		return false, nil
-	}
-
-	// Check required fields
-	requiredFields := []string{"smtp_host", "smtp_username", "smtp_password", "smtp_from"}
-	for _, field := range requiredFields {
-		value, err := s.repo.GetValue(field)
-		if err != nil && err != gorm.ErrRecordNotFound {
-			return false, fmt.Errorf("failed to get %s: %v", field, err)
-		}
-		if value == "" {
-			return false, nil
-		}
-	}
-
-	return true, nil
 }

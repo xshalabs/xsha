@@ -170,11 +170,10 @@ type ConfigUpdateItem struct {
 }
 
 type SystemConfigService interface {
-	ListAllConfigs() ([]database.SystemConfig, error)
+	ListAllConfigsWithTranslation(lang string) ([]database.SystemConfig, error)
 	BatchUpdateConfigs(configs []ConfigUpdateItem) error
 	GetValue(key string) (string, error)
 	GetValuesByKeys(keys []string) (map[string]string, error)
-	SetValue(key, value string) error
 	InitializeDefaultConfigs() error
 	ValidateConfigData(key, value, category string) error
 	GetGitProxyConfig() (*utils.GitProxyConfig, error)
@@ -182,7 +181,6 @@ type SystemConfigService interface {
 	GetGitSSLVerify() (bool, error)
 	GetDockerTimeout() (time.Duration, error)
 	GetSMTPEnabled() (bool, error)
-	IsEmailServiceConfigured() (bool, error)
 }
 
 type DashboardService interface {

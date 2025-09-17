@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -20,10 +20,7 @@ import {
 import {
   FormCard,
   FormCardContent,
-  FormCardDescription,
   FormCardFooter,
-  FormCardHeader,
-  FormCardTitle,
 } from "@/components/forms/form-card";
 import { FormCardGroup } from "@/components/forms/form-sheet";
 import type { SystemConfig, ConfigUpdateItem } from "@/types/system-config";
@@ -37,7 +34,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const fetchConfigs = async () => {
+  const fetchConfigs = useCallback(async () => {
     try {
       setLoading(true);
       const response = await systemConfigsApi.listAll();
@@ -48,16 +45,18 @@ export default function SettingsPage() {
         initialFormData[config.config_key] = config.config_value;
       });
       setFormData(initialFormData);
-    } catch (error: any) {
-      toast.error(error.message || t("api.operation_failed"));
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : t("api.operation_failed");
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchConfigs();
-  }, []);
+  }, [fetchConfigs]);
 
   const handleInputChange = (configKey: string, value: string) => {
     setFormData((prev) => ({
@@ -105,7 +104,6 @@ export default function SettingsPage() {
             disabled={!config.is_editable}
             rows={4}
             className="resize-none"
-            placeholder={getPlaceholder(config.config_key)}
           />
         );
 
@@ -119,7 +117,6 @@ export default function SettingsPage() {
               handleInputChange(config.config_key, e.target.value)
             }
             disabled={!config.is_editable}
-            placeholder={getPlaceholder(config.config_key)}
           />
         );
 
@@ -133,7 +130,6 @@ export default function SettingsPage() {
               handleInputChange(config.config_key, e.target.value)
             }
             disabled={!config.is_editable}
-            placeholder={getPlaceholder(config.config_key)}
           />
         );
 
@@ -147,77 +143,17 @@ export default function SettingsPage() {
               handleInputChange(config.config_key, e.target.value)
             }
             disabled={!config.is_editable}
-            placeholder={getPlaceholder(config.config_key)}
           />
         );
     }
   };
 
-  const getPlaceholder = (configKey: string) => {
-    switch (configKey) {
-      case "git_proxy_http":
-      case "git_proxy_https":
-        return t("systemConfig.proxy_url_placeholder");
-      case "git_proxy_no_proxy":
-        return t("systemConfig.no_proxy_placeholder");
-      default:
-        return "";
-    }
-  };
-
   const getConfigLabel = (config: SystemConfig) => {
-    // Use the name field if available, otherwise fall back to translation
-    if (config.name && config.name.trim() !== "") {
-      return config.name;
-    }
-
-    const configKeyMap = {
-      dev_environment_images: t("systemConfig.dev_environment_images"),
-      git_proxy_enabled: t("systemConfig.git_proxy_enabled"),
-      git_proxy_http: t("systemConfig.git_proxy_http"),
-      git_proxy_https: t("systemConfig.git_proxy_https"),
-      git_proxy_no_proxy: t("systemConfig.git_proxy_no_proxy"),
-    } as const;
-
-    return (
-      configKeyMap[config.config_key as keyof typeof configKeyMap] ||
-      config.config_key
-    );
+    return config.name || config.config_key;
   };
 
   const getConfigDescription = (config: SystemConfig) => {
-    const configDescMap = {
-      dev_environment_images: t(
-        "systemConfig.dev_environment_images_description"
-      ),
-      git_proxy_enabled: t("systemConfig.git_proxy_enabled_desc"),
-      git_proxy_http: t("systemConfig.git_proxy_http_desc"),
-      git_proxy_https: t("systemConfig.git_proxy_https_desc"),
-      git_proxy_no_proxy: t("systemConfig.git_proxy_no_proxy_desc"),
-    } as const;
-
-    return (
-      configDescMap[config.config_key as keyof typeof configDescMap] ||
-      config.description
-    );
-  };
-
-  const getCategoryName = (category: string) => {
-    const categoryMap = {
-      dev_environment: t("systemConfig.categories.devEnvironment"),
-      git: t("systemConfig.categories.git"),
-    } as const;
-
-    return categoryMap[category as keyof typeof categoryMap] || category;
-  };
-
-  const getCategoryDescription = (category: string) => {
-    const descMap = {
-      dev_environment: t("systemConfig.categoryDescriptions.devEnvironment"),
-      git: t("systemConfig.categoryDescriptions.git"),
-    } as const;
-
-    return descMap[category as keyof typeof descMap] || "";
+    return config.description || "";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -240,8 +176,10 @@ export default function SettingsPage() {
       toast.success(t("systemConfig.update_success"));
 
       await fetchConfigs();
-    } catch (error: any) {
-      toast.error(error.message || t("api.operation_failed"));
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : t("api.operation_failed");
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -281,13 +219,7 @@ export default function SettingsPage() {
           <FormCardGroup>
             {categories.map((category) => (
               <FormCard key={category}>
-                <FormCardHeader>
-                  <FormCardTitle>{getCategoryName(category)}</FormCardTitle>
-                  <FormCardDescription>
-                    {getCategoryDescription(category)}
-                  </FormCardDescription>
-                </FormCardHeader>
-                <FormCardContent className="space-y-6">
+                <FormCardContent className="space-y-6 pt-4">
                   {configsByCategory[category].map((config, index) => (
                     <div key={config.id}>
                       {index > 0 && <Separator className="mb-6" />}
