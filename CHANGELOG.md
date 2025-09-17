@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - Email notification system for task completion alerts
+- WeChat Work bot message notifications
 - Refactored system configuration logic with optimized multi-language environment display
 
 ## v0.8.0 - 20250916

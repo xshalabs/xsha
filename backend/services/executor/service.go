@@ -26,6 +26,7 @@ type aiTaskExecutorService struct {
 	systemConfigService   services.SystemConfigService
 	attachmentService     services.TaskConversationAttachmentService
 	emailService          services.EmailService
+	wechatService         services.WeChatService
 
 	executionManager *ExecutionManager
 	dockerExecutor   DockerExecutor
@@ -49,12 +50,13 @@ func NewAITaskExecutorService(
 	systemConfigService services.SystemConfigService,
 	attachmentService services.TaskConversationAttachmentService,
 	emailService services.EmailService,
+	wechatService services.WeChatService,
 	cfg *config.Config,
 ) services.AITaskExecutorService {
 	return NewAITaskExecutorServiceWithManager(
 		taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, adminRepo,
 		gitCredService, taskConvResultService, taskService, systemConfigService,
-		attachmentService, emailService, cfg, nil,
+		attachmentService, emailService, wechatService, cfg, nil,
 	)
 }
 
@@ -70,6 +72,7 @@ func NewAITaskExecutorServiceWithManager(
 	systemConfigService services.SystemConfigService,
 	attachmentService services.TaskConversationAttachmentService,
 	emailService services.EmailService,
+	wechatService services.WeChatService,
 	cfg *config.Config,
 	executionManager *ExecutionManager,
 ) services.AITaskExecutorService {
@@ -109,6 +112,7 @@ func NewAITaskExecutorServiceWithManager(
 		systemConfigService:   systemConfigService,
 		attachmentService:     attachmentService,
 		emailService:          emailService,
+		wechatService:         wechatService,
 		executionManager:      executionManager,
 		dockerExecutor:        dockerExecutor,
 		resultParser:          resultParser,
@@ -385,7 +389,7 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 
 		// Send email notification for task conversation completion
 		if conv.AdminID != nil {
-			s.sendCompletionEmailNotification(conv.ID, conv.Task.ID, conv.AdminID, finalStatus, now, errorMsg)
+			s.sendCompletionNotifications(conv.ID, conv.Task.ID, conv.AdminID, finalStatus, now, errorMsg)
 		}
 
 		utils.Info("Conversation execution completed", "conversationId", conv.ID, "status", string(finalStatus))
@@ -580,7 +584,7 @@ func (s *aiTaskExecutorService) prepareGitCredential(project *database.Project) 
 	return credential, nil
 }
 
-func (s *aiTaskExecutorService) sendCompletionEmailNotification(conversationID, taskID uint, adminID *uint, finalStatus database.ConversationStatus, completionTime time.Time, errorMsg string) {
+func (s *aiTaskExecutorService) sendCompletionNotifications(conversationID, taskID uint, adminID *uint, finalStatus database.ConversationStatus, completionTime time.Time, errorMsg string) {
 	task, err := s.taskRepo.GetByID(taskID)
 	if err != nil {
 		utils.Error("Failed to get task for email notification",
@@ -632,6 +636,22 @@ func (s *aiTaskExecutorService) sendCompletionEmailNotification(conversationID, 
 		adminLang,
 	); err != nil {
 		utils.Error("Failed to send task conversation completion email notification",
+			"conversationId", conversationID,
+			"adminId", admin.ID,
+			"error", err)
+	}
+
+	// Send WeChat notification asynchronously
+	if err := s.wechatService.SendTaskConversationCompletedMessage(
+		admin,
+		task,
+		conv,
+		finalStatus,
+		completionTime,
+		errorMsg,
+		adminLang,
+	); err != nil {
+		utils.Error("Failed to send task conversation completion WeChat notification",
 			"conversationId", conversationID,
 			"adminId", admin.ID,
 			"error", err)

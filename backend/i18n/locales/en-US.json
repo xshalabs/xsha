@@ -238,5 +238,11 @@
   "config.name.email.smtp_use_tls": "Use TLS Encryption",
   "config.description.email.smtp_use_tls": "Use TLS encryption for SMTP connection",
   "config.name.email.smtp_skip_verify": "Skip TLS Verification",
-  "config.description.email.smtp_skip_verify": "Skip TLS certificate verification (not recommended for production)"
+  "config.description.email.smtp_skip_verify": "Skip TLS certificate verification (not recommended for production)",
+  "config.name.notification.wechat_webhook_enabled": "Enable WeChat Work Webhook",
+  "config.description.notification.wechat_webhook_enabled": "Enable or disable WeChat Work webhook notifications for task completion",
+  "config.name.notification.wechat_webhook_url": "WeChat Work Webhook URL",
+  "config.description.notification.wechat_webhook_url": "WeChat Work group robot webhook URL (e.g., https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_KEY)",
+  "config.name.notification.wechat_webhook_timeout": "WeChat Webhook Timeout",
+  "config.description.notification.wechat_webhook_timeout": "Timeout for WeChat webhook requests (e.g., 30s, 1m)"
 }

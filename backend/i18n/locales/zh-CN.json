@@ -238,5 +238,11 @@
   "config.name.email.smtp_use_tls": "使用TLS加密",
   "config.description.email.smtp_use_tls": "为SMTP连接使用TLS加密",
   "config.name.email.smtp_skip_verify": "跳过TLS验证",
-  "config.description.email.smtp_skip_verify": "跳过TLS证书验证 (生产环境不推荐)"
+  "config.description.email.smtp_skip_verify": "跳过TLS证书验证 (生产环境不推荐)",
+  "config.name.notification.wechat_webhook_enabled": "启用企业微信Webhook",
+  "config.description.notification.wechat_webhook_enabled": "启用或禁用企业微信群机器人通知，用于任务完成提醒",
+  "config.name.notification.wechat_webhook_url": "企业微信Webhook地址",
+  "config.description.notification.wechat_webhook_url": "企业微信群机器人的Webhook地址 (例如：https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_KEY)",
+  "config.name.notification.wechat_webhook_timeout": "微信Webhook超时时间",
+  "config.description.notification.wechat_webhook_timeout": "微信Webhook请求的超时时间 (例如：30s, 1m)"
 }

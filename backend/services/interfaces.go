@@ -229,3 +229,7 @@ type EmailService interface {
 	SendProjectAdminAddedEmail(admin *database.Admin, project *database.Project, actionByAdmin *database.Admin, lang string) error
 	SendProjectAdminRemovedEmail(admin *database.Admin, project *database.Project, actionByAdmin *database.Admin, lang string) error
 }
+
+type WeChatService interface {
+	SendTaskConversationCompletedMessage(admin *database.Admin, task *database.Task, conversation *database.TaskConversation, status database.ConversationStatus, completionTime time.Time, errorMsg string, lang string) error
+}

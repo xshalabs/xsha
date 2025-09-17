@@ -72,6 +72,7 @@ func main() {
 	adminAvatarService := services.NewAdminAvatarService(adminAvatarRepo, adminRepo, cfg)
 	systemConfigService := services.NewSystemConfigService(systemConfigRepo)
 	emailService := services.NewEmailService(systemConfigService)
+	wechatService := services.NewWeChatService(systemConfigService)
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, adminService, adminRepo, emailService, cfg)
 
 	// Set up circular dependency - adminService needs authService for session invalidation
@@ -117,7 +118,7 @@ func main() {
 	executionManager := executor.NewExecutionManager(maxConcurrency)
 
 	// Initialize services with shared execution manager
-	aiTaskExecutor := executor.NewAITaskExecutorServiceWithManager(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, adminRepo, gitCredService, taskConvResultService, taskService, systemConfigService, taskConvAttachmentService, emailService, cfg, executionManager)
+	aiTaskExecutor := executor.NewAITaskExecutorServiceWithManager(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, adminRepo, gitCredService, taskConvResultService, taskService, systemConfigService, taskConvAttachmentService, emailService, wechatService, cfg, executionManager)
 	logStreamingService := executor.NewLogStreamingService(taskConvRepo, execLogRepo, executionManager)
 
 	// Initialize scheduler
