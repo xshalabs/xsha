@@ -249,3 +249,85 @@ func (s *emailService) SendPasswordChangeEmail(admin *database.Admin, clientIP, 
 	}()
 	return nil
 }
+
+func (s *emailService) SendTaskConversationCompletedEmail(admin *database.Admin, task *database.Task, conversation *database.TaskConversation, status database.ConversationStatus, completionTime time.Time, errorMsg string, lang string) error {
+	go func() {
+		// Prepare status display and styling data
+		var statusDisplay, statusClass, statusIcon string
+		switch status {
+		case database.ConversationStatusSuccess:
+			statusDisplay = "Success"
+			statusClass = "success"
+			statusIcon = "✅"
+			if lang == "zh-CN" {
+				statusDisplay = "成功"
+			}
+		case database.ConversationStatusFailed:
+			statusDisplay = "Failed"
+			statusClass = "failed"
+			statusIcon = "❌"
+			if lang == "zh-CN" {
+				statusDisplay = "失败"
+			}
+		case database.ConversationStatusCancelled:
+			statusDisplay = "Cancelled"
+			statusClass = "cancelled"
+			statusIcon = "⚠️"
+			if lang == "zh-CN" {
+				statusDisplay = "已取消"
+			}
+		default:
+			statusDisplay = "Unknown"
+			statusClass = "cancelled"
+			statusIcon = "❓"
+			if lang == "zh-CN" {
+				statusDisplay = "未知"
+			}
+		}
+
+		// Get admin name
+		adminName := admin.Name
+		if adminName == "" {
+			adminName = admin.Username
+		}
+
+		// Prepare template data
+		taskCompletionData := struct {
+			*database.Admin
+			Task                *database.Task
+			ConversationContent string
+			StatusDisplay       string
+			StatusClass         string
+			StatusIcon          string
+			CompletionTime      string
+			ErrorMessage        string
+			AdminName           string
+		}{
+			Admin:               admin,
+			Task:                task,
+			ConversationContent: conversation.Content,
+			StatusDisplay:       statusDisplay,
+			StatusClass:         statusClass,
+			StatusIcon:          statusIcon,
+			CompletionTime:      completionTime.Format("2006-01-02 15:04:05 MST"),
+			ErrorMessage:        errorMsg,
+			AdminName:           adminName,
+		}
+
+		if err := s.sendNotificationEmail(admin, "task_conversation_completed", lang, taskCompletionData); err != nil {
+			utils.Error("Failed to send task conversation completion notification email",
+				"username", admin.Username,
+				"task_id", task.ID,
+				"conversation_id", conversation.ID,
+				"status", status,
+				"error", err)
+		} else {
+			utils.Info("Task conversation completion notification email sent successfully",
+				"username", admin.Username,
+				"task_id", task.ID,
+				"conversation_id", conversation.ID,
+				"status", status)
+		}
+	}()
+	return nil
+}

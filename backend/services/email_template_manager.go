@@ -20,9 +20,10 @@ type EmailTemplateData struct {
 }
 
 type EmailTemplateManager struct {
-	mu        sync.RWMutex
-	templates map[string]*EmailTemplateData // key: "templateName/language"
-	bodyTmpls map[string]*template.Template // key: "templateName/language"
+	mu           sync.RWMutex
+	templates    map[string]*EmailTemplateData // key: "templateName/language"
+	bodyTmpls    map[string]*template.Template // key: "templateName/language"
+	subjectTmpls map[string]*template.Template // key: "templateName/language"
 }
 
 var (
@@ -34,8 +35,9 @@ var (
 func GetEmailTemplateManager() *EmailTemplateManager {
 	emailTemplateOnce.Do(func() {
 		emailTemplateManager = &EmailTemplateManager{
-			templates: make(map[string]*EmailTemplateData),
-			bodyTmpls: make(map[string]*template.Template),
+			templates:    make(map[string]*EmailTemplateData),
+			bodyTmpls:    make(map[string]*template.Template),
+			subjectTmpls: make(map[string]*template.Template),
 		}
 		emailTemplateManager.loadTemplates()
 	})
@@ -96,15 +98,23 @@ func (m *EmailTemplateManager) loadSubjectTemplate(path, key string) error {
 		return fmt.Errorf("failed to read subject template %s: %v", path, err)
 	}
 
+	subjectContent := strings.TrimSpace(string(content))
+
+	// Parse subject as template
+	tmpl, err := template.New(key + "_subject").Parse(subjectContent)
+	if err != nil {
+		return fmt.Errorf("failed to parse subject template %s: %v", path, err)
+	}
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	if m.templates[key] == nil {
 		m.templates[key] = &EmailTemplateData{}
 	}
-	m.templates[key].Subject = strings.TrimSpace(string(content))
+	m.templates[key].Subject = subjectContent
+	m.subjectTmpls[key] = tmpl
 
-	utils.Info("Loaded subject template", "key", key, "path", path)
 	return nil
 }
 
@@ -129,7 +139,6 @@ func (m *EmailTemplateManager) loadBodyTemplate(path, key string) error {
 	m.templates[key].Body = string(content)
 	m.bodyTmpls[key] = tmpl
 
-	utils.Info("Loaded body template", "key", key, "path", path)
 	return nil
 }
 
@@ -158,16 +167,39 @@ func (m *EmailTemplateManager) GetTemplate(templateName, language string) (*Emai
 
 // RenderTemplate renders the email template with the given data
 func (m *EmailTemplateManager) RenderTemplate(templateName, language string, data interface{}) (subject string, body string, err error) {
-	template, err := m.GetTemplate(templateName, language)
-	if err != nil {
-		return "", "", err
-	}
-
-	subject = template.Subject
-
-	// Render body template
 	key := fmt.Sprintf("%s/%s", templateName, language)
 
+	// Render subject template
+	m.mu.RLock()
+	subjectTmpl, subjectExists := m.subjectTmpls[key]
+	m.mu.RUnlock()
+
+	if !subjectExists {
+		// Try fallback to en-US
+		if language != "en-US" {
+			fallbackKey := fmt.Sprintf("%s/en-US", templateName)
+			m.mu.RLock()
+			fallbackSubjectTmpl, fallbackExists := m.subjectTmpls[fallbackKey]
+			m.mu.RUnlock()
+
+			if fallbackExists {
+				subjectTmpl = fallbackSubjectTmpl
+			} else {
+				return "", "", fmt.Errorf("subject template not found: %s", key)
+			}
+		} else {
+			return "", "", fmt.Errorf("subject template not found: %s", key)
+		}
+	}
+
+	var subjectBuilder strings.Builder
+	err = subjectTmpl.Execute(&subjectBuilder, data)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to execute subject template: %v", err)
+	}
+	subject = subjectBuilder.String()
+
+	// Render body template
 	m.mu.RLock()
 	bodyTmpl, exists := m.bodyTmpls[key]
 	m.mu.RUnlock()

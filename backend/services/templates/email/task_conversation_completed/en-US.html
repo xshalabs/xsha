@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Task Conversation Completed</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        color: white;
+        padding: 20px;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+      }
+      .header.success {
+        background: #28a745;
+      }
+      .header.failed {
+        background: #dc3545;
+      }
+      .header.cancelled {
+        background: #6c757d;
+      }
+      .content {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 0 0 8px 8px;
+        border: 1px solid #dee2e6;
+      }
+      .status-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 15px;
+      }
+      .status-badge.success {
+        background: #28a745;
+      }
+      .status-badge.failed {
+        background: #dc3545;
+      }
+      .status-badge.cancelled {
+        background: #6c757d;
+      }
+      .info-box {
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        margin: 20px 0;
+        border-left: 4px solid #007bff;
+      }
+      .conversation-content {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        border: 1px solid #dee2e6;
+        font-family: 'Courier New', monospace;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .error-box {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 15px 0;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 30px;
+        color: #666;
+        font-size: 14px;
+      }
+      .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-top: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header {{.StatusClass}}">
+        <h1>{{.StatusIcon}} Task Conversation Completed</h1>
+      </div>
+      <div class="content">
+        <div class="status-badge {{.StatusClass}}">
+          {{.StatusDisplay}}
+        </div>
+
+        <p>Dear <strong>{{.AdminName}}</strong>,</p>
+        <p>
+          Your task conversation has been completed. Here are the details:
+        </p>
+
+        <div class="info-box">
+          <h3>📋 Task Information</h3>
+          <p><strong>Task Title:</strong> {{.Task.Title}}</p>
+          <p><strong>Project:</strong> {{.Task.Project.Name}}</p>
+          <p><strong>Status:</strong> <span class="status-badge {{.StatusClass}}">{{.StatusDisplay}}</span></p>
+          <p><strong>Completion Time:</strong> {{.CompletionTime}}</p>
+        </div>
+
+        <div class="info-box">
+          <h3>💬 Conversation Content</h3>
+          <div class="conversation-content">{{.ConversationContent}}</div>
+        </div>
+
+        {{if .ErrorMessage}}
+        <div class="error-box">
+          <h4>❌ Error Details</h4>
+          <p>{{.ErrorMessage}}</p>
+        </div>
+        {{end}}
+
+        <p>
+          You can view the full task details and results in the xsha platform.
+        </p>
+      </div>
+
+      <div class="footer">
+        <p>
+          This is an automated notification from xsha Platform.<br />
+          Please do not reply to this email.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -223,4 +223,5 @@ type EmailService interface {
 	SendWelcomeEmail(admin *database.Admin, lang string) error
 	SendLoginNotificationEmail(admin *database.Admin, clientIP, userAgent, lang string) error
 	SendPasswordChangeEmail(admin *database.Admin, clientIP, userAgent, lang string) error
+	SendTaskConversationCompletedEmail(admin *database.Admin, task *database.Task, conversation *database.TaskConversation, status database.ConversationStatus, completionTime time.Time, errorMsg string, lang string) error
 }
