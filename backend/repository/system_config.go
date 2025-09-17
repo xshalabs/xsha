@@ -102,7 +102,6 @@ func (r *systemConfigRepository) CreateOrUpdate(key, value, name, description, c
 		return err
 	}
 
-	config.ConfigValue = value
 	config.Name = name
 	config.Description = description
 	config.Category = category
