@@ -264,6 +264,7 @@
   "notifier.config.webhook.headers": "HTTP 头部",
   "notifier.config.webhook.body_template": "请求体模板",
   "notification.task_execution_title": "任务执行通知",
+  "notification.project_label": "项目",
   "notification.task_label": "任务",
   "notification.status_label": "状态",
   "notification.content_label": "内容",

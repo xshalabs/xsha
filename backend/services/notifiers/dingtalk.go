@@ -74,9 +74,9 @@ func (p *DingTalkProvider) ValidateConfig(config map[string]interface{}) error {
 }
 
 // Send sends a notification message via DingTalk webhook
-func (p *DingTalkProvider) Send(title, content string, status database.ConversationStatus, lang string) error {
+func (p *DingTalkProvider) Send(title, content, projectName string, status database.ConversationStatus, lang string) error {
 	// Format message content using localized helper
-	message := FormatNotificationMessage(title, content, status, lang)
+	message := FormatNotificationMessage(title, content, projectName, status, lang)
 
 	// Create message payload
 	payload := DingTalkTextMessage{

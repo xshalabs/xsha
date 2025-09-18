@@ -14,6 +14,7 @@ func TestI18nFormats() {
 	englishMsg := FormatNotificationMessage(
 		"Test Task",
 		"This is a test task content for verification",
+		"Test Project",
 		database.ConversationStatusSuccess,
 		"en-US",
 	)
@@ -27,6 +28,7 @@ func TestI18nFormats() {
 	chineseMsg := FormatNotificationMessage(
 		"测试任务",
 		"这是一个用于验证的测试任务内容",
+		"测试项目",
 		database.ConversationStatusFailed,
 		"zh-CN",
 	)

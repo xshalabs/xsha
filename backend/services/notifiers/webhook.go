@@ -111,18 +111,20 @@ func (p *WebhookProvider) ValidateConfig(config map[string]interface{}) error {
 }
 
 // Send sends a notification message via generic webhook
-func (p *WebhookProvider) Send(title, content string, status database.ConversationStatus, lang string) error {
+func (p *WebhookProvider) Send(title, content, projectName string, status database.ConversationStatus, lang string) error {
 	// Prepare template data
 	data := struct {
-		Title     string
-		Content   string
-		Status    string
-		Timestamp string
+		Title       string
+		Content     string
+		ProjectName string
+		Status      string
+		Timestamp   string
 	}{
-		Title:     title,
-		Content:   content,
-		Status:    string(status),
-		Timestamp: time.Now().Format(time.RFC3339),
+		Title:       title,
+		Content:     content,
+		ProjectName: projectName,
+		Status:      string(status),
+		Timestamp:   time.Now().Format(time.RFC3339),
 	}
 
 	// Create request body
@@ -142,15 +144,17 @@ func (p *WebhookProvider) Send(title, content string, status database.Conversati
 func (p *WebhookProvider) Test(lang string) error {
 	// Prepare test data
 	data := struct {
-		Title     string
-		Content   string
-		Status    string
-		Timestamp string
+		Title       string
+		Content     string
+		ProjectName string
+		Status      string
+		Timestamp   string
 	}{
-		Title:     i18n.T(lang, "notification.test_message"),
-		Content:   i18n.T(lang, "notification.test_message"),
-		Status:    "test",
-		Timestamp: time.Now().Format(time.RFC3339),
+		Title:       i18n.T(lang, "notification.test_message"),
+		Content:     i18n.T(lang, "notification.test_message"),
+		ProjectName: "Test Project",
+		Status:      "test",
+		Timestamp:   time.Now().Format(time.RFC3339),
 	}
 
 	// Create request body

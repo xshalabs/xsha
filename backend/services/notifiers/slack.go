@@ -83,9 +83,9 @@ func (p *SlackProvider) ValidateConfig(config map[string]interface{}) error {
 }
 
 // Send sends a notification message via Slack webhook
-func (p *SlackProvider) Send(title, content string, status database.ConversationStatus, lang string) error {
+func (p *SlackProvider) Send(title, content, projectName string, status database.ConversationStatus, lang string) error {
 	// Create message payload with rich formatting
-	payload := p.createMessage(title, content, status, lang)
+	payload := p.createMessage(title, content, projectName, status, lang)
 
 	return p.sendMessage(payload)
 }
@@ -169,7 +169,7 @@ func (p *SlackProvider) sendMessage(payload SlackMessage) error {
 }
 
 // createMessage creates a Slack message with rich formatting
-func (p *SlackProvider) createMessage(title, content string, status database.ConversationStatus, lang string) SlackMessage {
+func (p *SlackProvider) createMessage(title, content, projectName string, status database.ConversationStatus, lang string) SlackMessage {
 	statusEmoji := FormatStatusEmoji(status)
 	statusText := FormatStatusText(status, lang)
 
@@ -191,22 +191,41 @@ func (p *SlackProvider) createMessage(title, content string, status database.Con
 				Color: color,
 				Title: fmt.Sprintf("%s Task: %s", statusEmoji, title),
 				Text:  TruncateContent(content, 200),
-				Fields: []SlackField{
-					{
-						Title: i18n.T(lang, "notification.status_label"),
-						Value: fmt.Sprintf("%s %s", statusEmoji, statusText),
-						Short: true,
-					},
-					{
-						Title: i18n.T(lang, "notification.time_label"),
-						Value: time.Now().Format("2006-01-02 15:04:05 MST"),
-						Short: true,
-					},
-				},
+				Fields: buildSlackFields(projectName, statusEmoji, statusText, lang),
 				Timestamp: time.Now().Unix(),
 			},
 		},
 	}
 
 	return message
+}
+
+// buildSlackFields builds the fields array for Slack message, including project name if available
+func buildSlackFields(projectName, statusEmoji, statusText, lang string) []SlackField {
+	fields := []SlackField{}
+
+	// Add project field if project name is provided
+	if projectName != "" {
+		fields = append(fields, SlackField{
+			Title: i18n.T(lang, "notification.project_label"),
+			Value: projectName,
+			Short: true,
+		})
+	}
+
+	// Add status field
+	fields = append(fields, SlackField{
+		Title: i18n.T(lang, "notification.status_label"),
+		Value: fmt.Sprintf("%s %s", statusEmoji, statusText),
+		Short: true,
+	})
+
+	// Add time field
+	fields = append(fields, SlackField{
+		Title: i18n.T(lang, "notification.time_label"),
+		Value: time.Now().Format("2006-01-02 15:04:05 MST"),
+		Short: true,
+	})
+
+	return fields
 }

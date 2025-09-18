@@ -10,7 +10,7 @@ import (
 // NotificationProvider defines the interface that all notification providers must implement
 type NotificationProvider interface {
 	// Send sends a notification message
-	Send(title, content string, status database.ConversationStatus, lang string) error
+	Send(title, content, projectName string, status database.ConversationStatus, lang string) error
 
 	// Test sends a test notification to verify the configuration
 	Test(lang string) error
@@ -26,6 +26,7 @@ type NotificationProvider interface {
 type BaseNotificationData struct {
 	Title          string
 	Content        string
+	ProjectName    string
 	Status         database.ConversationStatus
 	TaskTitle      string
 	AdminName      string
@@ -131,22 +132,30 @@ func TruncateContent(content string, maxLength int) string {
 }
 
 // FormatNotificationMessage creates a localized notification message
-func FormatNotificationMessage(title, content string, status database.ConversationStatus, lang string) string {
+func FormatNotificationMessage(title, content, projectName string, status database.ConversationStatus, lang string) string {
 	statusEmoji := FormatStatusEmoji(status)
 	statusText := FormatStatusText(status, lang)
 
 	notificationTitle := i18n.T(lang, "notification.task_execution_title")
+	projectLabel := i18n.T(lang, "notification.project_label")
 	taskLabel := i18n.T(lang, "notification.task_label")
 	statusLabel := i18n.T(lang, "notification.status_label")
 	contentLabel := i18n.T(lang, "notification.content_label")
 	timeLabel := i18n.T(lang, "notification.time_label")
 
+	var projectLine string
+	if projectName != "" {
+		projectLine = fmt.Sprintf("🗂️ %s: %s\n", projectLabel, projectName)
+	}
+
 	return fmt.Sprintf("🤖 %s\n\n"+
+		"%s"+
 		"📋 %s: %s\n"+
 		"📊 %s: %s %s\n"+
 		"💬 %s: %s\n"+
 		"⏰ %s: %s",
 		notificationTitle,
+		projectLine,
 		taskLabel, title,
 		statusLabel, statusEmoji, statusText,
 		contentLabel, TruncateContent(content, 100),

@@ -89,9 +89,9 @@ func (p *DiscordProvider) ValidateConfig(config map[string]interface{}) error {
 }
 
 // Send sends a notification message via Discord webhook
-func (p *DiscordProvider) Send(title, content string, status database.ConversationStatus, lang string) error {
+func (p *DiscordProvider) Send(title, content, projectName string, status database.ConversationStatus, lang string) error {
 	// Create message payload with rich formatting
-	payload := p.createMessage(title, content, status, lang)
+	payload := p.createMessage(title, content, projectName, status, lang)
 
 	return p.sendMessage(payload)
 }
@@ -176,7 +176,7 @@ func (p *DiscordProvider) sendMessage(payload DiscordMessage) error {
 }
 
 // createMessage creates a Discord message with rich formatting
-func (p *DiscordProvider) createMessage(title, content string, status database.ConversationStatus, lang string) DiscordMessage {
+func (p *DiscordProvider) createMessage(title, content, projectName string, status database.ConversationStatus, lang string) DiscordMessage {
 	statusEmoji := FormatStatusEmoji(status)
 	statusText := FormatStatusText(status, lang)
 
@@ -202,21 +202,40 @@ func (p *DiscordProvider) createMessage(title, content string, status database.C
 				Footer: &DiscordEmbedFooter{
 					Text: "xsha notification system",
 				},
-				Fields: []DiscordEmbedField{
-					{
-						Name:   i18n.T(lang, "notification.status_label"),
-						Value:  fmt.Sprintf("%s %s", statusEmoji, statusText),
-						Inline: true,
-					},
-					{
-						Name:   i18n.T(lang, "notification.time_label"),
-						Value:  time.Now().Format("2006-01-02 15:04:05 MST"),
-						Inline: true,
-					},
-				},
+				Fields: buildDiscordFields(projectName, statusEmoji, statusText, lang),
 			},
 		},
 	}
 
 	return message
+}
+
+// buildDiscordFields builds the fields array for Discord embed, including project name if available
+func buildDiscordFields(projectName, statusEmoji, statusText, lang string) []DiscordEmbedField {
+	fields := []DiscordEmbedField{}
+
+	// Add project field if project name is provided
+	if projectName != "" {
+		fields = append(fields, DiscordEmbedField{
+			Name:   i18n.T(lang, "notification.project_label"),
+			Value:  projectName,
+			Inline: true,
+		})
+	}
+
+	// Add status field
+	fields = append(fields, DiscordEmbedField{
+		Name:   i18n.T(lang, "notification.status_label"),
+		Value:  fmt.Sprintf("%s %s", statusEmoji, statusText),
+		Inline: true,
+	})
+
+	// Add time field
+	fields = append(fields, DiscordEmbedField{
+		Name:   i18n.T(lang, "notification.time_label"),
+		Value:  time.Now().Format("2006-01-02 15:04:05 MST"),
+		Inline: true,
+	})
+
+	return fields
 }

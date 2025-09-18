@@ -254,6 +254,16 @@ func (s *notifierService) GetProjectNotifiers(projectID uint) ([]database.Notifi
 // Notification sending
 
 func (s *notifierService) SendNotificationForTask(task *database.Task, conversation *database.TaskConversation, status database.ConversationStatus, completionTime time.Time, errorMsg string, adminLang string) error {
+	// Ensure task has project information loaded
+	if task.Project == nil {
+		project, err := s.projectRepo.GetByID(task.ProjectID)
+		if err != nil {
+			utils.Error("Failed to load project for notification", "projectID", task.ProjectID, "error", err)
+		} else {
+			task.Project = project
+		}
+	}
+
 	// Get all enabled notifiers associated with the project
 	notifiers, err := s.repo.GetEnabledProjectNotifiers(task.ProjectID)
 	if err != nil {
@@ -316,13 +326,19 @@ func (s *notifierService) sendSingleNotification(notifier database.Notifier, tas
 		content = content[:100] + "..."
 	}
 
+	// Get project name
+	var projectName string
+	if task.Project != nil {
+		projectName = task.Project.Name
+	}
+
 	// Add error message if status is failed
 	if status == database.ConversationStatusFailed && errorMsg != "" {
 		content += fmt.Sprintf("\n\nError: %s", errorMsg)
 	}
 
 	// Send notification
-	return provider.Send(title, content, status, adminLang)
+	return provider.Send(title, content, projectName, status, adminLang)
 }
 
 // Permission helpers

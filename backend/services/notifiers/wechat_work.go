@@ -65,9 +65,9 @@ func (p *WeChatWorkProvider) ValidateConfig(config map[string]interface{}) error
 }
 
 // Send sends a notification message via WeChat Work webhook
-func (p *WeChatWorkProvider) Send(title, content string, status database.ConversationStatus, lang string) error {
+func (p *WeChatWorkProvider) Send(title, content, projectName string, status database.ConversationStatus, lang string) error {
 	// Format message content using localized helper
-	message := FormatNotificationMessage(title, content, status, lang)
+	message := FormatNotificationMessage(title, content, projectName, status, lang)
 
 	// Create message payload
 	payload := WeChatTextMessage{

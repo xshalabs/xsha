@@ -264,6 +264,7 @@
   "notifier.config.webhook.headers": "HTTP Headers",
   "notifier.config.webhook.body_template": "Request body template",
   "notification.task_execution_title": "Task Execution Notification",
+  "notification.project_label": "Project",
   "notification.task_label": "Task",
   "notification.status_label": "Status",
   "notification.content_label": "Content",
