@@ -16,7 +16,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, adminService services.AdminService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, adminAvatarHandlers *handlers.AdminAvatarHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, staticFiles *embed.FS) {
+func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, adminService services.AdminService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, adminAvatarHandlers *handlers.AdminAvatarHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, notifierHandlers *handlers.NotifierHandlers, staticFiles *embed.FS) {
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
 	r.NoMethod(middleware.MethodNotAllowedHandler())
@@ -155,6 +155,27 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 				attachments.GET("/:attachmentId/preview", attachmentHandlers.PreviewAttachment)
 				attachments.DELETE("/:attachmentId", attachmentHandlers.DeleteAttachment)
 			}
+
+			// Project notifier routes
+			projectNotifiers := projects.Group("/:id/notifiers")
+			projectNotifiers.Use(middleware.RequirePermission("project", "update"))
+			{
+				projectNotifiers.GET("", notifierHandlers.GetProjectNotifiers)
+				projectNotifiers.POST("", notifierHandlers.AddNotifierToProject)
+				projectNotifiers.DELETE("/:notifier_id", notifierHandlers.RemoveNotifierFromProject)
+			}
+		}
+
+		// Notifier management routes
+		notifiers := api.Group("/notifiers")
+		{
+			notifiers.GET("/types", notifierHandlers.GetNotifierTypes)
+			notifiers.GET("", middleware.RequireAdminOrSuperAdmin(), notifierHandlers.ListNotifiers)
+			notifiers.POST("", middleware.RequireAdminOrSuperAdmin(), notifierHandlers.CreateNotifier)
+			notifiers.GET("/:id", middleware.RequireAdminOrSuperAdmin(), notifierHandlers.GetNotifier)
+			notifiers.PUT("/:id", middleware.RequireAdminOrSuperAdmin(), notifierHandlers.UpdateNotifier)
+			notifiers.DELETE("/:id", middleware.RequireAdminOrSuperAdmin(), notifierHandlers.DeleteNotifier)
+			notifiers.POST("/:id/test", middleware.RequireAdminOrSuperAdmin(), notifierHandlers.TestNotifier)
 		}
 	}
 

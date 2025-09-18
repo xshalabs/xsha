@@ -37,6 +37,7 @@ import {
 import { FormCard, FormCardContent } from "@/components/forms/form-card";
 import { ProjectFormSheet } from "@/components/ProjectFormSheet";
 import { AdminManagementSheet } from "@/components/projects/AdminManagementSheet";
+import { NotifierManagementSheet } from "@/components/projects/NotifierManagementSheet";
 
 import { createProjectColumns } from "@/components/data-table/projects/columns";
 import { ProjectDataTableToolbar } from "@/components/data-table/projects/data-table-toolbar";
@@ -66,6 +67,7 @@ const ProjectListPage: React.FC = () => {
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [managingProject, setManagingProject] = useState<Project | null>(null);
+  const [managingProjectForNotifiers, setManagingProjectForNotifiers] = useState<Project | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add request deduplication
@@ -316,6 +318,13 @@ const ProjectListPage: React.FC = () => {
     []
   );
 
+  const handleManageNotifiers = useCallback(
+    (project: Project) => {
+      setManagingProjectForNotifiers(project);
+    },
+    []
+  );
+
   // Sheet handlers
   const handleCreateProject = async (project: Project) => {
     try {
@@ -373,10 +382,11 @@ const ProjectListPage: React.FC = () => {
         onDelete: handleDelete,
         onKanban: handleKanban,
         onManageAdmins: handleManageAdmins,
+        onManageNotifiers: handleManageNotifiers,
         canEditProject,
         canDeleteProject,
       }),
-    [t, handleEdit, handleDelete, handleKanban, handleManageAdmins, canEditProject, canDeleteProject]
+    [t, handleEdit, handleDelete, handleKanban, handleManageAdmins, handleManageNotifiers, canEditProject, canDeleteProject]
   );
 
   return (
@@ -504,6 +514,23 @@ const ProjectListPage: React.FC = () => {
             }
           }}
           onAdminChanged={() => {
+            // Optionally reload projects data to reflect changes
+            loadProjectsData(currentPage, columnFilters, sorting);
+          }}
+        />
+      )}
+
+      {/* Notifier Management Sheet */}
+      {managingProjectForNotifiers && (
+        <NotifierManagementSheet
+          project={managingProjectForNotifiers}
+          open={!!managingProjectForNotifiers}
+          onOpenChange={(open) => {
+            if (!open) {
+              setManagingProjectForNotifiers(null);
+            }
+          }}
+          onNotifierChanged={() => {
             // Optionally reload projects data to reflect changes
             loadProjectsData(currentPage, columnFilters, sorting);
           }}

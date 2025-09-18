@@ -5,6 +5,7 @@ import {
   Folder,
   Key,
   Container,
+  Bell,
   Cog,
   Shield,
   TrendingUp,
@@ -30,7 +31,7 @@ import {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { t } = useTranslation();
-  const { canViewLogs, canAccessAdminPanel, canAccessSettings } = usePermissions();
+  const { canViewLogs, canAccessAdminPanel, canAccessSettings, canCreateNotifier } = usePermissions();
 
   const data = {
     navGroups: [
@@ -81,7 +82,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ],
       }] : []),
       // Only show admin section for super admins
-      ...(canAccessAdminPanel || canAccessSettings ? [{
+      ...(canAccessAdminPanel || canAccessSettings || canCreateNotifier ? [{
         title: t("navigation.groups.admin"),
         items: [
           // Admin users management - only for super admin
@@ -90,7 +91,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/admin",
             icon: Users,
           }] : []),
-          // System settings - only for super admin  
+          // Notifier management - for admin and super admin
+          ...(canCreateNotifier ? [{
+            title: t("navigation.notifiers"),
+            url: "/notifiers",
+            icon: Bell,
+          }] : []),
+          // System settings - only for super admin
           ...(canAccessSettings ? [{
             title: t("navigation.settings"),
             url: "/settings",

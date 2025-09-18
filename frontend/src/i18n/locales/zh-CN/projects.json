@@ -68,5 +68,19 @@
     "removed_success": "成员 {{name}} 成功从项目中移除",
     "confirm_remove_title": "确认移除成员",
     "confirm_remove_description": "确定要将 {{adminName}} 从 {{projectName}} 的成员中移除吗？"
+  },
+  "notifier": {
+    "manage": "管理通知器",
+    "manage_title": "管理项目通知器",
+    "manage_description": "管理项目 {{name}} 的通知渠道",
+    "add_notifier": "添加通知器",
+    "current_notifiers": "当前通知器",
+    "select_notifier": "请选择要添加的通知器",
+    "select_placeholder": "选择要添加的通知器",
+    "no_notifiers": "此项目未分配通知器",
+    "added_success": "通知器成功添加到项目",
+    "removed_success": "通知器 {{name}} 成功从项目中移除",
+    "confirm_remove_title": "确认移除通知器",
+    "confirm_remove_description": "确定要将 {{notifierName}} 从 {{projectName}} 中移除吗？"
   }
 }

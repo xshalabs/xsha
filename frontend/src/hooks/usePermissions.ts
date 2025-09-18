@@ -255,19 +255,49 @@ export const usePermissions = () => {
     return resourceAdminId === adminId;
   };
 
+  // Notifier permissions
+  const canCreateNotifier = useMemo(() =>
+    hasRole(['admin', 'super_admin']),
+    [hasRole]
+  );
+
+  const canEditNotifier = (resourceAdminId?: number) => {
+    // Super admin can edit any notifier
+    if (isSuperAdmin) return true;
+
+    // Admin can edit their own notifiers
+    if (role === 'admin') {
+      return resourceAdminId === adminId;
+    }
+
+    return false;
+  };
+
+  const canDeleteNotifier = (resourceAdminId?: number) => {
+    // Super admin can delete any notifier
+    if (isSuperAdmin) return true;
+
+    // Admin can delete their own notifiers
+    if (role === 'admin') {
+      return resourceAdminId === adminId;
+    }
+
+    return false;
+  };
+
   // System access permissions
-  const canAccessSettings = useMemo(() => 
-    hasRole(['super_admin']), 
+  const canAccessSettings = useMemo(() =>
+    hasRole(['super_admin']),
     [hasRole]
   );
 
-  const canViewLogs = useMemo(() => 
-    hasRole(['super_admin']), 
+  const canViewLogs = useMemo(() =>
+    hasRole(['super_admin']),
     [hasRole]
   );
 
-  const canAccessAdminPanel = useMemo(() => 
-    hasRole(['super_admin']), 
+  const canAccessAdminPanel = useMemo(() =>
+    hasRole(['super_admin']),
     [hasRole]
   );
 
@@ -308,6 +338,10 @@ export const usePermissions = () => {
     canCreateConversation,
     canEditConversation,
     canDeleteConversation,
+    // Notifier permissions
+    canCreateNotifier,
+    canEditNotifier,
+    canDeleteNotifier,
     // System access permissions
     canAccessSettings,
     canViewLogs,

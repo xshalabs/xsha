@@ -190,3 +190,26 @@ type AdminAvatarRepository interface {
 	Update(avatar *database.AdminAvatar) error
 	Delete(id uint) error
 }
+
+type NotifierRepository interface {
+	Create(notifier *database.Notifier) error
+	GetByID(id uint) (*database.Notifier, error)
+	GetByIDWithAdmin(id uint) (*database.Notifier, error)
+	GetByName(name string) (*database.Notifier, error)
+	List(name *string, notifierTypes []database.NotifierType, isEnabled *bool, page, pageSize int) ([]database.Notifier, int64, error)
+	ListByAdminAccess(adminID uint, role database.AdminRole, name *string, notifierTypes []database.NotifierType, isEnabled *bool, page, pageSize int) ([]database.Notifier, int64, error)
+	Update(notifier *database.Notifier) error
+	Delete(id uint) error
+
+	// Project association methods
+	AddProject(notifierID, projectID uint) error
+	RemoveProject(notifierID, projectID uint) error
+	GetProjects(notifierID uint) ([]database.Project, error)
+	GetProjectNotifiers(projectID uint) ([]database.Notifier, error)
+	GetEnabledProjectNotifiers(projectID uint) ([]database.Notifier, error)
+	IsAssociatedWithProject(notifierID, projectID uint) (bool, error)
+
+	// Permission helper methods
+	IsOwner(notifierID, adminID uint) (bool, error)
+	CountByAdminID(adminID uint) (int64, error)
+}

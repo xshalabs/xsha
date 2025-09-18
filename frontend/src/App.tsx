@@ -20,6 +20,7 @@ import ProjectListPage from "@/pages/projects/ProjectListPage";
 import ProjectKanbanPage from "@/pages/projects/ProjectKanbanPage";
 import EnvironmentListPage from "@/pages/environments/EnvironmentListPage";
 import CredentialListPage from "@/pages/credentials/CredentialListPage";
+import NotifierListPage from "@/pages/notifiers/NotifierListPage";
 import SettingsPage from "@/pages/settings/Settings";
 import AdminListPage from "@/pages/admin/AdminListPage";
 import ChangePasswordPage from "@/pages/user/ChangePasswordPage";
@@ -99,6 +100,17 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <CredentialListPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/notifiers"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <NotifierListPage />
                   </Layout>
                 </ProtectedRoute>
               }

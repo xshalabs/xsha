@@ -1,0 +1,128 @@
+{
+  "title": "通知器管理",
+  "description": "管理项目和系统事件的通知渠道",
+  "create": "创建通知器",
+  "edit": "编辑",
+  "delete": "删除",
+  "test": "测试",
+  "enable": "启用",
+  "disable": "禁用",
+  "createSuccess": "通知器创建成功",
+  "updateSuccess": "通知器更新成功",
+  "deleteSuccess": "通知器删除成功",
+  "enableSuccess": "通知器启用成功",
+  "disableSuccess": "通知器禁用成功",
+  "testSuccess": "测试通知发送成功",
+  "loadingDetails": "正在加载详细信息...",
+  "loadDetailsSuccess": "加载成功",
+  "columns": {
+    "name": "名称",
+    "description": "描述",
+    "noDescription": "无描述",
+    "type": "类型",
+    "status": "状态",
+    "createdBy": "创建者",
+    "created": "创建时间"
+  },
+  "types": {
+    "wechat_work": "企业微信",
+    "dingtalk": "钉钉",
+    "feishu": "飞书",
+    "slack": "Slack",
+    "discord": "Discord",
+    "webhook": "通用 Webhook"
+  },
+  "status": {
+    "enabled": "已启用",
+    "disabled": "已禁用"
+  },
+  "search": {
+    "placeholder": "搜索通知器..."
+  },
+  "filters": {
+    "type": {
+      "placeholder": "所有类型",
+      "all": "所有类型"
+    },
+    "status": {
+      "placeholder": "所有状态",
+      "all": "所有状态"
+    },
+    "reset": "重置"
+  },
+  "form": {
+    "create": {
+      "title": "创建通知器",
+      "description": "创建新的通知渠道"
+    },
+    "edit": {
+      "title": "编辑通知器",
+      "description": "更新通知器配置"
+    },
+    "fields": {
+      "name": {
+        "label": "名称",
+        "placeholder": "请输入通知器名称",
+        "required": "名称为必填项"
+      },
+      "description": {
+        "label": "描述",
+        "placeholder": "请输入描述（可选）"
+      },
+      "type": {
+        "label": "类型",
+        "placeholder": "请选择通知器类型",
+        "required": "类型为必填项",
+        "cannotModify": "创建后无法修改类型"
+      },
+      "configuration": "配置",
+      "webhookUrl": {
+        "label": "Webhook URL",
+        "placeholder": "请输入 Webhook URL",
+        "required": "Webhook URL 为必填项"
+      },
+      "secret": {
+        "label": "签名密钥",
+        "placeholder": "请输入签名密钥（可选）"
+      },
+      "timeout": {
+        "label": "超时时间",
+        "placeholder": "30s",
+        "help": "请求超时时长"
+      },
+      "method": {
+        "label": "HTTP 方法",
+        "placeholder": "POST"
+      },
+      "headers": {
+        "label": "请求头",
+        "placeholder": "请输入 JSON 格式的请求头（可选）"
+      },
+      "bodyTemplate": {
+        "label": "请求体模板",
+        "placeholder": "请输入请求体模板（可选）"
+      },
+      "url": {
+        "label": "URL",
+        "placeholder": "请输入 URL",
+        "required": "URL 为必填项"
+      }
+    },
+    "validation": {
+      "invalidJson": "JSON 格式无效",
+      "invalidUrl": "URL 格式无效"
+    },
+    "submit": "保存",
+    "cancel": "取消",
+    "submitting": "保存中..."
+  },
+  "errors": {
+    "loadFailed": "加载通知器失败",
+    "loadDetailsFailed": "加载详细信息失败",
+    "createFailed": "创建通知器失败",
+    "updateFailed": "更新通知器失败",
+    "deleteFailed": "删除通知器失败",
+    "testFailed": "发送测试通知失败",
+    "saveFailed": "保存通知器失败"
+  }
+}

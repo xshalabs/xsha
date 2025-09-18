@@ -66,7 +66,21 @@
     "cannot_remove_creator": "Cannot remove the project creator",
     "added_success": "Member successfully added to project",
     "removed_success": "Member {{name}} successfully removed from project",
-    "confirm_remove_title": "Confirm Remove Member", 
+    "confirm_remove_title": "Confirm Remove Member",
     "confirm_remove_description": "Are you sure you want to remove {{adminName}} as a member from {{projectName}}?"
+  },
+  "notifier": {
+    "manage": "Manage Notifiers",
+    "manage_title": "Manage Project Notifiers",
+    "manage_description": "Manage notification channels for project {{name}}",
+    "add_notifier": "Add Notifier",
+    "current_notifiers": "Current Notifiers",
+    "select_notifier": "Please select a notifier to add",
+    "select_placeholder": "Select a notifier to add",
+    "no_notifiers": "No notifiers assigned to this project",
+    "added_success": "Notifier successfully added to project",
+    "removed_success": "Notifier {{name}} successfully removed from project",
+    "confirm_remove_title": "Confirm Remove Notifier",
+    "confirm_remove_description": "Are you sure you want to remove {{notifierName}} from {{projectName}}?"
   }
 } 

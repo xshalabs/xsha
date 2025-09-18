@@ -26,7 +26,7 @@ type aiTaskExecutorService struct {
 	systemConfigService   services.SystemConfigService
 	attachmentService     services.TaskConversationAttachmentService
 	emailService          services.EmailService
-	wechatService         services.WeChatService
+	notifierService       services.NotifierService
 
 	executionManager *ExecutionManager
 	dockerExecutor   DockerExecutor
@@ -50,13 +50,13 @@ func NewAITaskExecutorService(
 	systemConfigService services.SystemConfigService,
 	attachmentService services.TaskConversationAttachmentService,
 	emailService services.EmailService,
-	wechatService services.WeChatService,
+	notifierService services.NotifierService,
 	cfg *config.Config,
 ) services.AITaskExecutorService {
 	return NewAITaskExecutorServiceWithManager(
 		taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, adminRepo,
 		gitCredService, taskConvResultService, taskService, systemConfigService,
-		attachmentService, emailService, wechatService, cfg, nil,
+		attachmentService, emailService, notifierService, cfg, nil,
 	)
 }
 
@@ -72,7 +72,7 @@ func NewAITaskExecutorServiceWithManager(
 	systemConfigService services.SystemConfigService,
 	attachmentService services.TaskConversationAttachmentService,
 	emailService services.EmailService,
-	wechatService services.WeChatService,
+	notifierService services.NotifierService,
 	cfg *config.Config,
 	executionManager *ExecutionManager,
 ) services.AITaskExecutorService {
@@ -112,7 +112,7 @@ func NewAITaskExecutorServiceWithManager(
 		systemConfigService:   systemConfigService,
 		attachmentService:     attachmentService,
 		emailService:          emailService,
-		wechatService:         wechatService,
+		notifierService:       notifierService,
 		executionManager:      executionManager,
 		dockerExecutor:        dockerExecutor,
 		resultParser:          resultParser,
@@ -641,20 +641,21 @@ func (s *aiTaskExecutorService) sendCompletionNotifications(conversationID, task
 			"error", err)
 	}
 
-	// Send WeChat notification asynchronously
-	if err := s.wechatService.SendTaskConversationCompletedMessage(
-		admin,
-		task,
-		conv,
-		finalStatus,
-		completionTime,
-		errorMsg,
-		adminLang,
-	); err != nil {
-		utils.Error("Failed to send task conversation completion WeChat notification",
-			"conversationId", conversationID,
-			"adminId", admin.ID,
-			"error", err)
+	// Send notifications via new notifier system asynchronously
+	if s.notifierService != nil {
+		if err := s.notifierService.SendNotificationForTask(
+			task,
+			conv,
+			finalStatus,
+			completionTime,
+			errorMsg,
+			adminLang,
+		); err != nil {
+			utils.Error("Failed to send task conversation completion notifications via notifiers",
+				"conversationId", conversationID,
+				"taskId", taskID,
+				"error", err)
+		}
 	}
 }
 

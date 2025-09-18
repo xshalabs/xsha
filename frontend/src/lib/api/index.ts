@@ -31,6 +31,7 @@ import { tasksApi } from "./tasks";
 import { taskConversationsApi } from "./task-conversations";
 import { dashboardApi } from "./dashboard";
 import { attachmentApi } from "./attachments";
+import { notifiersApi } from "./notifiers";
 
 export {
   authApi,
@@ -43,6 +44,7 @@ export {
   taskConversationsApi,
   dashboardApi,
   attachmentApi,
+  notifiersApi,
 };
 
 export const apiService = {
@@ -70,4 +72,6 @@ export const apiService = {
   dashboard: dashboardApi,
 
   attachments: attachmentApi,
+
+  notifiers: notifiersApi,
 };

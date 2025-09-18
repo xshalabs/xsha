@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Edit, Columns, Users } from "lucide-react";
+import { Edit, Columns, Users, Bell } from "lucide-react";
 import type { TFunction } from "i18next";
 import { QuickActions } from "@/components/ui/quick-actions";
 
@@ -13,6 +13,7 @@ interface ProjectColumnsProps {
   onDelete: (id: number) => void;
   onKanban: (project: Project) => void;
   onManageAdmins: (project: Project) => void;
+  onManageNotifiers: (project: Project) => void;
   canEditProject: (resourceAdminId?: number) => boolean;
   canDeleteProject: (resourceAdminId?: number) => boolean;
 }
@@ -23,6 +24,7 @@ export const createProjectColumns = ({
   onDelete,
   onKanban,
   onManageAdmins,
+  onManageNotifiers,
   canEditProject,
   canDeleteProject,
 }: ProjectColumnsProps): ColumnDef<Project>[] => [
@@ -134,6 +136,13 @@ export const createProjectColumns = ({
           label: t("projects.admin.manage"),
           icon: Users,
           onClick: () => onManageAdmins(project),
+        }] : []),
+        // Only show manage notifiers action if user has permission
+        ...(canEditProject(project.admin_id) ? [{
+          id: "manage-notifiers",
+          label: t("projects.notifier.manage"),
+          icon: Bell,
+          onClick: () => onManageNotifiers(project),
         }] : []),
       ];
 

@@ -230,6 +230,24 @@ type EmailService interface {
 	SendProjectAdminRemovedEmail(admin *database.Admin, project *database.Project, actionByAdmin *database.Admin, lang string) error
 }
 
-type WeChatService interface {
-	SendTaskConversationCompletedMessage(admin *database.Admin, task *database.Task, conversation *database.TaskConversation, status database.ConversationStatus, completionTime time.Time, errorMsg string, lang string) error
+type NotifierService interface {
+	// CRUD operations with permission checks
+	CreateNotifier(name, description string, notifierType database.NotifierType, config map[string]interface{}, admin *database.Admin) (*database.Notifier, error)
+	GetNotifier(id uint, admin *database.Admin) (*database.Notifier, error)
+	ListNotifiers(admin *database.Admin, name *string, notifierTypes []database.NotifierType, isEnabled *bool, page, pageSize int) ([]database.NotifierListItemResponse, int64, error)
+	UpdateNotifier(id uint, updates map[string]interface{}, admin *database.Admin) error
+	DeleteNotifier(id uint, admin *database.Admin) error
+	TestNotifier(id uint, admin *database.Admin) error
+
+	// Project association methods
+	AddNotifierToProject(projectID, notifierID uint, admin *database.Admin) error
+	RemoveNotifierFromProject(projectID, notifierID uint, admin *database.Admin) error
+	GetProjectNotifiers(projectID uint) ([]database.NotifierListItemResponse, error)
+
+	// Notification sending
+	SendNotificationForTask(task *database.Task, conversation *database.TaskConversation, status database.ConversationStatus, completionTime time.Time, errorMsg string, adminLang string) error
+
+	// Permission helpers
+	CanAdminAccessNotifier(notifierID uint, admin *database.Admin) (bool, error)
+	IsNotifierOwner(notifierID uint, admin *database.Admin) (bool, error)
 }

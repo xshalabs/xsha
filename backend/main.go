@@ -64,6 +64,7 @@ func main() {
 	taskConvAttachmentRepo := repository.NewTaskConversationAttachmentRepository(dbManager.GetDB())
 	systemConfigRepo := repository.NewSystemConfigRepository(dbManager.GetDB())
 	dashboardRepo := repository.NewDashboardRepository(dbManager.GetDB())
+	notifierRepo := repository.NewNotifierRepository(dbManager.GetDB())
 
 	// Initialize services
 	loginLogService := services.NewLoginLogService(loginLogRepo)
@@ -72,7 +73,7 @@ func main() {
 	adminAvatarService := services.NewAdminAvatarService(adminAvatarRepo, adminRepo, cfg)
 	systemConfigService := services.NewSystemConfigService(systemConfigRepo)
 	emailService := services.NewEmailService(systemConfigService)
-	wechatService := services.NewWeChatService(systemConfigService)
+	notifierService := services.NewNotifierService(notifierRepo, projectRepo)
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, adminService, adminRepo, emailService, cfg)
 
 	// Set up circular dependency - adminService needs authService for session invalidation
@@ -118,7 +119,7 @@ func main() {
 	executionManager := executor.NewExecutionManager(maxConcurrency)
 
 	// Initialize services with shared execution manager
-	aiTaskExecutor := executor.NewAITaskExecutorServiceWithManager(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, adminRepo, gitCredService, taskConvResultService, taskService, systemConfigService, taskConvAttachmentService, emailService, wechatService, cfg, executionManager)
+	aiTaskExecutor := executor.NewAITaskExecutorServiceWithManager(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, adminRepo, gitCredService, taskConvResultService, taskService, systemConfigService, taskConvAttachmentService, emailService, notifierService, cfg, executionManager)
 	logStreamingService := executor.NewLogStreamingService(taskConvRepo, execLogRepo, executionManager)
 
 	// Initialize scheduler
@@ -138,6 +139,7 @@ func main() {
 	taskConvAttachmentHandlers := handlers.NewTaskConversationAttachmentHandlers(taskConvAttachmentService)
 	systemConfigHandlers := handlers.NewSystemConfigHandlers(systemConfigService)
 	dashboardHandlers := handlers.NewDashboardHandlers(dashboardService)
+	notifierHandlers := handlers.NewNotifierHandlers(notifierService, projectService)
 
 	// Set gin mode
 	if cfg.Environment == "production" {
@@ -184,7 +186,7 @@ func main() {
 	}
 
 	// Setup routes - Pass all handler instances including static files
-	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, adminAvatarHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
+	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, adminAvatarHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, notifierHandlers, &StaticFiles)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

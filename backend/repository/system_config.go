@@ -304,33 +304,6 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 			formType:    string(database.ConfigFormTypeSwitch),
 			sortOrder:   170,
 		},
-		{
-			key:         "wechat_webhook_enabled",
-			value:       "false",
-			name:        "config.name.notification.wechat_webhook_enabled",
-			description: "config.description.notification.wechat_webhook_enabled",
-			category:    "notification",
-			formType:    string(database.ConfigFormTypeSwitch),
-			sortOrder:   180,
-		},
-		{
-			key:         "wechat_webhook_url",
-			value:       "",
-			name:        "config.name.notification.wechat_webhook_url",
-			description: "config.description.notification.wechat_webhook_url",
-			category:    "notification",
-			formType:    string(database.ConfigFormTypeInput),
-			sortOrder:   190,
-		},
-		{
-			key:         "wechat_webhook_timeout",
-			value:       "30s",
-			name:        "config.name.notification.wechat_webhook_timeout",
-			description: "config.description.notification.wechat_webhook_timeout",
-			category:    "notification",
-			formType:    string(database.ConfigFormTypeInput),
-			sortOrder:   200,
-		},
 	}
 
 	for _, config := range defaultConfigs {

@@ -55,7 +55,8 @@
     "login": "登录",
     "projects": "项目",
     "projectTasks": "任务",
-    "gitCredentials": "凭据"
+    "gitCredentials": "凭据",
+    "notifiers": "通知器"
   },
   "theme": {
     "toggle": "切换主题",

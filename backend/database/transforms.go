@@ -182,3 +182,35 @@ func ToProjectListItemResponses(projects []Project) []ProjectListItemResponse {
 	}
 	return responses
 }
+
+// ToNotifierListItemResponse converts Notifier to NotifierListItemResponse with minimal admin data
+func ToNotifierListItemResponse(notifier Notifier) NotifierListItemResponse {
+	response := NotifierListItemResponse{
+		ID:          notifier.ID,
+		CreatedAt:   notifier.CreatedAt,
+		UpdatedAt:   notifier.UpdatedAt,
+		Name:        notifier.Name,
+		Description: notifier.Description,
+		Type:        notifier.Type,
+		IsEnabled:   notifier.IsEnabled,
+		AdminID:     notifier.AdminID,
+		CreatedBy:   notifier.CreatedBy,
+	}
+
+	// Convert admin to minimal version
+	if notifier.Admin != nil {
+		minimalAdmin := ToMinimalAdminResponse(*notifier.Admin)
+		response.Admin = &minimalAdmin
+	}
+
+	return response
+}
+
+// ToNotifierListItemResponses converts slice of Notifier to slice of NotifierListItemResponse
+func ToNotifierListItemResponses(notifiers []Notifier) []NotifierListItemResponse {
+	responses := make([]NotifierListItemResponse, len(notifiers))
+	for i, notifier := range notifiers {
+		responses[i] = ToNotifierListItemResponse(notifier)
+	}
+	return responses
+}

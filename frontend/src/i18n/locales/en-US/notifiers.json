@@ -1,0 +1,128 @@
+{
+  "title": "Notifier Management",
+  "description": "Manage notification channels for projects and system events",
+  "create": "Create Notifier",
+  "edit": "Edit",
+  "delete": "Delete",
+  "test": "Test",
+  "enable": "Enable",
+  "disable": "Disable",
+  "createSuccess": "Notifier created successfully",
+  "updateSuccess": "Notifier updated successfully",
+  "deleteSuccess": "Notifier deleted successfully",
+  "enableSuccess": "Notifier enabled successfully",
+  "disableSuccess": "Notifier disabled successfully",
+  "testSuccess": "Test notification sent successfully",
+  "loadingDetails": "Loading details...",
+  "loadDetailsSuccess": "Details loaded successfully",
+  "columns": {
+    "name": "Name",
+    "description": "Description",
+    "noDescription": "No description",
+    "type": "Type",
+    "status": "Status",
+    "createdBy": "Created By",
+    "created": "Created"
+  },
+  "types": {
+    "wechat_work": "WeChat Work",
+    "dingtalk": "DingTalk",
+    "feishu": "Feishu",
+    "slack": "Slack",
+    "discord": "Discord",
+    "webhook": "Webhook"
+  },
+  "status": {
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "search": {
+    "placeholder": "Search notifiers..."
+  },
+  "filters": {
+    "type": {
+      "placeholder": "All Types",
+      "all": "All Types"
+    },
+    "status": {
+      "placeholder": "All Status",
+      "all": "All Status"
+    },
+    "reset": "Reset"
+  },
+  "form": {
+    "create": {
+      "title": "Create Notifier",
+      "description": "Create a new notification channel"
+    },
+    "edit": {
+      "title": "Edit Notifier",
+      "description": "Update notifier configuration"
+    },
+    "fields": {
+      "name": {
+        "label": "Name",
+        "placeholder": "Enter notifier name",
+        "required": "Name is required"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Enter description (optional)"
+      },
+      "type": {
+        "label": "Type",
+        "placeholder": "Select notifier type",
+        "required": "Type is required",
+        "cannotModify": "Type cannot be modified after creation"
+      },
+      "configuration": "Configuration",
+      "webhookUrl": {
+        "label": "Webhook URL",
+        "placeholder": "Enter webhook URL",
+        "required": "Webhook URL is required"
+      },
+      "secret": {
+        "label": "Secret",
+        "placeholder": "Enter secret (optional)"
+      },
+      "timeout": {
+        "label": "Timeout",
+        "placeholder": "30s",
+        "help": "Request timeout duration"
+      },
+      "method": {
+        "label": "HTTP Method",
+        "placeholder": "POST"
+      },
+      "headers": {
+        "label": "Headers",
+        "placeholder": "Enter JSON headers (optional)"
+      },
+      "bodyTemplate": {
+        "label": "Body Template",
+        "placeholder": "Enter request body template (optional)"
+      },
+      "url": {
+        "label": "URL",
+        "placeholder": "Enter URL",
+        "required": "URL is required"
+      }
+    },
+    "validation": {
+      "invalidJson": "Invalid JSON format",
+      "invalidUrl": "Invalid URL format"
+    },
+    "submit": "Save",
+    "cancel": "Cancel",
+    "submitting": "Saving..."
+  },
+  "errors": {
+    "loadFailed": "Failed to load notifiers",
+    "loadDetailsFailed": "Failed to load notifier details",
+    "createFailed": "Failed to create notifier",
+    "updateFailed": "Failed to update notifier",
+    "deleteFailed": "Failed to delete notifier",
+    "testFailed": "Failed to send test notification",
+    "saveFailed": "Failed to save notifier"
+  }
+}
