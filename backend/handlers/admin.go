@@ -43,6 +43,7 @@ func (h *AdminHandlers) CreateAdminHandler(c *gin.Context) {
 		Name     string `json:"name" binding:"required"`
 		Email    string `json:"email"`
 		Role     string `json:"role" binding:"omitempty,oneof=super_admin admin developer"`
+		Lang     string `json:"lang" binding:"omitempty,oneof=en-US zh-CN"`
 	}
 
 	if err := c.ShouldBindJSON(&adminData); err != nil {
@@ -67,7 +68,7 @@ func (h *AdminHandlers) CreateAdminHandler(c *gin.Context) {
 		role = database.AdminRole(adminData.Role)
 	}
 
-	admin, err := h.adminService.CreateAdminWithRole(adminData.Username, adminData.Password, adminData.Name, adminData.Email, role, createdBy.(string))
+	admin, err := h.adminService.CreateAdminWithRoleAndLang(adminData.Username, adminData.Password, adminData.Name, adminData.Email, adminData.Lang, role, createdBy.(string))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.MapErrorToI18nKey(err, lang),
@@ -268,6 +269,38 @@ func (h *AdminHandlers) UpdateAdminHandler(c *gin.Context) {
 		}
 	}
 
+	// Handle language update separately if provided
+	if langValue, exists := updateData["lang"]; exists {
+		if langStr, ok := langValue.(string); ok {
+			// Validate language value
+			validLangs := []string{"en-US", "zh-CN"}
+			isValid := false
+			for _, validLang := range validLangs {
+				if langStr == validLang {
+					isValid = true
+					break
+				}
+			}
+			if !isValid {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error": i18n.T(lang, "validation.invalid_language"),
+				})
+				return
+			}
+
+			// Update language using dedicated method
+			if err := h.adminService.UpdateAdminLanguage(uint(id), langStr); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error": i18n.MapErrorToI18nKey(err, lang),
+				})
+				return
+			}
+
+			// Remove lang from updateData to avoid double processing
+			delete(updateData, "lang")
+		}
+	}
+
 	// Update other fields if any remain
 	if len(updateData) > 0 {
 		if err := h.adminService.UpdateAdmin(uint(id), updateData); err != nil {
@@ -366,7 +399,6 @@ func (h *AdminHandlers) ChangePasswordHandler(c *gin.Context) {
 		"message": i18n.T(lang, "admin.password_change_success"),
 	})
 }
-
 
 // PublicListAdminsHandler lists admin users with authentication
 // @Summary List admin users (authenticated)

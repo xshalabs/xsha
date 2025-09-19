@@ -142,23 +142,6 @@ func (r *taskConversationRepository) GetPendingConversationsWithDetails() ([]dat
 		Order("created_at ASC").
 		Find(&conversations).Error
 
-	if err == nil {
-		readyCount := len(conversations)
-		delayedCount := totalPendingCount - int64(readyCount)
-
-		if delayedCount > 0 {
-			utils.Info("Filtered conversations by execution time",
-				"total_pending", totalPendingCount,
-				"ready_to_execute", readyCount,
-				"delayed_by_execution_time", delayedCount,
-				"current_time", now.Format("2006-01-02 15:04:05"))
-		} else if readyCount > 0 {
-			utils.Info("Found conversations ready to execute",
-				"count", readyCount,
-				"current_time", now.Format("2006-01-02 15:04:05"))
-		}
-	}
-
 	return conversations, err
 }
 

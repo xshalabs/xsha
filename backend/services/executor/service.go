@@ -18,12 +18,15 @@ type aiTaskExecutorService struct {
 	taskRepo           repository.TaskRepository
 	execLogRepo        repository.TaskExecutionLogRepository
 	taskConvResultRepo repository.TaskConversationResultRepository
+	adminRepo          repository.AdminRepository
 
 	gitCredService        services.GitCredentialService
 	taskConvResultService services.TaskConversationResultService
 	taskService           services.TaskService
 	systemConfigService   services.SystemConfigService
 	attachmentService     services.TaskConversationAttachmentService
+	emailService          services.EmailService
+	notifierService       services.NotifierService
 
 	executionManager *ExecutionManager
 	dockerExecutor   DockerExecutor
@@ -40,17 +43,20 @@ func NewAITaskExecutorService(
 	taskRepo repository.TaskRepository,
 	execLogRepo repository.TaskExecutionLogRepository,
 	taskConvResultRepo repository.TaskConversationResultRepository,
+	adminRepo repository.AdminRepository,
 	gitCredService services.GitCredentialService,
 	taskConvResultService services.TaskConversationResultService,
 	taskService services.TaskService,
 	systemConfigService services.SystemConfigService,
 	attachmentService services.TaskConversationAttachmentService,
+	emailService services.EmailService,
+	notifierService services.NotifierService,
 	cfg *config.Config,
 ) services.AITaskExecutorService {
 	return NewAITaskExecutorServiceWithManager(
-		taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo,
+		taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, adminRepo,
 		gitCredService, taskConvResultService, taskService, systemConfigService,
-		attachmentService, cfg, nil,
+		attachmentService, emailService, notifierService, cfg, nil,
 	)
 }
 
@@ -59,11 +65,14 @@ func NewAITaskExecutorServiceWithManager(
 	taskRepo repository.TaskRepository,
 	execLogRepo repository.TaskExecutionLogRepository,
 	taskConvResultRepo repository.TaskConversationResultRepository,
+	adminRepo repository.AdminRepository,
 	gitCredService services.GitCredentialService,
 	taskConvResultService services.TaskConversationResultService,
 	taskService services.TaskService,
 	systemConfigService services.SystemConfigService,
 	attachmentService services.TaskConversationAttachmentService,
+	emailService services.EmailService,
+	notifierService services.NotifierService,
 	cfg *config.Config,
 	executionManager *ExecutionManager,
 ) services.AITaskExecutorService {
@@ -96,11 +105,14 @@ func NewAITaskExecutorServiceWithManager(
 		taskRepo:              taskRepo,
 		execLogRepo:           execLogRepo,
 		taskConvResultRepo:    taskConvResultRepo,
+		adminRepo:             adminRepo,
 		gitCredService:        gitCredService,
 		taskConvResultService: taskConvResultService,
 		taskService:           taskService,
 		systemConfigService:   systemConfigService,
 		attachmentService:     attachmentService,
+		emailService:          emailService,
+		notifierService:       notifierService,
 		executionManager:      executionManager,
 		dockerExecutor:        dockerExecutor,
 		resultParser:          resultParser,
@@ -375,6 +387,11 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		}
 		s.resultParser.ParseAndCreate(conv, latestExecLog)
 
+		// Send email notification for task conversation completion
+		if conv.AdminID != nil {
+			s.sendCompletionNotifications(conv.ID, conv.Task.ID, conv.AdminID, finalStatus, now, errorMsg)
+		}
+
 		utils.Info("Conversation execution completed", "conversationId", conv.ID, "status", string(finalStatus))
 	}()
 
@@ -565,6 +582,81 @@ func (s *aiTaskExecutorService) prepareGitCredential(project *database.Project) 
 	}
 
 	return credential, nil
+}
+
+func (s *aiTaskExecutorService) sendCompletionNotifications(conversationID, taskID uint, adminID *uint, finalStatus database.ConversationStatus, completionTime time.Time, errorMsg string) {
+	task, err := s.taskRepo.GetByID(taskID)
+	if err != nil {
+		utils.Error("Failed to get task for email notification",
+			"conversationId", conversationID,
+			"taskId", taskID,
+			"error", err)
+		return
+	}
+
+	admin, err := s.adminRepo.GetByID(*adminID)
+	if err != nil {
+		utils.Error("Failed to get admin for email notification",
+			"conversationId", conversationID,
+			"adminId", *adminID,
+			"error", err)
+		return
+	}
+
+	if admin == nil {
+		utils.Warn("Admin not found for email notification",
+			"conversationId", conversationID,
+			"adminId", *adminID)
+		return
+	}
+
+	// Fetch conversation data
+	conv, err := s.taskConvRepo.GetByID(conversationID)
+	if err != nil {
+		utils.Error("Failed to get conversation for email notification",
+			"conversationId", conversationID,
+			"error", err)
+		return
+	}
+
+	// Get admin language preference, default to en-US if not set
+	adminLang := "en-US"
+	if admin.Lang != "" {
+		adminLang = admin.Lang
+	}
+
+	// Send email notification asynchronously
+	if err := s.emailService.SendTaskConversationCompletedEmail(
+		admin,
+		task,
+		conv,
+		finalStatus,
+		completionTime,
+		errorMsg,
+		adminLang,
+	); err != nil {
+		utils.Error("Failed to send task conversation completion email notification",
+			"conversationId", conversationID,
+			"adminId", admin.ID,
+			"error", err)
+	}
+
+	// Send notifications via new notifier system asynchronously
+	if s.notifierService != nil {
+		if err := s.notifierService.SendNotificationForTask(
+			task,
+			conv,
+			finalStatus,
+			completionTime,
+			errorMsg,
+			adminLang,
+		); err != nil {
+			utils.Error("Failed to send task conversation completion notifications via notifiers",
+				"conversationId", conversationID,
+				"taskId", taskID,
+				"error", err)
+		}
+	}
 }
 
 func (s *aiTaskExecutorService) CleanupWorkspaceOnFailure(taskID uint, workspacePath string) error {

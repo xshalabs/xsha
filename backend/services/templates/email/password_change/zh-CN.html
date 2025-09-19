@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>密码已更改 - xsha 平台</title>
+    <style>
+      body {
+        font-family: "Microsoft YaHei", Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background: #28a745;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+      }
+      .content {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 0 0 8px 8px;
+      }
+      .info-box {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+        border-left: 4px solid #28a745;
+      }
+      .security-box {
+        background: #fff3cd;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+        border-left: 4px solid #ffc107;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 30px;
+        color: #666;
+        font-size: 14px;
+      }
+      .detail-item {
+        margin: 8px 0;
+      }
+      .detail-label {
+        font-weight: bold;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🔐 密码修改成功</h1>
+      </div>
+      <div class="content">
+        <p>您好 <strong>{{.Name}}</strong>，</p>
+        <p>您的 xsha 平台账户密码已成功更改。</p>
+
+        <div class="info-box">
+          <h3>📋 更改详情</h3>
+          <div class="detail-item">
+            <span class="detail-label">账户：</span>{{.Username}}
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">更改时间：</span>{{.ChangeTime}}
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">IP 地址：</span>{{.IPAddress}}
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">设备/浏览器：</span>{{.UserAgent}}
+          </div>
+        </div>
+
+        <div class="security-box">
+          <h3>🛡️ 安全提醒</h3>
+          <p>如果此次密码更改不是您本人操作，请立即：</p>
+          <ul>
+            <li>联系我们的支持团队</li>
+            <li>检查您的账户活动</li>
+            <li>查看是否有未授权访问</li>
+          </ul>
+        </div>
+
+        <p>
+          您的账户安全对我们非常重要。此通知有助于让您了解账户的所有安全相关更改。
+        </p>
+        <p>感谢您使用 xsha 平台！</p>
+      </div>
+      <div class="footer">
+        <p>此邮件由 xsha 平台自动发送，请勿回复。</p>
+      </div>
+    </div>
+  </body>
+</html>

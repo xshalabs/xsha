@@ -39,7 +39,7 @@ type BatchUpdateConfigsRequest struct {
 func (h *SystemConfigHandlers) ListAllConfigs(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
 
-	configs, err := h.configService.ListAllConfigs()
+	configs, err := h.configService.ListAllConfigsWithTranslation(lang)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": i18n.T(lang, "system_config.list_failed"),

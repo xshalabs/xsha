@@ -8,3 +8,5 @@ export { CredentialSecretFields } from './CredentialSecretFields';
 export { ProjectBasicFields } from './ProjectBasicFields';
 export { RepositoryUrlField } from './RepositoryUrlField';
 export { ProjectCredentialSelector } from './ProjectCredentialSelector';
+export { NotifierBasicFields } from './NotifierBasicFields';
+export { NotifierConfigFields } from './NotifierConfigFields';

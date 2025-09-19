@@ -2,7 +2,7 @@
 
 ## 概述
 
-XSha 系统使用 Docker 容器来隔离执行AI驱动的任务对话。本文档详细说明了如何从 `TaskConversation` 实体映射生成 Docker 执行命令的完整逻辑。
+xsha 系统使用 Docker 容器来隔离执行AI驱动的任务对话。本文档详细说明了如何从 `TaskConversation` 实体映射生成 Docker 执行命令的完整逻辑。
 
 ## 核心组件
 
@@ -248,4 +248,4 @@ docker run --rm -i --name=xsha-task-123-conv-456 \
 - 完整的生命周期管理
 - 实时日志监控
 
-通过这种设计，XSha 能够安全、隔离地执行各种AI驱动的开发任务。
+通过这种设计，xsha 能够安全、隔离地执行各种AI驱动的开发任务。

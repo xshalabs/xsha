@@ -29,7 +29,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-XSha is an AI-driven project management and development platform that enables conversational task development with Claude Code integration. The system consists of:
+xsha is an AI-driven project management and development platform that enables conversational task development with Claude Code integration. The system consists of:
 
 ### Backend Architecture (Go)
 - **Framework**: Gin web framework with embedded static file serving

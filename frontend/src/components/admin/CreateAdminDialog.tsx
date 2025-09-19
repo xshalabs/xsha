@@ -41,6 +41,7 @@ const formSchema = z.object({
     .max(100, 'Name must be at most 100 characters'),
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
   role: z.enum(['super_admin', 'admin', 'developer']).optional(),
+  lang: z.enum(['en-US', 'zh-CN']).optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -68,6 +69,7 @@ export function CreateAdminDialog({
       name: '',
       email: '',
       role: 'admin',
+      lang: 'en-US',
     },
   });
 
@@ -80,6 +82,7 @@ export function CreateAdminDialog({
         name: data.name,
         email: data.email || undefined,
         role: data.role as AdminRole,
+        lang: data.lang,
       });
       toast.success(t('admin.messages.createSuccess'));
       form.reset();
@@ -217,6 +220,32 @@ export function CreateAdminDialog({
                 )}
               />
             }
+
+            <FormField
+              control={form.control}
+              name="lang"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('admin.fields.language')} ({t('common.optional')})</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger disabled={loading}>
+                        <SelectValue placeholder={t('admin.placeholders.language')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="en-US">
+                        {t('admin.languages.en-US')}
+                      </SelectItem>
+                      <SelectItem value="zh-CN">
+                        {t('admin.languages.zh-CN')}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="flex justify-end space-x-2 pt-4">
               <Button

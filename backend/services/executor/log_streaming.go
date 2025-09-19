@@ -65,8 +65,6 @@ func (s *logStreamingService) StreamConversationLogs(ctx context.Context, conver
 			// Get container ID for real-time logs
 			containerID := s.execManager.GetContainerID(conversationID)
 			if containerID != "" {
-				utils.Info("Streaming real-time logs from container", "conversationID", conversationID, "containerID", containerID)
-
 				// Send existing logs first
 				if existingLogs, err := s.getExistingLogs(conversationID); err == nil && existingLogs != "" {
 					for _, line := range strings.Split(existingLogs, "\n") {
@@ -90,9 +88,6 @@ func (s *logStreamingService) StreamConversationLogs(ctx context.Context, conver
 				s.pollDatabaseLogs(ctx, conversationID, logChan, errChan)
 			}
 		} else {
-			// Conversation is not running, get historical logs
-			utils.Info("Getting historical logs for completed conversation", "conversationID", conversationID, "status", conv.Status)
-
 			historicalLogs, err := s.GetHistoricalLogs(conversationID)
 			if err != nil {
 				errChan <- err

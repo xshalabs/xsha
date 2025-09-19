@@ -28,6 +28,21 @@ func (r *systemConfigRepository) GetByKey(key string) (*database.SystemConfig, e
 	return &config, nil
 }
 
+func (r *systemConfigRepository) GetByKeys(keys []string) (map[string]*database.SystemConfig, error) {
+	var configs []database.SystemConfig
+	err := r.db.Where("config_key IN ?", keys).Find(&configs).Error
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]*database.SystemConfig)
+	for i := range configs {
+		result[configs[i].ConfigKey] = &configs[i]
+	}
+
+	return result, nil
+}
+
 func (r *systemConfigRepository) ListAll() ([]database.SystemConfig, error) {
 	var configs []database.SystemConfig
 	err := r.db.Order("sort_order ASC").Find(&configs).Error
@@ -65,7 +80,7 @@ func (r *systemConfigRepository) SetValue(key, value string) error {
 	return r.Update(config)
 }
 
-func (r *systemConfigRepository) SetValueWithCategoryAndSort(key, value, description, category, formType string, isEditable bool, sortOrder int) error {
+func (r *systemConfigRepository) CreateOrUpdate(key, value, name, description, category, formType string, isEditable bool, sortOrder int) error {
 	config, err := r.GetByKey(key)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -75,6 +90,7 @@ func (r *systemConfigRepository) SetValueWithCategoryAndSort(key, value, descrip
 			newConfig := &database.SystemConfig{
 				ConfigKey:   key,
 				ConfigValue: value,
+				Name:        name,
 				Description: description,
 				Category:    category,
 				FormType:    database.ConfigFormType(formType),
@@ -86,7 +102,7 @@ func (r *systemConfigRepository) SetValueWithCategoryAndSort(key, value, descrip
 		return err
 	}
 
-	config.ConfigValue = value
+	config.Name = name
 	config.Description = description
 	config.Category = category
 	if formType != "" {
@@ -129,6 +145,7 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 	defaultConfigs := []struct {
 		key         string
 		value       string
+		name        string
 		description string
 		category    string
 		formType    string
@@ -137,7 +154,8 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "dev_environment_images",
 			value:       string(devEnvImagesJSON),
-			description: "Development environment image configuration, defines available Docker images and their corresponding environment images",
+			name:        "config.name.dev_environment.images",
+			description: "config.description.dev_environment.images",
 			category:    "dev_environment",
 			formType:    string(database.ConfigFormTypeTextarea),
 			sortOrder:   10,
@@ -145,7 +163,8 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "git_proxy_enabled",
 			value:       "false",
-			description: "Enable or disable HTTP proxy for Git operations",
+			name:        "config.name.git.proxy_enabled",
+			description: "config.description.git.proxy_enabled",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeSwitch),
 			sortOrder:   20,
@@ -153,7 +172,8 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "git_proxy_http",
 			value:       "",
-			description: "HTTP proxy URL for Git operations (e.g., http://proxy.example.com:8080)",
+			name:        "config.name.git.proxy_http",
+			description: "config.description.git.proxy_http",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
 			sortOrder:   30,
@@ -161,7 +181,8 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "git_proxy_https",
 			value:       "",
-			description: "HTTPS proxy URL for Git operations (e.g., https://proxy.example.com:8080)",
+			name:        "config.name.git.proxy_https",
+			description: "config.description.git.proxy_https",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
 			sortOrder:   40,
@@ -169,7 +190,8 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "git_proxy_no_proxy",
 			value:       "",
-			description: "Comma-separated list of domains to bypass proxy (e.g., localhost,127.0.0.1,.local)",
+			name:        "config.name.git.proxy_no_proxy",
+			description: "config.description.git.proxy_no_proxy",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
 			sortOrder:   50,
@@ -177,7 +199,8 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "git_clone_timeout",
 			value:       "5m",
-			description: "Timeout for Git clone operations (e.g., 5m, 300s)",
+			name:        "config.name.git.clone_timeout",
+			description: "config.description.git.clone_timeout",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeInput),
 			sortOrder:   60,
@@ -185,7 +208,8 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "git_ssl_verify",
 			value:       "false",
-			description: "Enable or disable SSL verification for Git operations",
+			name:        "config.name.git.ssl_verify",
+			description: "config.description.git.ssl_verify",
 			category:    "git",
 			formType:    string(database.ConfigFormTypeSwitch),
 			sortOrder:   70,
@@ -193,26 +217,100 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		{
 			key:         "docker_timeout",
 			value:       "120m",
-			description: "Timeout for Docker execution operations (e.g., 120m, 7200s)",
+			name:        "config.name.docker.timeout",
+			description: "config.description.docker.timeout",
 			category:    "docker",
 			formType:    string(database.ConfigFormTypeInput),
 			sortOrder:   80,
 		},
+		{
+			key:         "smtp_enabled",
+			value:       "false",
+			name:        "config.name.email.smtp_enabled",
+			description: "config.description.email.smtp_enabled",
+			category:    "email",
+			formType:    string(database.ConfigFormTypeSwitch),
+			sortOrder:   90,
+		},
+		{
+			key:         "smtp_host",
+			value:       "",
+			name:        "config.name.email.smtp_host",
+			description: "config.description.email.smtp_host",
+			category:    "email",
+			formType:    string(database.ConfigFormTypeInput),
+			sortOrder:   100,
+		},
+		{
+			key:         "smtp_port",
+			value:       "587",
+			name:        "config.name.email.smtp_port",
+			description: "config.description.email.smtp_port",
+			category:    "email",
+			formType:    string(database.ConfigFormTypeInput),
+			sortOrder:   110,
+		},
+		{
+			key:         "smtp_username",
+			value:       "",
+			name:        "config.name.email.smtp_username",
+			description: "config.description.email.smtp_username",
+			category:    "email",
+			formType:    string(database.ConfigFormTypeInput),
+			sortOrder:   120,
+		},
+		{
+			key:         "smtp_password",
+			value:       "",
+			name:        "config.name.email.smtp_password",
+			description: "config.description.email.smtp_password",
+			category:    "email",
+			formType:    string(database.ConfigFormTypePassword),
+			sortOrder:   130,
+		},
+		{
+			key:         "smtp_from",
+			value:       "",
+			name:        "config.name.email.smtp_from",
+			description: "config.description.email.smtp_from",
+			category:    "email",
+			formType:    string(database.ConfigFormTypeInput),
+			sortOrder:   140,
+		},
+		{
+			key:         "smtp_from_name",
+			value:       "xsha Platform",
+			name:        "config.name.email.smtp_from_name",
+			description: "config.description.email.smtp_from_name",
+			category:    "email",
+			formType:    string(database.ConfigFormTypeInput),
+			sortOrder:   150,
+		},
+		{
+			key:         "smtp_use_tls",
+			value:       "true",
+			name:        "config.name.email.smtp_use_tls",
+			description: "config.description.email.smtp_use_tls",
+			category:    "email",
+			formType:    string(database.ConfigFormTypeSwitch),
+			sortOrder:   160,
+		},
+		{
+			key:         "smtp_skip_verify",
+			value:       "false",
+			name:        "config.name.email.smtp_skip_verify",
+			description: "config.description.email.smtp_skip_verify",
+			category:    "email",
+			formType:    string(database.ConfigFormTypeSwitch),
+			sortOrder:   170,
+		},
 	}
 
 	for _, config := range defaultConfigs {
-		existingConfig, err := r.GetByKey(config.key)
-		if err != nil && err != gorm.ErrRecordNotFound {
-			return err
-		}
-
-		if existingConfig != nil {
-			continue
-		}
-
-		if err := r.SetValueWithCategoryAndSort(
+		if err := r.CreateOrUpdate(
 			config.key,
 			config.value,
+			config.name,
 			config.description,
 			config.category,
 			config.formType,

@@ -2,7 +2,7 @@
   "title": "用户",
   "description": "管理用户账户",
   "pageTitle": {
-    "list": "用户 - XSha"
+    "list": "用户 - xsha"
   },
   "table": {
     "username": "用户名",
@@ -23,6 +23,7 @@
     "role": "角色",
     "status": "状态",
     "statusDescription": "启用或禁用此用户账户",
+    "language": "语言",
     "newPassword": "新密码",
     "confirmPassword": "确认密码"
   },
@@ -32,6 +33,7 @@
     "name": "请输入真实姓名",
     "email": "请输入邮箱地址（可选）",
     "role": "请选择角色",
+    "language": "请选择语言",
     "newPassword": "请输入新密码",
     "confirmPassword": "请确认新密码"
   },
@@ -51,6 +53,10 @@
   "status": {
     "active": "启用",
     "inactive": "禁用"
+  },
+  "languages": {
+    "en-US": "英文",
+    "zh-CN": "中文"
   },
   "actions": {
     "create": "创建用户",

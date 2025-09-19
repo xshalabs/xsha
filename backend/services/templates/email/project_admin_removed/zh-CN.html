@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>项目访问权限已移除</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background: #dc3545;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+      }
+      .content {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 0 0 8px 8px;
+      }
+      .info-box {
+        background: #e9ecef;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 20px 0;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 30px;
+        color: #666;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>📋 项目访问权限已移除</h1>
+      </div>
+      <div class="content">
+        <p>尊敬的 <strong>{{.AdminName}}</strong>，</p>
+        <p>
+          您对项目 <strong>{{.ProjectName}}</strong> 的访问权限
+          已被 {{.ActionByName}} 移除。
+        </p>
+
+        <div class="info-box">
+          <h3>📋 变更详情</h3>
+          <p><strong>项目名称：</strong> {{.ProjectName}}</p>
+          <p><strong>移除人：</strong> {{.ActionByName}}</p>
+          <p><strong>移除时间：</strong> {{.Timestamp}}</p>
+        </div>
+
+        <p>
+          您不再拥有此项目的访问权限。
+          如果您认为这是错误操作，请联系项目所有者
+          或您的系统管理员。
+        </p>
+        <p>
+          感谢您对项目的贡献。
+        </p>
+      </div>
+      <div class="footer">
+        <p>
+          此邮件由 xsha 平台自动发送，请勿回复。
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

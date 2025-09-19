@@ -16,14 +16,16 @@ type AuthHandlers struct {
 	loginLogService services.LoginLogService
 	adminService    services.AdminService
 	avatarService   services.AdminAvatarService
+	emailService    services.EmailService
 }
 
-func NewAuthHandlers(authService services.AuthService, loginLogService services.LoginLogService, adminService services.AdminService, avatarService services.AdminAvatarService) *AuthHandlers {
+func NewAuthHandlers(authService services.AuthService, loginLogService services.LoginLogService, adminService services.AdminService, avatarService services.AdminAvatarService, emailService services.EmailService) *AuthHandlers {
 	return &AuthHandlers{
 		authService:     authService,
 		loginLogService: loginLogService,
 		adminService:    adminService,
 		avatarService:   avatarService,
+		emailService:    emailService,
 	}
 }
 
@@ -285,6 +287,14 @@ func (h *AuthHandlers) ChangeOwnPasswordHandler(c *gin.Context) {
 			"error": i18n.MapErrorToI18nKey(err, lang),
 		})
 		return
+	}
+
+	// Send password change notification email
+	clientIP := c.ClientIP()
+	userAgent := c.GetHeader("User-Agent")
+	if err := h.emailService.SendPasswordChangeEmail(admin, clientIP, userAgent, admin.Lang); err != nil {
+		// Log the error but don't fail the password change operation
+		utils.Error("Failed to send password change notification email", "error", err, "username", admin.Username)
 	}
 
 	c.JSON(http.StatusOK, gin.H{

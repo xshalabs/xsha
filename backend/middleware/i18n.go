@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"strings"
+	"xsha-backend/database"
 	"xsha-backend/i18n"
 
 	"github.com/gin-gonic/gin"
@@ -16,12 +17,23 @@ func I18nMiddleware() gin.HandlerFunc {
 }
 
 func detectLanguage(c *gin.Context) string {
+	// Priority 1: Query parameter
 	if lang := c.Query("lang"); lang != "" {
 		if isValidLanguage(lang) {
 			return lang
 		}
 	}
 
+	// Priority 2: Admin's stored language preference (if authenticated)
+	if admin, exists := c.Get("admin"); exists {
+		if adminObj, ok := admin.(*database.Admin); ok && adminObj.Lang != "" {
+			if isValidLanguage(adminObj.Lang) {
+				return adminObj.Lang
+			}
+		}
+	}
+
+	// Priority 3: Accept-Language header
 	if acceptLang := c.GetHeader("Accept-Language"); acceptLang != "" {
 		lang := parseAcceptLanguage(acceptLang)
 		if isValidLanguage(lang) {
@@ -29,6 +41,7 @@ func detectLanguage(c *gin.Context) string {
 		}
 	}
 
+	// Priority 4: Default
 	return "en-US"
 }
 

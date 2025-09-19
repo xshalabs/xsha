@@ -12,16 +12,18 @@ type authService struct {
 	operationLogService AdminOperationLogService
 	adminService        AdminService
 	adminRepo           repository.AdminRepository
+	emailService        EmailService
 	config              *config.Config
 }
 
-func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, operationLogService AdminOperationLogService, adminService AdminService, adminRepo repository.AdminRepository, cfg *config.Config) AuthService {
+func NewAuthService(tokenRepo repository.TokenBlacklistRepository, loginLogRepo repository.LoginLogRepository, operationLogService AdminOperationLogService, adminService AdminService, adminRepo repository.AdminRepository, emailService EmailService, cfg *config.Config) AuthService {
 	return &authService{
 		tokenRepo:           tokenRepo,
 		loginLogRepo:        loginLogRepo,
 		operationLogService: operationLogService,
 		adminService:        adminService,
 		adminRepo:           adminRepo,
+		emailService:        emailService,
 		config:              cfg,
 	}
 }
@@ -91,6 +93,9 @@ func (s *authService) Login(username, password, clientIP, userAgent string) (boo
 				)
 			}
 		}()
+
+		// Send login notification email (handled asynchronously by email service)
+		s.emailService.SendLoginNotificationEmail(admin, clientIP, userAgent, admin.Lang)
 	}
 
 	go func() {
@@ -148,8 +153,7 @@ func (s *authService) Logout(token, username, clientIP, userAgent string) error 
 	}
 
 	// Try to get admin info for logging
-	var adminID *uint
-	adminID = &claims.AdminID
+	adminID := &claims.AdminID
 
 	// Get token expiration
 	expiresAt, err := utils.GetTokenExpiration(token, s.config.JWTSecret)

@@ -3,7 +3,8 @@
   "projects": "Projects",
   "gitCredentials": "Credentials",
   "environments": "Environments",
-  "settings": "Settings", 
+  "notifiers": "Notifiers",
+  "settings": "Settings",
   "language": "Language",
   "groups": {
     "workspace": "Workspace",

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>欢迎加入 xsha 平台</title>
+    <style>
+      body {
+        font-family: "Microsoft YaHei", Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background: #007bff;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+      }
+      .content {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 0 0 8px 8px;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 30px;
+        color: #666;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🎉 欢迎加入 xsha 平台！</h1>
+      </div>
+      <div class="content">
+        <p>亲爱的 <strong>{{.Name}}</strong>，</p>
+        <p>欢迎您加入 xsha AI 驱动的项目管理和开发平台！您的账户已成功创建。</p>
+
+        <div class="info-box">
+          <h3>📋 您的账户信息</h3>
+          <p><strong>用户名：</strong>{{.Username}}</p>
+          <p><strong>邮箱：</strong>{{.Email}}</p>
+          <p><strong>角色：</strong>{{.Role}}</p>
+        </div>
+
+        <p>如果您有任何问题或需要帮助，请随时联系我们的支持团队。</p>
+        <p>祝您使用愉快！</p>
+      </div>
+      <div class="footer">
+        <p>此邮件由 xsha 平台自动发送，请勿回复。</p>
+      </div>
+    </div>
+  </body>
+</html>

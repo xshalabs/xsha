@@ -2,7 +2,7 @@
   "title": "Users",
   "description": "Manage user accounts",
   "pageTitle": {
-    "list": "Users - XSha"
+    "list": "Users - xsha"
   },
   "table": {
     "username": "Username",
@@ -23,6 +23,7 @@
     "role": "Role",
     "status": "Status",
     "statusDescription": "Enable or disable this user account",
+    "language": "Language",
     "newPassword": "New Password",
     "confirmPassword": "Confirm Password"
   },
@@ -32,6 +33,7 @@
     "name": "Enter full name",
     "email": "Enter email address (optional)",
     "role": "Select role",
+    "language": "Select language",
     "newPassword": "Enter new password",
     "confirmPassword": "Confirm new password"
   },
@@ -51,6 +53,10 @@
   "status": {
     "active": "Active",
     "inactive": "Inactive"
+  },
+  "languages": {
+    "en-US": "English",
+    "zh-CN": "Chinese"
   },
   "actions": {
     "create": "Create User",

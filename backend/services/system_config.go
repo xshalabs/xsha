@@ -7,6 +7,7 @@ import (
 	"time"
 	"xsha-backend/database"
 	appErrors "xsha-backend/errors"
+	"xsha-backend/i18n"
 	"xsha-backend/repository"
 	"xsha-backend/utils"
 
@@ -23,8 +24,23 @@ func NewSystemConfigService(repo repository.SystemConfigRepository) SystemConfig
 	}
 }
 
-func (s *systemConfigService) ListAllConfigs() ([]database.SystemConfig, error) {
-	return s.repo.ListAll()
+func (s *systemConfigService) ListAllConfigsWithTranslation(lang string) ([]database.SystemConfig, error) {
+	configs, err := s.repo.ListAll()
+	if err != nil {
+		return nil, err
+	}
+
+	// Translate name and description for each config
+	for i := range configs {
+		if configs[i].Name != "" {
+			configs[i].Name = i18n.T(lang, configs[i].Name)
+		}
+		if configs[i].Description != "" {
+			configs[i].Description = i18n.T(lang, configs[i].Description)
+		}
+	}
+
+	return configs, nil
 }
 
 func (s *systemConfigService) BatchUpdateConfigs(configItems []ConfigUpdateItem) error {
@@ -58,8 +74,22 @@ func (s *systemConfigService) GetValue(key string) (string, error) {
 	return s.repo.GetValue(key)
 }
 
-func (s *systemConfigService) SetValue(key, value string) error {
-	return s.repo.SetValue(key, value)
+func (s *systemConfigService) GetValuesByKeys(keys []string) (map[string]string, error) {
+	configs, err := s.repo.GetByKeys(keys)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]string)
+	for _, key := range keys {
+		if config, exists := configs[key]; exists {
+			result[key] = config.ConfigValue
+		} else {
+			result[key] = ""
+		}
+	}
+
+	return result, nil
 }
 
 func (s *systemConfigService) InitializeDefaultConfigs() error {
@@ -95,6 +125,10 @@ func (s *systemConfigService) isOptionalConfig(key string) bool {
 		"git_proxy_http",
 		"git_proxy_https",
 		"git_proxy_no_proxy",
+		"smtp_host",
+		"smtp_username",
+		"smtp_password",
+		"smtp_from",
 	}
 
 	for _, optionalKey := range optionalConfigs {
@@ -192,4 +226,17 @@ func (s *systemConfigService) GetDockerTimeout() (time.Duration, error) {
 	}
 
 	return timeout, nil
+}
+
+// GetSMTPEnabled returns whether SMTP email service is enabled
+func (s *systemConfigService) GetSMTPEnabled() (bool, error) {
+	enabled, err := s.repo.GetValue("smtp_enabled")
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to get smtp_enabled: %v", err)
+	}
+
+	return enabled == "true", nil
 }

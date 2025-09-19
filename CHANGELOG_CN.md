@@ -4,6 +4,14 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)，项目遵循 [语义化版本控制](https://semver.org/spec/v2.0.0.html)。
 
+## v0.9.0 - 20250917
+
+### 新增
+
+- 新增邮箱通知系统，任务执行完成立即收到通知
+- 新增通知器功能，支持企业微信、钉钉、飞书、Slack、Discord、Webhook
+- 重构系统配置逻辑，优化多语言环境的显示
+
 ## v0.8.0 - 20250916
 
 ### 更改

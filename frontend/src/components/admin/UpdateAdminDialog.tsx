@@ -39,6 +39,7 @@ const formSchema = z.object({
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
   is_active: z.boolean(),
   role: z.enum(['super_admin', 'admin', 'developer']).optional(),
+  lang: z.enum(['en-US', 'zh-CN']).optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -68,6 +69,7 @@ export function UpdateAdminDialog({
       email: '',
       is_active: true,
       role: 'admin',
+      lang: 'en-US',
     },
   });
 
@@ -80,6 +82,7 @@ export function UpdateAdminDialog({
         email: admin.email || '',
         is_active: admin.is_active,
         role: admin.role,
+        lang: (admin.lang === 'en-US' || admin.lang === 'zh-CN') ? admin.lang : 'en-US',
       });
     }
   }, [admin, form]);
@@ -94,6 +97,7 @@ export function UpdateAdminDialog({
         email: data.email !== admin.email ? data.email : undefined,
         is_active: data.is_active !== admin.is_active ? data.is_active : undefined,
         role: admin.created_by !== 'system' && data.role !== admin.role ? data.role as AdminRole : undefined,
+        lang: data.lang !== admin.lang ? data.lang : undefined,
       });
       toast.success(t('admin.messages.updateSuccess'));
       onSuccess();
@@ -229,6 +233,32 @@ export function UpdateAdminDialog({
                       disabled={loading}
                     />
                   </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="lang"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('admin.fields.language')} ({t('common.optional')})</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger disabled={loading}>
+                        <SelectValue placeholder={t('admin.placeholders.language')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="en-US">
+                        {t('admin.languages.en-US')}
+                      </SelectItem>
+                      <SelectItem value="zh-CN">
+                        {t('admin.languages.zh-CN')}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />

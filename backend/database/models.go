@@ -62,6 +62,7 @@ type Admin struct {
 	AvatarID     *uint          `gorm:"index" json:"avatar_id"`
 	Avatar       *AdminAvatar   `gorm:"foreignKey:ID;references:AvatarID" json:"avatar,omitempty"`
 	CreatedBy    string         `gorm:"not null;default:'system'" json:"created_by"`
+	Lang         string         `gorm:"not null;default:'en-US'" json:"lang"`
 }
 
 type GitCredentialType string
@@ -348,6 +349,7 @@ type SystemConfig struct {
 
 	ConfigKey   string         `gorm:"not null;uniqueIndex" json:"config_key"`
 	ConfigValue string         `gorm:"type:text;not null" json:"config_value"`
+	Name        string         `gorm:"not null;default:''" json:"name"`
 	Description string         `gorm:"type:text" json:"description"`
 	Category    string         `gorm:"not null;index;default:'general'" json:"category"`
 	FormType    ConfigFormType `gorm:"not null;default:'input'" json:"form_type"`
@@ -425,6 +427,7 @@ type AdminListResponse struct {
 	AvatarID    *uint               `json:"avatar_id"`
 	Avatar      *AdminAvatarMinimal `json:"avatar,omitempty"`
 	CreatedBy   string              `json:"created_by"`
+	Lang        string              `json:"lang"`
 }
 
 // MinimalAdminResponse represents minimal admin information for environment list responses
@@ -443,6 +446,51 @@ type AdminKanbanResponse struct {
 	Name     string              `json:"name"`
 	Email    string              `json:"email"`
 	Avatar   *AdminAvatarMinimal `json:"avatar,omitempty"`
+}
+
+type NotifierType string
+
+const (
+	NotifierTypeWeChatWork NotifierType = "wechat_work" // 企业微信
+	NotifierTypeDingTalk   NotifierType = "dingtalk"    // 钉钉
+	NotifierTypeFeishu     NotifierType = "feishu"      // 飞书
+	NotifierTypeWebhook    NotifierType = "webhook"     // 通用Webhook
+	NotifierTypeSlack      NotifierType = "slack"       // Slack
+	NotifierTypeDiscord    NotifierType = "discord"     // Discord
+)
+
+type Notifier struct {
+	ID        uint           `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	Name        string       `gorm:"not null" json:"name"`
+	Description string       `gorm:"type:text" json:"description"`
+	Type        NotifierType `gorm:"not null;index" json:"type"`
+	Config      string       `gorm:"type:text;not null" json:"config"`
+	IsEnabled   bool         `gorm:"not null;default:true" json:"is_enabled"`
+
+	AdminID   *uint  `gorm:"index" json:"admin_id"`
+	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+	CreatedBy string `gorm:"not null;index" json:"created_by"`
+
+	// Many-to-many relationship with projects
+	Projects []Project `gorm:"many2many:project_notifiers;" json:"projects,omitempty"`
+}
+
+// NotifierListItemResponse represents notifier information with minimal admin data for list responses
+type NotifierListItemResponse struct {
+	ID          uint                  `json:"id"`
+	CreatedAt   time.Time             `json:"created_at"`
+	UpdatedAt   time.Time             `json:"updated_at"`
+	Name        string                `json:"name"`
+	Description string                `json:"description"`
+	Type        NotifierType          `json:"type"`
+	IsEnabled   bool                  `json:"is_enabled"`
+	AdminID     *uint                 `json:"admin_id"`
+	Admin       *MinimalAdminResponse `json:"admin,omitempty"`
+	CreatedBy   string                `json:"created_by"`
 }
 
 // DevEnvironmentKanbanResponse represents limited dev environment information for kanban responses

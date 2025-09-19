@@ -52,7 +52,7 @@ export function SiteHeader() {
           <ModeToggle />
           <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
             <a
-              href="https://github.com/XShaLabs/xsha"
+              href="https://github.com/xshaLabs/xsha"
               rel="noopener noreferrer"
               target="_blank"
             >

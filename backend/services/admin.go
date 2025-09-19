@@ -6,6 +6,7 @@ import (
 	"strings"
 	"xsha-backend/database"
 	appErrors "xsha-backend/errors"
+	"xsha-backend/i18n"
 	"xsha-backend/repository"
 	"xsha-backend/utils"
 
@@ -21,6 +22,7 @@ type adminService struct {
 	projectService  ProjectService
 	taskService     TaskService
 	taskConvService TaskConversationService
+	emailService    EmailService
 }
 
 func NewAdminService(adminRepo repository.AdminRepository) AdminService {
@@ -53,15 +55,31 @@ func (s *adminService) SetTaskConversationService(taskConvService TaskConversati
 	s.taskConvService = taskConvService
 }
 
-func (s *adminService) CreateAdmin(username, password, name, email, createdBy string) (*database.Admin, error) {
-	// Default to admin role for backward compatibility
-	return s.CreateAdminWithRole(username, password, name, email, database.AdminRoleAdmin, createdBy)
+func (s *adminService) SetEmailService(emailService EmailService) {
+	s.emailService = emailService
 }
 
-func (s *adminService) CreateAdminWithRole(username, password, name, email string, role database.AdminRole, createdBy string) (*database.Admin, error) {
+func (s *adminService) CreateAdminWithRoleAndLang(username, password, name, email, lang string, role database.AdminRole, createdBy string) (*database.Admin, error) {
 	// Validate input
 	if err := s.validateAdminData(username, password, name); err != nil {
 		return nil, err
+	}
+
+	// Validate language
+	if lang != "" {
+		supportedLangs := i18n.GetInstance().GetSupportedLanguages()
+		isValid := false
+		for _, supportedLang := range supportedLangs {
+			if lang == supportedLang {
+				isValid = true
+				break
+			}
+		}
+		if !isValid {
+			return nil, fmt.Errorf("invalid language: %s", lang)
+		}
+	} else {
+		lang = "en-US" // Default language
 	}
 
 	// Check if username already exists
@@ -87,6 +105,7 @@ func (s *adminService) CreateAdminWithRole(username, password, name, email strin
 		Role:         role,
 		IsActive:     true,
 		CreatedBy:    createdBy,
+		Lang:         lang,
 	}
 
 	if err := s.adminRepo.Create(admin); err != nil {
@@ -96,6 +115,22 @@ func (s *adminService) CreateAdminWithRole(username, password, name, email strin
 		}
 		// For other errors, wrap with generic message
 		return nil, fmt.Errorf("failed to create admin: %v", err)
+	}
+
+	// Send welcome email asynchronously if email service is available and user has email
+	if s.emailService != nil && admin.Email != "" {
+		// Make a copy of admin data for the goroutine to avoid potential race conditions
+		adminCopy := *admin
+
+		// Send welcome email asynchronously (handled internally by email service)
+		// Use the admin's language preference for the email
+		s.emailService.SendWelcomeEmail(&adminCopy, lang)
+
+		// Log that email sending was initiated
+		utils.Info("Welcome email sending initiated for new admin",
+			"username", admin.Username,
+			"email", admin.Email,
+			"lang", lang)
 	}
 
 	return admin, nil
@@ -261,6 +296,36 @@ func (s *adminService) ChangePassword(id uint, newPassword string) error {
 	updates := map[string]interface{}{
 		"password_hash": string(passwordHash),
 	}
+	return s.adminRepo.Update(admin.ID, updates)
+}
+
+func (s *adminService) UpdateAdminLanguage(id uint, lang string) error {
+	// Validate language
+	supportedLangs := i18n.GetInstance().GetSupportedLanguages()
+	isValid := false
+	for _, supportedLang := range supportedLangs {
+		if lang == supportedLang {
+			isValid = true
+			break
+		}
+	}
+	if !isValid {
+		return fmt.Errorf("invalid language: %s", lang)
+	}
+
+	admin, err := s.adminRepo.GetByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return appErrors.ErrAdminNotFound
+		}
+		return fmt.Errorf("failed to get admin: %v", err)
+	}
+
+	// Update language preference
+	updates := map[string]interface{}{
+		"lang": lang,
+	}
+
 	return s.adminRepo.Update(admin.ID, updates)
 }
 

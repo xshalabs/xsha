@@ -510,6 +510,7 @@ func (h *ProjectHandlers) GetProjectAdmins(c *gin.Context) {
 // @Router /projects/{id}/admins [post]
 func (h *ProjectHandlers) AddAdminToProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
+	currentAdmin := middleware.GetAdminFromContext(c)
 
 	idStr := c.Param("id")
 	projectID, err := strconv.ParseUint(idStr, 10, 32)
@@ -528,7 +529,7 @@ func (h *ProjectHandlers) AddAdminToProject(c *gin.Context) {
 		return
 	}
 
-	err = h.projectService.AddAdminToProject(uint(projectID), req.AdminID)
+	err = h.projectService.AddAdminToProject(uint(projectID), req.AdminID, currentAdmin.ID, lang)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.MapErrorToI18nKey(err, lang),
@@ -556,6 +557,7 @@ func (h *ProjectHandlers) AddAdminToProject(c *gin.Context) {
 // @Router /projects/{id}/admins/{admin_id} [delete]
 func (h *ProjectHandlers) RemoveAdminFromProject(c *gin.Context) {
 	lang := middleware.GetLangFromContext(c)
+	currentAdmin := middleware.GetAdminFromContext(c)
 
 	idStr := c.Param("id")
 	projectID, err := strconv.ParseUint(idStr, 10, 32)
@@ -575,7 +577,7 @@ func (h *ProjectHandlers) RemoveAdminFromProject(c *gin.Context) {
 		return
 	}
 
-	err = h.projectService.RemoveAdminFromProject(uint(projectID), uint(adminID))
+	err = h.projectService.RemoveAdminFromProject(uint(projectID), uint(adminID), currentAdmin.ID, lang)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": i18n.MapErrorToI18nKey(err, lang),

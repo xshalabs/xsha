@@ -64,18 +64,21 @@ func main() {
 	taskConvAttachmentRepo := repository.NewTaskConversationAttachmentRepository(dbManager.GetDB())
 	systemConfigRepo := repository.NewSystemConfigRepository(dbManager.GetDB())
 	dashboardRepo := repository.NewDashboardRepository(dbManager.GetDB())
+	notifierRepo := repository.NewNotifierRepository(dbManager.GetDB())
 
 	// Initialize services
 	loginLogService := services.NewLoginLogService(loginLogRepo)
 	adminOperationLogService := services.NewAdminOperationLogService(adminOperationLogRepo)
 	adminService := services.NewAdminService(adminRepo)
 	adminAvatarService := services.NewAdminAvatarService(adminAvatarRepo, adminRepo, cfg)
-	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, adminService, adminRepo, cfg)
+	systemConfigService := services.NewSystemConfigService(systemConfigRepo)
+	emailService := services.NewEmailService(systemConfigService)
+	notifierService := services.NewNotifierService(notifierRepo, projectRepo)
+	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, adminService, adminRepo, emailService, cfg)
 
 	// Set up circular dependency - adminService needs authService for session invalidation
 	adminService.SetAuthService(authService)
 	gitCredService := services.NewGitCredentialService(gitCredRepo, projectRepo, cfg)
-	systemConfigService := services.NewSystemConfigService(systemConfigRepo)
 	dashboardService := services.NewDashboardService(dashboardRepo)
 
 	// Get git clone timeout from system config
@@ -102,6 +105,11 @@ func main() {
 	adminService.SetProjectService(projectService)
 	adminService.SetTaskService(taskService)
 	adminService.SetTaskConversationService(taskConvService)
+	adminService.SetEmailService(emailService)
+
+	// Set up dependencies for projectService
+	projectService.SetEmailService(emailService)
+	projectService.SetAdminService(adminService)
 
 	// Create shared execution manager
 	maxConcurrency := 5
@@ -111,7 +119,7 @@ func main() {
 	executionManager := executor.NewExecutionManager(maxConcurrency)
 
 	// Initialize services with shared execution manager
-	aiTaskExecutor := executor.NewAITaskExecutorServiceWithManager(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, gitCredService, taskConvResultService, taskService, systemConfigService, taskConvAttachmentService, cfg, executionManager)
+	aiTaskExecutor := executor.NewAITaskExecutorServiceWithManager(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, adminRepo, gitCredService, taskConvResultService, taskService, systemConfigService, taskConvAttachmentService, emailService, notifierService, cfg, executionManager)
 	logStreamingService := executor.NewLogStreamingService(taskConvRepo, execLogRepo, executionManager)
 
 	// Initialize scheduler
@@ -119,7 +127,7 @@ func main() {
 	schedulerManager := scheduler.NewSchedulerManager(taskProcessor, cfg.SchedulerIntervalDuration)
 
 	// Initialize handlers
-	authHandlers := handlers.NewAuthHandlers(authService, loginLogService, adminService, adminAvatarService)
+	authHandlers := handlers.NewAuthHandlers(authService, loginLogService, adminService, adminAvatarService, emailService)
 	adminHandlers := handlers.NewAdminHandlers(adminService)
 	adminAvatarHandlers := handlers.NewAdminAvatarHandlers(adminAvatarService, adminService)
 	adminOperationLogHandlers := handlers.NewAdminOperationLogHandlers(adminOperationLogService)
@@ -131,6 +139,7 @@ func main() {
 	taskConvAttachmentHandlers := handlers.NewTaskConversationAttachmentHandlers(taskConvAttachmentService)
 	systemConfigHandlers := handlers.NewSystemConfigHandlers(systemConfigService)
 	dashboardHandlers := handlers.NewDashboardHandlers(dashboardService)
+	notifierHandlers := handlers.NewNotifierHandlers(notifierService, projectService)
 
 	// Set gin mode
 	if cfg.Environment == "production" {
@@ -177,7 +186,7 @@ func main() {
 	}
 
 	// Setup routes - Pass all handler instances including static files
-	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, adminAvatarHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, &StaticFiles)
+	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, adminAvatarHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, notifierHandlers, &StaticFiles)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

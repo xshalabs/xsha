@@ -20,8 +20,7 @@ type LoginLogService interface {
 }
 
 type AdminService interface {
-	CreateAdmin(username, password, name, email, createdBy string) (*database.Admin, error)
-	CreateAdminWithRole(username, password, name, email string, role database.AdminRole, createdBy string) (*database.Admin, error)
+	CreateAdminWithRoleAndLang(username, password, name, email, lang string, role database.AdminRole, createdBy string) (*database.Admin, error)
 	GetAdmin(id uint) (*database.Admin, error)
 	GetAdminByUsername(username string) (*database.Admin, error)
 	ListAdmins(search *string, isActive *bool, roles []string, page, pageSize int) ([]database.Admin, int64, error)
@@ -29,6 +28,7 @@ type AdminService interface {
 	UpdateAdminRole(id uint, role database.AdminRole) error
 	DeleteAdmin(id uint) error
 	ChangePassword(id uint, newPassword string) error
+	UpdateAdminLanguage(id uint, lang string) error
 	ValidateCredentials(username, password string) (*database.Admin, error)
 	InitializeDefaultAdmin() error
 	SetAuthService(authService AuthService)
@@ -37,6 +37,7 @@ type AdminService interface {
 	SetProjectService(projectService ProjectService)
 	SetTaskService(taskService TaskService)
 	SetTaskConversationService(taskConvService TaskConversationService)
+	SetEmailService(emailService EmailService)
 	HasPermission(admin *database.Admin, resource, action string, resourceId uint) bool
 }
 
@@ -75,11 +76,15 @@ type ProjectService interface {
 	// Admin management methods
 	GetProjectWithAdmins(id uint) (*database.Project, error)
 	ListProjectsByAdminAccess(adminID uint, name string, protocol *database.GitProtocolType, sortBy, sortDirection string, page, pageSize int) (interface{}, int64, error)
-	AddAdminToProject(projectID, adminID uint) error
-	RemoveAdminFromProject(projectID, adminID uint) error
+	AddAdminToProject(projectID, adminID uint, actionByAdminID uint, lang string) error
+	RemoveAdminFromProject(projectID, adminID uint, actionByAdminID uint, lang string) error
 	GetProjectAdmins(projectID uint) ([]database.Admin, error)
 	CanAdminAccessProject(projectID, adminID uint) (bool, error)
 	IsOwner(projectID, adminID uint) (bool, error)
+
+	// Dependency injection methods
+	SetEmailService(emailService EmailService)
+	SetAdminService(adminService AdminService)
 }
 
 type AdminOperationLogService interface {
@@ -169,16 +174,17 @@ type ConfigUpdateItem struct {
 }
 
 type SystemConfigService interface {
-	ListAllConfigs() ([]database.SystemConfig, error)
+	ListAllConfigsWithTranslation(lang string) ([]database.SystemConfig, error)
 	BatchUpdateConfigs(configs []ConfigUpdateItem) error
 	GetValue(key string) (string, error)
-	SetValue(key, value string) error
+	GetValuesByKeys(keys []string) (map[string]string, error)
 	InitializeDefaultConfigs() error
 	ValidateConfigData(key, value, category string) error
 	GetGitProxyConfig() (*utils.GitProxyConfig, error)
 	GetGitCloneTimeout() (time.Duration, error)
 	GetGitSSLVerify() (bool, error)
 	GetDockerTimeout() (time.Duration, error)
+	GetSMTPEnabled() (bool, error)
 }
 
 type DashboardService interface {
@@ -213,4 +219,35 @@ type AdminAvatarService interface {
 	GetAvatarStorageDir() string
 	GenerateAvatarFileName(originalName string) string
 	GetFullAvatarPath(relativePath string) string
+}
+
+type EmailService interface {
+	SendWelcomeEmail(admin *database.Admin, lang string) error
+	SendLoginNotificationEmail(admin *database.Admin, clientIP, userAgent, lang string) error
+	SendPasswordChangeEmail(admin *database.Admin, clientIP, userAgent, lang string) error
+	SendTaskConversationCompletedEmail(admin *database.Admin, task *database.Task, conversation *database.TaskConversation, status database.ConversationStatus, completionTime time.Time, errorMsg string, lang string) error
+	SendProjectAdminAddedEmail(admin *database.Admin, project *database.Project, actionByAdmin *database.Admin, lang string) error
+	SendProjectAdminRemovedEmail(admin *database.Admin, project *database.Project, actionByAdmin *database.Admin, lang string) error
+}
+
+type NotifierService interface {
+	// CRUD operations with permission checks
+	CreateNotifier(name, description string, notifierType database.NotifierType, config map[string]interface{}, admin *database.Admin) (*database.Notifier, error)
+	GetNotifier(id uint, admin *database.Admin) (*database.Notifier, error)
+	ListNotifiers(admin *database.Admin, name *string, notifierTypes []database.NotifierType, isEnabled *bool, page, pageSize int) ([]database.NotifierListItemResponse, int64, error)
+	UpdateNotifier(id uint, updates map[string]interface{}, admin *database.Admin) error
+	DeleteNotifier(id uint, admin *database.Admin) error
+	TestNotifier(id uint, admin *database.Admin) error
+
+	// Project association methods
+	AddNotifierToProject(projectID, notifierID uint, admin *database.Admin) error
+	RemoveNotifierFromProject(projectID, notifierID uint, admin *database.Admin) error
+	GetProjectNotifiers(projectID uint) ([]database.NotifierListItemResponse, error)
+
+	// Notification sending
+	SendNotificationForTask(task *database.Task, conversation *database.TaskConversation, status database.ConversationStatus, completionTime time.Time, errorMsg string, adminLang string) error
+
+	// Permission helpers
+	CanAdminAccessNotifier(notifierID uint, admin *database.Admin) (bool, error)
+	IsNotifierOwner(notifierID uint, admin *database.Admin) (bool, error)
 }

@@ -68,7 +68,7 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 	}
 
 	// AutoMigrate all tables first to create the base structure
-	if err := db.AutoMigrate(&Migration{}, &TokenBlacklistV2{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}, &AdminAvatar{}); err != nil {
+	if err := db.AutoMigrate(&Migration{}, &TokenBlacklistV2{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}, &AdminAvatar{}, &Notifier{}); err != nil {
 		return nil, err
 	}
 
