@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	"xsha-backend/database"
 )
 
 // WeChatWorkProvider implements NotificationProvider for WeChat Work webhook
@@ -65,9 +64,9 @@ func (p *WeChatWorkProvider) ValidateConfig(config map[string]interface{}) error
 }
 
 // Send sends a notification message via WeChat Work webhook
-func (p *WeChatWorkProvider) Send(title, content, projectName string, status database.ConversationStatus, lang string) error {
+func (p *WeChatWorkProvider) Send(ctx *NotificationContext) error {
 	// Format message content using localized helper
-	message := FormatNotificationMessage(title, content, projectName, status, lang)
+	message := FormatNotificationMessage(ctx.Title, ctx.Content, ctx.ProjectName, ctx.Status, ctx.Lang)
 
 	// Create message payload
 	payload := WeChatTextMessage{

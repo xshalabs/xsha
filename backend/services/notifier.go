@@ -337,8 +337,21 @@ func (s *notifierService) sendSingleNotification(notifier database.Notifier, tas
 		content += fmt.Sprintf("\n\nError: %s", errorMsg)
 	}
 
+	// Create notification context
+	ctx := &notifiers.NotificationContext{
+		Title:       title,
+		Content:     content,
+		ProjectName: projectName,
+		Status:      status,
+		Lang:        adminLang,
+		ProjectID:   task.ProjectID,
+		TaskID:      task.ID,
+		ConvID:      conversation.ID,
+		Timestamp:   completionTime,
+	}
+
 	// Send notification
-	return provider.Send(title, content, projectName, status, adminLang)
+	return provider.Send(ctx)
 }
 
 // Permission helpers

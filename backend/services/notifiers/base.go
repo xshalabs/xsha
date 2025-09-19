@@ -7,10 +7,28 @@ import (
 	"xsha-backend/i18n"
 )
 
+// NotificationContext contains all notification parameters
+type NotificationContext struct {
+	// Basic information
+	Title       string
+	Content     string
+	ProjectName string
+	Status      database.ConversationStatus
+	Lang        string
+
+	// ID information
+	ProjectID uint
+	TaskID    uint
+	ConvID    uint
+
+	// Time information
+	Timestamp time.Time
+}
+
 // NotificationProvider defines the interface that all notification providers must implement
 type NotificationProvider interface {
 	// Send sends a notification message
-	Send(title, content, projectName string, status database.ConversationStatus, lang string) error
+	Send(ctx *NotificationContext) error
 
 	// Test sends a test notification to verify the configuration
 	Test(lang string) error

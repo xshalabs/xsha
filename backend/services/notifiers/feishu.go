@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	"xsha-backend/database"
 )
 
 // FeishuProvider implements NotificationProvider for Feishu webhook
@@ -75,9 +74,9 @@ func (p *FeishuProvider) ValidateConfig(config map[string]interface{}) error {
 }
 
 // Send sends a notification message via Feishu webhook
-func (p *FeishuProvider) Send(title, content, projectName string, status database.ConversationStatus, lang string) error {
+func (p *FeishuProvider) Send(ctx *NotificationContext) error {
 	// Format message content using localized helper
-	message := FormatNotificationMessage(title, content, projectName, status, lang)
+	message := FormatNotificationMessage(ctx.Title, ctx.Content, ctx.ProjectName, ctx.Status, ctx.Lang)
 
 	// Create message payload
 	payload := FeishuTextMessage{

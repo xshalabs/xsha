@@ -83,9 +83,9 @@ func (p *SlackProvider) ValidateConfig(config map[string]interface{}) error {
 }
 
 // Send sends a notification message via Slack webhook
-func (p *SlackProvider) Send(title, content, projectName string, status database.ConversationStatus, lang string) error {
+func (p *SlackProvider) Send(ctx *NotificationContext) error {
 	// Create message payload with rich formatting
-	payload := p.createMessage(title, content, projectName, status, lang)
+	payload := p.createMessage(ctx.Title, ctx.Content, ctx.ProjectName, ctx.Status, ctx.Lang)
 
 	return p.sendMessage(payload)
 }

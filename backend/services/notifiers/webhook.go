@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"xsha-backend/database"
 	"xsha-backend/i18n"
 )
 
@@ -43,6 +42,10 @@ func NewWebhookProvider(config map[string]interface{}) (*WebhookProvider, error)
 		bodyTemplate = `{
 			"title": "{{.Title}}",
 			"content": "{{.Content}}",
+			"project_name": "{{.ProjectName}}",
+			"project_id": {{.ProjectID}},
+			"task_id": {{.TaskID}},
+			"conv_id": {{.ConvID}},
 			"status": "{{.Status}}",
 			"timestamp": "{{.Timestamp}}"
 		}`
@@ -111,7 +114,7 @@ func (p *WebhookProvider) ValidateConfig(config map[string]interface{}) error {
 }
 
 // Send sends a notification message via generic webhook
-func (p *WebhookProvider) Send(title, content, projectName string, status database.ConversationStatus, lang string) error {
+func (p *WebhookProvider) Send(ctx *NotificationContext) error {
 	// Prepare template data
 	data := struct {
 		Title       string
@@ -119,16 +122,22 @@ func (p *WebhookProvider) Send(title, content, projectName string, status databa
 		ProjectName string
 		Status      string
 		Timestamp   string
+		ProjectID   uint
+		TaskID      uint
+		ConvID      uint
 	}{
-		Title:       title,
-		Content:     content,
-		ProjectName: projectName,
-		Status:      string(status),
-		Timestamp:   time.Now().Format(time.RFC3339),
+		Title:       ctx.Title,
+		Content:     ctx.Content,
+		ProjectName: ctx.ProjectName,
+		Status:      string(ctx.Status),
+		Timestamp:   ctx.Timestamp.Format(time.RFC3339),
+		ProjectID:   ctx.ProjectID,
+		TaskID:      ctx.TaskID,
+		ConvID:      ctx.ConvID,
 	}
 
 	// Create request body
-	body, err := p.renderTemplate(data)
+	bodyMap, err := p.renderTemplate(data)
 	if err != nil {
 		return &ProviderError{
 			Type:    "webhook",
@@ -137,7 +146,17 @@ func (p *WebhookProvider) Send(title, content, projectName string, status databa
 		}
 	}
 
-	return p.sendRequest(body)
+	// Serialize to JSON string
+	bodyBytes, err := json.Marshal(bodyMap)
+	if err != nil {
+		return &ProviderError{
+			Type:    "webhook",
+			Message: "failed to serialize body to JSON",
+			Err:     err,
+		}
+	}
+
+	return p.sendRequest(string(bodyBytes))
 }
 
 // Test sends a test notification
@@ -149,16 +168,22 @@ func (p *WebhookProvider) Test(lang string) error {
 		ProjectName string
 		Status      string
 		Timestamp   string
+		ProjectID   uint
+		TaskID      uint
+		ConvID      uint
 	}{
 		Title:       i18n.T(lang, "notification.test_message"),
 		Content:     i18n.T(lang, "notification.test_message"),
 		ProjectName: "Test Project",
 		Status:      "test",
 		Timestamp:   time.Now().Format(time.RFC3339),
+		ProjectID:   0,
+		TaskID:      0,
+		ConvID:      0,
 	}
 
 	// Create request body
-	body, err := p.renderTemplate(data)
+	bodyMap, err := p.renderTemplate(data)
 	if err != nil {
 		return &ProviderError{
 			Type:    "webhook",
@@ -167,7 +192,17 @@ func (p *WebhookProvider) Test(lang string) error {
 		}
 	}
 
-	return p.sendRequest(body)
+	// Serialize to JSON string
+	bodyBytes, err := json.Marshal(bodyMap)
+	if err != nil {
+		return &ProviderError{
+			Type:    "webhook",
+			Message: "failed to serialize body to JSON",
+			Err:     err,
+		}
+	}
+
+	return p.sendRequest(string(bodyBytes))
 }
 
 // sendRequest sends the actual HTTP request to the webhook
@@ -221,28 +256,66 @@ func (p *WebhookProvider) sendRequest(body string) error {
 }
 
 // renderTemplate renders the body template with the provided data
-func (p *WebhookProvider) renderTemplate(data interface{}) (string, error) {
-	// Simple template replacement (for more complex templating, consider using text/template)
-	template := p.bodyTemplate
-
-	// Convert data to JSON for simple replacement
+func (p *WebhookProvider) renderTemplate(data interface{}) (map[string]interface{}, error) {
+	// Convert data to map for easier processing
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	var dataMap map[string]interface{}
 	if err := json.Unmarshal(jsonData, &dataMap); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	// Replace placeholders
-	result := template
+	// Build default message structure
+	defaultMessage := map[string]interface{}{
+		"title":        dataMap["Title"],
+		"content":      dataMap["Content"],
+		"project_name": dataMap["ProjectName"],
+		"project_id":   dataMap["ProjectID"],
+		"task_id":      dataMap["TaskID"],
+		"conv_id":      dataMap["ConvID"],
+		"status":       dataMap["Status"],
+		"timestamp":    dataMap["Timestamp"],
+	}
+
+	// If no custom body template, return default structure
+	if p.bodyTemplate == "" {
+		return defaultMessage, nil
+	}
+
+	// Try to parse custom body template as JSON
+	var customTemplate map[string]interface{}
+
+	// First, try to render template placeholders
+	renderedTemplate := p.bodyTemplate
 	for key, value := range dataMap {
 		placeholder := fmt.Sprintf("{{.%s}}", key)
 		if str, ok := value.(string); ok {
-			result = strings.ReplaceAll(result, placeholder, str)
+			renderedTemplate = strings.ReplaceAll(renderedTemplate, placeholder, str)
 		}
+	}
+
+	// Parse rendered template as JSON
+	if err := json.Unmarshal([]byte(renderedTemplate), &customTemplate); err != nil {
+		// If custom template is invalid JSON, log warning and use default
+		fmt.Printf("Warning: Invalid JSON in body_template, using default structure: %v\n", err)
+		return defaultMessage, nil
+	}
+
+	// Merge custom template with default message
+	// Custom fields override default fields
+	result := make(map[string]interface{})
+
+	// Start with default message
+	for key, value := range defaultMessage {
+		result[key] = value
+	}
+
+	// Override with custom template values
+	for key, value := range customTemplate {
+		result[key] = value
 	}
 
 	return result, nil
