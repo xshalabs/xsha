@@ -574,7 +574,7 @@ type MCP struct {
 	CreatedBy string `gorm:"not null;index" json:"created_by"`
 
 	// Many-to-many relationships
-	Projects []Project       `gorm:"many2many:mcp_projects;" json:"projects,omitempty"`
+	Projects        []Project        `gorm:"many2many:mcp_projects;" json:"projects,omitempty"`
 	DevEnvironments []DevEnvironment `gorm:"many2many:mcp_environments;" json:"environments,omitempty"`
 }
 

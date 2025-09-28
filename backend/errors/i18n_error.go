@@ -142,5 +142,5 @@ var (
 
 	// General errors
 	ErrInsufficientPermissions = &I18nError{Key: "auth.insufficient_permissions"}
-	ErrInvalidInput           = &I18nError{Key: "validation.invalid_format"}
+	ErrInvalidInput            = &I18nError{Key: "validation.invalid_format"}
 )

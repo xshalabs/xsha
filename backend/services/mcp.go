@@ -9,16 +9,16 @@ import (
 )
 
 type mcpService struct {
-	repo repository.MCPRepository
+	repo        repository.MCPRepository
 	projectRepo repository.ProjectRepository
-	devEnvRepo repository.DevEnvironmentRepository
+	devEnvRepo  repository.DevEnvironmentRepository
 }
 
 func NewMCPService(repo repository.MCPRepository, projectRepo repository.ProjectRepository, devEnvRepo repository.DevEnvironmentRepository) MCPService {
 	return &mcpService{
-		repo: repo,
+		repo:        repo,
 		projectRepo: projectRepo,
-		devEnvRepo: devEnvRepo,
+		devEnvRepo:  devEnvRepo,
 	}
 }
 
@@ -343,10 +343,10 @@ func (s *mcpService) ValidateMCPName(name string) error {
 	// Pattern: ^[a-zA-Z0-9_-]+$
 	for _, char := range name {
 		if !((char >= 'a' && char <= 'z') ||
-			 (char >= 'A' && char <= 'Z') ||
-			 (char >= '0' && char <= '9') ||
-			 char == '_' ||
-			 char == '-') {
+			(char >= 'A' && char <= 'Z') ||
+			(char >= '0' && char <= '9') ||
+			char == '_' ||
+			char == '-') {
 			return appErrors.ErrMCPNameInvalidFormat
 		}
 	}
