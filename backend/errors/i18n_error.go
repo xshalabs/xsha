@@ -137,6 +137,9 @@ var (
 	// Git credential errors that might be missing
 	ErrCredentialNotFound = &I18nError{Key: "git_credential.not_found"}
 
+	// MCP errors
+	ErrMCPNameInvalidFormat = &I18nError{Key: "mcp.name_invalid_format"}
+
 	// General errors
 	ErrInsufficientPermissions = &I18nError{Key: "auth.insufficient_permissions"}
 	ErrInvalidInput           = &I18nError{Key: "validation.invalid_format"}

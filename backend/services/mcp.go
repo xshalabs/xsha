@@ -30,9 +30,9 @@ func (s *mcpService) CreateMCP(name, description, config string, enabled bool, a
 		return nil, appErrors.ErrInsufficientPermissions
 	}
 
-	// Validate MCP name
-	if name == "" {
-		return nil, appErrors.ErrInvalidInput
+	// Validate MCP name format
+	if err := s.ValidateMCPName(name); err != nil {
+		return nil, err
 	}
 
 	// Check if name already exists
@@ -143,9 +143,16 @@ func (s *mcpService) UpdateMCP(id uint, updates map[string]interface{}, admin *d
 		}
 	}
 
-	// Check if name is being updated and validate uniqueness
+	// Check if name is being updated and validate format and uniqueness
 	if name, exists := updates["name"]; exists {
 		nameStr := name.(string)
+
+		// Validate name format
+		if err := s.ValidateMCPName(nameStr); err != nil {
+			return err
+		}
+
+		// Check uniqueness if name is different
 		if nameStr != mcp.Name {
 			if existing, _ := s.repo.GetByName(nameStr); existing != nil && existing.ID != id {
 				return fmt.Errorf("MCP with name '%s' already exists", nameStr)
@@ -323,6 +330,27 @@ func (s *mcpService) ValidateMCPConfig(config string) error {
 	}
 
 	// Additional validation can be added here based on MCP requirements
+	return nil
+}
+
+// ValidateMCPName validates the format of MCP name
+func (s *mcpService) ValidateMCPName(name string) error {
+	if name == "" {
+		return appErrors.ErrInvalidInput
+	}
+
+	// Validate name format: only allow English letters, numbers, underscore, and hyphen
+	// Pattern: ^[a-zA-Z0-9_-]+$
+	for _, char := range name {
+		if !((char >= 'a' && char <= 'z') ||
+			 (char >= 'A' && char <= 'Z') ||
+			 (char >= '0' && char <= '9') ||
+			 char == '_' ||
+			 char == '-') {
+			return appErrors.ErrMCPNameInvalidFormat
+		}
+	}
+
 	return nil
 }
 

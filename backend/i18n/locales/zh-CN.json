@@ -276,6 +276,7 @@
   "mcp.delete_success": "MCP删除成功",
   "mcp.not_found": "MCP配置不存在",
   "mcp.name_exists": "MCP名称已存在",
+  "mcp.name_invalid_format": "MCP名称只能包含字母、数字、下划线和连字符",
   "mcp.invalid_config": "无效的MCP配置",
   "mcp.config_required": "MCP配置是必需的",
   "mcp.associate_project_success": "MCP成功关联到项目",

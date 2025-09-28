@@ -276,6 +276,7 @@
   "mcp.delete_success": "MCP deleted successfully",
   "mcp.not_found": "MCP configuration not found",
   "mcp.name_exists": "MCP name already exists",
+  "mcp.name_invalid_format": "MCP name can only contain letters, numbers, underscore and hyphen",
   "mcp.invalid_config": "Invalid MCP configuration",
   "mcp.config_required": "MCP configuration is required",
   "mcp.associate_project_success": "MCP successfully associated with project",

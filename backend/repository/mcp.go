@@ -107,7 +107,21 @@ func (r *mcpRepository) Update(mcp *database.MCP) error {
 }
 
 func (r *mcpRepository) Delete(id uint) error {
-	return r.db.Where("id = ?", id).Delete(&database.MCP{}).Error
+	// Use transaction to ensure atomicity
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// Delete all project relationships first
+		if err := tx.Exec("DELETE FROM mcp_projects WHERE mcp_id = ?", id).Error; err != nil {
+			return err
+		}
+
+		// Delete all environment relationships
+		if err := tx.Exec("DELETE FROM mcp_environments WHERE mcp_id = ?", id).Error; err != nil {
+			return err
+		}
+
+		// Hard delete the MCP record (not soft delete)
+		return tx.Unscoped().Where("id = ?", id).Delete(&database.MCP{}).Error
+	})
 }
 
 // Project association methods

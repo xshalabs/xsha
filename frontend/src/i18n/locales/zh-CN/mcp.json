@@ -68,6 +68,7 @@
     },
     "validation": {
       "invalidJson": "无效的 JSON 格式",
+      "invalidFormat": "名称只能包含字母、数字、下划线(_)和连字符(-)",
       "configRequired": "配置是必需的"
     },
     "submit": "保存",
@@ -100,7 +101,6 @@
     "title": "创建新的 MCP",
     "description": "选择模板快速配置您的模型上下文协议集成。",
     "learnMore": "了解更多",
-    "comingSoon": "即将推出",
     "contactUs": "联系我们",
     "categories": {
       "aitools": "AI 工具",

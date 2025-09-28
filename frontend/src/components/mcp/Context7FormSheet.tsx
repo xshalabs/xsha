@@ -20,7 +20,7 @@ import {
   generateContext7Config,
   type Context7Config,
 } from "@/lib/mcp/templateGenerators";
-import { logError } from "@/lib/errors";
+import { logError, handleApiError } from "@/lib/errors";
 import { toast } from "sonner";
 
 interface Context7FormSheetProps {
@@ -136,7 +136,8 @@ export function Context7FormSheet({
       onClose();
     } catch (error) {
       logError(error, "Failed to create Context7 MCP configuration");
-      setError(t("mcp.errors.createFailed"));
+      const errorMessage = handleApiError(error);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -278,9 +279,6 @@ export function Context7FormSheet({
         </FormCardGroup>
 
         <FormSheetFooter>
-          <Button variant="outline" onClick={onClose} disabled={loading}>
-            {t("mcp.form.cancel")}
-          </Button>
           <Button type="submit" disabled={loading} onClick={handleSubmit}>
             {loading
               ? t("mcp.form.submitting")

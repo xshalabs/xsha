@@ -31,27 +31,11 @@ export function MCPTemplateCard({ template, onClick }: MCPTemplateCardProps) {
     >
       <CardContent className="px-3 py-1">
         <div className="flex items-center gap-2">
-          {/* Title and Badge */}
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <h3 className="font-medium text-sm truncate">{template.name}</h3>
-            {template.comingSoon && (
-              <Badge variant="secondary" className="text-xs flex-shrink-0">
-                {t("mcp.templates.comingSoon")}
-              </Badge>
-            )}
           </div>
         </div>
 
-        {/* Coming Soon Overlay */}
-        {template.comingSoon && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/90 rounded-lg">
-            <div className="text-center">
-              <p className="text-xs font-medium text-muted-foreground">
-                {t("mcp.templates.comingSoon")}
-              </p>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

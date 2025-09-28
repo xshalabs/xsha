@@ -60,6 +60,7 @@ export function MCPFormSheet({
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // The hook will handle errors internally and set error state for display
     await onFormSubmit();
   };
 

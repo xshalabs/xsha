@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { apiService } from "@/lib/api/index";
-import { logError } from "@/lib/errors";
+import { logError, ApiError, handleApiError } from "@/lib/errors";
 import type { MCP, MCPFormData } from "@/types/mcp";
 
 interface UseMCPFormOptions {
@@ -100,6 +100,12 @@ export function useMCPForm({ mcp, onSubmit }: UseMCPFormOptions) {
     // Validate basic fields
     if (!formData.name.trim()) {
       newErrors.name = t("mcp.form.fields.name.required");
+    } else {
+      // Validate name format: only allow letters, numbers, underscore, and hyphen
+      const namePattern = /^[a-zA-Z0-9_-]+$/;
+      if (!namePattern.test(formData.name.trim())) {
+        newErrors.name = t("mcp.form.validation.invalidFormat");
+      }
     }
 
     if (!formData.config.trim()) {
@@ -156,8 +162,10 @@ export function useMCPForm({ mcp, onSubmit }: UseMCPFormOptions) {
       }
     } catch (error) {
       logError(error, "Failed to save MCP configuration");
-      setError(t("mcp.errors.saveFailed"));
-      throw error; // Re-throw to let caller handle
+
+      // Extract the actual error message from the server response
+      const errorMessage = handleApiError(error);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -68,6 +68,7 @@
     },
     "validation": {
       "invalidJson": "Invalid JSON format",
+      "invalidFormat": "Name can only contain letters, numbers, underscore (_) and hyphen (-)",
       "configRequired": "Configuration is required"
     },
     "submit": "Save",
@@ -100,7 +101,6 @@
     "title": "Create a new MCP",
     "description": "Choose a template to quickly configure your Model Context Protocol integration.",
     "learnMore": "Learn more",
-    "comingSoon": "Coming Soon",
     "contactUs": "Contact us",
     "categories": {
       "aitools": "AI Tools",

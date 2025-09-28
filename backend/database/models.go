@@ -560,10 +560,9 @@ type EnvironmentListItemResponse struct {
 }
 
 type MCP struct {
-	ID        uint           `gorm:"primarykey" json:"id"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	ID        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 
 	Name        string `gorm:"not null;uniqueIndex" json:"name"`
 	Description string `gorm:"type:text" json:"description"`
