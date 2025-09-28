@@ -16,7 +16,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, adminService services.AdminService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, adminAvatarHandlers *handlers.AdminAvatarHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, notifierHandlers *handlers.NotifierHandlers, staticFiles *embed.FS) {
+func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, adminService services.AdminService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, adminAvatarHandlers *handlers.AdminAvatarHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, notifierHandlers *handlers.NotifierHandlers, mcpHandlers *handlers.MCPHandlers, staticFiles *embed.FS) {
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
 	r.NoMethod(middleware.MethodNotAllowedHandler())
@@ -87,6 +87,15 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			devEnvs.GET("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.GetEnvironmentAdmins)
 			devEnvs.POST("/:id/admins", middleware.RequirePermission("environment", "update"), devEnvHandlers.AddAdminToEnvironment)
 			devEnvs.DELETE("/:id/admins/:admin_id", middleware.RequirePermission("environment", "update"), devEnvHandlers.RemoveAdminFromEnvironment)
+
+			// Environment MCP routes
+			envMCPs := devEnvs.Group("/:id/mcp")
+			envMCPs.Use(middleware.RequirePermission("environment", "read"))
+			{
+				envMCPs.GET("", mcpHandlers.GetEnvironmentMCPs)
+				envMCPs.POST("", middleware.RequirePermission("environment", "update"), mcpHandlers.AddMCPToEnvironment)
+				envMCPs.DELETE("/:mcp_id", middleware.RequirePermission("environment", "update"), mcpHandlers.RemoveMCPFromEnvironment)
+			}
 		}
 
 		gitCreds := api.Group("/credentials")
@@ -164,6 +173,15 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 				projectNotifiers.POST("", notifierHandlers.AddNotifierToProject)
 				projectNotifiers.DELETE("/:notifier_id", notifierHandlers.RemoveNotifierFromProject)
 			}
+
+			// Project MCP routes
+			projectMCPs := projects.Group("/:id/mcp")
+			projectMCPs.Use(middleware.RequirePermission("project", "read"))
+			{
+				projectMCPs.GET("", mcpHandlers.GetProjectMCPs)
+				projectMCPs.POST("", middleware.RequirePermission("project", "update"), mcpHandlers.AddMCPToProject)
+				projectMCPs.DELETE("/:mcp_id", middleware.RequirePermission("project", "update"), mcpHandlers.RemoveMCPFromProject)
+			}
 		}
 
 		// Notifier management routes
@@ -176,6 +194,20 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			notifiers.PUT("/:id", middleware.RequireAdminOrSuperAdmin(), notifierHandlers.UpdateNotifier)
 			notifiers.DELETE("/:id", middleware.RequireAdminOrSuperAdmin(), notifierHandlers.DeleteNotifier)
 			notifiers.POST("/:id/test", middleware.RequireAdminOrSuperAdmin(), notifierHandlers.TestNotifier)
+		}
+
+		// MCP management routes
+		mcps := api.Group("/mcp")
+		{
+			mcps.GET("", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.ListMCPs)
+			mcps.POST("", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.CreateMCP)
+			mcps.GET("/:id", middleware.RequirePermission("mcp", "read"), mcpHandlers.GetMCP)
+			mcps.PUT("/:id", middleware.RequirePermission("mcp", "update"), mcpHandlers.UpdateMCP)
+			mcps.DELETE("/:id", middleware.RequirePermission("mcp", "delete"), mcpHandlers.DeleteMCP)
+
+			// MCP association routes
+			mcps.GET("/:id/projects", middleware.RequirePermission("mcp", "read"), mcpHandlers.GetMCPProjects)
+			mcps.GET("/:id/environments", middleware.RequirePermission("mcp", "read"), mcpHandlers.GetMCPEnvironments)
 		}
 	}
 

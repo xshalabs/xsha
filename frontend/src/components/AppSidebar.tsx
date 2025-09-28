@@ -6,6 +6,7 @@ import {
   Key,
   Container,
   Bell,
+  Settings2,
   Cog,
   Shield,
   TrendingUp,
@@ -31,7 +32,7 @@ import {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { t } = useTranslation();
-  const { canViewLogs, canAccessAdminPanel, canAccessSettings, canCreateNotifier } = usePermissions();
+  const { canViewLogs, canAccessAdminPanel, canAccessSettings, canCreateNotifier, canCreateMCP } = usePermissions();
 
   const data = {
     navGroups: [
@@ -58,6 +59,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/environments",
             icon: Container,
           },
+          ...(canCreateMCP ? [{
+            title: t("navigation.mcp"),
+            url: "/mcp",
+            icon: Settings2,
+          }] : []),
         ],
       },
       // Only show logs section for super admins

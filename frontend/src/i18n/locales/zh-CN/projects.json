@@ -82,5 +82,19 @@
     "removed_success": "通知器 {{name}} 成功从项目中移除",
     "confirm_remove_title": "确认移除通知器",
     "confirm_remove_description": "确定要将 {{notifierName}} 从 {{projectName}} 中移除吗？"
+  },
+  "mcp": {
+    "manage": "管理 MCP",
+    "manage_title": "管理项目 MCP",
+    "manage_description": "管理项目 {{name}} 的模型上下文协议配置",
+    "add_mcp": "添加 MCP",
+    "current_mcps": "当前 MCP",
+    "select_mcp": "请选择要添加的 MCP",
+    "select_placeholder": "选择要添加的 MCP",
+    "no_mcps": "此项目未分配 MCP",
+    "added_success": "MCP 成功添加到项目",
+    "removed_success": "MCP {{name}} 成功从项目中移除",
+    "confirm_remove_title": "确认移除 MCP",
+    "confirm_remove_description": "确定要将 {{mcpName}} 从 {{projectName}} 中移除吗？"
   }
 }

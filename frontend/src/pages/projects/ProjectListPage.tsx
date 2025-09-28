@@ -38,6 +38,7 @@ import { FormCard, FormCardContent } from "@/components/forms/form-card";
 import { ProjectFormSheet } from "@/components/ProjectFormSheet";
 import { AdminManagementSheet } from "@/components/projects/AdminManagementSheet";
 import { NotifierManagementSheet } from "@/components/projects/NotifierManagementSheet";
+import { MCPManagementSheet } from "@/components/projects/MCPManagementSheet";
 
 import { createProjectColumns } from "@/components/data-table/projects/columns";
 import { ProjectDataTableToolbar } from "@/components/data-table/projects/data-table-toolbar";
@@ -68,6 +69,7 @@ const ProjectListPage: React.FC = () => {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [managingProject, setManagingProject] = useState<Project | null>(null);
   const [managingProjectForNotifiers, setManagingProjectForNotifiers] = useState<Project | null>(null);
+  const [managingProjectForMCPs, setManagingProjectForMCPs] = useState<Project | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add request deduplication
@@ -325,6 +327,13 @@ const ProjectListPage: React.FC = () => {
     []
   );
 
+  const handleManageMCPs = useCallback(
+    (project: Project) => {
+      setManagingProjectForMCPs(project);
+    },
+    []
+  );
+
   // Sheet handlers
   const handleCreateProject = async (project: Project) => {
     try {
@@ -383,10 +392,11 @@ const ProjectListPage: React.FC = () => {
         onKanban: handleKanban,
         onManageAdmins: handleManageAdmins,
         onManageNotifiers: handleManageNotifiers,
+        onManageMCPs: handleManageMCPs,
         canEditProject,
         canDeleteProject,
       }),
-    [t, handleEdit, handleDelete, handleKanban, handleManageAdmins, handleManageNotifiers, canEditProject, canDeleteProject]
+    [t, handleEdit, handleDelete, handleKanban, handleManageAdmins, handleManageNotifiers, handleManageMCPs, canEditProject, canDeleteProject]
   );
 
   return (
@@ -531,6 +541,23 @@ const ProjectListPage: React.FC = () => {
             }
           }}
           onNotifierChanged={() => {
+            // Optionally reload projects data to reflect changes
+            loadProjectsData(currentPage, columnFilters, sorting);
+          }}
+        />
+      )}
+
+      {/* MCP Management Sheet */}
+      {managingProjectForMCPs && (
+        <MCPManagementSheet
+          project={managingProjectForMCPs}
+          open={!!managingProjectForMCPs}
+          onOpenChange={(open) => {
+            if (!open) {
+              setManagingProjectForMCPs(null);
+            }
+          }}
+          onMCPChanged={() => {
             // Optionally reload projects data to reflect changes
             loadProjectsData(currentPage, columnFilters, sorting);
           }}

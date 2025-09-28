@@ -1,0 +1,99 @@
+{
+  "title": "MCP Management",
+  "description": "Manage Model Context Protocol configurations for AI tools integration",
+  "create": "Create MCP",
+  "edit": "Edit",
+  "delete": "Delete",
+  "enable": "Enable",
+  "disable": "Disable",
+  "createSuccess": "MCP configuration created successfully",
+  "updateSuccess": "MCP configuration updated successfully",
+  "deleteSuccess": "MCP configuration deleted successfully",
+  "enableSuccess": "MCP configuration enabled successfully",
+  "disableSuccess": "MCP configuration disabled successfully",
+  "loadingDetails": "Loading details...",
+  "loadDetailsSuccess": "Details loaded successfully",
+  "columns": {
+    "name": "Name",
+    "description": "Description",
+    "noDescription": "No description",
+    "status": "Status",
+    "config": "Configuration",
+    "createdBy": "Created By",
+    "created": "Created"
+  },
+  "status": {
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "search": {
+    "placeholder": "Search MCP configurations..."
+  },
+  "filters": {
+    "status": {
+      "placeholder": "All Status",
+      "all": "All Status"
+    },
+    "reset": "Reset"
+  },
+  "form": {
+    "create": {
+      "title": "Create MCP Configuration",
+      "description": "Create a new Model Context Protocol configuration"
+    },
+    "edit": {
+      "title": "Edit MCP Configuration",
+      "description": "Update MCP configuration settings"
+    },
+    "fields": {
+      "name": {
+        "label": "Name",
+        "placeholder": "Enter MCP configuration name",
+        "required": "Name is required"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Enter description (optional)"
+      },
+      "config": {
+        "label": "Configuration",
+        "placeholder": "Enter JSON configuration",
+        "required": "Configuration is required",
+        "help": "MCP server configuration in JSON format"
+      },
+      "enabled": {
+        "label": "Enabled",
+        "help": "Enable or disable this MCP configuration"
+      }
+    },
+    "validation": {
+      "invalidJson": "Invalid JSON format",
+      "configRequired": "Configuration is required"
+    },
+    "submit": "Save",
+    "cancel": "Cancel",
+    "submitting": "Saving..."
+  },
+  "errors": {
+    "loadFailed": "Failed to load MCP configurations",
+    "loadDetailsFailed": "Failed to load MCP configuration details",
+    "createFailed": "Failed to create MCP configuration",
+    "updateFailed": "Failed to update MCP configuration",
+    "deleteFailed": "Failed to delete MCP configuration",
+    "saveFailed": "Failed to save MCP configuration"
+  },
+  "projects": {
+    "title": "Associated Projects",
+    "add": "Add to Project",
+    "remove": "Remove from Project",
+    "associateSuccess": "MCP configuration associated with project successfully",
+    "disassociateSuccess": "MCP configuration removed from project successfully"
+  },
+  "environments": {
+    "title": "Associated Environments",
+    "add": "Add to Environment",
+    "remove": "Remove from Environment",
+    "associateSuccess": "MCP configuration associated with environment successfully",
+    "disassociateSuccess": "MCP configuration removed from environment successfully"
+  }
+}

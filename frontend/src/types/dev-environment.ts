@@ -1,4 +1,5 @@
 import type { Admin, AdminAvatar } from "@/lib/api/types";
+import type { EnvironmentMCPsResponse, AddMCPToEnvironmentRequest } from "./mcp";
 
 export type DevEnvironmentType = string;
 
@@ -109,3 +110,6 @@ export interface AdminInfo {
   avatar_id?: number;
   avatar?: AdminAvatar;
 }
+
+// Re-export MCP-related types for convenience
+export type { EnvironmentMCPsResponse, AddMCPToEnvironmentRequest };

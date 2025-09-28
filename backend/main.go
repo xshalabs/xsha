@@ -65,6 +65,7 @@ func main() {
 	systemConfigRepo := repository.NewSystemConfigRepository(dbManager.GetDB())
 	dashboardRepo := repository.NewDashboardRepository(dbManager.GetDB())
 	notifierRepo := repository.NewNotifierRepository(dbManager.GetDB())
+	mcpRepo := repository.NewMCPRepository(dbManager.GetDB())
 
 	// Initialize services
 	loginLogService := services.NewLoginLogService(loginLogRepo)
@@ -74,6 +75,7 @@ func main() {
 	systemConfigService := services.NewSystemConfigService(systemConfigRepo)
 	emailService := services.NewEmailService(systemConfigService)
 	notifierService := services.NewNotifierService(notifierRepo, projectRepo)
+	mcpService := services.NewMCPService(mcpRepo, projectRepo, devEnvRepo)
 	authService := services.NewAuthService(tokenRepo, loginLogRepo, adminOperationLogService, adminService, adminRepo, emailService, cfg)
 
 	// Set up circular dependency - adminService needs authService for session invalidation
@@ -106,6 +108,7 @@ func main() {
 	adminService.SetTaskService(taskService)
 	adminService.SetTaskConversationService(taskConvService)
 	adminService.SetEmailService(emailService)
+	adminService.SetMCPService(mcpService)
 
 	// Set up dependencies for projectService
 	projectService.SetEmailService(emailService)
@@ -140,6 +143,7 @@ func main() {
 	systemConfigHandlers := handlers.NewSystemConfigHandlers(systemConfigService)
 	dashboardHandlers := handlers.NewDashboardHandlers(dashboardService)
 	notifierHandlers := handlers.NewNotifierHandlers(notifierService, projectService)
+	mcpHandlers := handlers.NewMCPHandlers(mcpService)
 
 	// Set gin mode
 	if cfg.Environment == "production" {
@@ -186,7 +190,7 @@ func main() {
 	}
 
 	// Setup routes - Pass all handler instances including static files
-	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, adminAvatarHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, notifierHandlers, &StaticFiles)
+	routes.SetupRoutes(r, cfg, authService, adminService, authHandlers, adminHandlers, adminAvatarHandlers, gitCredHandlers, projectHandlers, adminOperationLogHandlers, devEnvHandlers, taskHandlers, taskConvHandlers, taskConvAttachmentHandlers, systemConfigHandlers, dashboardHandlers, notifierHandlers, mcpHandlers, &StaticFiles)
 
 	// Start scheduler
 	if err := schedulerManager.Start(); err != nil {

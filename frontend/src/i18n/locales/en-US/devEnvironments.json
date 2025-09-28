@@ -75,9 +75,23 @@
     "add_failed": "Failed to add member",
     "removed_success": "{{name}} removed successfully",
     "remove_failed": "Failed to remove member",
-    "confirm_remove_title": "Confirm Remove Member", 
+    "confirm_remove_title": "Confirm Remove Member",
     "confirm_remove_description": "Are you sure you want to remove {{adminName}} as a member from {{environmentName}}?",
     "creator": "Creator",
     "cannot_remove_creator": "Cannot remove environment creator"
+  },
+  "mcp": {
+    "manage": "Manage MCPs",
+    "manage_title": "Manage Environment MCPs",
+    "manage_description": "Manage MCP configurations for {{name}} environment",
+    "current_mcps": "Current MCPs",
+    "no_mcps": "No MCP configurations assigned",
+    "add_mcp": "Add MCP Configuration",
+    "select_placeholder": "Select an MCP configuration to add",
+    "select_mcp": "Please select an MCP configuration",
+    "added_success": "MCP configuration added successfully",
+    "removed_success": "{{name}} removed successfully",
+    "confirm_remove_title": "Confirm Remove MCP",
+    "confirm_remove_description": "Are you sure you want to remove the {{mcpName}} MCP configuration from {{environmentName}}?"
   }
 }

@@ -1,0 +1,99 @@
+{
+  "title": "MCP 管理",
+  "description": "管理模型上下文协议配置，用于 AI 工具集成",
+  "create": "创建 MCP",
+  "edit": "编辑",
+  "delete": "删除",
+  "enable": "启用",
+  "disable": "禁用",
+  "createSuccess": "MCP 配置创建成功",
+  "updateSuccess": "MCP 配置更新成功",
+  "deleteSuccess": "MCP 配置删除成功",
+  "enableSuccess": "MCP 配置启用成功",
+  "disableSuccess": "MCP 配置禁用成功",
+  "loadingDetails": "加载详情中...",
+  "loadDetailsSuccess": "详情加载成功",
+  "columns": {
+    "name": "名称",
+    "description": "描述",
+    "noDescription": "无描述",
+    "status": "状态",
+    "config": "配置",
+    "createdBy": "创建者",
+    "created": "创建时间"
+  },
+  "status": {
+    "enabled": "已启用",
+    "disabled": "已禁用"
+  },
+  "search": {
+    "placeholder": "搜索 MCP 配置..."
+  },
+  "filters": {
+    "status": {
+      "placeholder": "所有状态",
+      "all": "所有状态"
+    },
+    "reset": "重置"
+  },
+  "form": {
+    "create": {
+      "title": "创建 MCP 配置",
+      "description": "创建新的模型上下文协议配置"
+    },
+    "edit": {
+      "title": "编辑 MCP 配置",
+      "description": "更新 MCP 配置设置"
+    },
+    "fields": {
+      "name": {
+        "label": "名称",
+        "placeholder": "输入 MCP 配置名称",
+        "required": "名称是必需的"
+      },
+      "description": {
+        "label": "描述",
+        "placeholder": "输入描述（可选）"
+      },
+      "config": {
+        "label": "配置",
+        "placeholder": "输入 JSON 配置",
+        "required": "配置是必需的",
+        "help": "JSON 格式的 MCP 服务器配置"
+      },
+      "enabled": {
+        "label": "启用",
+        "help": "启用或禁用此 MCP 配置"
+      }
+    },
+    "validation": {
+      "invalidJson": "无效的 JSON 格式",
+      "configRequired": "配置是必需的"
+    },
+    "submit": "保存",
+    "cancel": "取消",
+    "submitting": "保存中..."
+  },
+  "errors": {
+    "loadFailed": "加载 MCP 配置失败",
+    "loadDetailsFailed": "加载 MCP 配置详情失败",
+    "createFailed": "创建 MCP 配置失败",
+    "updateFailed": "更新 MCP 配置失败",
+    "deleteFailed": "删除 MCP 配置失败",
+    "saveFailed": "保存 MCP 配置失败"
+  },
+  "projects": {
+    "title": "关联项目",
+    "add": "添加到项目",
+    "remove": "从项目移除",
+    "associateSuccess": "MCP 配置成功关联项目",
+    "disassociateSuccess": "MCP 配置成功从项目移除"
+  },
+  "environments": {
+    "title": "关联环境",
+    "add": "添加到环境",
+    "remove": "从环境移除",
+    "associateSuccess": "MCP 配置成功关联环境",
+    "disassociateSuccess": "MCP 配置成功从环境移除"
+  }
+}

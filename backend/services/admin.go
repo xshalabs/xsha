@@ -23,6 +23,7 @@ type adminService struct {
 	taskService     TaskService
 	taskConvService TaskConversationService
 	emailService    EmailService
+	mcpService      MCPService
 }
 
 func NewAdminService(adminRepo repository.AdminRepository) AdminService {
@@ -57,6 +58,10 @@ func (s *adminService) SetTaskConversationService(taskConvService TaskConversati
 
 func (s *adminService) SetEmailService(emailService EmailService) {
 	s.emailService = emailService
+}
+
+func (s *adminService) SetMCPService(mcpService MCPService) {
+	s.mcpService = mcpService
 }
 
 func (s *adminService) CreateAdminWithRoleAndLang(username, password, name, email, lang string, role database.AdminRole, createdBy string) (*database.Admin, error) {
@@ -467,6 +472,8 @@ func (s *adminService) HasPermission(admin *database.Admin, resource, action str
 		return s.checkCredentialPermission(admin, action, resourceId)
 	case "environment":
 		return s.checkEnvironmentPermission(admin, action, resourceId)
+	case "mcp":
+		return s.checkMCPPermission(admin, action, resourceId)
 	default:
 		return false
 	}
@@ -619,6 +626,44 @@ func (s *adminService) checkEnvironmentPermission(admin *database.Admin, action 
 				return false
 			}
 			return canAccess
+		}
+		return false
+	default:
+		return false
+	}
+}
+
+func (s *adminService) checkMCPPermission(admin *database.Admin, action string, resourceId uint) bool {
+	if admin.Role == database.AdminRoleSuperAdmin {
+		return true
+	}
+
+	if s.mcpService == nil {
+		utils.Error("MCPService not initialized for permission check", "adminID", admin.ID)
+		return false
+	}
+
+	switch action {
+	case "create":
+		// Only admin and super_admin can create MCPs
+		return admin.Role == database.AdminRoleAdmin
+	case "read":
+		// Admin can read their own MCPs, developers can read if they have access
+		canAccess, err := s.mcpService.CanAdminAccessMCP(resourceId, admin)
+		if err != nil {
+			utils.Error("Failed to check MCP access permission", "mcpID", resourceId, "adminID", admin.ID, "error", err)
+			return false
+		}
+		return canAccess
+	case "update", "delete":
+		// Only owners can update/delete their own MCPs
+		if admin.Role == database.AdminRoleAdmin {
+			isOwner, err := s.mcpService.IsMCPOwner(resourceId, admin)
+			if err != nil {
+				utils.Error("Failed to check MCP ownership", "mcpID", resourceId, "adminID", admin.ID, "error", err)
+				return false
+			}
+			return isOwner
 		}
 		return false
 	default:

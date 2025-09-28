@@ -21,6 +21,7 @@ import ProjectKanbanPage from "@/pages/projects/ProjectKanbanPage";
 import EnvironmentListPage from "@/pages/environments/EnvironmentListPage";
 import CredentialListPage from "@/pages/credentials/CredentialListPage";
 import NotifierListPage from "@/pages/notifiers/NotifierListPage";
+import MCPListPage from "@/pages/mcp/MCPListPage";
 import SettingsPage from "@/pages/settings/Settings";
 import AdminListPage from "@/pages/admin/AdminListPage";
 import ChangePasswordPage from "@/pages/user/ChangePasswordPage";
@@ -111,6 +112,16 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <NotifierListPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mcp"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <MCPListPage />
                   </Layout>
                 </ProtectedRoute>
               }

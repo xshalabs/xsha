@@ -307,19 +307,25 @@ const EnvironmentListPage: React.FC = () => {
     loadEnvironmentsData(currentPage, columnFilters, false);
   }, [currentPage, columnFilters, loadEnvironmentsData]);
 
+  const handleMCPChanged = useCallback(() => {
+    // Refresh the environments list when MCP assignments change
+    loadEnvironmentsData(currentPage, columnFilters, false);
+  }, [currentPage, columnFilters, loadEnvironmentsData]);
+
   const columns = useMemo(
     () =>
       createDevEnvironmentColumns({
         onEdit: handleEditEnvironment,
         onDelete: handleDeleteEnvironment,
         onAdminChanged: handleAdminChanged,
+        onMCPChanged: handleMCPChanged,
         t,
         canEditEnvironment,
         canDeleteEnvironment,
         canManageEnvironmentAdmins,
         currentAdminId: adminId || undefined,
       }),
-    [handleEditEnvironment, handleDeleteEnvironment, handleAdminChanged, t, canEditEnvironment, canDeleteEnvironment, canManageEnvironmentAdmins, adminId]
+    [handleEditEnvironment, handleDeleteEnvironment, handleAdminChanged, handleMCPChanged, t, canEditEnvironment, canDeleteEnvironment, canManageEnvironmentAdmins, adminId]
   );
 
   // Initialize from URL on component mount (only once)

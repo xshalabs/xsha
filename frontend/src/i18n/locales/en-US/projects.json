@@ -82,5 +82,19 @@
     "removed_success": "Notifier {{name}} successfully removed from project",
     "confirm_remove_title": "Confirm Remove Notifier",
     "confirm_remove_description": "Are you sure you want to remove {{notifierName}} from {{projectName}}?"
+  },
+  "mcp": {
+    "manage": "Manage MCPs",
+    "manage_title": "Manage Project MCPs",
+    "manage_description": "Manage Model Context Protocol configurations for project {{name}}",
+    "add_mcp": "Add MCP",
+    "current_mcps": "Current MCPs",
+    "select_mcp": "Please select an MCP to add",
+    "select_placeholder": "Select an MCP to add",
+    "no_mcps": "No MCPs assigned to this project",
+    "added_success": "MCP successfully added to project",
+    "removed_success": "MCP {{name}} successfully removed from project",
+    "confirm_remove_title": "Confirm Remove MCP",
+    "confirm_remove_description": "Are you sure you want to remove {{mcpName}} from {{projectName}}?"
   }
 } 

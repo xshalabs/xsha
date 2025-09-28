@@ -136,4 +136,8 @@ var (
 
 	// Git credential errors that might be missing
 	ErrCredentialNotFound = &I18nError{Key: "git_credential.not_found"}
+
+	// General errors
+	ErrInsufficientPermissions = &I18nError{Key: "auth.insufficient_permissions"}
+	ErrInvalidInput           = &I18nError{Key: "validation.invalid_format"}
 )

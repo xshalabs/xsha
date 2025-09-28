@@ -32,6 +32,7 @@ import { taskConversationsApi } from "./task-conversations";
 import { dashboardApi } from "./dashboard";
 import { attachmentApi } from "./attachments";
 import { notifiersApi } from "./notifiers";
+import { mcpApi } from "./mcp";
 
 export {
   authApi,
@@ -45,6 +46,7 @@ export {
   dashboardApi,
   attachmentApi,
   notifiersApi,
+  mcpApi,
 };
 
 export const apiService = {
@@ -74,4 +76,6 @@ export const apiService = {
   attachments: attachmentApi,
 
   notifiers: notifiersApi,
+
+  mcp: mcpApi,
 };
