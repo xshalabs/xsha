@@ -95,5 +95,55 @@
     "remove": "Remove from Environment",
     "associateSuccess": "MCP configuration associated with environment successfully",
     "disassociateSuccess": "MCP configuration removed from environment successfully"
+  },
+  "templates": {
+    "title": "Create a new MCP",
+    "description": "Choose a template to quickly configure your Model Context Protocol integration.",
+    "learnMore": "Learn more",
+    "comingSoon": "Coming Soon",
+    "contactUs": "Contact us",
+    "categories": {
+      "aitools": "AI Tools",
+      "communication": "Communication",
+      "integration": "Integration",
+      "monitoring": "Monitoring"
+    },
+    "context7": {
+      "description": "Connect to Context7 MCP server for AI documentation access",
+      "defaultDescription": "Context7 MCP server for AI documentation access",
+      "form": {
+        "title": "Configure Context7 MCP",
+        "description": "Set up Context7 integration to access AI documentation and code examples",
+        "submit": "Create Context7 MCP",
+        "sections": {
+          "basic": "Basic Information",
+          "config": "Context7 Configuration"
+        },
+        "fields": {
+          "name": {
+            "label": "Configuration Name",
+            "placeholder": "e.g., Context7 Documentation",
+            "required": "Configuration name is required"
+          },
+          "description": {
+            "label": "Description",
+            "placeholder": "Brief description of this MCP configuration (optional)"
+          },
+          "url": {
+            "label": "Context7 MCP URL",
+            "placeholder": "https://mcp.context7.com/mcp",
+            "required": "Context7 URL is required",
+            "invalid": "Please enter a valid URL",
+            "help": "The Context7 MCP server endpoint URL"
+          },
+          "apiKey": {
+            "label": "API Key",
+            "placeholder": "Enter your Context7 API key",
+            "required": "API key is required",
+            "help": "Your Context7 API key for authentication"
+          }
+        }
+      }
+    }
   }
 }

@@ -25,6 +25,7 @@ import { DataTablePaginationServer } from "@/components/ui/data-table/data-table
 import { createMCPColumns } from "@/components/data-table/mcp/columns";
 import { MCPDataTableToolbar } from "@/components/data-table/mcp/data-table-toolbar";
 import { MCPFormSheet } from "@/components/MCPFormSheet";
+import { MCPTemplates } from "@/components/mcp/MCPTemplates";
 
 import { apiService } from "@/lib/api/index";
 import { logError, handleApiError } from "@/lib/errors";
@@ -403,6 +404,13 @@ const MCPListPage: React.FC = () => {
           />
         </div>
       </Section>
+
+      {/* MCP Templates Section */}
+      <MCPTemplates
+        onMCPCreated={async () => {
+          await loadMCPsData(currentPage, columnFilters, sorting, false);
+        }}
+      />
 
       {/* Create MCP Form */}
       <MCPFormSheet
