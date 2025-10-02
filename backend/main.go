@@ -38,7 +38,11 @@ var StaticFiles embed.FS
 
 func main() {
 	// Load configuration
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		utils.Error("Failed to load configuration", "error", err)
+		os.Exit(1)
+	}
 
 	// Initialize database with new architecture
 	dbManager, err := database.NewDatabaseManager(cfg)

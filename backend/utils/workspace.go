@@ -12,6 +12,30 @@ import (
 	"time"
 )
 
+// Constants for workspace and git operations
+const (
+	// Directory permissions
+	WorkspaceDirPermission = 0755
+	SSHKeyFilePermission   = 0600
+
+	// Default timeout durations
+	DefaultGitCloneTimeout  = 5 * time.Minute
+	DefaultGitPushTimeout   = 10 * time.Minute
+	DefaultGitTimeout       = 2 * time.Minute
+	DefaultGitStatusTimeout = 30 * time.Second
+
+	// Default directory paths
+	DefaultWorkspaceBaseDir = "/tmp/xsha-workspaces"
+	DefaultSessionBaseDir   = "_data/sessions"
+
+	// Git configuration
+	GitAuthorName     = "XSHA AI"
+	GitAuthorEmail    = "ai@xsha.dev"
+	GitBotName        = "XSHA Bot"
+	GitBotEmail       = "bot@xsha.local"
+	DefaultBaseBranch = "main"
+)
+
 type WorkspaceManager struct {
 	baseDir         string
 	gitCloneTimeout time.Duration
@@ -19,10 +43,10 @@ type WorkspaceManager struct {
 
 func NewWorkspaceManager(baseDir string, gitCloneTimeout time.Duration) *WorkspaceManager {
 	if baseDir == "" {
-		baseDir = "/tmp/xsha-workspaces"
+		baseDir = DefaultWorkspaceBaseDir
 	}
 	if gitCloneTimeout == 0 {
-		gitCloneTimeout = 5 * time.Minute
+		gitCloneTimeout = DefaultGitCloneTimeout
 	}
 	return &WorkspaceManager{baseDir: baseDir, gitCloneTimeout: gitCloneTimeout}
 }
@@ -36,14 +60,14 @@ func (w *WorkspaceManager) GetOrCreateTaskWorkspace(taskID uint, existingPath st
 		}
 	}
 
-	if err := os.MkdirAll(w.baseDir, 0777); err != nil {
+	if err := os.MkdirAll(w.baseDir, WorkspaceDirPermission); err != nil {
 		return "", fmt.Errorf("failed to create base directory: %v", err)
 	}
 
 	dirName := fmt.Sprintf("task-%d-%d", taskID, Now().Unix())
 	workspacePath := filepath.Join(w.baseDir, dirName)
 
-	if err := os.MkdirAll(workspacePath, 0777); err != nil {
+	if err := os.MkdirAll(workspacePath, WorkspaceDirPermission); err != nil {
 		return "", fmt.Errorf("failed to create workspace directory: %v", err)
 	}
 
@@ -87,9 +111,17 @@ func (w *WorkspaceManager) CloneRepositoryWithConfig(workspacePath, repoURL, bra
 			cmd.Env = ApplyProxyToGitEnv(baseEnv, proxyConfig)
 
 		case GitCredentialTypeSSHKey:
-			keyFile := filepath.Join(absolutePath, ".ssh_key")
-			if err := ioutil.WriteFile(keyFile, []byte(credential.PrivateKey), 0600); err != nil {
-				return fmt.Errorf("failed to create SSH key file: %v", err)
+			// Create SSH key in temp directory since target workspace doesn't exist yet
+			tempKeyFile, err := ioutil.TempFile("", "xsha-ssh-key-*")
+			if err != nil {
+				return fmt.Errorf("failed to create temporary SSH key file: %v", err)
+			}
+			keyFile := tempKeyFile.Name()
+			tempKeyFile.Close()
+
+			if err := ioutil.WriteFile(keyFile, []byte(credential.PrivateKey), SSHKeyFilePermission); err != nil {
+				os.Remove(keyFile)
+				return fmt.Errorf("failed to write SSH key file: %v", err)
 			}
 			defer os.Remove(keyFile)
 
@@ -120,16 +152,16 @@ func (w *WorkspaceManager) CommitChanges(workspacePath, message string) (string,
 	// Convert to absolute path for operations
 	absolutePath := w.GetAbsolutePath(workspacePath)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultGitTimeout)
 	defer cancel()
 
-	configCmd1 := exec.CommandContext(ctx, "git", "config", "user.name", "XSHA AI")
+	configCmd1 := exec.CommandContext(ctx, "git", "config", "user.name", GitAuthorName)
 	configCmd1.Dir = absolutePath
 	if err := configCmd1.Run(); err != nil {
 		return "", fmt.Errorf("failed to configure git user name: %v", err)
 	}
 
-	configCmd2 := exec.CommandContext(ctx, "git", "config", "user.email", "ai@xsha.dev")
+	configCmd2 := exec.CommandContext(ctx, "git", "config", "user.email", GitAuthorEmail)
 	configCmd2.Dir = absolutePath
 	if err := configCmd2.Run(); err != nil {
 		return "", fmt.Errorf("failed to configure git email: %v", err)
@@ -241,12 +273,8 @@ func (w *WorkspaceManager) CheckGitRepositoryExists(workspacePath string) bool {
 }
 
 func (w *WorkspaceManager) ResetWorkspaceToCleanState(workspacePath string) error {
-	if workspacePath == "" {
-		return fmt.Errorf("workspace path cannot be empty")
-	}
-
-	if !w.CheckWorkspaceExists(workspacePath) {
-		return fmt.Errorf("workspace does not exist: %s", workspacePath)
+	if err := w.validateWorkspacePath(workspacePath); err != nil {
+		return err
 	}
 
 	if !w.CheckGitRepositoryExists(workspacePath) {
@@ -255,7 +283,7 @@ func (w *WorkspaceManager) ResetWorkspaceToCleanState(workspacePath string) erro
 		if err := os.RemoveAll(absoluteWorkspacePath); err != nil {
 			return fmt.Errorf("failed to cleanup non-git workspace: %v", err)
 		}
-		if err := os.MkdirAll(absoluteWorkspacePath, 0777); err != nil {
+		if err := os.MkdirAll(absoluteWorkspacePath, WorkspaceDirPermission); err != nil {
 			return fmt.Errorf("failed to recreate workspace: %v", err)
 		}
 		return nil
@@ -264,7 +292,7 @@ func (w *WorkspaceManager) ResetWorkspaceToCleanState(workspacePath string) erro
 	// Convert relative workspace path to absolute for Git operations
 	absoluteWorkspacePath := w.GetAbsolutePath(workspacePath)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultGitTimeout)
 	defer cancel()
 
 	resetStagedCmd := exec.CommandContext(ctx, "git", "reset", "HEAD", ".")
@@ -296,22 +324,14 @@ func (w *WorkspaceManager) ResetWorkspaceToCleanState(workspacePath string) erro
 }
 
 func (w *WorkspaceManager) CheckWorkspaceIsDirty(workspacePath string) (bool, error) {
-	if workspacePath == "" {
-		return false, fmt.Errorf("workspace path cannot be empty")
-	}
-
-	if !w.CheckWorkspaceExists(workspacePath) {
-		return false, fmt.Errorf("workspace does not exist: %s", workspacePath)
-	}
-
-	if !w.CheckGitRepositoryExists(workspacePath) {
-		return false, fmt.Errorf("not a git repository: %s", workspacePath)
+	if err := w.validateGitRepository(workspacePath); err != nil {
+		return false, err
 	}
 
 	// Convert relative workspace path to absolute for Git operations
 	absoluteWorkspacePath := w.GetAbsolutePath(workspacePath)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultGitStatusTimeout)
 	defer cancel()
 
 	statusCmd := exec.CommandContext(ctx, "git", "status", "--porcelain")
@@ -325,30 +345,22 @@ func (w *WorkspaceManager) CheckWorkspaceIsDirty(workspacePath string) (bool, er
 }
 
 func (w *WorkspaceManager) CreateAndSwitchToBranch(workspacePath, branchName, baseBranch string, proxyConfig *GitProxyConfig) error {
-	if workspacePath == "" {
-		return fmt.Errorf("workspace path cannot be empty")
+	if err := w.validateGitRepository(workspacePath); err != nil {
+		return err
 	}
 
-	if branchName == "" {
-		return fmt.Errorf("branch name cannot be empty")
+	if err := w.validateBranchName(branchName); err != nil {
+		return err
 	}
 
 	if baseBranch == "" {
-		baseBranch = "main"
-	}
-
-	if !w.CheckWorkspaceExists(workspacePath) {
-		return fmt.Errorf("workspace does not exist: %s", workspacePath)
-	}
-
-	if !w.CheckGitRepositoryExists(workspacePath) {
-		return fmt.Errorf("not a git repository: %s", workspacePath)
+		baseBranch = DefaultBaseBranch
 	}
 
 	// Convert relative workspace path to absolute for Git operations
 	absoluteWorkspacePath := w.GetAbsolutePath(workspacePath)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultGitTimeout)
 	defer cancel()
 
 	switchCmd := exec.CommandContext(ctx, "git", "checkout", baseBranch)
@@ -389,26 +401,18 @@ func (w *WorkspaceManager) CreateAndSwitchToBranch(workspacePath, branchName, ba
 }
 
 func (w *WorkspaceManager) CheckBranchExists(workspacePath, branchName string) (bool, error) {
-	if workspacePath == "" {
-		return false, fmt.Errorf("workspace path cannot be empty")
+	if err := w.validateGitRepository(workspacePath); err != nil {
+		return false, err
 	}
 
-	if branchName == "" {
-		return false, fmt.Errorf("branch name cannot be empty")
-	}
-
-	if !w.CheckWorkspaceExists(workspacePath) {
-		return false, fmt.Errorf("workspace does not exist: %s", workspacePath)
-	}
-
-	if !w.CheckGitRepositoryExists(workspacePath) {
-		return false, fmt.Errorf("not a git repository: %s", workspacePath)
+	if err := w.validateBranchName(branchName); err != nil {
+		return false, err
 	}
 
 	// Convert relative workspace path to absolute for Git operations
 	absoluteWorkspacePath := w.GetAbsolutePath(workspacePath)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultGitStatusTimeout)
 	defer cancel()
 
 	branchCmd := exec.CommandContext(ctx, "git", "branch", "--list", branchName)
@@ -453,20 +457,12 @@ func (w *WorkspaceManager) validateCredential(credential *GitCredentialInfo) err
 }
 
 func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string, credential *GitCredentialInfo, sslVerify bool, proxyConfig *GitProxyConfig, forcePush bool) (string, error) {
-	if workspacePath == "" {
-		return "", fmt.Errorf("workspace path cannot be empty")
+	if err := w.validateGitRepository(workspacePath); err != nil {
+		return "", err
 	}
 
-	if branchName == "" {
-		return "", fmt.Errorf("branch name cannot be empty")
-	}
-
-	if !w.CheckWorkspaceExists(workspacePath) {
-		return "", fmt.Errorf("workspace does not exist: %s", workspacePath)
-	}
-
-	if !w.CheckGitRepositoryExists(workspacePath) {
-		return "", fmt.Errorf("not a git repository: %s", workspacePath)
+	if err := w.validateBranchName(branchName); err != nil {
+		return "", err
 	}
 
 	if credential != nil {
@@ -478,7 +474,7 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 	// Convert relative workspace path to absolute for Git operations
 	absoluteWorkspacePath := w.GetAbsolutePath(workspacePath)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultGitPushTimeout)
 	defer cancel()
 
 	var cmd *exec.Cmd
@@ -542,7 +538,7 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 			}
 
 			keyFile := filepath.Join(absoluteWorkspacePath, ".ssh_key_push")
-			if err := ioutil.WriteFile(keyFile, []byte(credential.PrivateKey), 0600); err != nil {
+			if err := ioutil.WriteFile(keyFile, []byte(credential.PrivateKey), SSHKeyFilePermission); err != nil {
 				return "", fmt.Errorf("failed to create SSH key file: %v", err)
 			}
 			defer os.Remove(keyFile)
@@ -613,80 +609,83 @@ func (w *WorkspaceManager) PushBranch(workspacePath, branchName, repoURL string,
 
 func (w *WorkspaceManager) createNonInteractiveGitEnv() []string {
 	return append(os.Environ(),
-		"GIT_TERMINAL_PROMPT=0",              // disable terminal prompt
-		"GIT_ASKPASS=",                       // disable password prompt
-		"SSH_ASKPASS=",                       // disable SSH password prompt
-		"GIT_CONFIG_NOSYSTEM=true",           // ignore system-level Git configuration
-		"GCM_INTERACTIVE=never",              // disable Git Credential Manager interactive
-		"GIT_CREDENTIAL_HELPER=",             // disable credential helper
-		"GIT_AUTHOR_NAME=XSHA Bot",           // set default author
-		"GIT_AUTHOR_EMAIL=bot@xsha.local",    // set default email
-		"GIT_COMMITTER_NAME=XSHA Bot",        // set default committer
-		"GIT_COMMITTER_EMAIL=bot@xsha.local", // set default committer email
+		"GIT_TERMINAL_PROMPT=0",                    // disable terminal prompt
+		"GIT_ASKPASS=",                             // disable password prompt
+		"SSH_ASKPASS=",                             // disable SSH password prompt
+		"GIT_CONFIG_NOSYSTEM=true",                 // ignore system-level Git configuration
+		"GCM_INTERACTIVE=never",                    // disable Git Credential Manager interactive
+		"GIT_CREDENTIAL_HELPER=",                   // disable credential helper
+		"GIT_AUTHOR_NAME="+GitBotName,              // set default author
+		"GIT_AUTHOR_EMAIL="+GitBotEmail,            // set default email
+		"GIT_COMMITTER_NAME="+GitBotName,           // set default committer
+		"GIT_COMMITTER_EMAIL="+GitBotEmail,         // set default committer email
 	)
 }
 
-// IsRunningInContainer detects if the application is running inside a Docker container
-func IsRunningInContainer() bool {
-	// Method 1: Check for /.dockerenv file
-	if _, err := os.Stat("/.dockerenv"); err == nil {
-		return true
+// Helper methods for validation
+
+// validateWorkspacePath validates the workspace path and returns an error if invalid
+func (w *WorkspaceManager) validateWorkspacePath(workspacePath string) error {
+	if workspacePath == "" {
+		return fmt.Errorf("workspace path cannot be empty")
 	}
 
-	// Method 2: Check /proc/1/cgroup for docker/containerd
-	if data, err := os.ReadFile("/proc/1/cgroup"); err == nil {
-		content := string(data)
-		if strings.Contains(content, "docker") ||
-			strings.Contains(content, "containerd") ||
-			strings.Contains(content, "/docker/") ||
-			strings.Contains(content, "/lxc/") {
-			return true
-		}
+	if !w.CheckWorkspaceExists(workspacePath) {
+		return fmt.Errorf("workspace does not exist: %s", workspacePath)
 	}
 
-	// Method 3: Check if we're in the expected container environment
-	// When running in xsha container, workspace base should be /app/workspaces
-	if workspaceEnv := os.Getenv("XSHA_WORKSPACE_BASE_DIR"); workspaceEnv == "/app/workspaces" {
-		return true
+	return nil
+}
+
+// validateGitRepository validates that the workspace is a git repository
+func (w *WorkspaceManager) validateGitRepository(workspacePath string) error {
+	if err := w.validateWorkspacePath(workspacePath); err != nil {
+		return err
 	}
 
-	return false
+	if !w.CheckGitRepositoryExists(workspacePath) {
+		return fmt.Errorf("not a git repository: %s", workspacePath)
+	}
+
+	return nil
+}
+
+// validateBranchName validates that a branch name is not empty
+func (w *WorkspaceManager) validateBranchName(branchName string) error {
+	if branchName == "" {
+		return fmt.Errorf("branch name cannot be empty")
+	}
+	return nil
+}
+
+// extractRelativePath is a generic function to extract the relative path from an absolute path
+// For example: "/app/workspaces/task-2-1754186264" -> "task-2-1754186264"
+func extractRelativePath(absolutePath string) string {
+	if absolutePath == "" {
+		return ""
+	}
+
+	// Remove trailing slash if exists
+	absolutePath = strings.TrimSuffix(absolutePath, "/")
+
+	// Find the last slash and return everything after it
+	if lastSlash := strings.LastIndex(absolutePath, "/"); lastSlash != -1 {
+		return absolutePath[lastSlash+1:]
+	}
+
+	return absolutePath
 }
 
 // ExtractWorkspaceRelativePath extracts the relative workspace path from absolute path
 // For example: "/app/workspaces/task-2-1754186264" -> "task-2-1754186264"
 func ExtractWorkspaceRelativePath(absolutePath string) string {
-	if absolutePath == "" {
-		return ""
-	}
-
-	// Remove trailing slash if exists
-	absolutePath = strings.TrimSuffix(absolutePath, "/")
-
-	// Find the last slash and return everything after it
-	if lastSlash := strings.LastIndex(absolutePath, "/"); lastSlash != -1 {
-		return absolutePath[lastSlash+1:]
-	}
-
-	return absolutePath
+	return extractRelativePath(absolutePath)
 }
 
 // ExtractDevSessionRelativePath extracts the relative dev session path from absolute path
 // For example: "/app/xsha-dev-sessions/env-1754186264-0000" -> "env-1754186264-0000"
 func ExtractDevSessionRelativePath(absolutePath string) string {
-	if absolutePath == "" {
-		return ""
-	}
-
-	// Remove trailing slash if exists
-	absolutePath = strings.TrimSuffix(absolutePath, "/")
-
-	// Find the last slash and return everything after it
-	if lastSlash := strings.LastIndex(absolutePath, "/"); lastSlash != -1 {
-		return absolutePath[lastSlash+1:]
-	}
-
-	return absolutePath
+	return extractRelativePath(absolutePath)
 }
 
 // GetAbsolutePath converts a relative workspace path to absolute path
@@ -732,7 +731,7 @@ type SessionManager struct {
 // NewSessionManager creates a new session manager
 func NewSessionManager(baseDir string) *SessionManager {
 	if baseDir == "" {
-		baseDir = "_data/sessions"
+		baseDir = DefaultSessionBaseDir
 	}
 	return &SessionManager{baseDir: baseDir}
 }

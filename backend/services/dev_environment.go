@@ -249,6 +249,12 @@ func (s *devEnvironmentService) generateSessionDir() (string, error) {
 		return "", fmt.Errorf("failed to create session directory: %v", err)
 	}
 
+	// Initialize Claude Code session file structure
+	// These files will be precisely mapped to the container
+	if err := s.initializeClaudeSessionStructure(absoluteSessionDir); err != nil {
+		return "", fmt.Errorf("failed to initialize Claude session structure: %v", err)
+	}
+
 	// Return relative path for database storage
 	return dirName, nil
 }
@@ -321,4 +327,29 @@ func (s *devEnvironmentService) IsOwner(envID, adminID uint) (bool, error) {
 // CountByAdminID counts the number of dev environments created by a specific admin
 func (s *devEnvironmentService) CountByAdminID(adminID uint) (int64, error) {
 	return s.repo.CountByAdminID(adminID)
+}
+
+// initializeClaudeSessionStructure creates the required Claude Code session files
+// This ensures that Docker volume mounts work correctly when mapping specific files
+func (s *devEnvironmentService) initializeClaudeSessionStructure(sessionDir string) error {
+	// Create .claude directory
+	claudeDir := filepath.Join(sessionDir, ".claude")
+	if err := os.MkdirAll(claudeDir, 0755); err != nil {
+		return fmt.Errorf("failed to create .claude directory: %v", err)
+	}
+
+	// Create .claude.json with empty JSON object
+	claudeJSONPath := filepath.Join(sessionDir, ".claude.json")
+	if err := os.WriteFile(claudeJSONPath, []byte("{}"), 0644); err != nil {
+		return fmt.Errorf("failed to create .claude.json: %v", err)
+	}
+
+	// Create .claude.json.backup with empty JSON object
+	claudeBackupPath := filepath.Join(sessionDir, ".claude.json.backup")
+	if err := os.WriteFile(claudeBackupPath, []byte("{}"), 0644); err != nil {
+		return fmt.Errorf("failed to create .claude.json.backup: %v", err)
+	}
+
+	utils.Debug("Initialized Claude session structure", "sessionDir", sessionDir)
+	return nil
 }

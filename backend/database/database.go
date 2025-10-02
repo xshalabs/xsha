@@ -93,30 +93,6 @@ func (dm *DatabaseManager) Close() error {
 	return sqlDB.Close()
 }
 
-var (
-	DB *gorm.DB
-)
-
-func InitDatabase() {
-	cfg := config.Load()
-	dm, err := NewDatabaseManager(cfg)
-	if err != nil {
-		utils.Error("Failed to initialize database",
-			"error", err.Error(),
-		)
-		panic(fmt.Sprintf("Failed to initialize database: %v", err))
-	}
-	DB = dm.GetDB()
-}
-
-func InitSQLite() {
-	InitDatabase()
-}
-
-func GetDB() *gorm.DB {
-	return DB
-}
-
 // runMigrations executes custom migrations
 func runMigrations(db *gorm.DB, cfg *config.Config) error {
 	migrationManager := migrations.NewMigrationManager(db, cfg)
