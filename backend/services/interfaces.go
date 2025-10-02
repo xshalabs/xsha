@@ -3,6 +3,7 @@ package services
 import (
 	"time"
 	"xsha-backend/database"
+	"xsha-backend/repository"
 	"xsha-backend/utils"
 )
 
@@ -275,6 +276,7 @@ type MCPService interface {
 	ValidateMCPConfig(config string) error
 	GetMCPProjects(mcpID uint, admin *database.Admin) ([]database.Project, error)
 	GetMCPEnvironments(mcpID uint, admin *database.Admin) ([]database.DevEnvironment, error)
+	GetMCPsForTaskConversation(conversationID uint, taskConvRepo repository.TaskConversationRepository) ([]database.MCP, error)
 
 	// Permission helpers
 	CanAdminAccessMCP(mcpID uint, admin *database.Admin) (bool, error)

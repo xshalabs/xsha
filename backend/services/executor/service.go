@@ -27,6 +27,7 @@ type aiTaskExecutorService struct {
 	attachmentService     services.TaskConversationAttachmentService
 	emailService          services.EmailService
 	notifierService       services.NotifierService
+	mcpService            services.MCPService
 
 	executionManager *ExecutionManager
 	dockerExecutor   DockerExecutor
@@ -51,12 +52,13 @@ func NewAITaskExecutorService(
 	attachmentService services.TaskConversationAttachmentService,
 	emailService services.EmailService,
 	notifierService services.NotifierService,
+	mcpService services.MCPService,
 	cfg *config.Config,
 ) services.AITaskExecutorService {
 	return NewAITaskExecutorServiceWithManager(
 		taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, adminRepo,
 		gitCredService, taskConvResultService, taskService, systemConfigService,
-		attachmentService, emailService, notifierService, cfg, nil,
+		attachmentService, emailService, notifierService, mcpService, cfg, nil,
 	)
 }
 
@@ -73,6 +75,7 @@ func NewAITaskExecutorServiceWithManager(
 	attachmentService services.TaskConversationAttachmentService,
 	emailService services.EmailService,
 	notifierService services.NotifierService,
+	mcpService services.MCPService,
 	cfg *config.Config,
 	executionManager *ExecutionManager,
 ) services.AITaskExecutorService {
@@ -95,7 +98,12 @@ func NewAITaskExecutorServiceWithManager(
 		}
 		executionManager = NewExecutionManager(maxConcurrency)
 	}
-	dockerExecutor := NewDockerExecutor(cfg, logAppender, systemConfigService)
+
+	// Create MCP manager
+	mcpManager := NewMCPManager(mcpService, taskConvRepo)
+
+	// Create Docker executor with MCP manager
+	dockerExecutor := NewDockerExecutor(cfg, logAppender, systemConfigService, mcpManager)
 	resultParser := result_parser.NewResultParser(taskConvResultRepo, taskConvResultService, taskService)
 	workspaceCleaner := NewWorkspaceCleaner(workspaceManager)
 	stateManager := NewConversationStateManager(taskConvRepo, execLogRepo)
@@ -113,6 +121,7 @@ func NewAITaskExecutorServiceWithManager(
 		attachmentService:     attachmentService,
 		emailService:          emailService,
 		notifierService:       notifierService,
+		mcpService:            mcpService,
 		executionManager:      executionManager,
 		dockerExecutor:        dockerExecutor,
 		resultParser:          resultParser,

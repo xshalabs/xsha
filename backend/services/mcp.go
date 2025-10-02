@@ -402,3 +402,50 @@ func (s *mcpService) IsMCPOwner(mcpID uint, admin *database.Admin) (bool, error)
 
 	return s.repo.IsOwner(mcpID, admin.ID)
 }
+
+// GetMCPsForTaskConversation gets all enabled MCPs associated with a task conversation
+// It combines MCPs from both the project and development environment
+func (s *mcpService) GetMCPsForTaskConversation(conversationID uint, taskConvRepo repository.TaskConversationRepository) ([]database.MCP, error) {
+	// Get conversation with preloaded task, project, and dev environment
+	conv, err := taskConvRepo.GetByID(conversationID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get conversation: %v", err)
+	}
+
+	if conv.Task == nil {
+		return nil, fmt.Errorf("conversation task is nil")
+	}
+
+	// Use a map to store unique MCPs (by ID)
+	mcpMap := make(map[uint]database.MCP)
+
+	// Get MCPs from project
+	if conv.Task.ProjectID > 0 {
+		projectMCPs, err := s.repo.GetEnabledProjectMCPs(conv.Task.ProjectID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get project MCPs: %v", err)
+		}
+		for _, mcp := range projectMCPs {
+			mcpMap[mcp.ID] = mcp
+		}
+	}
+
+	// Get MCPs from dev environment
+	if conv.Task.DevEnvironmentID != nil && *conv.Task.DevEnvironmentID > 0 {
+		envMCPs, err := s.repo.GetEnabledEnvironmentMCPs(*conv.Task.DevEnvironmentID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get environment MCPs: %v", err)
+		}
+		for _, mcp := range envMCPs {
+			mcpMap[mcp.ID] = mcp
+		}
+	}
+
+	// Convert map to slice
+	result := make([]database.MCP, 0, len(mcpMap))
+	for _, mcp := range mcpMap {
+		result = append(result, mcp)
+	}
+
+	return result, nil
+}

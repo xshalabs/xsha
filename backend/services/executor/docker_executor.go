@@ -113,13 +113,15 @@ type dockerExecutor struct {
 	config        *config.Config
 	logAppender   LogAppender
 	configService services.SystemConfigService
+	mcpManager    *MCPManager
 }
 
-func NewDockerExecutor(cfg *config.Config, logAppender LogAppender, configService services.SystemConfigService) DockerExecutor {
+func NewDockerExecutor(cfg *config.Config, logAppender LogAppender, configService services.SystemConfigService, mcpManager *MCPManager) DockerExecutor {
 	return &dockerExecutor{
 		config:        cfg,
 		logAppender:   logAppender,
 		configService: configService,
+		mcpManager:    mcpManager,
 	}
 }
 
@@ -225,6 +227,19 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 
 	switch envType {
 	case "claude-code":
+		// Generate MCP setup script if MCP manager is available
+		var mcpSetupScript string
+		if d.mcpManager != nil && conv != nil {
+			script, err := d.mcpManager.GenerateMCPSetupScript(conv.ID)
+			if err != nil {
+				utils.Warn("Failed to generate MCP setup script, continuing without MCP configuration",
+					"conversation_id", conv.ID,
+					"error", err)
+			} else {
+				mcpSetupScript = script
+			}
+		}
+
 		claudeCommand := []string{
 			"claude",
 			"-p",
@@ -285,7 +300,18 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 		}
 
 		claudeCommandStr := strings.Join(claudeCommand, " ")
-		baseCommand = append(baseCommand, "--command", d.escapeShellArg(claudeCommandStr))
+
+		// Combine MCP setup script and claude command
+		var finalCommand string
+		if mcpSetupScript != "" {
+			// Execute MCP setup first, then claude command
+			finalCommand = mcpSetupScript + " && " + claudeCommandStr
+			utils.Info("Including MCP setup in command", "conversation_id", conv.ID)
+		} else {
+			finalCommand = claudeCommandStr
+		}
+
+		baseCommand = append(baseCommand, "--command", d.escapeShellArg(finalCommand))
 	case "opencode", "gemini-cli":
 		baseCommand = []string{d.escapeShellArg(content)}
 	}

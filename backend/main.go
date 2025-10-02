@@ -126,7 +126,7 @@ func main() {
 	executionManager := executor.NewExecutionManager(maxConcurrency)
 
 	// Initialize services with shared execution manager
-	aiTaskExecutor := executor.NewAITaskExecutorServiceWithManager(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, adminRepo, gitCredService, taskConvResultService, taskService, systemConfigService, taskConvAttachmentService, emailService, notifierService, cfg, executionManager)
+	aiTaskExecutor := executor.NewAITaskExecutorServiceWithManager(taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, adminRepo, gitCredService, taskConvResultService, taskService, systemConfigService, taskConvAttachmentService, emailService, notifierService, mcpService, cfg, executionManager)
 	logStreamingService := executor.NewLogStreamingService(taskConvRepo, execLogRepo, executionManager)
 
 	// Initialize scheduler
