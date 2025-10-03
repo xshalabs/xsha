@@ -43,7 +43,7 @@ func TestBuildCommandWithPreciseSessionMapping(t *testing.T) {
 	}
 
 	// Build command
-	cmd := executor.BuildCommandForLog(conv, "task-1-123456")
+	cmd := executor.BuildCommandForLog(conv, "task-1-123456", "")
 
 	// Verify the command contains three precise volume mappings
 	expectedMappings := []string{
@@ -98,7 +98,7 @@ func TestBuildCommandWithoutSessionDir(t *testing.T) {
 	}
 
 	// Build command
-	cmd := executor.BuildCommandForLog(conv, "task-1-123456")
+	cmd := executor.BuildCommandForLog(conv, "task-1-123456", "")
 
 	// Verify no session mappings are present
 	sessionMappings := []string{
@@ -151,7 +151,7 @@ func TestBuildCommandInContainerMode(t *testing.T) {
 
 	// Note: BuildCommandForLog doesn't directly test container mode detection
 	// but we can verify the logic exists in buildDockerCommandCore
-	cmd := executor.BuildCommandForLog(conv, "task-1-123456")
+	cmd := executor.BuildCommandForLog(conv, "task-1-123456", "")
 
 	// In host mode (which BuildCommandForLog uses), should have host paths
 	if strings.Contains(cmd, "xsha-workspaces") {

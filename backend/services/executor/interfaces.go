@@ -7,9 +7,9 @@ import (
 
 type DockerExecutor interface {
 	CheckAvailability() error
-	BuildCommandForLog(conv *database.TaskConversation, workspacePath string) string
+	BuildCommandForLog(conv *database.TaskConversation, workspacePath, mcpScriptPath string) string
 	ExecuteWithContext(ctx context.Context, dockerCmd string, execLogID uint) error
-	ExecuteWithContainerTracking(ctx context.Context, conv *database.TaskConversation, workspacePath string, execLogID uint) (string, error)
+	ExecuteWithContainerTracking(ctx context.Context, conv *database.TaskConversation, workspacePath, mcpScriptPath string, execLogID uint) (string, error)
 	StopAndRemoveContainer(containerID string) error
 }
 

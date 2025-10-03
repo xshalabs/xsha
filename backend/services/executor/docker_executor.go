@@ -145,6 +145,7 @@ type buildDockerCommandOptions struct {
 	containerName    string
 	maskEnvVars      bool
 	includeStdinFlag bool
+	mcpScriptPath    string
 }
 
 func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation, workspacePath string, opts buildDockerCommandOptions) string {
@@ -214,7 +215,7 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	}
 
 	imageName := devEnv.DockerImage
-	aiCommand := d.buildAICommand(devEnv.Type, conv.Content, isInContainer, conv.Task, devEnv, conv)
+	aiCommand := d.buildAICommand(devEnv.Type, conv.Content, isInContainer, conv.Task, devEnv, conv, opts.mcpScriptPath)
 
 	cmd = append(cmd, imageName)
 	cmd = append(cmd, aiCommand...)
@@ -222,24 +223,11 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	return strings.Join(cmd, " ")
 }
 
-func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer bool, task *database.Task, devEnv *database.DevEnvironment, conv *database.TaskConversation) []string {
+func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer bool, task *database.Task, devEnv *database.DevEnvironment, conv *database.TaskConversation, mcpScriptPath string) []string {
 	var baseCommand []string
 
 	switch envType {
 	case "claude-code":
-		// Generate MCP setup script if MCP manager is available
-		var mcpSetupScript string
-		if d.mcpManager != nil && conv != nil {
-			script, err := d.mcpManager.GenerateMCPSetupScript(conv.ID)
-			if err != nil {
-				utils.Warn("Failed to generate MCP setup script, continuing without MCP configuration",
-					"conversation_id", conv.ID,
-					"error", err)
-			} else {
-				mcpSetupScript = script
-			}
-		}
-
 		claudeCommand := []string{
 			"claude",
 			"-p",
@@ -301,12 +289,15 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 
 		claudeCommandStr := strings.Join(claudeCommand, " ")
 
-		// Combine MCP setup script and claude command
+		// Combine MCP setup script file and claude command
 		var finalCommand string
-		if mcpSetupScript != "" {
-			// Execute MCP setup first, then claude command
-			finalCommand = mcpSetupScript + " && " + claudeCommandStr
-			utils.Info("Including MCP setup in command", "conversation_id", conv.ID)
+		if mcpScriptPath != "" {
+			// Execute MCP setup script file first, then claude command
+			// Script path is relative to workspace root, and container working dir is set to workspace root
+			finalCommand = mcpScriptPath + " && " + claudeCommandStr
+			utils.Info("Including MCP setup script file in command",
+				"conversation_id", conv.ID,
+				"script_path", mcpScriptPath)
 		} else {
 			finalCommand = claudeCommandStr
 		}
@@ -319,11 +310,12 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 	return baseCommand
 }
 
-func (d *dockerExecutor) BuildCommandForLog(conv *database.TaskConversation, workspacePath string) string {
+func (d *dockerExecutor) BuildCommandForLog(conv *database.TaskConversation, workspacePath, mcpScriptPath string) string {
 	return d.buildDockerCommandCore(conv, workspacePath, buildDockerCommandOptions{
 		containerName:    "",
 		maskEnvVars:      true,
 		includeStdinFlag: false,
+		mcpScriptPath:    mcpScriptPath,
 	})
 }
 
@@ -477,17 +469,18 @@ func (d *dockerExecutor) generateContainerName(conv *database.TaskConversation) 
 }
 
 // BuildCommandWithContainerName builds the docker command with a specific container name
-func (d *dockerExecutor) BuildCommandWithContainerName(conv *database.TaskConversation, workspacePath string) string {
+func (d *dockerExecutor) BuildCommandWithContainerName(conv *database.TaskConversation, workspacePath, mcpScriptPath string) string {
 	containerName := d.generateContainerName(conv)
 	return d.buildDockerCommandCore(conv, workspacePath, buildDockerCommandOptions{
 		containerName:    containerName,
 		maskEnvVars:      false,
 		includeStdinFlag: true,
+		mcpScriptPath:    mcpScriptPath,
 	})
 }
 
 // ExecuteWithContainerTracking executes docker command with container tracking for proper cleanup
-func (d *dockerExecutor) ExecuteWithContainerTracking(ctx context.Context, conv *database.TaskConversation, workspacePath string, execLogID uint) (string, error) {
+func (d *dockerExecutor) ExecuteWithContainerTracking(ctx context.Context, conv *database.TaskConversation, workspacePath, mcpScriptPath string, execLogID uint) (string, error) {
 	if err := d.CheckAvailability(); err != nil {
 		d.logAppender.AppendLog(execLogID, fmt.Sprintf("❌ Docker unavailable: %v\n", err))
 		return "", fmt.Errorf("docker unavailable: %v", err)
@@ -505,7 +498,7 @@ func (d *dockerExecutor) ExecuteWithContainerTracking(ctx context.Context, conv 
 	defer cancel()
 
 	containerName := d.generateContainerName(conv)
-	dockerCmd := d.BuildCommandWithContainerName(conv, workspacePath)
+	dockerCmd := d.BuildCommandWithContainerName(conv, workspacePath, mcpScriptPath)
 
 	d.logAppender.AppendLog(execLogID, fmt.Sprintf("🐳 Starting container: %s\n", containerName))
 
