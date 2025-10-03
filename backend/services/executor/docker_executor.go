@@ -282,22 +282,12 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 
 		claudeCommand = append(claudeCommand, d.escapeShellArg(content))
 
-		if isInContainer && devEnv.SessionDir != "" {
-			// SessionDir is now already relative, use it directly
-			baseCommand = append(baseCommand, "-d", "/xsha_dev_sessions/"+devEnv.SessionDir)
-		}
-
 		claudeCommandStr := strings.Join(claudeCommand, " ")
 
 		// Combine MCP setup script file and claude command
 		var finalCommand string
 		if mcpScriptPath != "" {
-			// Execute MCP setup script file first, then claude command
-			// Script path is relative to workspace root, and container working dir is set to workspace root
 			finalCommand = mcpScriptPath + " && " + claudeCommandStr
-			utils.Info("Including MCP setup script file in command",
-				"conversation_id", conv.ID,
-				"script_path", mcpScriptPath)
 		} else {
 			finalCommand = claudeCommandStr
 		}
