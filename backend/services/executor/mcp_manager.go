@@ -26,67 +26,6 @@ func NewMCPManager(mcpService services.MCPService, taskConvRepo repository.TaskC
 	}
 }
 
-// GenerateMCPSetupScript generates a shell script to configure MCPs for a task conversation
-// The script will:
-// 1. List current MCPs
-// 2. Add missing MCPs that should be enabled
-// 3. Optionally remove MCPs that are no longer needed
-func (m *MCPManager) GenerateMCPSetupScript(conversationID uint) (string, error) {
-	// Get MCPs for this conversation
-	mcps, err := m.mcpService.GetMCPsForTaskConversation(conversationID, m.taskConvRepo)
-	if err != nil {
-		return "", fmt.Errorf("failed to get MCPs for conversation: %v", err)
-	}
-
-	// If no MCPs are configured, return empty script
-	if len(mcps) == 0 {
-		utils.Info("No MCPs configured for conversation", "conversation_id", conversationID)
-		return "", nil
-	}
-
-	// Build the script
-	var scriptParts []string
-
-	// Add header comment
-	scriptParts = append(scriptParts, "# MCP Configuration Setup")
-	scriptParts = append(scriptParts, "echo '=== Configuring MCPs ==='")
-
-	// Add each MCP
-	for _, mcp := range mcps {
-		// Validate and escape the config JSON
-		configJSON, err := m.escapeJSONForShell(mcp.Config)
-		if err != nil {
-			utils.Warn("Failed to escape MCP config JSON, skipping",
-				"mcp_name", mcp.Name,
-				"conversation_id", conversationID,
-				"error", err)
-			continue
-		}
-
-		// Generate add command
-		// Format: claude mcp add-json <name> '<json>' --scope local
-		addCommand := fmt.Sprintf(
-			"claude mcp add-json %s '%s' --scope local 2>&1 | grep -v 'already exists' || true",
-			m.escapeShellArg(mcp.Name),
-			configJSON,
-		)
-
-		scriptParts = append(scriptParts, fmt.Sprintf("echo 'Adding MCP: %s'", mcp.Name))
-		scriptParts = append(scriptParts, addCommand)
-	}
-
-	scriptParts = append(scriptParts, "echo '=== MCP Configuration Complete ==='")
-
-	// Join all parts with newlines and semicolons for sequential execution
-	script := strings.Join(scriptParts, " && ")
-
-	utils.Info("Generated MCP setup script",
-		"conversation_id", conversationID,
-		"mcp_count", len(mcps))
-
-	return script, nil
-}
-
 // escapeJSONForShell escapes a JSON string for safe inclusion in a shell script
 // It validates the JSON and ensures it can be safely wrapped in single quotes
 func (m *MCPManager) escapeJSONForShell(jsonStr string) (string, error) {
@@ -149,7 +88,6 @@ func (m *MCPManager) GenerateMCPSetupScriptFile(conversationID uint, workspacePa
 
 	// If no MCPs are configured, return empty string
 	if len(mcps) == 0 {
-		utils.Info("No MCPs configured for conversation", "conversation_id", conversationID)
 		return "", nil
 	}
 
@@ -183,22 +121,29 @@ func (m *MCPManager) GenerateMCPSetupScriptFile(conversationID uint, workspacePa
 		// Validate and escape the config JSON
 		configJSON, err := m.escapeJSONForShell(mcp.Config)
 		if err != nil {
-			utils.Warn("Failed to escape MCP config JSON, skipping",
+			utils.Error("Failed to escape MCP config JSON, skipping",
 				"mcp_name", mcp.Name,
 				"conversation_id", conversationID,
 				"error", err)
 			continue
 		}
 
+		// Check if MCP exists and remove it
+		scriptLines = append(scriptLines, "")
+		scriptLines = append(scriptLines, fmt.Sprintf("# Check and remove existing MCP: %s", mcp.Name))
+		scriptLines = append(scriptLines, fmt.Sprintf("if claude mcp get %s >/dev/null 2>&1; then", m.escapeShellArg(mcp.Name)))
+		scriptLines = append(scriptLines, fmt.Sprintf("  echo 'Removing existing MCP: %s'", mcp.Name))
+		scriptLines = append(scriptLines, fmt.Sprintf("  claude mcp remove %s --scope local", m.escapeShellArg(mcp.Name)))
+		scriptLines = append(scriptLines, "fi")
+		scriptLines = append(scriptLines, "")
+
 		// Generate add command
+		scriptLines = append(scriptLines, fmt.Sprintf("echo 'Adding MCP: %s'", mcp.Name))
 		addCommand := fmt.Sprintf(
-			"claude mcp add-json %s '%s' --scope local 2>&1 | grep -v 'already exists' || true",
+			"claude mcp add-json %s '%s' --scope local",
 			m.escapeShellArg(mcp.Name),
 			configJSON,
 		)
-
-		scriptLines = append(scriptLines, "")
-		scriptLines = append(scriptLines, fmt.Sprintf("echo 'Adding MCP: %s'", mcp.Name))
 		scriptLines = append(scriptLines, addCommand)
 	}
 
@@ -219,11 +164,6 @@ func (m *MCPManager) GenerateMCPSetupScriptFile(conversationID uint, workspacePa
 
 	// Return relative path (relative to workspace root)
 	relativePath := filepath.Join("__xsha_workspace", scriptFileName)
-
-	utils.Info("Generated MCP setup script file",
-		"conversation_id", conversationID,
-		"mcp_count", len(mcps),
-		"script_path", scriptFilePath)
 
 	return relativePath, nil
 }
