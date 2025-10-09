@@ -194,6 +194,28 @@
           }
         }
       }
+    },
+    "firecrawl": {
+      "description": "通过 MCP 连接到 Firecrawl 网页抓取服务",
+      "defaultDescription": "Firecrawl MCP 服务器用于网页抓取和数据提取",
+      "form": {
+        "title": "配置 Firecrawl MCP",
+        "description": "设置 Firecrawl 集成以获得网页抓取能力",
+        "submit": "创建 Firecrawl MCP",
+        "fields": {
+          "name": {
+            "label": "配置名称",
+            "placeholder": "例如：Firecrawl 爬虫",
+            "required": "配置名称是必需的"
+          },
+          "apiKey": {
+            "label": "API 密钥",
+            "placeholder": "输入您的 Firecrawl API 密钥",
+            "required": "API 密钥是必需的",
+            "help": "用于身份验证的 Firecrawl API 密钥"
+          }
+        }
+      }
     }
   }
 }

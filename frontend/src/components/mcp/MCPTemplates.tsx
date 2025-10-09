@@ -5,6 +5,7 @@ import { MCPTemplateCard } from "./MCPTemplateCard";
 import { Context7FormSheet } from "./Context7FormSheet";
 import { DeepwikiFormSheet } from "./DeepwikiFormSheet";
 import { ExaFormSheet } from "./ExaFormSheet";
+import { FirecrawlFormSheet } from "./FirecrawlFormSheet";
 import {
   Section,
   SectionHeader,
@@ -100,6 +101,12 @@ export function MCPTemplates({ onMCPCreated }: MCPTemplatesProps) {
 
       <ExaFormSheet
         isOpen={selectedTemplate === "exa"}
+        onClose={handleTemplateFormClose}
+        onSuccess={handleTemplateSuccess}
+      />
+
+      <FirecrawlFormSheet
+        isOpen={selectedTemplate === "firecrawl"}
         onClose={handleTemplateFormClose}
         onSuccess={handleTemplateSuccess}
       />

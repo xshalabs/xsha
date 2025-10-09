@@ -21,6 +21,10 @@ export interface ExaConfig {
   apiKey: string;
 }
 
+export interface FirecrawlConfig {
+  apiKey: string;
+}
+
 
 export const mcpTemplates: MCPTemplate[] = [
   {
@@ -44,6 +48,14 @@ export const mcpTemplates: MCPTemplate[] = [
     name: 'Exa',
     description: 'Connect to Exa search engine via MCP',
     icon: 'Search',
+    category: 'AI Tools',
+    enabled: true,
+  },
+  {
+    id: 'firecrawl',
+    name: 'Firecrawl',
+    description: 'Connect to Firecrawl web scraping service via MCP',
+    icon: 'Flame',
     category: 'AI Tools',
     enabled: true,
   },
@@ -87,6 +99,19 @@ export function generateExaConfig(config: ExaConfig): string {
     args: ["-y", "exa-mcp-server"],
     env: {
       EXA_API_KEY: config.apiKey,
+    },
+  };
+
+  return JSON.stringify(mcpConfig, null, 2);
+}
+
+export function generateFirecrawlConfig(config: FirecrawlConfig): string {
+  const mcpConfig = {
+    type: "stdio",
+    command: "npx",
+    args: ["-y", "firecrawl-mcp"],
+    env: {
+      FIRECRAWL_API_KEY: config.apiKey,
     },
   };
 

@@ -194,6 +194,28 @@
           }
         }
       }
+    },
+    "firecrawl": {
+      "description": "Connect to Firecrawl web scraping service via MCP",
+      "defaultDescription": "Firecrawl MCP server for web scraping and data extraction",
+      "form": {
+        "title": "Configure Firecrawl MCP",
+        "description": "Set up Firecrawl integration for web scraping capabilities",
+        "submit": "Create Firecrawl MCP",
+        "fields": {
+          "name": {
+            "label": "Configuration Name",
+            "placeholder": "e.g., Firecrawl Scraper",
+            "required": "Configuration name is required"
+          },
+          "apiKey": {
+            "label": "API Key",
+            "placeholder": "Enter your Firecrawl API key",
+            "required": "API key is required",
+            "help": "Your Firecrawl API key for authentication"
+          }
+        }
+      }
     }
   }
 }
