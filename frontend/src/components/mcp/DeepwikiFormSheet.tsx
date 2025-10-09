@@ -117,7 +117,7 @@ export function DeepwikiFormSheet({
       // Only pass apiKey if it's not empty
       const config = generateDeepwikiConfig({
         url: formData.url.trim(),
-        apiKey: formData.apiKey.trim() || undefined,
+        apiKey: formData.apiKey?.trim() || undefined,
       });
 
       const payload = {

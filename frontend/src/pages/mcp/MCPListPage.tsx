@@ -28,7 +28,7 @@ import { MCPFormSheet } from "@/components/MCPFormSheet";
 import { MCPTemplates } from "@/components/mcp/MCPTemplates";
 
 import { apiService } from "@/lib/api/index";
-import { logError, handleApiError } from "@/lib/errors";
+import { logError } from "@/lib/errors";
 import type {
   MCP,
   MCPListParams,

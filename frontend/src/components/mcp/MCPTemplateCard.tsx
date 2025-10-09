@@ -1,6 +1,4 @@
-import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import type { MCPTemplate } from "@/lib/mcp/templateGenerators";
 
 interface MCPTemplateCardProps {
@@ -9,8 +7,6 @@ interface MCPTemplateCardProps {
 }
 
 export function MCPTemplateCard({ template, onClick }: MCPTemplateCardProps) {
-  const { t } = useTranslation();
-
   const handleClick = () => {
     if (template.enabled) {
       onClick();

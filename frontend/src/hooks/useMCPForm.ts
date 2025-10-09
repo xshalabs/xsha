@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { apiService } from "@/lib/api/index";
-import { logError, ApiError, handleApiError } from "@/lib/errors";
+import { logError, handleApiError } from "@/lib/errors";
 import type { MCP, MCPFormData } from "@/types/mcp";
 
 interface UseMCPFormOptions {
@@ -156,7 +156,7 @@ export function useMCPForm({ mcp, onSubmit }: UseMCPFormOptions) {
         // Convert CreateMCPResponse to MCP format
         const mcpResult: MCP = {
           ...result,
-          config: result.config as string, // Ensure config is string
+          config: typeof result.config === 'string' ? result.config : JSON.stringify(result.config),
         } as MCP;
         await onSubmit(mcpResult);
       }
