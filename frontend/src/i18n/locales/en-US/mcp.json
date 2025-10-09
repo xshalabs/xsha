@@ -216,6 +216,23 @@
           }
         }
       }
+    },
+    "repomix": {
+      "description": "Generate comprehensive codebase summaries via MCP",
+      "defaultDescription": "Repomix MCP server for codebase analysis and documentation",
+      "form": {
+        "title": "Configure Repomix MCP",
+        "description": "Set up Repomix integration for automatic codebase summarization and documentation generation",
+        "submit": "Create Repomix MCP",
+        "fields": {
+          "name": {
+            "label": "Configuration Name",
+            "placeholder": "e.g., Repomix Codebase Analyzer",
+            "required": "Configuration name is required",
+            "help": "A descriptive name for this Repomix MCP configuration"
+          }
+        }
+      }
     }
   }
 }

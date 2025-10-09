@@ -6,6 +6,7 @@ import { Context7FormSheet } from "./Context7FormSheet";
 import { DeepwikiFormSheet } from "./DeepwikiFormSheet";
 import { ExaFormSheet } from "./ExaFormSheet";
 import { FirecrawlFormSheet } from "./FirecrawlFormSheet";
+import { RepomixFormSheet } from "./RepomixFormSheet";
 import {
   Section,
   SectionHeader,
@@ -107,6 +108,12 @@ export function MCPTemplates({ onMCPCreated }: MCPTemplatesProps) {
 
       <FirecrawlFormSheet
         isOpen={selectedTemplate === "firecrawl"}
+        onClose={handleTemplateFormClose}
+        onSuccess={handleTemplateSuccess}
+      />
+
+      <RepomixFormSheet
+        isOpen={selectedTemplate === "repomix"}
         onClose={handleTemplateFormClose}
         onSuccess={handleTemplateSuccess}
       />

@@ -25,6 +25,11 @@ export interface FirecrawlConfig {
   apiKey: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface RepomixConfig {
+  // No configuration needed for Repomix
+}
+
 
 export const mcpTemplates: MCPTemplate[] = [
   {
@@ -56,6 +61,14 @@ export const mcpTemplates: MCPTemplate[] = [
     name: 'Firecrawl',
     description: 'Connect to Firecrawl web scraping service via MCP',
     icon: 'Flame',
+    category: 'AI Tools',
+    enabled: true,
+  },
+  {
+    id: 'repomix',
+    name: 'Repomix',
+    description: 'Generate comprehensive codebase summaries via MCP',
+    icon: 'FileBox',
     category: 'AI Tools',
     enabled: true,
   },
@@ -113,6 +126,17 @@ export function generateFirecrawlConfig(config: FirecrawlConfig): string {
     env: {
       FIRECRAWL_API_KEY: config.apiKey,
     },
+  };
+
+  return JSON.stringify(mcpConfig, null, 2);
+}
+
+export function generateRepomixConfig(_config?: RepomixConfig): string {
+  const mcpConfig = {
+    type: "stdio",
+    command: "npx",
+    args: ["-y", "repomix", "--mcp"],
+    env: {},
   };
 
   return JSON.stringify(mcpConfig, null, 2);

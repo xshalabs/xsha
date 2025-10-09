@@ -216,6 +216,23 @@
           }
         }
       }
+    },
+    "repomix": {
+      "description": "通过 MCP 生成全面的代码库摘要",
+      "defaultDescription": "Repomix MCP 服务器用于代码库分析和文档生成",
+      "form": {
+        "title": "配置 Repomix MCP",
+        "description": "设置 Repomix 集成以自动生成代码库摘要和文档",
+        "submit": "创建 Repomix MCP",
+        "fields": {
+          "name": {
+            "label": "配置名称",
+            "placeholder": "例如：Repomix 代码库分析器",
+            "required": "配置名称是必需的",
+            "help": "为此 Repomix MCP 配置设置一个描述性名称"
+          }
+        }
+      }
     }
   }
 }
