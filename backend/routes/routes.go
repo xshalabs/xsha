@@ -197,17 +197,18 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		}
 
 		// MCP management routes
+		// Permission checks are handled at the service layer for fine-grained control
 		mcps := api.Group("/mcp")
 		{
-			mcps.GET("", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.ListMCPs)
-			mcps.POST("", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.CreateMCP)
-			mcps.GET("/:id", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.GetMCP)
-			mcps.PUT("/:id", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.UpdateMCP)
-			mcps.DELETE("/:id", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.DeleteMCP)
+			mcps.GET("", mcpHandlers.ListMCPs)
+			mcps.POST("", mcpHandlers.CreateMCP)
+			mcps.GET("/:id", mcpHandlers.GetMCP)
+			mcps.PUT("/:id", mcpHandlers.UpdateMCP)
+			mcps.DELETE("/:id", mcpHandlers.DeleteMCP)
 
 			// MCP association routes
-			mcps.GET("/:id/projects", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.GetMCPProjects)
-			mcps.GET("/:id/environments", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.GetMCPEnvironments)
+			mcps.GET("/:id/projects", mcpHandlers.GetMCPProjects)
+			mcps.GET("/:id/environments", mcpHandlers.GetMCPEnvironments)
 		}
 	}
 

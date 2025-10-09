@@ -287,7 +287,7 @@ export const usePermissions = () => {
 
   // MCP permissions
   const canCreateMCP = useMemo(() =>
-    hasRole(['admin', 'super_admin']),
+    hasRole(['developer', 'admin', 'super_admin']),
     [hasRole]
   );
 
@@ -295,8 +295,8 @@ export const usePermissions = () => {
     // Super admin can edit any MCP configuration
     if (isSuperAdmin) return true;
 
-    // Admin can edit their own MCP configurations
-    if (role === 'admin') {
+    // Admin and Developer can edit their own MCP configurations
+    if (role === 'admin' || role === 'developer') {
       return resourceAdminId === adminId;
     }
 
@@ -307,8 +307,8 @@ export const usePermissions = () => {
     // Super admin can delete any MCP configuration
     if (isSuperAdmin) return true;
 
-    // Admin can delete their own MCP configurations
-    if (role === 'admin') {
+    // Admin and Developer can delete their own MCP configurations
+    if (role === 'admin' || role === 'developer') {
       return resourceAdminId === adminId;
     }
 

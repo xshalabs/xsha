@@ -25,11 +25,7 @@ func NewMCPService(repo repository.MCPRepository, projectRepo repository.Project
 // CRUD operations with permission checks
 
 func (s *mcpService) CreateMCP(name, description, config string, enabled bool, admin *database.Admin) (*database.MCP, error) {
-	// Only admin and super_admin can create MCPs
-	if admin.Role != database.AdminRoleAdmin && admin.Role != database.AdminRoleSuperAdmin {
-		return nil, appErrors.ErrInsufficientPermissions
-	}
-
+	// All authenticated users (developer, admin, super_admin) can create MCPs
 	// Validate MCP name format
 	if err := s.ValidateMCPName(name); err != nil {
 		return nil, err
@@ -387,11 +383,11 @@ func (s *mcpService) CanAdminAccessMCP(mcpID uint, admin *database.Admin) (bool,
 		return true, nil
 	}
 
-	if admin.Role == database.AdminRoleAdmin {
+	// Both admin and developer can access their own MCPs
+	if admin.Role == database.AdminRoleAdmin || admin.Role == database.AdminRoleDeveloper {
 		return s.repo.IsOwner(mcpID, admin.ID)
 	}
 
-	// Developers can only read (if this method is used for read operations)
 	return false, nil
 }
 
