@@ -233,6 +233,29 @@
           }
         }
       }
+    },
+    "playwright": {
+      "description": "Connect to Playwright MCP server for browser automation",
+      "defaultDescription": "Playwright MCP server for browser automation and testing",
+      "form": {
+        "title": "Configure Playwright MCP",
+        "description": "Set up Playwright integration for browser automation capabilities",
+        "submit": "Create Playwright MCP",
+        "fields": {
+          "name": {
+            "label": "Configuration Name",
+            "placeholder": "e.g., Playwright Browser Automation",
+            "required": "Configuration name is required"
+          },
+          "url": {
+            "label": "Playwright MCP URL",
+            "placeholder": "https://your-playwright-mcp-server.com",
+            "required": "Playwright URL is required",
+            "invalid": "Please enter a valid URL",
+            "help": "The Playwright MCP server endpoint URL"
+          }
+        }
+      }
     }
   }
 }

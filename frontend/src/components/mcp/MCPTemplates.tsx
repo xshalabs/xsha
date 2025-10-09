@@ -7,6 +7,7 @@ import { DeepwikiFormSheet } from "./DeepwikiFormSheet";
 import { ExaFormSheet } from "./ExaFormSheet";
 import { FirecrawlFormSheet } from "./FirecrawlFormSheet";
 import { RepomixFormSheet } from "./RepomixFormSheet";
+import { PlaywrightFormSheet } from "./PlaywrightFormSheet";
 import {
   Section,
   SectionHeader,
@@ -114,6 +115,12 @@ export function MCPTemplates({ onMCPCreated }: MCPTemplatesProps) {
 
       <RepomixFormSheet
         isOpen={selectedTemplate === "repomix"}
+        onClose={handleTemplateFormClose}
+        onSuccess={handleTemplateSuccess}
+      />
+
+      <PlaywrightFormSheet
+        isOpen={selectedTemplate === "playwright"}
         onClose={handleTemplateFormClose}
         onSuccess={handleTemplateSuccess}
       />

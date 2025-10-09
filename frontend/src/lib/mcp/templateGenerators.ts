@@ -30,6 +30,10 @@ export interface RepomixConfig {
   // No configuration needed for Repomix
 }
 
+export interface PlaywrightConfig {
+  url: string;
+}
+
 
 export const mcpTemplates: MCPTemplate[] = [
   {
@@ -69,6 +73,14 @@ export const mcpTemplates: MCPTemplate[] = [
     name: 'Repomix',
     description: 'Generate comprehensive codebase summaries via MCP',
     icon: 'FileBox',
+    category: 'AI Tools',
+    enabled: true,
+  },
+  {
+    id: 'playwright',
+    name: 'Playwright',
+    description: 'Connect to Playwright MCP server for browser automation',
+    icon: 'Drama',
     category: 'AI Tools',
     enabled: true,
   },
@@ -137,6 +149,15 @@ export function generateRepomixConfig(_config?: RepomixConfig): string {
     command: "npx",
     args: ["-y", "repomix", "--mcp"],
     env: {},
+  };
+
+  return JSON.stringify(mcpConfig, null, 2);
+}
+
+export function generatePlaywrightConfig(config: PlaywrightConfig): string {
+  const mcpConfig = {
+    type: "http",
+    url: config.url,
   };
 
   return JSON.stringify(mcpConfig, null, 2);

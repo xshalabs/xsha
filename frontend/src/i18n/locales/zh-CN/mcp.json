@@ -233,6 +233,29 @@
           }
         }
       }
+    },
+    "playwright": {
+      "description": "连接到 Playwright MCP 服务器以实现浏览器自动化",
+      "defaultDescription": "Playwright MCP 服务器用于浏览器自动化和测试",
+      "form": {
+        "title": "配置 Playwright MCP",
+        "description": "设置 Playwright 集成以获得浏览器自动化能力",
+        "submit": "创建 Playwright MCP",
+        "fields": {
+          "name": {
+            "label": "配置名称",
+            "placeholder": "例如：Playwright 浏览器自动化",
+            "required": "配置名称是必需的"
+          },
+          "url": {
+            "label": "Playwright MCP URL",
+            "placeholder": "https://your-playwright-mcp-server.com",
+            "required": "Playwright URL 是必需的",
+            "invalid": "请输入有效的 URL",
+            "help": "Playwright MCP 服务器端点 URL"
+          }
+        }
+      }
     }
   }
 }
