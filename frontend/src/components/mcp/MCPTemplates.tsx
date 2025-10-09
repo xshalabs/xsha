@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronUp, Info } from "lucide-react";
 import { MCPTemplateCard } from "./MCPTemplateCard";
 import { Context7FormSheet } from "./Context7FormSheet";
+import { DeepwikiFormSheet } from "./DeepwikiFormSheet";
 import {
   Section,
   SectionHeader,
@@ -86,6 +87,12 @@ export function MCPTemplates({ onMCPCreated }: MCPTemplatesProps) {
       {/* Template-specific forms */}
       <Context7FormSheet
         isOpen={selectedTemplate === "context7"}
+        onClose={handleTemplateFormClose}
+        onSuccess={handleTemplateSuccess}
+      />
+
+      <DeepwikiFormSheet
+        isOpen={selectedTemplate === "deepwiki"}
         onClose={handleTemplateFormClose}
         onSuccess={handleTemplateSuccess}
       />

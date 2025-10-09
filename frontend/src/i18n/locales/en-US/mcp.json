@@ -144,6 +144,34 @@
           }
         }
       }
+    },
+    "deepwiki": {
+      "description": "Connect to Deepwiki MCP server",
+      "defaultDescription": "Deepwiki MCP server integration",
+      "form": {
+        "title": "Configure Deepwiki MCP",
+        "description": "Set up Deepwiki integration for AI capabilities",
+        "submit": "Create Deepwiki MCP",
+        "fields": {
+          "name": {
+            "label": "Configuration Name",
+            "placeholder": "e.g., Deepwiki Integration",
+            "required": "Configuration name is required"
+          },
+          "url": {
+            "label": "Deepwiki MCP URL",
+            "placeholder": "https://mcp.devin.ai/sse",
+            "required": "Deepwiki URL is required",
+            "invalid": "Please enter a valid URL",
+            "help": "The Deepwiki MCP server endpoint URL"
+          },
+          "apiKey": {
+            "label": "API Key (Optional)",
+            "placeholder": "Enter your API key if required",
+            "help": "API key for authentication (leave empty if not required)"
+          }
+        }
+      }
     }
   }
 }

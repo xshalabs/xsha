@@ -144,6 +144,34 @@
           }
         }
       }
+    },
+    "deepwiki": {
+      "description": "连接到 Deepwiki MCP 服务器",
+      "defaultDescription": "Deepwiki MCP 服务器集成",
+      "form": {
+        "title": "配置 Deepwiki MCP",
+        "description": "设置 Deepwiki 集成以获得 AI 能力",
+        "submit": "创建 Deepwiki MCP",
+        "fields": {
+          "name": {
+            "label": "配置名称",
+            "placeholder": "例如：Deepwiki 集成",
+            "required": "配置名称是必需的"
+          },
+          "url": {
+            "label": "Deepwiki MCP URL",
+            "placeholder": "https://mcp.devin.ai/sse",
+            "required": "Deepwiki URL 是必需的",
+            "invalid": "请输入有效的 URL",
+            "help": "Deepwiki MCP 服务器端点 URL"
+          },
+          "apiKey": {
+            "label": "API 密钥（可选）",
+            "placeholder": "如需要请输入您的 API 密钥",
+            "help": "用于身份验证的 API 密钥（如不需要可留空）"
+          }
+        }
+      }
     }
   }
 }
