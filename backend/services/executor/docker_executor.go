@@ -169,10 +169,10 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	}
 
 	if isInContainer {
-		cmd = append(cmd, fmt.Sprintf("-v %s:/app", d.config.DockerVolumeWorkspaces))
+		cmd = append(cmd, fmt.Sprintf("-v %s:/app", d.config.DockerVolumeWorkspacesPath))
 		// Map only Claude Code session files from the sessions volume
 		if devEnv.SessionDir != "" {
-			sessionBase := filepath.Join(d.config.DockerVolumeSessions, devEnv.SessionDir)
+			sessionBase := filepath.Join(d.config.DockerVolumeSessionsPath, devEnv.SessionDir)
 			// Map .claude directory
 			cmd = append(cmd, fmt.Sprintf("-v %s/.claude:/home/xsha/.claude", sessionBase))
 			// Map .claude.json file
