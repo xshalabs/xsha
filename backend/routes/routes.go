@@ -201,13 +201,13 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 		{
 			mcps.GET("", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.ListMCPs)
 			mcps.POST("", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.CreateMCP)
-			mcps.GET("/:id", middleware.RequirePermission("mcp", "read"), mcpHandlers.GetMCP)
-			mcps.PUT("/:id", middleware.RequirePermission("mcp", "update"), mcpHandlers.UpdateMCP)
-			mcps.DELETE("/:id", middleware.RequirePermission("mcp", "delete"), mcpHandlers.DeleteMCP)
+			mcps.GET("/:id", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.GetMCP)
+			mcps.PUT("/:id", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.UpdateMCP)
+			mcps.DELETE("/:id", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.DeleteMCP)
 
 			// MCP association routes
-			mcps.GET("/:id/projects", middleware.RequirePermission("mcp", "read"), mcpHandlers.GetMCPProjects)
-			mcps.GET("/:id/environments", middleware.RequirePermission("mcp", "read"), mcpHandlers.GetMCPEnvironments)
+			mcps.GET("/:id/projects", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.GetMCPProjects)
+			mcps.GET("/:id/environments", middleware.RequireAdminOrSuperAdmin(), mcpHandlers.GetMCPEnvironments)
 		}
 	}
 
