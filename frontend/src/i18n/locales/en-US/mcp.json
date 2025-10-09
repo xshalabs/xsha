@@ -172,6 +172,28 @@
           }
         }
       }
+    },
+    "exa": {
+      "description": "Connect to Exa search engine via MCP",
+      "defaultDescription": "Exa MCP server for AI-powered search",
+      "form": {
+        "title": "Configure Exa MCP",
+        "description": "Set up Exa integration for AI-powered search capabilities",
+        "submit": "Create Exa MCP",
+        "fields": {
+          "name": {
+            "label": "Configuration Name",
+            "placeholder": "e.g., Exa Search",
+            "required": "Configuration name is required"
+          },
+          "apiKey": {
+            "label": "API Key",
+            "placeholder": "Enter your Exa API key",
+            "required": "API key is required",
+            "help": "Your Exa API key for authentication"
+          }
+        }
+      }
     }
   }
 }

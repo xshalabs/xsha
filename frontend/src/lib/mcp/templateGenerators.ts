@@ -17,6 +17,10 @@ export interface DeepwikiConfig {
   apiKey?: string;
 }
 
+export interface ExaConfig {
+  apiKey: string;
+}
+
 
 export const mcpTemplates: MCPTemplate[] = [
   {
@@ -32,6 +36,14 @@ export const mcpTemplates: MCPTemplate[] = [
     name: 'Deepwiki',
     description: 'Connect to Deepwiki MCP server',
     icon: 'Globe',
+    category: 'AI Tools',
+    enabled: true,
+  },
+  {
+    id: 'exa',
+    name: 'Exa',
+    description: 'Connect to Exa search engine via MCP',
+    icon: 'Search',
     category: 'AI Tools',
     enabled: true,
   },
@@ -64,6 +76,19 @@ export function generateDeepwikiConfig(config: DeepwikiConfig): string {
         },
       }
     : baseConfig;
+
+  return JSON.stringify(mcpConfig, null, 2);
+}
+
+export function generateExaConfig(config: ExaConfig): string {
+  const mcpConfig = {
+    type: "stdio",
+    command: "npx",
+    args: ["-y", "exa-mcp-server"],
+    env: {
+      EXA_API_KEY: config.apiKey,
+    },
+  };
 
   return JSON.stringify(mcpConfig, null, 2);
 }

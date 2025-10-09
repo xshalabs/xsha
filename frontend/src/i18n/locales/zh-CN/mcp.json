@@ -172,6 +172,28 @@
           }
         }
       }
+    },
+    "exa": {
+      "description": "通过 MCP 连接到 Exa 搜索引擎",
+      "defaultDescription": "Exa MCP 服务器用于 AI 驱动的搜索",
+      "form": {
+        "title": "配置 Exa MCP",
+        "description": "设置 Exa 集成以获得 AI 驱动的搜索能力",
+        "submit": "创建 Exa MCP",
+        "fields": {
+          "name": {
+            "label": "配置名称",
+            "placeholder": "例如：Exa 搜索",
+            "required": "配置名称是必需的"
+          },
+          "apiKey": {
+            "label": "API 密钥",
+            "placeholder": "输入您的 Exa API 密钥",
+            "required": "API 密钥是必需的",
+            "help": "用于身份验证的 Exa API 密钥"
+          }
+        }
+      }
     }
   }
 }

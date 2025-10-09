@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp, Info } from "lucide-react";
 import { MCPTemplateCard } from "./MCPTemplateCard";
 import { Context7FormSheet } from "./Context7FormSheet";
 import { DeepwikiFormSheet } from "./DeepwikiFormSheet";
+import { ExaFormSheet } from "./ExaFormSheet";
 import {
   Section,
   SectionHeader,
@@ -93,6 +94,12 @@ export function MCPTemplates({ onMCPCreated }: MCPTemplatesProps) {
 
       <DeepwikiFormSheet
         isOpen={selectedTemplate === "deepwiki"}
+        onClose={handleTemplateFormClose}
+        onSuccess={handleTemplateSuccess}
+      />
+
+      <ExaFormSheet
+        isOpen={selectedTemplate === "exa"}
         onClose={handleTemplateFormClose}
         onSuccess={handleTemplateSuccess}
       />
