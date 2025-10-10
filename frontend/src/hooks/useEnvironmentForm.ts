@@ -145,7 +145,7 @@ export function useEnvironmentForm(
       newErrors.name = t("devEnvironments.validation.name_required");
     }
 
-    if (!isEdit && !formData.docker_image.trim()) {
+    if (!formData.docker_image.trim()) {
       newErrors.docker_image = t("devEnvironments.validation.docker_image_required");
     }
 
@@ -258,6 +258,7 @@ export function useEnvironmentForm(
           name: formData.name,
           description: formData.description,
           system_prompt: formData.system_prompt,
+          docker_image: formData.docker_image,
           cpu_limit: formData.cpu_limit,
           memory_limit: formData.memory_limit,
           env_vars: envVarsObj,

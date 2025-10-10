@@ -38,6 +38,7 @@ export interface UpdateDevEnvironmentRequest {
   name?: string;
   description?: string;
   system_prompt?: string;
+  docker_image?: string;
   cpu_limit?: number;
   memory_limit?: number;
   env_vars?: Record<string, string>;

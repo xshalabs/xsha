@@ -63,17 +63,15 @@ export function EnvironmentFormSheet({
           disabled={loading}
         />
 
-        {/* Docker Image Selection (only for creation) */}
-        {!isEdit && (
-          <DockerImageSelector
-            dockerImage={formData.docker_image}
-            environmentImages={environmentImages}
-            onDockerImageChange={handleDockerImageChange}
-            loadingImages={loadingImages}
-            error={errors.docker_image}
-            disabled={loading}
-          />
-        )}
+        {/* Docker Image Selection */}
+        <DockerImageSelector
+          dockerImage={formData.docker_image}
+          environmentImages={environmentImages}
+          onDockerImageChange={handleDockerImageChange}
+          loadingImages={loadingImages}
+          error={errors.docker_image}
+          disabled={loading}
+        />
 
         {/* Resource Limits */}
         <ResourceLimits

@@ -105,6 +105,13 @@ func (s *devEnvironmentService) UpdateEnvironment(id uint, updates map[string]in
 	if systemPrompt, ok := updates["system_prompt"]; ok {
 		env.SystemPrompt = systemPrompt.(string)
 	}
+	if dockerImage, ok := updates["docker_image"]; ok {
+		dockerImageStr := dockerImage.(string)
+		if strings.TrimSpace(dockerImageStr) == "" {
+			return appErrors.ErrEnvironmentDockerImageRequired
+		}
+		env.DockerImage = dockerImageStr
+	}
 	if cpuLimit, ok := updates["cpu_limit"]; ok {
 		env.CPULimit = cpuLimit.(float64)
 	}
