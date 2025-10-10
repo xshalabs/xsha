@@ -32,7 +32,7 @@ export function EnvironmentFormSheet({
     loadingImages,
     error,
     errors,
-    isEdit,
+    isEdit: _isEdit,
     handleInputChange,
     handleDockerImageChange,
     handleSubmit,
