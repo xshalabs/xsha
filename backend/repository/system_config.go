@@ -146,29 +146,27 @@ func (r *systemConfigRepository) MergeDevEnvImages(defaultImages []map[string]in
 		return err
 	}
 
-	// Merge images: use map to deduplicate based on image URL
-	imageMap := make(map[string]map[string]interface{})
+	// Merge images: preserve order while deduplicating based on image URL
+	// Use map only for O(1) lookup, not for storing final results
+	imageSet := make(map[string]bool)
 
-	// First, add all existing images (preserving user customizations)
+	// 1. First, keep all existing images in their original order (preserving user customizations)
+	mergedImages := make([]map[string]interface{}, 0, len(existingImages)+len(defaultImages))
 	for _, img := range existingImages {
 		if imageURL, ok := img["image"].(string); ok {
-			imageMap[imageURL] = img
+			mergedImages = append(mergedImages, img)
+			imageSet[imageURL] = true
 		}
 	}
 
-	// Then, add default images that don't already exist
+	// 2. Then, append default images that don't already exist (in their defined order)
 	for _, img := range defaultImages {
 		if imageURL, ok := img["image"].(string); ok {
-			if _, exists := imageMap[imageURL]; !exists {
-				imageMap[imageURL] = img
+			if !imageSet[imageURL] {
+				mergedImages = append(mergedImages, img)
+				imageSet[imageURL] = true
 			}
 		}
-	}
-
-	// Convert map back to array
-	mergedImages := make([]map[string]interface{}, 0, len(imageMap))
-	for _, img := range imageMap {
-		mergedImages = append(mergedImages, img)
 	}
 
 	// Update config value
