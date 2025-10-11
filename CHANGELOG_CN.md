@@ -4,6 +4,13 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)，项目遵循 [语义化版本控制](https://semver.org/spec/v2.0.0.html)。
 
+## v0.10.0 - 20251011
+
+### 新增
+
+- 新增 MCP (Model Context Protocol) 支持，增强 AI 集成能力
+- 优化容器目录映射，改进工作空间管理
+
 ## v0.9.0 - 20250917
 
 ### 新增
