@@ -68,7 +68,7 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 	}
 
 	// AutoMigrate all tables first to create the base structure
-	if err := db.AutoMigrate(&Migration{}, &TokenBlacklistV2{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}, &AdminAvatar{}, &Notifier{}); err != nil {
+	if err := db.AutoMigrate(&Migration{}, &TokenBlacklistV2{}, &LoginLog{}, &Admin{}, &GitCredential{}, &Project{}, &AdminOperationLog{}, &DevEnvironment{}, &Task{}, &TaskConversation{}, &TaskExecutionLog{}, &TaskConversationResult{}, &TaskConversationAttachment{}, &SystemConfig{}, &AdminAvatar{}, &Notifier{}, &MCP{}); err != nil {
 		return nil, err
 	}
 
@@ -91,30 +91,6 @@ func (dm *DatabaseManager) Close() error {
 		return err
 	}
 	return sqlDB.Close()
-}
-
-var (
-	DB *gorm.DB
-)
-
-func InitDatabase() {
-	cfg := config.Load()
-	dm, err := NewDatabaseManager(cfg)
-	if err != nil {
-		utils.Error("Failed to initialize database",
-			"error", err.Error(),
-		)
-		panic(fmt.Sprintf("Failed to initialize database: %v", err))
-	}
-	DB = dm.GetDB()
-}
-
-func InitSQLite() {
-	InitDatabase()
-}
-
-func GetDB() *gorm.DB {
-	return DB
 }
 
 // runMigrations executes custom migrations

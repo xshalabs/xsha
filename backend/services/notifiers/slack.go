@@ -188,10 +188,10 @@ func (p *SlackProvider) createMessage(title, content, projectName string, status
 		IconEmoji: ":robot_face:",
 		Attachments: []SlackAttachment{
 			{
-				Color: color,
-				Title: fmt.Sprintf("%s Task: %s", statusEmoji, title),
-				Text:  TruncateContent(content, 200),
-				Fields: buildSlackFields(projectName, statusEmoji, statusText, lang),
+				Color:     color,
+				Title:     fmt.Sprintf("%s Task: %s", statusEmoji, title),
+				Text:      TruncateContent(content, 200),
+				Fields:    buildSlackFields(projectName, statusEmoji, statusText, lang),
 				Timestamp: time.Now().Unix(),
 			},
 		},

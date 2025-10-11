@@ -213,3 +213,34 @@ type NotifierRepository interface {
 	IsOwner(notifierID, adminID uint) (bool, error)
 	CountByAdminID(adminID uint) (int64, error)
 }
+
+type MCPRepository interface {
+	Create(mcp *database.MCP) error
+	GetByID(id uint) (*database.MCP, error)
+	GetByIDWithAdmin(id uint) (*database.MCP, error)
+	GetByName(name string) (*database.MCP, error)
+	List(name *string, enabled *bool, page, pageSize int) ([]database.MCP, int64, error)
+	ListByAdminAccess(adminID uint, role database.AdminRole, name *string, enabled *bool, page, pageSize int) ([]database.MCP, int64, error)
+	Update(mcp *database.MCP) error
+	Delete(id uint) error
+
+	// Project association methods
+	AddProject(mcpID, projectID uint) error
+	RemoveProject(mcpID, projectID uint) error
+	GetProjects(mcpID uint) ([]database.Project, error)
+	GetProjectMCPs(projectID uint) ([]database.MCP, error)
+	GetEnabledProjectMCPs(projectID uint) ([]database.MCP, error)
+	IsAssociatedWithProject(mcpID, projectID uint) (bool, error)
+
+	// Environment association methods
+	AddEnvironment(mcpID, devEnvID uint) error
+	RemoveEnvironment(mcpID, devEnvID uint) error
+	GetEnvironments(mcpID uint) ([]database.DevEnvironment, error)
+	GetEnvironmentMCPs(devEnvID uint) ([]database.MCP, error)
+	GetEnabledEnvironmentMCPs(devEnvID uint) ([]database.MCP, error)
+	IsAssociatedWithEnvironment(mcpID, devEnvID uint) (bool, error)
+
+	// Permission helper methods
+	IsOwner(mcpID, adminID uint) (bool, error)
+	CountByAdminID(adminID uint) (int64, error)
+}

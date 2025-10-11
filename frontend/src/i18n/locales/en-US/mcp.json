@@ -1,0 +1,261 @@
+{
+  "title": "MCP Management",
+  "description": "Manage Model Context Protocol configurations for AI tools integration",
+  "create": "Create MCP",
+  "edit": "Edit",
+  "delete": "Delete",
+  "enable": "Enable",
+  "disable": "Disable",
+  "createSuccess": "MCP configuration created successfully",
+  "updateSuccess": "MCP configuration updated successfully",
+  "deleteSuccess": "MCP configuration deleted successfully",
+  "enableSuccess": "MCP configuration enabled successfully",
+  "disableSuccess": "MCP configuration disabled successfully",
+  "loadingDetails": "Loading details...",
+  "loadDetailsSuccess": "Details loaded successfully",
+  "columns": {
+    "name": "Name",
+    "description": "Description",
+    "noDescription": "No description",
+    "status": "Status",
+    "config": "Configuration",
+    "createdBy": "Created By",
+    "created": "Created"
+  },
+  "status": {
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "search": {
+    "placeholder": "Search MCP configurations..."
+  },
+  "filters": {
+    "status": {
+      "placeholder": "All Status",
+      "all": "All Status"
+    },
+    "reset": "Reset"
+  },
+  "form": {
+    "create": {
+      "title": "Create MCP Configuration",
+      "description": "Create a new Model Context Protocol configuration"
+    },
+    "edit": {
+      "title": "Edit MCP Configuration",
+      "description": "Update MCP configuration settings"
+    },
+    "fields": {
+      "name": {
+        "label": "Name",
+        "placeholder": "Enter MCP configuration name",
+        "required": "Name is required"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Enter description (optional)"
+      },
+      "config": {
+        "label": "Configuration",
+        "placeholder": "Enter JSON configuration",
+        "required": "Configuration is required",
+        "help": "MCP server configuration in JSON format"
+      },
+      "enabled": {
+        "label": "Enabled",
+        "help": "Enable or disable this MCP configuration"
+      }
+    },
+    "validation": {
+      "invalidJson": "Invalid JSON format",
+      "invalidFormat": "Name can only contain letters, numbers, underscore (_) and hyphen (-)",
+      "configRequired": "Configuration is required"
+    },
+    "submit": "Save",
+    "cancel": "Cancel",
+    "submitting": "Saving..."
+  },
+  "errors": {
+    "loadFailed": "Failed to load MCP configurations",
+    "loadDetailsFailed": "Failed to load MCP configuration details",
+    "createFailed": "Failed to create MCP configuration",
+    "updateFailed": "Failed to update MCP configuration",
+    "deleteFailed": "Failed to delete MCP configuration",
+    "saveFailed": "Failed to save MCP configuration"
+  },
+  "projects": {
+    "title": "Associated Projects",
+    "add": "Add to Project",
+    "remove": "Remove from Project",
+    "associateSuccess": "MCP configuration associated with project successfully",
+    "disassociateSuccess": "MCP configuration removed from project successfully"
+  },
+  "environments": {
+    "title": "Associated Environments",
+    "add": "Add to Environment",
+    "remove": "Remove from Environment",
+    "associateSuccess": "MCP configuration associated with environment successfully",
+    "disassociateSuccess": "MCP configuration removed from environment successfully"
+  },
+  "templates": {
+    "title": "Create a new MCP",
+    "description": "Choose a template to quickly configure your Model Context Protocol integration.",
+    "learnMore": "Learn more",
+    "contactUs": "Contact us",
+    "categories": {
+      "aitools": "AI Tools",
+      "communication": "Communication",
+      "integration": "Integration",
+      "monitoring": "Monitoring"
+    },
+    "context7": {
+      "description": "Connect to Context7 MCP server for AI documentation access",
+      "defaultDescription": "Context7 MCP server for AI documentation access",
+      "form": {
+        "title": "Configure Context7 MCP",
+        "description": "Set up Context7 integration to access AI documentation and code examples",
+        "submit": "Create Context7 MCP",
+        "sections": {
+          "basic": "Basic Information",
+          "config": "Context7 Configuration"
+        },
+        "fields": {
+          "name": {
+            "label": "Configuration Name",
+            "placeholder": "e.g., Context7 Documentation",
+            "required": "Configuration name is required"
+          },
+          "description": {
+            "label": "Description",
+            "placeholder": "Brief description of this MCP configuration (optional)"
+          },
+          "url": {
+            "label": "Context7 MCP URL",
+            "placeholder": "https://mcp.context7.com/mcp",
+            "required": "Context7 URL is required",
+            "invalid": "Please enter a valid URL",
+            "help": "The Context7 MCP server endpoint URL"
+          },
+          "apiKey": {
+            "label": "API Key",
+            "placeholder": "Enter your Context7 API key",
+            "required": "API key is required",
+            "help": "Your Context7 API key for authentication"
+          }
+        }
+      }
+    },
+    "deepwiki": {
+      "description": "Connect to Deepwiki MCP server",
+      "defaultDescription": "Deepwiki MCP server integration",
+      "form": {
+        "title": "Configure Deepwiki MCP",
+        "description": "Set up Deepwiki integration for AI capabilities",
+        "submit": "Create Deepwiki MCP",
+        "fields": {
+          "name": {
+            "label": "Configuration Name",
+            "placeholder": "e.g., Deepwiki Integration",
+            "required": "Configuration name is required"
+          },
+          "url": {
+            "label": "Deepwiki MCP URL",
+            "placeholder": "https://mcp.devin.ai/sse",
+            "required": "Deepwiki URL is required",
+            "invalid": "Please enter a valid URL",
+            "help": "The Deepwiki MCP server endpoint URL"
+          },
+          "apiKey": {
+            "label": "API Key (Optional)",
+            "placeholder": "Enter your API key if required",
+            "help": "API key for authentication (leave empty if not required)"
+          }
+        }
+      }
+    },
+    "exa": {
+      "description": "Connect to Exa search engine via MCP",
+      "defaultDescription": "Exa MCP server for AI-powered search",
+      "form": {
+        "title": "Configure Exa MCP",
+        "description": "Set up Exa integration for AI-powered search capabilities",
+        "submit": "Create Exa MCP",
+        "fields": {
+          "name": {
+            "label": "Configuration Name",
+            "placeholder": "e.g., Exa Search",
+            "required": "Configuration name is required"
+          },
+          "apiKey": {
+            "label": "API Key",
+            "placeholder": "Enter your Exa API key",
+            "required": "API key is required",
+            "help": "Your Exa API key for authentication"
+          }
+        }
+      }
+    },
+    "firecrawl": {
+      "description": "Connect to Firecrawl web scraping service via MCP",
+      "defaultDescription": "Firecrawl MCP server for web scraping and data extraction",
+      "form": {
+        "title": "Configure Firecrawl MCP",
+        "description": "Set up Firecrawl integration for web scraping capabilities",
+        "submit": "Create Firecrawl MCP",
+        "fields": {
+          "name": {
+            "label": "Configuration Name",
+            "placeholder": "e.g., Firecrawl Scraper",
+            "required": "Configuration name is required"
+          },
+          "apiKey": {
+            "label": "API Key",
+            "placeholder": "Enter your Firecrawl API key",
+            "required": "API key is required",
+            "help": "Your Firecrawl API key for authentication"
+          }
+        }
+      }
+    },
+    "repomix": {
+      "description": "Generate comprehensive codebase summaries via MCP",
+      "defaultDescription": "Repomix MCP server for codebase analysis and documentation",
+      "form": {
+        "title": "Configure Repomix MCP",
+        "description": "Set up Repomix integration for automatic codebase summarization and documentation generation",
+        "submit": "Create Repomix MCP",
+        "fields": {
+          "name": {
+            "label": "Configuration Name",
+            "placeholder": "e.g., Repomix Codebase Analyzer",
+            "required": "Configuration name is required",
+            "help": "A descriptive name for this Repomix MCP configuration"
+          }
+        }
+      }
+    },
+    "playwright": {
+      "description": "Connect to Playwright MCP server for browser automation",
+      "defaultDescription": "Playwright MCP server for browser automation and testing",
+      "form": {
+        "title": "Configure Playwright MCP",
+        "description": "Set up Playwright integration for browser automation capabilities",
+        "submit": "Create Playwright MCP",
+        "fields": {
+          "name": {
+            "label": "Configuration Name",
+            "placeholder": "e.g., Playwright Browser Automation",
+            "required": "Configuration name is required"
+          },
+          "url": {
+            "label": "Playwright MCP URL",
+            "placeholder": "https://your-playwright-mcp-server.com",
+            "required": "Playwright URL is required",
+            "invalid": "Please enter a valid URL",
+            "help": "The Playwright MCP server endpoint URL"
+          }
+        }
+      }
+    }
+  }
+}

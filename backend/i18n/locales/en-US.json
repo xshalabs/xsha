@@ -270,5 +270,17 @@
   "notification.content_label": "Content",
   "notification.time_label": "Time",
   "notification.error_label": "Error",
-  "notification.test_message": "Test notification from xsha"
+  "notification.test_message": "Test notification from xsha",
+  "mcp.create_success": "MCP created successfully",
+  "mcp.update_success": "MCP updated successfully",
+  "mcp.delete_success": "MCP deleted successfully",
+  "mcp.not_found": "MCP configuration not found",
+  "mcp.name_exists": "MCP name already exists",
+  "mcp.name_invalid_format": "MCP name can only contain letters, numbers, underscore and hyphen",
+  "mcp.invalid_config": "Invalid MCP configuration",
+  "mcp.config_required": "MCP configuration is required",
+  "mcp.associate_project_success": "MCP successfully associated with project",
+  "mcp.disassociate_project_success": "MCP successfully disassociated from project",
+  "mcp.associate_environment_success": "MCP successfully associated with environment",
+  "mcp.disassociate_environment_success": "MCP successfully disassociated from environment"
 }

@@ -56,7 +56,8 @@
     "projects": "Projects",
     "projectTasks": "Tasks",
     "gitCredentials": "Credentials",
-    "notifiers": "Notifiers"
+    "notifiers": "Notifiers",
+    "mcp": "MCP"
   },
   "theme": {
     "toggle": "Toggle theme",

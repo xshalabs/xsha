@@ -23,6 +23,7 @@ type adminService struct {
 	taskService     TaskService
 	taskConvService TaskConversationService
 	emailService    EmailService
+	mcpService      MCPService
 }
 
 func NewAdminService(adminRepo repository.AdminRepository) AdminService {
@@ -57,6 +58,10 @@ func (s *adminService) SetTaskConversationService(taskConvService TaskConversati
 
 func (s *adminService) SetEmailService(emailService EmailService) {
 	s.emailService = emailService
+}
+
+func (s *adminService) SetMCPService(mcpService MCPService) {
+	s.mcpService = mcpService
 }
 
 func (s *adminService) CreateAdminWithRoleAndLang(username, password, name, email, lang string, role database.AdminRole, createdBy string) (*database.Admin, error) {

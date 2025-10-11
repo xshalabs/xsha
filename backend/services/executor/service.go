@@ -3,6 +3,8 @@ package executor
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 	"xsha-backend/config"
@@ -27,6 +29,7 @@ type aiTaskExecutorService struct {
 	attachmentService     services.TaskConversationAttachmentService
 	emailService          services.EmailService
 	notifierService       services.NotifierService
+	mcpService            services.MCPService
 
 	executionManager *ExecutionManager
 	dockerExecutor   DockerExecutor
@@ -51,12 +54,13 @@ func NewAITaskExecutorService(
 	attachmentService services.TaskConversationAttachmentService,
 	emailService services.EmailService,
 	notifierService services.NotifierService,
+	mcpService services.MCPService,
 	cfg *config.Config,
 ) services.AITaskExecutorService {
 	return NewAITaskExecutorServiceWithManager(
 		taskConvRepo, taskRepo, execLogRepo, taskConvResultRepo, adminRepo,
 		gitCredService, taskConvResultService, taskService, systemConfigService,
-		attachmentService, emailService, notifierService, cfg, nil,
+		attachmentService, emailService, notifierService, mcpService, cfg, nil,
 	)
 }
 
@@ -73,6 +77,7 @@ func NewAITaskExecutorServiceWithManager(
 	attachmentService services.TaskConversationAttachmentService,
 	emailService services.EmailService,
 	notifierService services.NotifierService,
+	mcpService services.MCPService,
 	cfg *config.Config,
 	executionManager *ExecutionManager,
 ) services.AITaskExecutorService {
@@ -95,7 +100,12 @@ func NewAITaskExecutorServiceWithManager(
 		}
 		executionManager = NewExecutionManager(maxConcurrency)
 	}
-	dockerExecutor := NewDockerExecutor(cfg, logAppender, systemConfigService)
+
+	// Create MCP manager
+	mcpManager := NewMCPManager(mcpService, taskConvRepo)
+
+	// Create Docker executor with MCP manager
+	dockerExecutor := NewDockerExecutor(cfg, logAppender, systemConfigService, mcpManager)
 	resultParser := result_parser.NewResultParser(taskConvResultRepo, taskConvResultService, taskService)
 	workspaceCleaner := NewWorkspaceCleaner(workspaceManager)
 	stateManager := NewConversationStateManager(taskConvRepo, execLogRepo)
@@ -113,6 +123,7 @@ func NewAITaskExecutorServiceWithManager(
 		attachmentService:     attachmentService,
 		emailService:          emailService,
 		notifierService:       notifierService,
+		mcpService:            mcpService,
 		executionManager:      executionManager,
 		dockerExecutor:        dockerExecutor,
 		resultParser:          resultParser,
@@ -509,6 +520,15 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 		return
 	}
 
+	// Generate MCP setup script file
+	mcpScriptPath := ""
+	mcpManager := NewMCPManager(s.mcpService, s.taskConvRepo)
+	if scriptPath, err := mcpManager.GenerateMCPSetupScriptFile(conv.ID, workspacePath, s.config); err != nil {
+		utils.Warn("Failed to generate MCP setup script file", "error", err, "conversation_id", conv.ID)
+	} else {
+		mcpScriptPath = scriptPath
+	}
+
 	// Replace attachment tags in conversation content with workspace paths
 	processedContent := s.attachmentService.ReplaceAttachmentTagsWithPaths(conv.Content, workspaceAttachments, workspacePath)
 
@@ -516,14 +536,14 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	tempConv := *conv
 	tempConv.Content = processedContent
 
-	dockerCmdForLog := s.dockerExecutor.BuildCommandForLog(&tempConv, workspacePath)
+	dockerCmdForLog := s.dockerExecutor.BuildCommandForLog(&tempConv, workspacePath, mcpScriptPath)
 	dockerUpdates := map[string]interface{}{
 		"docker_command": dockerCmdForLog,
 	}
 	s.execLogRepo.UpdateMetadata(execLog.ID, dockerUpdates)
 
 	// Execute with container tracking using processed conversation
-	containerID, err := s.dockerExecutor.ExecuteWithContainerTracking(ctx, &tempConv, workspacePath, execLog.ID)
+	containerID, err := s.dockerExecutor.ExecuteWithContainerTracking(ctx, &tempConv, workspacePath, mcpScriptPath, execLog.ID)
 	if containerID != "" {
 		// Set the container ID in execution manager for proper cleanup on cancellation
 		s.executionManager.SetContainerID(conv.ID, containerID)
@@ -544,6 +564,18 @@ func (s *aiTaskExecutorService) executeTask(ctx context.Context, conv *database.
 	// Clean up workspace attachments before committing changes
 	if cleanupErr := s.attachmentService.CleanupWorkspaceAttachments(workspacePath); cleanupErr != nil {
 		utils.Warn("Failed to cleanup workspace attachments before commit", "workspace", workspacePath, "error", cleanupErr)
+	}
+
+	// Clean up MCP script file
+	if mcpScriptPath != "" {
+		absoluteWorkspacePath := workspacePath
+		if !filepath.IsAbs(workspacePath) {
+			absoluteWorkspacePath = filepath.Join(s.config.WorkspaceBaseDir, workspacePath)
+		}
+		scriptFilePath := filepath.Join(absoluteWorkspacePath, mcpScriptPath)
+		if err := os.Remove(scriptFilePath); err != nil {
+			utils.Warn("Failed to cleanup MCP script file", "file", scriptFilePath, "error", err)
+		}
 	}
 
 	hash, err := s.workspaceManager.CommitChanges(workspacePath, fmt.Sprintf("AI generated changes for conversation %d", conv.ID))

@@ -113,13 +113,15 @@ type dockerExecutor struct {
 	config        *config.Config
 	logAppender   LogAppender
 	configService services.SystemConfigService
+	mcpManager    *MCPManager
 }
 
-func NewDockerExecutor(cfg *config.Config, logAppender LogAppender, configService services.SystemConfigService) DockerExecutor {
+func NewDockerExecutor(cfg *config.Config, logAppender LogAppender, configService services.SystemConfigService, mcpManager *MCPManager) DockerExecutor {
 	return &dockerExecutor{
 		config:        cfg,
 		logAppender:   logAppender,
 		configService: configService,
+		mcpManager:    mcpManager,
 	}
 }
 
@@ -143,6 +145,7 @@ type buildDockerCommandOptions struct {
 	containerName    string
 	maskEnvVars      bool
 	includeStdinFlag bool
+	mcpScriptPath    string
 }
 
 func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation, workspacePath string, opts buildDockerCommandOptions) string {
@@ -153,7 +156,7 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 		json.Unmarshal([]byte(devEnv.EnvVars), &envVars)
 	}
 
-	isInContainer := utils.IsRunningInContainer()
+	isInContainer := utils.NewDockerDetector().IsRunningInDocker()
 
 	cmd := []string{"docker", "run", "--rm"}
 
@@ -166,8 +169,19 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	}
 
 	if isInContainer {
-		cmd = append(cmd, "-v xsha_workspaces:/app")
-		cmd = append(cmd, "-v xsha_dev_sessions:/xsha_dev_sessions")
+		// Map specific workspace directory, not the entire workspaces volume
+		workspaceSource := filepath.Join(d.config.DockerVolumeWorkspacesPath, workspacePath)
+		cmd = append(cmd, fmt.Sprintf("-v %s:/app/%s", workspaceSource, workspacePath))
+		// Map only Claude Code session files from the sessions volume
+		if devEnv.SessionDir != "" {
+			sessionBase := filepath.Join(d.config.DockerVolumeSessionsPath, devEnv.SessionDir)
+			// Map .claude directory
+			cmd = append(cmd, fmt.Sprintf("-v %s/.claude:/home/xsha/.claude", sessionBase))
+			// Map .claude.json file
+			cmd = append(cmd, fmt.Sprintf("-v %s/.claude.json:/home/xsha/.claude.json", sessionBase))
+			// Map .claude.json.backup file
+			cmd = append(cmd, fmt.Sprintf("-v %s/.claude.json.backup:/home/xsha/.claude.json.backup", sessionBase))
+		}
 		// workspacePath is now already relative, use it directly
 		cmd = append(cmd, fmt.Sprintf("-w /app/%s", workspacePath))
 	} else {
@@ -177,7 +191,13 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 		if devEnv.SessionDir != "" {
 			// SessionDir is now also relative, convert to absolute for volume mounting
 			absoluteSessionDir := filepath.Join(d.config.DevSessionsDir, devEnv.SessionDir)
-			cmd = append(cmd, fmt.Sprintf("-v %s:/home/xsha", absoluteSessionDir))
+			// Map only Claude Code session files to /home/xsha
+			// Map .claude directory
+			cmd = append(cmd, fmt.Sprintf("-v %s/.claude:/home/xsha/.claude", absoluteSessionDir))
+			// Map .claude.json file
+			cmd = append(cmd, fmt.Sprintf("-v %s/.claude.json:/home/xsha/.claude.json", absoluteSessionDir))
+			// Map .claude.json.backup file
+			cmd = append(cmd, fmt.Sprintf("-v %s/.claude.json.backup:/home/xsha/.claude.json.backup", absoluteSessionDir))
 		}
 		cmd = append(cmd, fmt.Sprintf("-w /app/%s", workspacePath))
 	}
@@ -197,7 +217,7 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	}
 
 	imageName := devEnv.DockerImage
-	aiCommand := d.buildAICommand(devEnv.Type, conv.Content, isInContainer, conv.Task, devEnv, conv)
+	aiCommand := d.buildAICommand(devEnv.Type, conv.Content, isInContainer, conv.Task, devEnv, conv, opts.mcpScriptPath)
 
 	cmd = append(cmd, imageName)
 	cmd = append(cmd, aiCommand...)
@@ -205,7 +225,7 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	return strings.Join(cmd, " ")
 }
 
-func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer bool, task *database.Task, devEnv *database.DevEnvironment, conv *database.TaskConversation) []string {
+func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer bool, task *database.Task, devEnv *database.DevEnvironment, conv *database.TaskConversation, mcpScriptPath string) []string {
 	var baseCommand []string
 
 	switch envType {
@@ -264,13 +284,17 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 
 		claudeCommand = append(claudeCommand, d.escapeShellArg(content))
 
-		if isInContainer && devEnv.SessionDir != "" {
-			// SessionDir is now already relative, use it directly
-			baseCommand = append(baseCommand, "-d", "/xsha_dev_sessions/"+devEnv.SessionDir)
+		claudeCommandStr := strings.Join(claudeCommand, " ")
+
+		// Combine MCP setup script file and claude command
+		var finalCommand string
+		if mcpScriptPath != "" {
+			finalCommand = mcpScriptPath + " && " + claudeCommandStr
+		} else {
+			finalCommand = claudeCommandStr
 		}
 
-		claudeCommandStr := strings.Join(claudeCommand, " ")
-		baseCommand = append(baseCommand, "--command", d.escapeShellArg(claudeCommandStr))
+		baseCommand = append(baseCommand, "--command", d.escapeShellArg(finalCommand))
 	case "opencode", "gemini-cli":
 		baseCommand = []string{d.escapeShellArg(content)}
 	}
@@ -278,11 +302,12 @@ func (d *dockerExecutor) buildAICommand(envType, content string, isInContainer b
 	return baseCommand
 }
 
-func (d *dockerExecutor) BuildCommandForLog(conv *database.TaskConversation, workspacePath string) string {
+func (d *dockerExecutor) BuildCommandForLog(conv *database.TaskConversation, workspacePath, mcpScriptPath string) string {
 	return d.buildDockerCommandCore(conv, workspacePath, buildDockerCommandOptions{
 		containerName:    "",
 		maskEnvVars:      true,
 		includeStdinFlag: false,
+		mcpScriptPath:    mcpScriptPath,
 	})
 }
 
@@ -436,17 +461,18 @@ func (d *dockerExecutor) generateContainerName(conv *database.TaskConversation) 
 }
 
 // BuildCommandWithContainerName builds the docker command with a specific container name
-func (d *dockerExecutor) BuildCommandWithContainerName(conv *database.TaskConversation, workspacePath string) string {
+func (d *dockerExecutor) BuildCommandWithContainerName(conv *database.TaskConversation, workspacePath, mcpScriptPath string) string {
 	containerName := d.generateContainerName(conv)
 	return d.buildDockerCommandCore(conv, workspacePath, buildDockerCommandOptions{
 		containerName:    containerName,
 		maskEnvVars:      false,
 		includeStdinFlag: true,
+		mcpScriptPath:    mcpScriptPath,
 	})
 }
 
 // ExecuteWithContainerTracking executes docker command with container tracking for proper cleanup
-func (d *dockerExecutor) ExecuteWithContainerTracking(ctx context.Context, conv *database.TaskConversation, workspacePath string, execLogID uint) (string, error) {
+func (d *dockerExecutor) ExecuteWithContainerTracking(ctx context.Context, conv *database.TaskConversation, workspacePath, mcpScriptPath string, execLogID uint) (string, error) {
 	if err := d.CheckAvailability(); err != nil {
 		d.logAppender.AppendLog(execLogID, fmt.Sprintf("❌ Docker unavailable: %v\n", err))
 		return "", fmt.Errorf("docker unavailable: %v", err)
@@ -464,7 +490,7 @@ func (d *dockerExecutor) ExecuteWithContainerTracking(ctx context.Context, conv 
 	defer cancel()
 
 	containerName := d.generateContainerName(conv)
-	dockerCmd := d.BuildCommandWithContainerName(conv, workspacePath)
+	dockerCmd := d.BuildCommandWithContainerName(conv, workspacePath, mcpScriptPath)
 
 	d.logAppender.AppendLog(execLogID, fmt.Sprintf("🐳 Starting container: %s\n", containerName))
 

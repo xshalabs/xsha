@@ -1,15 +1,17 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Edit, UserCog } from "lucide-react";
+import { Edit, UserCog, Settings } from "lucide-react";
 import { QuickActions } from "@/components/ui/quick-actions";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { AdminManagementSheet } from "@/components/environments/AdminManagementSheet";
+import { MCPManagementSheet } from "@/components/environments/MCPManagementSheet";
 import type { DevEnvironment } from "@/types/dev-environment";
 
 interface DevEnvironmentColumnsProps {
   onEdit: (environment: DevEnvironment) => void;
   onDelete: (id: number) => void;
   onAdminChanged: () => void;
+  onMCPChanged: () => void;
   t: (key: string) => string;
   canEditEnvironment: (resourceAdminId?: number, isEnvironmentAdmin?: boolean) => boolean;
   canDeleteEnvironment: (resourceAdminId?: number, isEnvironmentAdmin?: boolean) => boolean;
@@ -21,6 +23,7 @@ export const createDevEnvironmentColumns = ({
   onEdit,
   onDelete,
   onAdminChanged,
+  onMCPChanged,
   t,
   canEditEnvironment,
   canDeleteEnvironment,
@@ -146,11 +149,34 @@ export const createDevEnvironmentColumns = ({
             environment={environment}
             onAdminChanged={onAdminChanged}
             trigger={
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="cursor-pointer"
               >
                 <UserCog className="mr-2 h-4 w-4" />
                 <span>{t("devEnvironments.admin.manage")}</span>
+              </DropdownMenuItem>
+            }
+          />
+        ),
+        });
+      }
+
+      // Only show manage MCPs action if user has permission
+      if (canEditEnvironment(environment.admin_id, isEnvironmentAdmin(environment))) {
+        actions.push({
+        id: "manage-mcps",
+        label: t("devEnvironments.mcp.manage"),
+        icon: Settings,
+        render: () => (
+          <MCPManagementSheet
+            environment={environment}
+            onMCPChanged={onMCPChanged}
+            trigger={
+              <DropdownMenuItem
+                className="cursor-pointer"
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                <span>{t("devEnvironments.mcp.manage")}</span>
               </DropdownMenuItem>
             }
           />

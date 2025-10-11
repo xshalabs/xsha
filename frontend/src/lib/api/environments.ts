@@ -95,4 +95,20 @@ export const devEnvironmentsApi = {
     );
   },
 
+  // MCP management methods (convenience wrappers around mcpApi)
+  getMCPs: async (id: number) => {
+    const { mcpApi } = await import("./mcp");
+    return mcpApi.getEnvironmentMCPs(id);
+  },
+
+  addMCP: async (id: number, data: { mcp_id: number }) => {
+    const { mcpApi } = await import("./mcp");
+    return mcpApi.addToEnvironment(id, data);
+  },
+
+  removeMCP: async (id: number, mcpId: number) => {
+    const { mcpApi } = await import("./mcp");
+    return mcpApi.removeFromEnvironment(id, mcpId);
+  },
+
 };

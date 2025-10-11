@@ -113,32 +113,114 @@ func (r *systemConfigRepository) CreateOrUpdate(key, value, name, description, c
 	return r.Update(config)
 }
 
+// MergeDevEnvImages merges default dev environment images with existing user-configured images
+func (r *systemConfigRepository) MergeDevEnvImages(defaultImages []map[string]interface{}, name, description, category, formType string, sortOrder int) error {
+	config, err := r.GetByKey("dev_environment_images")
+
+	// If config doesn't exist, create it with default images
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			defaultImagesJSON, err := json.Marshal(defaultImages)
+			if err != nil {
+				return err
+			}
+
+			newConfig := &database.SystemConfig{
+				ConfigKey:   "dev_environment_images",
+				ConfigValue: string(defaultImagesJSON),
+				Name:        name,
+				Description: description,
+				Category:    category,
+				FormType:    database.ConfigFormType(formType),
+				IsEditable:  true,
+				SortOrder:   sortOrder,
+			}
+			return r.Create(newConfig)
+		}
+		return err
+	}
+
+	// Parse existing images
+	var existingImages []map[string]interface{}
+	if err := json.Unmarshal([]byte(config.ConfigValue), &existingImages); err != nil {
+		return err
+	}
+
+	// Merge images: preserve order while deduplicating based on image URL
+	// Use map only for O(1) lookup, not for storing final results
+	imageSet := make(map[string]bool)
+
+	// 1. First, keep all existing images in their original order (preserving user customizations)
+	mergedImages := make([]map[string]interface{}, 0, len(existingImages)+len(defaultImages))
+	for _, img := range existingImages {
+		if imageURL, ok := img["image"].(string); ok {
+			mergedImages = append(mergedImages, img)
+			imageSet[imageURL] = true
+		}
+	}
+
+	// 2. Then, append default images that don't already exist (in their defined order)
+	for _, img := range defaultImages {
+		if imageURL, ok := img["image"].(string); ok {
+			if !imageSet[imageURL] {
+				mergedImages = append(mergedImages, img)
+				imageSet[imageURL] = true
+			}
+		}
+	}
+
+	// Update config value
+	mergedJSON, err := json.Marshal(mergedImages)
+	if err != nil {
+		return err
+	}
+
+	config.ConfigValue = string(mergedJSON)
+	config.Name = name
+	config.Description = description
+	config.Category = category
+	if formType != "" {
+		config.FormType = database.ConfigFormType(formType)
+	}
+	config.SortOrder = sortOrder
+
+	return r.Update(config)
+}
+
 func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 	defaultDevEnvImages := []map[string]interface{}{
+		// 2.0.13
 		{
-			"image": "ghcr.io/xshalabs/dev-image-registry/claude-code:node18-1.0.67",
-			"name":  "Claude Code node18_1.0.67",
+			"image": "ghcr.io/xshalabs/dev-image-registry/claude-code:node18-2.0.13",
+			"name":  "Claude Code node18_2.0.13",
 			"type":  "claude-code",
 		},
 		{
-			"image": "ghcr.io/xshalabs/dev-image-registry/claude-code:node20-1.0.67",
-			"name":  "Claude Code node20_1.0.67",
+			"image": "ghcr.io/xshalabs/dev-image-registry/claude-code:node20-2.0.13",
+			"name":  "Claude Code node20_2.0.13",
 			"type":  "claude-code",
 		},
 		{
-			"image": "registry.cn-hangzhou.aliyuncs.com/hzbs/claude-code:node18-1.0.67",
-			"name":  "[CN]Claude Code node18_1.0.67",
+			"image": "registry.cn-hangzhou.aliyuncs.com/hzbs/claude-code:node18-2.0.13",
+			"name":  "[CN]Claude Code node18_2.0.13",
 			"type":  "claude-code",
 		},
 		{
-			"image": "registry.cn-hangzhou.aliyuncs.com/hzbs/claude-code:node20-1.0.67",
-			"name":  "[CN]Claude Code node20_1.0.67",
+			"image": "registry.cn-hangzhou.aliyuncs.com/hzbs/claude-code:node20-2.0.13",
+			"name":  "[CN]Claude Code node20_2.0.13",
 			"type":  "claude-code",
 		},
 	}
 
-	devEnvImagesJSON, err := json.Marshal(defaultDevEnvImages)
-	if err != nil {
+	// Merge dev environment images with existing configuration
+	if err := r.MergeDevEnvImages(
+		defaultDevEnvImages,
+		"config.name.dev_environment.images",
+		"config.description.dev_environment.images",
+		"dev_environment",
+		string(database.ConfigFormTypeTextarea),
+		10,
+	); err != nil {
 		return err
 	}
 
@@ -151,15 +233,6 @@ func (r *systemConfigRepository) InitializeDefaultConfigs() error {
 		formType    string
 		sortOrder   int
 	}{
-		{
-			key:         "dev_environment_images",
-			value:       string(devEnvImagesJSON),
-			name:        "config.name.dev_environment.images",
-			description: "config.description.dev_environment.images",
-			category:    "dev_environment",
-			formType:    string(database.ConfigFormTypeTextarea),
-			sortOrder:   10,
-		},
 		{
 			key:         "git_proxy_enabled",
 			value:       "false",

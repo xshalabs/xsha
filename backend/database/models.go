@@ -559,6 +559,39 @@ type EnvironmentListItemResponse struct {
 	CreatedBy    string                 `json:"created_by"`
 }
 
+type MCP struct {
+	ID        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	Name        string `gorm:"not null;uniqueIndex" json:"name"`
+	Description string `gorm:"type:text" json:"description"`
+	Config      string `gorm:"type:text;not null" json:"config"`
+	Enabled     bool   `gorm:"not null;default:true" json:"enabled"`
+
+	AdminID   *uint  `gorm:"index" json:"admin_id"`
+	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+	CreatedBy string `gorm:"not null;index" json:"created_by"`
+
+	// Many-to-many relationships
+	Projects        []Project        `gorm:"many2many:mcp_projects;" json:"projects,omitempty"`
+	DevEnvironments []DevEnvironment `gorm:"many2many:mcp_environments;" json:"environments,omitempty"`
+}
+
+// MCPListItemResponse represents MCP information with minimal admin data for list responses
+type MCPListItemResponse struct {
+	ID          uint                  `json:"id"`
+	CreatedAt   time.Time             `json:"created_at"`
+	UpdatedAt   time.Time             `json:"updated_at"`
+	Name        string                `json:"name"`
+	Description string                `json:"description"`
+	Config      string                `json:"config"`
+	Enabled     bool                  `json:"enabled"`
+	AdminID     *uint                 `json:"admin_id"`
+	Admin       *MinimalAdminResponse `json:"admin,omitempty"`
+	CreatedBy   string                `json:"created_by"`
+}
+
 // CredentialListItemResponse represents credential information with minimal admin data for list responses
 type CredentialListItemResponse struct {
 	ID          uint                   `json:"id"`

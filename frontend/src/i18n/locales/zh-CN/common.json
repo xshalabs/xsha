@@ -56,7 +56,8 @@
     "projects": "项目",
     "projectTasks": "任务",
     "gitCredentials": "凭据",
-    "notifiers": "通知器"
+    "notifiers": "通知器",
+    "mcp": "MCP"
   },
   "theme": {
     "toggle": "切换主题",

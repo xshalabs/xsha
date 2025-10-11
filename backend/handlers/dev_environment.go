@@ -38,6 +38,7 @@ type UpdateEnvironmentRequest struct {
 	Name         string            `json:"name"`
 	Description  string            `json:"description"`
 	SystemPrompt string            `json:"system_prompt"`
+	DockerImage  string            `json:"docker_image"`
 	CPULimit     float64           `json:"cpu_limit"`
 	MemoryLimit  int64             `json:"memory_limit"`
 	EnvVars      map[string]string `json:"env_vars"`
@@ -232,6 +233,9 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	}
 	updates["description"] = req.Description
 	updates["system_prompt"] = req.SystemPrompt
+	if req.DockerImage != "" {
+		updates["docker_image"] = req.DockerImage
+	}
 	if req.CPULimit > 0 {
 		updates["cpu_limit"] = req.CPULimit
 	}

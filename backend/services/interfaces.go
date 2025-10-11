@@ -3,6 +3,7 @@ package services
 import (
 	"time"
 	"xsha-backend/database"
+	"xsha-backend/repository"
 	"xsha-backend/utils"
 )
 
@@ -38,6 +39,7 @@ type AdminService interface {
 	SetTaskService(taskService TaskService)
 	SetTaskConversationService(taskConvService TaskConversationService)
 	SetEmailService(emailService EmailService)
+	SetMCPService(mcpService MCPService)
 	HasPermission(admin *database.Admin, resource, action string, resourceId uint) bool
 }
 
@@ -250,4 +252,33 @@ type NotifierService interface {
 	// Permission helpers
 	CanAdminAccessNotifier(notifierID uint, admin *database.Admin) (bool, error)
 	IsNotifierOwner(notifierID uint, admin *database.Admin) (bool, error)
+}
+
+type MCPService interface {
+	// CRUD operations with permission checks
+	CreateMCP(name, description, config string, enabled bool, admin *database.Admin) (*database.MCP, error)
+	GetMCP(id uint, admin *database.Admin) (*database.MCP, error)
+	ListMCPs(admin *database.Admin, name *string, enabled *bool, page, pageSize int) ([]database.MCPListItemResponse, int64, error)
+	UpdateMCP(id uint, updates map[string]interface{}, admin *database.Admin) error
+	DeleteMCP(id uint, admin *database.Admin) error
+
+	// Project association methods
+	AddMCPToProject(projectID, mcpID uint, admin *database.Admin) error
+	RemoveMCPFromProject(projectID, mcpID uint, admin *database.Admin) error
+	GetProjectMCPs(projectID uint) ([]database.MCPListItemResponse, error)
+
+	// Environment association methods
+	AddMCPToEnvironment(devEnvID, mcpID uint, admin *database.Admin) error
+	RemoveMCPFromEnvironment(devEnvID, mcpID uint, admin *database.Admin) error
+	GetEnvironmentMCPs(devEnvID uint) ([]database.MCPListItemResponse, error)
+
+	// MCP-specific methods
+	ValidateMCPConfig(config string) error
+	GetMCPProjects(mcpID uint, admin *database.Admin) ([]database.Project, error)
+	GetMCPEnvironments(mcpID uint, admin *database.Admin) ([]database.DevEnvironment, error)
+	GetMCPsForTaskConversation(conversationID uint, taskConvRepo repository.TaskConversationRepository) ([]database.MCP, error)
+
+	// Permission helpers
+	CanAdminAccessMCP(mcpID uint, admin *database.Admin) (bool, error)
+	IsMCPOwner(mcpID uint, admin *database.Admin) (bool, error)
 }

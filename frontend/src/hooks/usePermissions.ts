@@ -285,6 +285,36 @@ export const usePermissions = () => {
     return false;
   };
 
+  // MCP permissions
+  const canCreateMCP = useMemo(() =>
+    hasRole(['developer', 'admin', 'super_admin']),
+    [hasRole]
+  );
+
+  const canEditMCP = (resourceAdminId?: number) => {
+    // Super admin can edit any MCP configuration
+    if (isSuperAdmin) return true;
+
+    // Admin and Developer can edit their own MCP configurations
+    if (role === 'admin' || role === 'developer') {
+      return resourceAdminId === adminId;
+    }
+
+    return false;
+  };
+
+  const canDeleteMCP = (resourceAdminId?: number) => {
+    // Super admin can delete any MCP configuration
+    if (isSuperAdmin) return true;
+
+    // Admin and Developer can delete their own MCP configurations
+    if (role === 'admin' || role === 'developer') {
+      return resourceAdminId === adminId;
+    }
+
+    return false;
+  };
+
   // System access permissions
   const canAccessSettings = useMemo(() =>
     hasRole(['super_admin']),
@@ -342,6 +372,10 @@ export const usePermissions = () => {
     canCreateNotifier,
     canEditNotifier,
     canDeleteNotifier,
+    // MCP permissions
+    canCreateMCP,
+    canEditMCP,
+    canDeleteMCP,
     // System access permissions
     canAccessSettings,
     canViewLogs,

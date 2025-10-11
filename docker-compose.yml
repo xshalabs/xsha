@@ -16,6 +16,8 @@ services:
       - XSHA_DEV_SESSIONS_DIR=/app/xsha-dev-sessions
       - XSHA_ATTACHMENTS_DIR=/app/xsha-attachments
       - XSHA_MAX_CONCURRENT_TASKS=8
+      - XSHA_DOCKER_VOLUME_WORKSPACES=xsha_workspaces
+      - XSHA_DOCKER_VOLUME_SESSIONS=xsha_dev_sessions
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

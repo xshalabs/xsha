@@ -5,25 +5,9 @@ import (
 	"os"
 	"strings"
 	"time"
-	"xsha-backend/config"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-)
-
-type LogLevel = config.LogLevel
-type LogFormat = config.LogFormat
-
-const (
-	LevelDebug = config.LevelDebug
-	LevelInfo  = config.LevelInfo
-	LevelWarn  = config.LevelWarn
-	LevelError = config.LevelError
-)
-
-const (
-	FormatJSON = config.FormatJSON
-	FormatText = config.FormatText
 )
 
 type LogConfig struct {

@@ -1,0 +1,261 @@
+{
+  "title": "MCP 管理",
+  "description": "管理模型上下文协议配置，用于 AI 工具集成",
+  "create": "创建 MCP",
+  "edit": "编辑",
+  "delete": "删除",
+  "enable": "启用",
+  "disable": "禁用",
+  "createSuccess": "MCP 配置创建成功",
+  "updateSuccess": "MCP 配置更新成功",
+  "deleteSuccess": "MCP 配置删除成功",
+  "enableSuccess": "MCP 配置启用成功",
+  "disableSuccess": "MCP 配置禁用成功",
+  "loadingDetails": "加载详情中...",
+  "loadDetailsSuccess": "详情加载成功",
+  "columns": {
+    "name": "名称",
+    "description": "描述",
+    "noDescription": "无描述",
+    "status": "状态",
+    "config": "配置",
+    "createdBy": "创建者",
+    "created": "创建时间"
+  },
+  "status": {
+    "enabled": "已启用",
+    "disabled": "已禁用"
+  },
+  "search": {
+    "placeholder": "搜索 MCP 配置..."
+  },
+  "filters": {
+    "status": {
+      "placeholder": "所有状态",
+      "all": "所有状态"
+    },
+    "reset": "重置"
+  },
+  "form": {
+    "create": {
+      "title": "创建 MCP 配置",
+      "description": "创建新的模型上下文协议配置"
+    },
+    "edit": {
+      "title": "编辑 MCP 配置",
+      "description": "更新 MCP 配置设置"
+    },
+    "fields": {
+      "name": {
+        "label": "名称",
+        "placeholder": "输入 MCP 配置名称",
+        "required": "名称是必需的"
+      },
+      "description": {
+        "label": "描述",
+        "placeholder": "输入描述（可选）"
+      },
+      "config": {
+        "label": "配置",
+        "placeholder": "输入 JSON 配置",
+        "required": "配置是必需的",
+        "help": "JSON 格式的 MCP 服务器配置"
+      },
+      "enabled": {
+        "label": "启用",
+        "help": "启用或禁用此 MCP 配置"
+      }
+    },
+    "validation": {
+      "invalidJson": "无效的 JSON 格式",
+      "invalidFormat": "名称只能包含字母、数字、下划线(_)和连字符(-)",
+      "configRequired": "配置是必需的"
+    },
+    "submit": "保存",
+    "cancel": "取消",
+    "submitting": "保存中..."
+  },
+  "errors": {
+    "loadFailed": "加载 MCP 配置失败",
+    "loadDetailsFailed": "加载 MCP 配置详情失败",
+    "createFailed": "创建 MCP 配置失败",
+    "updateFailed": "更新 MCP 配置失败",
+    "deleteFailed": "删除 MCP 配置失败",
+    "saveFailed": "保存 MCP 配置失败"
+  },
+  "projects": {
+    "title": "关联项目",
+    "add": "添加到项目",
+    "remove": "从项目移除",
+    "associateSuccess": "MCP 配置成功关联项目",
+    "disassociateSuccess": "MCP 配置成功从项目移除"
+  },
+  "environments": {
+    "title": "关联环境",
+    "add": "添加到环境",
+    "remove": "从环境移除",
+    "associateSuccess": "MCP 配置成功关联环境",
+    "disassociateSuccess": "MCP 配置成功从环境移除"
+  },
+  "templates": {
+    "title": "创建新的 MCP",
+    "description": "选择模板快速配置您的模型上下文协议集成。",
+    "learnMore": "了解更多",
+    "contactUs": "联系我们",
+    "categories": {
+      "aitools": "AI 工具",
+      "communication": "通信",
+      "integration": "集成",
+      "monitoring": "监控"
+    },
+    "context7": {
+      "description": "连接到 Context7 MCP 服务器以访问 AI 文档",
+      "defaultDescription": "Context7 MCP 服务器用于 AI 文档访问",
+      "form": {
+        "title": "配置 Context7 MCP",
+        "description": "设置 Context7 集成以访问 AI 文档和代码示例",
+        "submit": "创建 Context7 MCP",
+        "sections": {
+          "basic": "基本信息",
+          "config": "Context7 配置"
+        },
+        "fields": {
+          "name": {
+            "label": "配置名称",
+            "placeholder": "例如：Context7 文档",
+            "required": "配置名称是必需的"
+          },
+          "description": {
+            "label": "描述",
+            "placeholder": "此 MCP 配置的简要描述（可选）"
+          },
+          "url": {
+            "label": "Context7 MCP URL",
+            "placeholder": "https://mcp.context7.com/mcp",
+            "required": "Context7 URL 是必需的",
+            "invalid": "请输入有效的 URL",
+            "help": "Context7 MCP 服务器端点 URL"
+          },
+          "apiKey": {
+            "label": "API 密钥",
+            "placeholder": "输入您的 Context7 API 密钥",
+            "required": "API 密钥是必需的",
+            "help": "用于身份验证的 Context7 API 密钥"
+          }
+        }
+      }
+    },
+    "deepwiki": {
+      "description": "连接到 Deepwiki MCP 服务器",
+      "defaultDescription": "Deepwiki MCP 服务器集成",
+      "form": {
+        "title": "配置 Deepwiki MCP",
+        "description": "设置 Deepwiki 集成以获得 AI 能力",
+        "submit": "创建 Deepwiki MCP",
+        "fields": {
+          "name": {
+            "label": "配置名称",
+            "placeholder": "例如：Deepwiki 集成",
+            "required": "配置名称是必需的"
+          },
+          "url": {
+            "label": "Deepwiki MCP URL",
+            "placeholder": "https://mcp.devin.ai/sse",
+            "required": "Deepwiki URL 是必需的",
+            "invalid": "请输入有效的 URL",
+            "help": "Deepwiki MCP 服务器端点 URL"
+          },
+          "apiKey": {
+            "label": "API 密钥（可选）",
+            "placeholder": "如需要请输入您的 API 密钥",
+            "help": "用于身份验证的 API 密钥（如不需要可留空）"
+          }
+        }
+      }
+    },
+    "exa": {
+      "description": "通过 MCP 连接到 Exa 搜索引擎",
+      "defaultDescription": "Exa MCP 服务器用于 AI 驱动的搜索",
+      "form": {
+        "title": "配置 Exa MCP",
+        "description": "设置 Exa 集成以获得 AI 驱动的搜索能力",
+        "submit": "创建 Exa MCP",
+        "fields": {
+          "name": {
+            "label": "配置名称",
+            "placeholder": "例如：Exa 搜索",
+            "required": "配置名称是必需的"
+          },
+          "apiKey": {
+            "label": "API 密钥",
+            "placeholder": "输入您的 Exa API 密钥",
+            "required": "API 密钥是必需的",
+            "help": "用于身份验证的 Exa API 密钥"
+          }
+        }
+      }
+    },
+    "firecrawl": {
+      "description": "通过 MCP 连接到 Firecrawl 网页抓取服务",
+      "defaultDescription": "Firecrawl MCP 服务器用于网页抓取和数据提取",
+      "form": {
+        "title": "配置 Firecrawl MCP",
+        "description": "设置 Firecrawl 集成以获得网页抓取能力",
+        "submit": "创建 Firecrawl MCP",
+        "fields": {
+          "name": {
+            "label": "配置名称",
+            "placeholder": "例如：Firecrawl 爬虫",
+            "required": "配置名称是必需的"
+          },
+          "apiKey": {
+            "label": "API 密钥",
+            "placeholder": "输入您的 Firecrawl API 密钥",
+            "required": "API 密钥是必需的",
+            "help": "用于身份验证的 Firecrawl API 密钥"
+          }
+        }
+      }
+    },
+    "repomix": {
+      "description": "通过 MCP 生成全面的代码库摘要",
+      "defaultDescription": "Repomix MCP 服务器用于代码库分析和文档生成",
+      "form": {
+        "title": "配置 Repomix MCP",
+        "description": "设置 Repomix 集成以自动生成代码库摘要和文档",
+        "submit": "创建 Repomix MCP",
+        "fields": {
+          "name": {
+            "label": "配置名称",
+            "placeholder": "例如：Repomix 代码库分析器",
+            "required": "配置名称是必需的",
+            "help": "为此 Repomix MCP 配置设置一个描述性名称"
+          }
+        }
+      }
+    },
+    "playwright": {
+      "description": "连接到 Playwright MCP 服务器以实现浏览器自动化",
+      "defaultDescription": "Playwright MCP 服务器用于浏览器自动化和测试",
+      "form": {
+        "title": "配置 Playwright MCP",
+        "description": "设置 Playwright 集成以获得浏览器自动化能力",
+        "submit": "创建 Playwright MCP",
+        "fields": {
+          "name": {
+            "label": "配置名称",
+            "placeholder": "例如：Playwright 浏览器自动化",
+            "required": "配置名称是必需的"
+          },
+          "url": {
+            "label": "Playwright MCP URL",
+            "placeholder": "https://your-playwright-mcp-server.com",
+            "required": "Playwright URL 是必需的",
+            "invalid": "请输入有效的 URL",
+            "help": "Playwright MCP 服务器端点 URL"
+          }
+        }
+      }
+    }
+  }
+}

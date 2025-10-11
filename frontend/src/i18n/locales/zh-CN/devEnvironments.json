@@ -96,5 +96,19 @@
     "confirm_remove_description": "您确定要将{{adminName}}从{{environmentName}}环境的成员中移除吗？",
     "creator": "创建者",
     "cannot_remove_creator": "无法移除环境创建者"
+  },
+  "mcp": {
+    "manage": "管理MCP",
+    "manage_title": "管理环境MCP",
+    "manage_description": "管理{{name}}环境的MCP配置",
+    "current_mcps": "当前MCP配置",
+    "no_mcps": "未分配MCP配置",
+    "add_mcp": "添加MCP配置",
+    "select_placeholder": "请选择要添加的MCP配置",
+    "select_mcp": "请选择一个MCP配置",
+    "added_success": "MCP配置添加成功",
+    "removed_success": "{{name}}移除成功",
+    "confirm_remove_title": "确认移除MCP",
+    "confirm_remove_description": "您确定要将{{mcpName}}MCP配置从{{environmentName}}环境中移除吗？"
   }
 }

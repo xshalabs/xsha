@@ -21,6 +21,8 @@ xsha is a software system that combines project management, Git, and AI-driven d
 - **⏰ Scheduled Task Execution:** Support for automated task scheduling and execution at specified times with ultrathink capabilities.
 - **📎 Rich Attachment Support:** Upload and process images, PDFs, and other file attachments for enhanced task context.
 - **📋 Project Kanban Management:** Visual task management with drag-and-drop Kanban boards for better project organization.
+- **🔔 Message Notifications:** Real-time push notifications for task status changes, execution results, and other important events with multiple notification channels.
+- **🔌 MCP Management:** Integrated Model Context Protocol server management for easy extension of AI capabilities and toolsets.
 
 ## 🏃‍♂️ Quick Start
 
