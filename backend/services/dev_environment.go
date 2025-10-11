@@ -339,21 +339,21 @@ func (s *devEnvironmentService) CountByAdminID(adminID uint) (int64, error) {
 // initializeClaudeSessionStructure creates the required Claude Code session files
 // This ensures that Docker volume mounts work correctly when mapping specific files
 func (s *devEnvironmentService) initializeClaudeSessionStructure(sessionDir string) error {
-	// Create .claude directory
+	// Create .claude directory with relaxed permissions for Docker container access
 	claudeDir := filepath.Join(sessionDir, ".claude")
-	if err := os.MkdirAll(claudeDir, 0755); err != nil {
+	if err := os.MkdirAll(claudeDir, 0777); err != nil {
 		return fmt.Errorf("failed to create .claude directory: %v", err)
 	}
 
-	// Create .claude.json with empty JSON object
+	// Create .claude.json with empty JSON object and relaxed permissions
 	claudeJSONPath := filepath.Join(sessionDir, ".claude.json")
-	if err := os.WriteFile(claudeJSONPath, []byte("{}"), 0644); err != nil {
+	if err := os.WriteFile(claudeJSONPath, []byte("{}"), 0666); err != nil {
 		return fmt.Errorf("failed to create .claude.json: %v", err)
 	}
 
-	// Create .claude.json.backup with empty JSON object
+	// Create .claude.json.backup with empty JSON object and relaxed permissions
 	claudeBackupPath := filepath.Join(sessionDir, ".claude.json.backup")
-	if err := os.WriteFile(claudeBackupPath, []byte("{}"), 0644); err != nil {
+	if err := os.WriteFile(claudeBackupPath, []byte("{}"), 0666); err != nil {
 		return fmt.Errorf("failed to create .claude.json.backup: %v", err)
 	}
 
