@@ -7,7 +7,6 @@
   "contentPlaceholder": "Enter your message...",
   "selectModel": "Select model",
   "modelHint": "Only available for Claude Code environments, choose the model version to use",
-  "modelLockedInPlanMode": "Model locked to Opus in plan mode",
   "planMode": "Plan Mode",
   "planModeEnabled": "Plan mode enabled",
   "enablePlanMode": "Enable plan mode",

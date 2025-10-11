@@ -85,7 +85,6 @@ export const MessageControls = memo<MessageControlsProps>(
           <ModelSelector
             model={model}
             disabled={sending}
-            isPlanMode={isPlanMode}
             onChange={onModelChange}
             onCloseOtherControls={closeAllControls}
           />
@@ -97,7 +96,6 @@ export const MessageControls = memo<MessageControlsProps>(
             isPlanMode={isPlanMode}
             disabled={sending}
             onChange={onPlanModeChange}
-            onModelChange={onModelChange}
             onCloseOtherControls={closeAllControls}
           />
         )}

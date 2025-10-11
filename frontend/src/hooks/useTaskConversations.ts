@@ -115,12 +115,9 @@ export function useTaskConversations(task: Task | null) {
     return content.split("\n").length > 3 || content.length > 150;
   };
 
-  // Wrapped setIsPlanMode that automatically sets model to opus when plan mode is enabled
+  // Wrapped setIsPlanMode without automatically changing the model
   const handleSetIsPlanMode = useCallback((isPlan: boolean) => {
     setIsPlanMode(isPlan);
-    if (isPlan) {
-      setModel("opus");
-    }
   }, []);
 
   // Reset state when task changes

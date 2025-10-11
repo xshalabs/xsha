@@ -4,6 +4,12 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)，项目遵循 [语义化版本控制](https://semver.org/spec/v2.0.0.html)。
 
+## v0.11.0 - 20251012
+
+### 更改
+
+- 取消计划模式强制使用 Opus 模型的规则约束，用户可自由选择模型
+
 ## v0.10.0 - 20251011
 
 ### 新增
