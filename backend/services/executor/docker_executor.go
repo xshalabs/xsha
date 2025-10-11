@@ -169,7 +169,9 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	}
 
 	if isInContainer {
-		cmd = append(cmd, fmt.Sprintf("-v %s:/app", d.config.DockerVolumeWorkspacesPath))
+		// Map specific workspace directory, not the entire workspaces volume
+		workspaceSource := filepath.Join(d.config.DockerVolumeWorkspacesPath, workspacePath)
+		cmd = append(cmd, fmt.Sprintf("-v %s:/app/%s", workspaceSource, workspacePath))
 		// Map only Claude Code session files from the sessions volume
 		if devEnv.SessionDir != "" {
 			sessionBase := filepath.Join(d.config.DockerVolumeSessionsPath, devEnv.SessionDir)
