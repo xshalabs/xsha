@@ -10,6 +10,7 @@
 
 - 新增 MCP (Model Context Protocol) 支持，增强 AI 集成能力
 - 优化容器目录映射，改进工作空间管理
+- Claude Code 升级到 V2.X
 
 ## v0.9.0 - 20250917
 

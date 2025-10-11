@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - MCP (Model Context Protocol) support for enhanced AI integration
 - Optimized container directory mapping for improved workspace management
+- Upgraded Claude Code to V2.X
 
 ## v0.9.0 - 20250917
 
