@@ -16,7 +16,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, adminService services.AdminService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, adminAvatarHandlers *handlers.AdminAvatarHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, notifierHandlers *handlers.NotifierHandlers, mcpHandlers *handlers.MCPHandlers, staticFiles *embed.FS) {
+func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthService, adminService services.AdminService, authHandlers *handlers.AuthHandlers, adminHandlers *handlers.AdminHandlers, adminAvatarHandlers *handlers.AdminAvatarHandlers, gitCredHandlers *handlers.GitCredentialHandlers, projectHandlers *handlers.ProjectHandlers, operationLogHandlers *handlers.AdminOperationLogHandlers, devEnvHandlers *handlers.DevEnvironmentHandlers, taskHandlers *handlers.TaskHandlers, taskConvHandlers *handlers.TaskConversationHandlers, attachmentHandlers *handlers.TaskConversationAttachmentHandlers, systemConfigHandlers *handlers.SystemConfigHandlers, dashboardHandlers *handlers.DashboardHandlers, notifierHandlers *handlers.NotifierHandlers, mcpHandlers *handlers.MCPHandlers, providerHandlers *handlers.ProviderHandlers, staticFiles *embed.FS) {
 	r.Use(middleware.I18nMiddleware())
 	r.Use(middleware.ErrorHandlerMiddleware())
 	r.NoMethod(middleware.MethodNotAllowedHandler())
@@ -209,6 +209,18 @@ func SetupRoutes(r *gin.Engine, cfg *config.Config, authService services.AuthSer
 			// MCP association routes
 			mcps.GET("/:id/projects", mcpHandlers.GetMCPProjects)
 			mcps.GET("/:id/environments", mcpHandlers.GetMCPEnvironments)
+		}
+
+		// Provider management routes
+		// Permission checks are handled at the service layer for fine-grained control
+		providers := api.Group("/providers")
+		{
+			providers.GET("/types", providerHandlers.GetProviderTypes)
+			providers.GET("", providerHandlers.ListProviders)
+			providers.POST("", providerHandlers.CreateProvider)
+			providers.GET("/:id", providerHandlers.GetProvider)
+			providers.PUT("/:id", providerHandlers.UpdateProvider)
+			providers.DELETE("/:id", providerHandlers.DeleteProvider)
 		}
 	}
 

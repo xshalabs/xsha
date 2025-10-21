@@ -55,7 +55,11 @@
     "docker_image_placeholder": "请选择Docker镜像",
     "docker_image_edit_disabled": "创建后不可修改Docker镜像",
     "cpu_limit": "CPU限制",
-    "memory_limit": "内存限制"
+    "memory_limit": "内存限制",
+    "provider": "Provider",
+    "provider_placeholder": "请选择Provider",
+    "no_provider": "无Provider",
+    "provider_help": "可选:为此环境选择Provider配置"
   },
   "validation": {
     "name_required": "环境名称不能为空",

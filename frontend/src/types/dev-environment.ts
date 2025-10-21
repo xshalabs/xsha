@@ -14,6 +14,7 @@ export interface DevEnvironment {
   docker_image: string;
   cpu_limit: number;
   memory_limit: number;
+  provider_id?: number;
   admin_id?: number;
   created_by: string;
   admins?: Admin[];
@@ -32,6 +33,7 @@ export interface CreateDevEnvironmentRequest {
   cpu_limit: number;
   memory_limit: number;
   env_vars?: Record<string, string>;
+  provider_id?: number;
 }
 
 export interface UpdateDevEnvironmentRequest {
@@ -42,6 +44,7 @@ export interface UpdateDevEnvironmentRequest {
   cpu_limit?: number;
   memory_limit?: number;
   env_vars?: Record<string, string>;
+  provider_id?: number;
 }
 
 export interface CreateDevEnvironmentResponse {

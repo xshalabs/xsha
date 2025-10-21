@@ -1,0 +1,64 @@
+{
+  "create": "Create Provider",
+  "edit": "Edit Provider",
+  "list": "Providers",
+  "page_description": "Manage AI providers and their configurations",
+  "create_description": "Create a new AI provider configuration",
+  "edit_description": "Modify provider configuration information",
+  "invalid_id": "Invalid provider ID",
+  "create_success": "Provider created successfully",
+  "update_success": "Provider updated successfully",
+  "delete_success": "Provider deleted successfully",
+  "fetch_details_failed": "Failed to fetch provider details",
+  "delete_confirm_title": "Confirm Delete Provider",
+  "delete_confirm_description": "Are you sure you want to delete {{name}}? This action cannot be undone.",
+  "name_exists": "Provider name already exists",
+  "type_required": "Provider type is required",
+  "config_required": "Provider configuration is required",
+  "config_invalid": "Invalid provider configuration",
+  "in_use": "Cannot delete provider as it is being used by development environments",
+  "type_cannot_be_modified": "Provider type cannot be modified after creation",
+  "table": {
+    "name": "Name",
+    "description": "Description",
+    "type": "Type",
+    "created_by": "Created By",
+    "created": "Created",
+    "no_description": "No description"
+  },
+  "filters": {
+    "name": "Provider Name",
+    "name_placeholder": "Search by provider name",
+    "type": "Provider Type",
+    "type_placeholder": "Filter by provider type",
+    "all_types": "All Types"
+  },
+  "form": {
+    "name": "Provider Name",
+    "name_placeholder": "Enter provider name",
+    "description": "Description",
+    "description_placeholder": "Enter provider description (optional)",
+    "type": "Provider Type",
+    "type_placeholder": "Select provider type",
+    "config": "Configuration",
+    "config_placeholder": "Enter provider configuration (JSON format)"
+  },
+  "validation": {
+    "name_required": "Provider name is required",
+    "type_required": "Provider type is required",
+    "config_required": "Provider configuration is required",
+    "config_invalid_json": "Configuration must be valid JSON"
+  },
+  "config_vars": {
+    "title": "Configuration",
+    "key": "Configuration Key",
+    "value": "Configuration Value",
+    "add": "Add",
+    "empty_message": "No configuration set. Add one below.",
+    "key_required": "Configuration key cannot be empty",
+    "key_exists": "Configuration key already exists"
+  },
+  "types": {
+    "claude-code": "Claude Code"
+  }
+}

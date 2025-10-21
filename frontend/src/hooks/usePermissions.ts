@@ -315,6 +315,36 @@ export const usePermissions = () => {
     return false;
   };
 
+  // Provider permissions
+  const canCreateProvider = useMemo(() =>
+    hasRole(['developer', 'admin', 'super_admin']),
+    [hasRole]
+  );
+
+  const canEditProvider = (resourceAdminId?: number) => {
+    // Super admin can edit any provider
+    if (isSuperAdmin) return true;
+
+    // Admin and Developer can edit their own providers
+    if (role === 'admin' || role === 'developer') {
+      return resourceAdminId === adminId;
+    }
+
+    return false;
+  };
+
+  const canDeleteProvider = (resourceAdminId?: number) => {
+    // Super admin can delete any provider
+    if (isSuperAdmin) return true;
+
+    // Admin and Developer can delete their own providers
+    if (role === 'admin' || role === 'developer') {
+      return resourceAdminId === adminId;
+    }
+
+    return false;
+  };
+
   // System access permissions
   const canAccessSettings = useMemo(() =>
     hasRole(['super_admin']),
@@ -376,6 +406,10 @@ export const usePermissions = () => {
     canCreateMCP,
     canEditMCP,
     canDeleteMCP,
+    // Provider permissions
+    canCreateProvider,
+    canEditProvider,
+    canDeleteProvider,
     // System access permissions
     canAccessSettings,
     canViewLogs,

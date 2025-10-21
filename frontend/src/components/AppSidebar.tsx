@@ -7,6 +7,7 @@ import {
   Container,
   Bell,
   Settings2,
+  Boxes,
   Cog,
   Shield,
   TrendingUp,
@@ -32,7 +33,7 @@ import {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { t } = useTranslation();
-  const { canViewLogs, canAccessAdminPanel, canAccessSettings, canCreateNotifier, canCreateMCP } = usePermissions();
+  const { canViewLogs, canAccessAdminPanel, canAccessSettings, canCreateNotifier, canCreateMCP, canCreateProvider } = usePermissions();
 
   const data = {
     navGroups: [
@@ -59,6 +60,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/environments",
             icon: Container,
           },
+          ...(canCreateProvider ? [{
+            title: t("navigation.providers"),
+            url: "/providers",
+            icon: Boxes,
+          }] : []),
           ...(canCreateMCP ? [{
             title: t("navigation.mcp"),
             url: "/mcp",

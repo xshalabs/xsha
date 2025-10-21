@@ -31,6 +31,7 @@ type CreateEnvironmentRequest struct {
 	CPULimit     float64           `json:"cpu_limit" binding:"min=0.1,max=16"`
 	MemoryLimit  int64             `json:"memory_limit" binding:"min=128,max=32768"`
 	EnvVars      map[string]string `json:"env_vars"`
+	ProviderID   *uint             `json:"provider_id"`
 }
 
 // @Description Update environment request
@@ -42,6 +43,7 @@ type UpdateEnvironmentRequest struct {
 	CPULimit     float64           `json:"cpu_limit"`
 	MemoryLimit  int64             `json:"memory_limit"`
 	EnvVars      map[string]string `json:"env_vars"`
+	ProviderID   *uint             `json:"provider_id"`
 }
 
 // CreateEnvironment creates a development environment
@@ -75,7 +77,7 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 
 	env, err := h.devEnvService.CreateEnvironment(
 		req.Name, req.Description, req.SystemPrompt, req.Type, req.DockerImage,
-		req.CPULimit, req.MemoryLimit, req.EnvVars, adminID.(uint), username.(string),
+		req.CPULimit, req.MemoryLimit, req.EnvVars, req.ProviderID, adminID.(uint), username.(string),
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -241,6 +243,9 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	}
 	if req.MemoryLimit > 0 {
 		updates["memory_limit"] = req.MemoryLimit
+	}
+	if req.ProviderID != nil {
+		updates["provider_id"] = req.ProviderID
 	}
 
 	err = h.devEnvService.UpdateEnvironment(uint(id), updates)

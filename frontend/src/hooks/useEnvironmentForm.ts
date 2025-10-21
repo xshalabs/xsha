@@ -9,6 +9,7 @@ import type {
   CreateDevEnvironmentRequest,
   UpdateDevEnvironmentRequest,
 } from "@/types/dev-environment";
+import type { Provider } from "@/types/provider";
 
 export interface EnvironmentImageOption {
   image: string;
@@ -24,6 +25,7 @@ export interface EnvironmentFormData {
   docker_image: string;
   cpu_limit: number;
   memory_limit: number;
+  provider_id?: number;
 }
 
 export interface EnvVar {
@@ -48,6 +50,10 @@ export function useEnvironmentForm(
   const [environmentImages, setEnvironmentImages] = useState<EnvironmentImageOption[]>([]);
   const [loadingImages, setLoadingImages] = useState(true);
 
+  // Providers state
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [loadingProviders, setLoadingProviders] = useState(true);
+
   // Form state
   const [formData, setFormData] = useState<EnvironmentFormData>({
     name: environment?.name || "",
@@ -56,6 +62,7 @@ export function useEnvironmentForm(
     docker_image: environment?.docker_image || "",
     cpu_limit: environment?.cpu_limit || 1.0,
     memory_limit: environment?.memory_limit || 1024,
+    provider_id: environment?.provider_id,
   });
 
   // Environment variables state
@@ -112,6 +119,26 @@ export function useEnvironmentForm(
     loadEnvironmentImages();
   }, [isEdit]);
 
+  // Load providers
+  useEffect(() => {
+    const loadProviders = async () => {
+      try {
+        setLoadingProviders(true);
+        const response = await apiService.providers.list({ page_size: 100 });
+        setProviders(response.providers);
+      } catch (error: any) {
+        const errorMessage = handleApiError(error);
+        console.error("Failed to load providers:", errorMessage);
+        // Providers are optional, so we just set empty array
+        setProviders([]);
+      } finally {
+        setLoadingProviders(false);
+      }
+    };
+
+    loadProviders();
+  }, []);
+
   // Initialize form data from environment
   useEffect(() => {
     if (environment && isEdit) {
@@ -122,8 +149,9 @@ export function useEnvironmentForm(
         docker_image: environment.docker_image,
         cpu_limit: environment.cpu_limit,
         memory_limit: environment.memory_limit,
+        provider_id: environment.provider_id,
       });
-      
+
       // Convert env_vars_map to array structure
       const envVarsArray = Object.entries(environment.env_vars_map || {}).map(([key, value], index) => ({
         id: `env-${index}-${Date.now()}`,
@@ -262,9 +290,10 @@ export function useEnvironmentForm(
           cpu_limit: formData.cpu_limit,
           memory_limit: formData.memory_limit,
           env_vars: envVarsObj,
+          provider_id: formData.provider_id,
         };
         await apiService.devEnvironments.update(environment.id, requestData);
-        
+
         const response = await apiService.devEnvironments.get(environment.id);
         result = {
           ...response.environment,
@@ -280,6 +309,7 @@ export function useEnvironmentForm(
           ...formData,
           type: envType,
           env_vars: envVarsObj,
+          provider_id: formData.provider_id,
         };
         const response = await apiService.devEnvironments.create(requestData);
         result = {
@@ -314,8 +344,10 @@ export function useEnvironmentForm(
     formData,
     envVars,
     environmentImages,
+    providers,
     loading,
     loadingImages,
+    loadingProviders,
     error,
     errors,
     isEdit,

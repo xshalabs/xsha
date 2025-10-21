@@ -22,6 +22,7 @@ const loadModularTranslations = async (locale: string) => {
       user,
       notifiers,
       mcp,
+      provider,
     ] = await Promise.all([
       import(`./locales/${locale}/common.json`),
       import(`./locales/${locale}/auth.json`),
@@ -40,6 +41,7 @@ const loadModularTranslations = async (locale: string) => {
       import(`./locales/${locale}/user.json`),
       import(`./locales/${locale}/notifiers.json`),
       import(`./locales/${locale}/mcp.json`),
+      import(`./locales/${locale}/provider.json`),
     ]);
 
     return {
@@ -60,6 +62,7 @@ const loadModularTranslations = async (locale: string) => {
       user: user.default,
       notifiers: notifiers.default,
       mcp: mcp.default,
+      provider: provider.default,
     };
   } catch (error) {
     console.error(`Failed to load translations for locale: ${locale}`, error);

@@ -81,8 +81,15 @@ func ToEnvironmentListItemResponse(env DevEnvironment) EnvironmentListItemRespon
 		CPULimit:     env.CPULimit,
 		MemoryLimit:  env.MemoryLimit,
 		SessionDir:   env.SessionDir,
+		ProviderID:   env.ProviderID,
 		AdminID:      env.AdminID,
 		CreatedBy:    env.CreatedBy,
+	}
+
+	// Convert provider to list item response
+	if env.Provider != nil {
+		providerResponse := ToProviderListItemResponse(*env.Provider)
+		response.Provider = &providerResponse
 	}
 
 	// Convert legacy single admin to minimal version
@@ -211,6 +218,38 @@ func ToNotifierListItemResponses(notifiers []Notifier) []NotifierListItemRespons
 	responses := make([]NotifierListItemResponse, len(notifiers))
 	for i, notifier := range notifiers {
 		responses[i] = ToNotifierListItemResponse(notifier)
+	}
+	return responses
+}
+
+// ToProviderListItemResponse converts Provider to ProviderListItemResponse with minimal admin data
+func ToProviderListItemResponse(provider Provider) ProviderListItemResponse {
+	response := ProviderListItemResponse{
+		ID:          provider.ID,
+		CreatedAt:   provider.CreatedAt,
+		UpdatedAt:   provider.UpdatedAt,
+		Name:        provider.Name,
+		Description: provider.Description,
+		Type:        provider.Type,
+		Config:      provider.Config,
+		AdminID:     provider.AdminID,
+		CreatedBy:   provider.CreatedBy,
+	}
+
+	// Convert admin to minimal version
+	if provider.Admin != nil {
+		minimalAdmin := ToMinimalAdminResponse(*provider.Admin)
+		response.Admin = &minimalAdmin
+	}
+
+	return response
+}
+
+// ToProviderListItemResponses converts slice of Provider to slice of ProviderListItemResponse
+func ToProviderListItemResponses(providers []Provider) []ProviderListItemResponse {
+	responses := make([]ProviderListItemResponse, len(providers))
+	for i, provider := range providers {
+		responses[i] = ToProviderListItemResponse(provider)
 	}
 	return responses
 }

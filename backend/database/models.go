@@ -189,6 +189,10 @@ type DevEnvironment struct {
 	EnvVars    string `gorm:"type:text" json:"env_vars"`
 	SessionDir string `gorm:"type:text" json:"session_dir"`
 
+	// Provider relationship
+	ProviderID *uint     `gorm:"index" json:"provider_id"`
+	Provider   *Provider `gorm:"foreignKey:ProviderID" json:"provider"`
+
 	// Legacy single admin relationship (for backward compatibility)
 	AdminID *uint  `gorm:"index" json:"admin_id"`
 	Admin   *Admin `gorm:"foreignKey:AdminID" json:"admin"`
@@ -493,6 +497,42 @@ type NotifierListItemResponse struct {
 	CreatedBy   string                `json:"created_by"`
 }
 
+type ProviderType string
+
+const (
+	ProviderTypeClaudeCode ProviderType = "claude-code"
+)
+
+type Provider struct {
+	ID        uint           `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	Name        string       `gorm:"not null;uniqueIndex" json:"name"`
+	Description string       `gorm:"type:text" json:"description"`
+	Type        ProviderType `gorm:"not null;index" json:"type"`
+	Config      string       `gorm:"type:text;not null" json:"config"`
+
+	AdminID   *uint  `gorm:"index" json:"admin_id"`
+	Admin     *Admin `gorm:"foreignKey:AdminID" json:"admin"`
+	CreatedBy string `gorm:"not null;index" json:"created_by"`
+}
+
+// ProviderListItemResponse represents provider information with minimal admin data for list responses
+type ProviderListItemResponse struct {
+	ID          uint                  `json:"id"`
+	CreatedAt   time.Time             `json:"created_at"`
+	UpdatedAt   time.Time             `json:"updated_at"`
+	Name        string                `json:"name"`
+	Description string                `json:"description"`
+	Type        ProviderType          `json:"type"`
+	Config      string                `json:"config"`
+	AdminID     *uint                 `json:"admin_id"`
+	Admin       *MinimalAdminResponse `json:"admin,omitempty"`
+	CreatedBy   string                `json:"created_by"`
+}
+
 // DevEnvironmentKanbanResponse represents limited dev environment information for kanban responses
 type DevEnvironmentKanbanResponse struct {
 	ID           uint    `json:"id"`
@@ -505,6 +545,7 @@ type DevEnvironmentKanbanResponse struct {
 	SystemPrompt string  `json:"system_prompt"`
 	Type         string  `json:"type"`
 	AdminID      *uint   `json:"admin_id"`
+	ProviderID   *uint   `json:"provider_id"`
 }
 
 // ProjectKanbanResponse represents limited project information for kanban responses
@@ -553,6 +594,8 @@ type EnvironmentListItemResponse struct {
 	CPULimit     float64                `json:"cpu_limit"`
 	MemoryLimit  int64                  `json:"memory_limit"`
 	SessionDir   string                 `json:"session_dir"`
+	ProviderID   *uint                  `json:"provider_id"`
+	Provider     *ProviderListItemResponse `json:"provider,omitempty"`
 	AdminID      *uint                  `json:"admin_id"`
 	Admin        *MinimalAdminResponse  `json:"admin,omitempty"`
 	Admins       []MinimalAdminResponse `json:"admins,omitempty"`

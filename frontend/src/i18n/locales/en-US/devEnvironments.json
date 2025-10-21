@@ -38,7 +38,11 @@
     "docker_image": "Docker Image",
     "docker_image_placeholder": "Select a Docker image",
     "cpu_limit": "CPU Limit",
-    "memory_limit": "Memory Limit"
+    "memory_limit": "Memory Limit",
+    "provider": "Provider",
+    "provider_placeholder": "Select a provider",
+    "no_provider": "No Provider",
+    "provider_help": "Optional: Select a provider configuration for this environment"
   },
   "validation": {
     "name_required": "Environment name is required",

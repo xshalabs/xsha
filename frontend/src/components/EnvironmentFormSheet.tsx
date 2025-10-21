@@ -6,6 +6,14 @@ import { BasicFormFields } from "@/components/forms/BasicFormFields";
 import { DockerImageSelector } from "@/components/forms/DockerImageSelector";
 import { ResourceLimits } from "@/components/forms/ResourceLimits";
 import { EnvironmentVariables } from "@/components/forms/EnvironmentVariables";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { DevEnvironmentDisplay } from "@/types/dev-environment";
 
 interface EnvironmentFormSheetProps {
@@ -28,8 +36,10 @@ export function EnvironmentFormSheet({
     formData,
     envVars,
     environmentImages,
+    providers,
     loading,
     loadingImages,
+    loadingProviders,
     error,
     errors,
     isEdit: _isEdit,
@@ -72,6 +82,35 @@ export function EnvironmentFormSheet({
           error={errors.docker_image}
           disabled={loading}
         />
+
+        {/* Provider Selection (Optional) */}
+        <div className="space-y-2">
+          <Label htmlFor="provider-select">
+            {t("devEnvironments.form.provider", "Provider")} ({t("common.optional", "Optional")})
+          </Label>
+          <Select
+            value={formData.provider_id?.toString() || "none"}
+            onValueChange={(value) =>
+              handleInputChange("provider_id", value === "none" ? undefined : parseInt(value))
+            }
+            disabled={loading || loadingProviders}
+          >
+            <SelectTrigger id="provider-select">
+              <SelectValue placeholder={t("devEnvironments.form.provider_placeholder", "Select a provider")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">{t("devEnvironments.form.no_provider", "No Provider")}</SelectItem>
+              {providers.map((provider) => (
+                <SelectItem key={provider.id} value={provider.id.toString()}>
+                  {provider.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-sm text-muted-foreground">
+            {t("devEnvironments.form.provider_help", "Optional: Select a provider configuration for this environment")}
+          </p>
+        </div>
 
         {/* Resource Limits */}
         <ResourceLimits

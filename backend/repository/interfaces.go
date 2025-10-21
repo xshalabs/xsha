@@ -244,3 +244,20 @@ type MCPRepository interface {
 	IsOwner(mcpID, adminID uint) (bool, error)
 	CountByAdminID(adminID uint) (int64, error)
 }
+
+type ProviderRepository interface {
+	Create(provider *database.Provider) error
+	GetByID(id uint) (*database.Provider, error)
+	GetByName(name string) (*database.Provider, error)
+	List(name *string, providerType *string, page, pageSize int) ([]database.Provider, int64, error)
+	ListByAdminAccess(adminID uint, role database.AdminRole, name *string, providerType *string, page, pageSize int) ([]database.Provider, int64, error)
+	Update(provider *database.Provider) error
+	Delete(id uint) error
+
+	// Permission helper methods
+	IsOwner(providerID, adminID uint) (bool, error)
+	CountByAdminID(adminID uint) (int64, error)
+
+	// DevEnvironment association helper
+	CountByProviderID(providerID uint) (int64, error)
+}

@@ -22,6 +22,7 @@ import EnvironmentListPage from "@/pages/environments/EnvironmentListPage";
 import CredentialListPage from "@/pages/credentials/CredentialListPage";
 import NotifierListPage from "@/pages/notifiers/NotifierListPage";
 import MCPListPage from "@/pages/mcp/MCPListPage";
+import ProviderListPage from "@/pages/providers/ProviderListPage";
 import SettingsPage from "@/pages/settings/Settings";
 import AdminListPage from "@/pages/admin/AdminListPage";
 import ChangePasswordPage from "@/pages/user/ChangePasswordPage";
@@ -122,6 +123,16 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <MCPListPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/providers"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ProviderListPage />
                   </Layout>
                 </ProtectedRoute>
               }

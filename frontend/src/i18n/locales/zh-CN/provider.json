@@ -1,0 +1,64 @@
+{
+  "create": "创建Provider",
+  "edit": "编辑Provider",
+  "list": "Providers",
+  "page_description": "管理AI Providers及其配置",
+  "create_description": "创建新的AI Provider配置",
+  "edit_description": "修改Provider配置信息",
+  "invalid_id": "无效的Provider ID",
+  "create_success": "Provider创建成功",
+  "update_success": "Provider更新成功",
+  "delete_success": "Provider删除成功",
+  "fetch_details_failed": "获取Provider详情失败",
+  "delete_confirm_title": "确认删除Provider",
+  "delete_confirm_description": "确定要删除 {{name}} 吗？此操作无法撤销。",
+  "name_exists": "Provider名称已存在",
+  "type_required": "Provider类型是必需的",
+  "config_required": "Provider配置是必需的",
+  "config_invalid": "无效的Provider配置",
+  "in_use": "无法删除Provider,因为它正在被开发环境使用",
+  "type_cannot_be_modified": "创建后不能修改Provider类型",
+  "table": {
+    "name": "名称",
+    "description": "描述",
+    "type": "类型",
+    "created_by": "创建者",
+    "created": "创建时间",
+    "no_description": "无描述"
+  },
+  "filters": {
+    "name": "Provider名称",
+    "name_placeholder": "按Provider名称搜索",
+    "type": "Provider类型",
+    "type_placeholder": "按Provider类型筛选",
+    "all_types": "所有类型"
+  },
+  "form": {
+    "name": "Provider名称",
+    "name_placeholder": "请输入Provider名称",
+    "description": "描述",
+    "description_placeholder": "请输入Provider描述(可选)",
+    "type": "Provider类型",
+    "type_placeholder": "请选择Provider类型",
+    "config": "配置",
+    "config_placeholder": "请输入Provider配置(JSON格式)"
+  },
+  "validation": {
+    "name_required": "Provider名称是必需的",
+    "type_required": "Provider类型是必需的",
+    "config_required": "Provider配置是必需的",
+    "config_invalid_json": "配置必须是有效的JSON格式"
+  },
+  "config_vars": {
+    "title": "配置",
+    "key": "配置键",
+    "value": "配置值",
+    "add": "添加",
+    "empty_message": "未设置配置，请在下方添加。",
+    "key_required": "配置键不能为空",
+    "key_exists": "配置键已存在"
+  },
+  "types": {
+    "claude-code": "Claude Code"
+  }
+}
