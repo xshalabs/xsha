@@ -46,7 +46,7 @@ const ProviderListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { setItems } = useBreadcrumb();
   const { setActions } = usePageActions();
-  const { canCreateProvider, canEditProvider, canDeleteProvider, adminId } =
+  const { canCreateProvider, canEditProvider, canDeleteProvider } =
     usePermissions();
 
   usePageTitle(t("navigation.providers"));

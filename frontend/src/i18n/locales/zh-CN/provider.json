@@ -58,6 +58,12 @@
     "key_required": "配置键不能为空",
     "key_exists": "配置键已存在"
   },
+  "templates": {
+    "title": "快速启动模板",
+    "description": "选择模板快速填充配置字段。应用后可以自定义值。",
+    "applied": "模板 '{{name}}' 应用成功",
+    "not_found": "未找到模板"
+  },
   "types": {
     "claude-code": "Claude Code"
   }

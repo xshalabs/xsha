@@ -45,6 +45,7 @@ export function ProviderFormSheet({
     addConfigVar,
     removeConfigVar,
     updateConfigVar,
+    applyTemplate,
   } = useProviderForm(provider, onSubmit);
 
   return (
@@ -149,6 +150,7 @@ export function ProviderFormSheet({
           onAddConfigVar={addConfigVar}
           onRemoveConfigVar={removeConfigVar}
           onUpdateConfigVar={updateConfigVar}
+          onApplyTemplate={applyTemplate}
           disabled={loading}
         />
         {errors.config && (

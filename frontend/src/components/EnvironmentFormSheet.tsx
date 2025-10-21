@@ -91,7 +91,7 @@ export function EnvironmentFormSheet({
           <Select
             value={formData.provider_id?.toString() || "none"}
             onValueChange={(value) =>
-              handleInputChange("provider_id", value === "none" ? undefined : parseInt(value))
+              handleInputChange("provider_id", value === "none" ? undefined : parseInt(value, 10))
             }
             disabled={loading || loadingProviders}
           >

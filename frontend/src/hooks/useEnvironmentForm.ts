@@ -190,7 +190,7 @@ export function useEnvironmentForm(
   };
 
   // Handlers
-  const handleInputChange = (field: keyof EnvironmentFormData, value: string | number) => {
+  const handleInputChange = (field: keyof EnvironmentFormData, value: string | number | undefined) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,

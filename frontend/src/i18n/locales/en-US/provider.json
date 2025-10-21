@@ -58,6 +58,12 @@
     "key_required": "Configuration key cannot be empty",
     "key_exists": "Configuration key already exists"
   },
+  "templates": {
+    "title": "Quick Start Templates",
+    "description": "Select a template to quickly populate configuration fields. You can customize the values after applying.",
+    "applied": "Template '{{name}}' applied successfully",
+    "not_found": "Template not found"
+  },
   "types": {
     "claude-code": "Claude Code"
   }

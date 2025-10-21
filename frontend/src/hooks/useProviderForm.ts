@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { apiService } from "@/lib/api/index";
 import { handleApiError, logError } from "@/lib/errors";
+import { getTemplateById } from "@/lib/provider/templateGenerators";
 import type {
   Provider,
   CreateProviderRequest,
@@ -194,6 +195,36 @@ export function useProviderForm(
     return true;
   };
 
+  // Apply template handler
+  const applyTemplate = (templateId: string) => {
+    const template = getTemplateById(templateId);
+    if (!template) {
+      toast.error(t("provider.templates.not_found"));
+      return;
+    }
+
+    // Convert template config to ConfigVar array
+    const templateConfigVars = Object.entries(template.config).map(([key, value], index) => ({
+      id: `config-template-${index}-${Date.now()}`,
+      key,
+      value: String(value),
+    }));
+
+    // Replace existing config vars with template config
+    setConfigVars(templateConfigVars);
+
+    // Show success message
+    toast.success(t("provider.templates.applied", { name: template.name }));
+
+    // Clear errors
+    if (errors.config) {
+      setErrors((prev) => ({
+        ...prev,
+        config: "",
+      }));
+    }
+  };
+
   // Submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -276,6 +307,7 @@ export function useProviderForm(
     addConfigVar,
     removeConfigVar,
     updateConfigVar,
+    applyTemplate,
 
     // Utilities
     validateForm,
