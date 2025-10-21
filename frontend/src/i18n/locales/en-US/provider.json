@@ -1,6 +1,6 @@
 {
-  "create": "Create Provider",
-  "edit": "Edit Provider",
+  "create": "Create",
+  "edit": "Edit",
   "list": "Providers",
   "page_description": "Manage AI providers and their configurations",
   "create_description": "Create a new AI provider configuration",

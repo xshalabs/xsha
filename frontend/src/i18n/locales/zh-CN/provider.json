@@ -1,6 +1,6 @@
 {
-  "create": "创建Provider",
-  "edit": "编辑Provider",
+  "create": "创建",
+  "edit": "编辑",
   "list": "Providers",
   "page_description": "管理AI Providers及其配置",
   "create_description": "创建新的AI Provider配置",
