@@ -83,6 +83,11 @@ export interface DevEnvironmentImageConfig {
   type: string;
 }
 
+export interface EnvironmentCreationDataResponse {
+  providers: import("./provider").ProviderSelection[];
+  images: DevEnvironmentImageConfig[];
+}
+
 export interface ResourceUsageStats {
   total_cpu: number;
   used_cpu: number;

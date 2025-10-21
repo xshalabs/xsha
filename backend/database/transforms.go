@@ -86,9 +86,9 @@ func ToEnvironmentListItemResponse(env DevEnvironment) EnvironmentListItemRespon
 		CreatedBy:    env.CreatedBy,
 	}
 
-	// Convert provider to list item response
+	// Convert provider to selection response (excludes config for security)
 	if env.Provider != nil {
-		providerResponse := ToProviderListItemResponse(*env.Provider)
+		providerResponse := ToProviderSelectionResponse(*env.Provider)
 		response.Provider = &providerResponse
 	}
 
@@ -250,6 +250,27 @@ func ToProviderListItemResponses(providers []Provider) []ProviderListItemRespons
 	responses := make([]ProviderListItemResponse, len(providers))
 	for i, provider := range providers {
 		responses[i] = ToProviderListItemResponse(provider)
+	}
+	return responses
+}
+
+// ToProviderSelectionResponse converts Provider to ProviderSelectionResponse
+// SECURITY: This function excludes the Config field to prevent sensitive data exposure
+func ToProviderSelectionResponse(provider Provider) ProviderSelectionResponse {
+	return ProviderSelectionResponse{
+		ID:          provider.ID,
+		Name:        provider.Name,
+		Description: provider.Description,
+		Type:        provider.Type,
+		// Config is intentionally omitted for security
+	}
+}
+
+// ToProviderSelectionResponses converts slice of Provider to slice of ProviderSelectionResponse
+func ToProviderSelectionResponses(providers []Provider) []ProviderSelectionResponse {
+	responses := make([]ProviderSelectionResponse, len(providers))
+	for i, provider := range providers {
+		responses[i] = ToProviderSelectionResponse(provider)
 	}
 	return responses
 }

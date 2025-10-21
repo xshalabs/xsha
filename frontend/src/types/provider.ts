@@ -56,3 +56,12 @@ export interface ProviderListParams {
 export interface ProviderTypesResponse {
   types: ProviderType[];
 }
+
+// ProviderSelection represents provider information for selection dropdowns
+// SECURITY: This type intentionally excludes the config field to prevent sensitive data exposure
+export interface ProviderSelection {
+  id: number;
+  name: string;
+  description: string;
+  type: ProviderType;
+}

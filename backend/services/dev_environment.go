@@ -14,16 +14,18 @@ import (
 )
 
 type devEnvironmentService struct {
-	repo          repository.DevEnvironmentRepository
-	taskRepo      repository.TaskRepository
+	repo         repository.DevEnvironmentRepository
+	taskRepo     repository.TaskRepository
+	providerRepo repository.ProviderRepository
 	configService SystemConfigService
 	config        *config.Config
 }
 
-func NewDevEnvironmentService(repo repository.DevEnvironmentRepository, taskRepo repository.TaskRepository, configService SystemConfigService, cfg *config.Config) DevEnvironmentService {
+func NewDevEnvironmentService(repo repository.DevEnvironmentRepository, taskRepo repository.TaskRepository, providerRepo repository.ProviderRepository, configService SystemConfigService, cfg *config.Config) DevEnvironmentService {
 	return &devEnvironmentService{
 		repo:          repo,
 		taskRepo:      taskRepo,
+		providerRepo:  providerRepo,
 		configService: configService,
 		config:        cfg,
 	}
@@ -243,6 +245,22 @@ func (s *devEnvironmentService) GetAvailableEnvironmentImages() ([]map[string]in
 	}
 
 	return envImages, nil
+}
+
+// GetAllProvidersForSelection gets all providers accessible to an admin for selection
+// SECURITY: Returns ProviderSelectionResponse which excludes sensitive Config field
+func (s *devEnvironmentService) GetAllProvidersForSelection(admin *database.Admin) ([]database.ProviderSelectionResponse, error) {
+	if admin == nil {
+		return []database.ProviderSelectionResponse{}, appErrors.NewI18nError("permission_denied", "en-US")
+	}
+
+	providers, err := s.providerRepo.ListAllForSelection(admin.ID, admin.Role)
+	if err != nil {
+		return nil, err
+	}
+
+	responses := database.ToProviderSelectionResponses(providers)
+	return responses, nil
 }
 
 // generateSessionDir creates a unique session directory for the dev environment

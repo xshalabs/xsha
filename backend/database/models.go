@@ -533,6 +533,15 @@ type ProviderListItemResponse struct {
 	CreatedBy   string                `json:"created_by"`
 }
 
+// ProviderSelectionResponse represents provider information for selection dropdowns
+// SECURITY: This type intentionally excludes the Config field to prevent sensitive data exposure
+type ProviderSelectionResponse struct {
+	ID          uint         `json:"id"`
+	Name        string       `json:"name"`
+	Description string       `json:"description"`
+	Type        ProviderType `json:"type"`
+}
+
 // DevEnvironmentKanbanResponse represents limited dev environment information for kanban responses
 type DevEnvironmentKanbanResponse struct {
 	ID           uint    `json:"id"`
@@ -583,23 +592,23 @@ type TaskKanbanResponse struct {
 
 // EnvironmentListItemResponse represents environment information with minimal admin data for list responses
 type EnvironmentListItemResponse struct {
-	ID           uint                   `json:"id"`
-	CreatedAt    time.Time              `json:"created_at"`
-	UpdatedAt    time.Time              `json:"updated_at"`
-	Name         string                 `json:"name"`
-	Description  string                 `json:"description"`
-	SystemPrompt string                 `json:"system_prompt"`
-	Type         string                 `json:"type"`
-	DockerImage  string                 `json:"docker_image"`
-	CPULimit     float64                `json:"cpu_limit"`
-	MemoryLimit  int64                  `json:"memory_limit"`
-	SessionDir   string                 `json:"session_dir"`
-	ProviderID   *uint                  `json:"provider_id"`
-	Provider     *ProviderListItemResponse `json:"provider,omitempty"`
-	AdminID      *uint                  `json:"admin_id"`
-	Admin        *MinimalAdminResponse  `json:"admin,omitempty"`
-	Admins       []MinimalAdminResponse `json:"admins,omitempty"`
-	CreatedBy    string                 `json:"created_by"`
+	ID           uint                       `json:"id"`
+	CreatedAt    time.Time                  `json:"created_at"`
+	UpdatedAt    time.Time                  `json:"updated_at"`
+	Name         string                     `json:"name"`
+	Description  string                     `json:"description"`
+	SystemPrompt string                     `json:"system_prompt"`
+	Type         string                     `json:"type"`
+	DockerImage  string                     `json:"docker_image"`
+	CPULimit     float64                    `json:"cpu_limit"`
+	MemoryLimit  int64                      `json:"memory_limit"`
+	SessionDir   string                     `json:"session_dir"`
+	ProviderID   *uint                      `json:"provider_id"`
+	Provider     *ProviderSelectionResponse `json:"provider,omitempty"` // SECURITY: Use selection response to exclude config
+	AdminID      *uint                      `json:"admin_id"`
+	Admin        *MinimalAdminResponse      `json:"admin,omitempty"`
+	Admins       []MinimalAdminResponse     `json:"admins,omitempty"`
+	CreatedBy    string                     `json:"created_by"`
 }
 
 type MCP struct {

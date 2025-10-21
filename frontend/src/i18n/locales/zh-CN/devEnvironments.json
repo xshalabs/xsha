@@ -59,10 +59,11 @@
     "provider": "Provider",
     "provider_placeholder": "请选择Provider",
     "no_provider": "无Provider",
-    "provider_help": "可选:为此环境选择Provider配置"
+    "provider_help": "为此环境选择Provider配置"
   },
   "validation": {
     "name_required": "环境名称不能为空",
+    "provider_required": "Provider不能为空",
     "docker_image_required": "Docker镜像不能为空",
     "cpu_limit_invalid": "CPU限制必须在0.1-16核之间",
     "memory_limit_invalid": "内存限制必须在128-32768MB之间"
@@ -71,13 +72,13 @@
   "createHelpText": "设置开发环境，包括自定义 Docker 镜像、资源限制和环境变量。",
   "editAndUpdate": "编辑并更新配置",
   "editHelpText": "修改环境设置，调整资源限制和管理环境变量。",
-  "configurationHelp": "环境配置将在容器创建或重启时应用。",
   "noImagesAvailable": "没有可用的Docker镜像",
   "env_vars": {
     "title": "环境变量",
     "key": "变量名",
     "value": "变量值",
     "add": "添加",
+    "count": "个变量",
     "empty_message": "暂无环境变量配置，请在下方添加。",
     "key_required": "变量名不能为空",
     "key_exists": "变量名已存在"

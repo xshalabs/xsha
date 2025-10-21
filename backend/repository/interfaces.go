@@ -251,6 +251,7 @@ type ProviderRepository interface {
 	GetByName(name string) (*database.Provider, error)
 	List(name *string, providerType *string, page, pageSize int) ([]database.Provider, int64, error)
 	ListByAdminAccess(adminID uint, role database.AdminRole, name *string, providerType *string, page, pageSize int) ([]database.Provider, int64, error)
+	ListAllForSelection(adminID uint, role database.AdminRole) ([]database.Provider, error)
 	Update(provider *database.Provider) error
 	Delete(id uint) error
 

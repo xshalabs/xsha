@@ -9,7 +9,7 @@ import type {
   CreateDevEnvironmentRequest,
   UpdateDevEnvironmentRequest,
 } from "@/types/dev-environment";
-import type { Provider } from "@/types/provider";
+import type { ProviderSelection } from "@/types/provider";
 
 export interface EnvironmentImageOption {
   image: string;
@@ -51,7 +51,7 @@ export function useEnvironmentForm(
   const [loadingImages, setLoadingImages] = useState(true);
 
   // Providers state
-  const [providers, setProviders] = useState<Provider[]>([]);
+  const [providers, setProviders] = useState<ProviderSelection[]>([]);
   const [loadingProviders, setLoadingProviders] = useState(true);
 
   // Form state
@@ -73,12 +73,16 @@ export function useEnvironmentForm(
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Load environment images
+  // Load environment creation data (images and providers)
   useEffect(() => {
-    const loadEnvironmentImages = async () => {
+    const loadCreationData = async () => {
       try {
         setLoadingImages(true);
-        const response = await devEnvironmentsApi.getAvailableImages();
+        setLoadingProviders(true);
+
+        const response = await devEnvironmentsApi.getCreationData();
+
+        // Process images
         const images: EnvironmentImageOption[] = response.images.map((item) => ({
           image: item.image,
           name: item.name,
@@ -95,9 +99,14 @@ export function useEnvironmentForm(
             docker_image: defaultImage.image,
           }));
         }
+
+        // Process providers
+        setProviders(response.providers);
       } catch (error: any) {
         const errorMessage = handleApiError(error);
-        console.error("Failed to load environment images:", errorMessage);
+        console.error("Failed to load environment creation data:", errorMessage);
+
+        // Fallback for images
         const fallbackImage = {
           image: "claude-code:latest",
           name: "Claude Code",
@@ -111,33 +120,17 @@ export function useEnvironmentForm(
             docker_image: fallbackImage.image,
           }));
         }
-      } finally {
-        setLoadingImages(false);
-      }
-    };
 
-    loadEnvironmentImages();
-  }, [isEdit]);
-
-  // Load providers
-  useEffect(() => {
-    const loadProviders = async () => {
-      try {
-        setLoadingProviders(true);
-        const response = await apiService.providers.list({ page_size: 100 });
-        setProviders(response.providers);
-      } catch (error: any) {
-        const errorMessage = handleApiError(error);
-        console.error("Failed to load providers:", errorMessage);
-        // Providers are optional, so we just set empty array
+        // Providers are optional, so just set empty array
         setProviders([]);
       } finally {
+        setLoadingImages(false);
         setLoadingProviders(false);
       }
     };
 
-    loadProviders();
-  }, []);
+    loadCreationData();
+  }, [isEdit]);
 
   // Initialize form data from environment
   useEffect(() => {
@@ -171,6 +164,10 @@ export function useEnvironmentForm(
 
     if (!formData.name.trim()) {
       newErrors.name = t("devEnvironments.validation.name_required");
+    }
+
+    if (!formData.provider_id) {
+      newErrors.provider_id = t("devEnvironments.validation.provider_required");
     }
 
     if (!formData.docker_image.trim()) {

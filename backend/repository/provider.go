@@ -97,6 +97,24 @@ func (r *providerRepository) ListByAdminAccess(adminID uint, role database.Admin
 	return providers, total, nil
 }
 
+func (r *providerRepository) ListAllForSelection(adminID uint, role database.AdminRole) ([]database.Provider, error) {
+	var providers []database.Provider
+
+	query := r.db.Model(&database.Provider{}).Preload("Admin").Preload("Admin.Avatar")
+
+	// Apply role-based filtering
+	if role != database.AdminRoleSuperAdmin {
+		query = query.Where("admin_id = ?", adminID)
+	}
+
+	// Get all providers ordered by name
+	if err := query.Order("name ASC").Find(&providers).Error; err != nil {
+		return nil, err
+	}
+
+	return providers, nil
+}
+
 func (r *providerRepository) Update(provider *database.Provider) error {
 	return r.db.Save(provider).Error
 }

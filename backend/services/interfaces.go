@@ -118,6 +118,7 @@ type DevEnvironmentService interface {
 	UpdateEnvironmentVars(id uint, envVars map[string]string) error
 	ValidateResourceLimits(cpuLimit float64, memoryLimit int64) error
 	GetAvailableEnvironmentImages() ([]map[string]interface{}, error)
+	GetAllProvidersForSelection(admin *database.Admin) ([]database.ProviderSelectionResponse, error)
 
 	// Admin management methods
 	AddAdminToEnvironment(envID, adminID uint) error

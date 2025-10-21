@@ -26,7 +26,6 @@ interface EnvironmentFormSheetProps {
 export function EnvironmentFormSheet({
   environment,
   onSubmit,
-  onCancel: _onCancel,
   formId = "environment-form-sheet",
 }: EnvironmentFormSheetProps) {
   const { t } = useTranslation();
@@ -42,7 +41,6 @@ export function EnvironmentFormSheet({
     loadingProviders,
     error,
     errors,
-    isEdit: _isEdit,
     handleInputChange,
     handleDockerImageChange,
     handleSubmit,
@@ -73,6 +71,37 @@ export function EnvironmentFormSheet({
           disabled={loading}
         />
 
+        {/* Provider Selection (Required) */}
+        <div className="space-y-2">
+          <Label htmlFor="provider-select">
+            {t("devEnvironments.form.provider", "Provider")} <span className="text-destructive">*</span>
+          </Label>
+          <Select
+            value={formData.provider_id?.toString() || ""}
+            onValueChange={(value) =>
+              handleInputChange("provider_id", value ? parseInt(value, 10) : undefined)
+            }
+            disabled={loading || loadingProviders}
+          >
+            <SelectTrigger id="provider-select" className={errors.provider_id ? "border-destructive" : ""}>
+              <SelectValue placeholder={t("devEnvironments.form.provider_placeholder", "Select a provider")} />
+            </SelectTrigger>
+            <SelectContent>
+              {providers.map((provider) => (
+                <SelectItem key={provider.id} value={provider.id.toString()}>
+                  {provider.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.provider_id && (
+            <p className="text-sm text-destructive">{errors.provider_id}</p>
+          )}
+          <p className="text-sm text-muted-foreground">
+            {t("devEnvironments.form.provider_help", "Select a provider configuration for this environment")}
+          </p>
+        </div>
+
         {/* Docker Image Selection */}
         <DockerImageSelector
           dockerImage={formData.docker_image}
@@ -82,35 +111,6 @@ export function EnvironmentFormSheet({
           error={errors.docker_image}
           disabled={loading}
         />
-
-        {/* Provider Selection (Optional) */}
-        <div className="space-y-2">
-          <Label htmlFor="provider-select">
-            {t("devEnvironments.form.provider", "Provider")} ({t("common.optional", "Optional")})
-          </Label>
-          <Select
-            value={formData.provider_id?.toString() || "none"}
-            onValueChange={(value) =>
-              handleInputChange("provider_id", value === "none" ? undefined : parseInt(value, 10))
-            }
-            disabled={loading || loadingProviders}
-          >
-            <SelectTrigger id="provider-select">
-              <SelectValue placeholder={t("devEnvironments.form.provider_placeholder", "Select a provider")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">{t("devEnvironments.form.no_provider", "No Provider")}</SelectItem>
-              {providers.map((provider) => (
-                <SelectItem key={provider.id} value={provider.id.toString()}>
-                  {provider.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-sm text-muted-foreground">
-            {t("devEnvironments.form.provider_help", "Optional: Select a provider configuration for this environment")}
-          </p>
-        </div>
 
         {/* Resource Limits */}
         <ResourceLimits
@@ -133,14 +133,6 @@ export function EnvironmentFormSheet({
           onUpdateEnvVar={updateEnvVar}
           disabled={loading}
         />
-
-        {/* Configuration Help */}
-        <Alert>
-          <Shield className="h-4 w-4" />
-          <AlertDescription className="text-xs">
-            {t("devEnvironments.configurationHelp")}
-          </AlertDescription>
-        </Alert>
       </div>
     </form>
   );

@@ -60,12 +60,12 @@ export const devEnvironmentsApi = {
   },
 
 
-  getAvailableImages: async (): Promise<{
-    images: DevEnvironmentImageConfig[];
-  }> => {
-    return request<{ images: DevEnvironmentImageConfig[] }>(
-      "/environments/available-images"
-    );
+  getCreationData: async (): Promise<
+    import("@/types/dev-environment").EnvironmentCreationDataResponse
+  > => {
+    return request<
+      import("@/types/dev-environment").EnvironmentCreationDataResponse
+    >("/environments/creation-data");
   },
 
   // Admin management methods
