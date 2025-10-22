@@ -2077,6 +2077,48 @@ const docTemplate = `{
                 }
             }
         },
+        "/environments/creation-data": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get providers and available images in a single request for environment creation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Development Environment"
+                ],
+                "summary": "Get environment creation data",
+                "responses": {
+                    "200": {
+                        "description": "Environment creation data",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "images": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                },
+                                "providers": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/environments/{id}": {
             "get": {
                 "security": [
@@ -2431,6 +2473,146 @@ const docTemplate = `{
                 }
             }
         },
+        "/environments/{id}/mcp": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all MCPs associated with an environment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MCP"
+                ],
+                "summary": "Get environment MCPs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Environment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of MCPs",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "mcps": {
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Associate an MCP configuration with an environment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MCP"
+                ],
+                "summary": "Associate MCP with environment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Environment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "MCP association information",
+                        "name": "mcp",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AssociateMCPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "MCP associated successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/environments/{id}/mcp/{mcp_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove an MCP association from an environment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MCP"
+                ],
+                "summary": "Remove MCP from environment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Environment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "MCP ID",
+                        "name": "mcp_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "MCP disassociated successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Check server status",
@@ -2458,6 +2640,380 @@ const docTemplate = `{
                                 },
                                 "status": {
                                     "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/mcp": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a paginated list of MCP configurations",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MCP"
+                ],
+                "summary": "List MCP configurations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by enabled status",
+                        "name": "enabled",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of MCPs",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "mcps": {
+                                    "type": "array"
+                                },
+                                "page": {
+                                    "type": "integer"
+                                },
+                                "page_size": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new MCP configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MCP"
+                ],
+                "summary": "Create MCP",
+                "parameters": [
+                    {
+                        "description": "MCP information",
+                        "name": "mcp",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreateMCPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "MCP created successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "mcp": {
+                                    "type": "object"
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request parameter error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/mcp/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detailed information of an MCP configuration by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MCP"
+                ],
+                "summary": "Get MCP details",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "MCP ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "MCP details",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "mcp": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "MCP not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update an MCP configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MCP"
+                ],
+                "summary": "Update MCP",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "MCP ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "MCP update information",
+                        "name": "mcp",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.UpdateMCPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "MCP updated successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request parameter error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete an MCP configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MCP"
+                ],
+                "summary": "Delete MCP",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "MCP ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "MCP deleted successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "MCP not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/mcp/{id}/environments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all environments associated with an MCP",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MCP"
+                ],
+                "summary": "Get MCP environments",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "MCP ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of environments",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "environments": {
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/mcp/{id}/projects": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all projects associated with an MCP",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MCP"
+                ],
+                "summary": "Get MCP projects",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "MCP ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of projects",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "projects": {
+                                    "type": "array"
                                 }
                             }
                         }
@@ -3641,6 +4197,146 @@ const docTemplate = `{
                 }
             }
         },
+        "/projects/{id}/mcp": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all MCPs associated with a project",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MCP"
+                ],
+                "summary": "Get project MCPs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of MCPs",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "mcps": {
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Associate an MCP configuration with a project",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MCP"
+                ],
+                "summary": "Associate MCP with project",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "MCP association information",
+                        "name": "mcp",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AssociateMCPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "MCP associated successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/projects/{id}/mcp/{mcp_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove an MCP association from a project",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MCP"
+                ],
+                "summary": "Remove MCP from project",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "MCP ID",
+                        "name": "mcp_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "MCP disassociated successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/projects/{id}/tasks/batch/status": {
             "put": {
                 "security": [
@@ -4563,6 +5259,389 @@ const docTemplate = `{
                 }
             }
         },
+        "/providers": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the provider list, supporting filtering by name, type and pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Providers"
+                ],
+                "summary": "Get provider list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Provider name filter",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Provider type filter",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number, defaults to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size, defaults to 20, maximum 100",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Provider list",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "page": {
+                                    "type": "number"
+                                },
+                                "page_size": {
+                                    "type": "number"
+                                },
+                                "providers": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                },
+                                "total": {
+                                    "type": "number"
+                                },
+                                "total_pages": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get provider list",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new provider (all logged-in users can create)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Providers"
+                ],
+                "summary": "Create provider",
+                "parameters": [
+                    {
+                        "description": "Provider information",
+                        "name": "provider",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreateProviderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Provider created successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "provider": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request parameter error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to create provider",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/providers/types": {
+            "get": {
+                "description": "Get list of available provider types",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Providers"
+                ],
+                "summary": "Get available provider types",
+                "responses": {
+                    "200": {
+                        "description": "Provider types retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "types": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/providers/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detailed information of a specified provider by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Providers"
+                ],
+                "summary": "Get provider details",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Provider ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Provider details",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "provider": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid provider ID",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Provider not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update information of a specified provider",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Providers"
+                ],
+                "summary": "Update provider",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Provider ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Provider update information",
+                        "name": "provider",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.UpdateProviderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Provider updated successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request parameter error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Provider not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a specified provider",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Providers"
+                ],
+                "summary": "Delete provider",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Provider ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Provider deleted successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid provider ID or provider in use",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Provider not found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/settings": {
             "get": {
                 "security": [
@@ -5417,6 +6496,9 @@ const docTemplate = `{
                 "is_active": {
                     "type": "boolean"
                 },
+                "lang": {
+                    "type": "string"
+                },
                 "last_login_at": {
                     "type": "string"
                 },
@@ -5489,6 +6571,26 @@ const docTemplate = `{
                 }
             }
         },
+        "database.AdminKanbanResponse": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "$ref": "#/definitions/database.AdminAvatarMinimal"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "database.AdminListResponse": {
             "type": "object",
             "properties": {
@@ -5512,6 +6614,9 @@ const docTemplate = `{
                 },
                 "is_active": {
                     "type": "boolean"
+                },
+                "lang": {
+                    "type": "string"
                 },
                 "last_login_at": {
                     "type": "string"
@@ -5607,6 +6712,13 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "provider": {
+                    "$ref": "#/definitions/database.Provider"
+                },
+                "provider_id": {
+                    "description": "Provider relationship",
+                    "type": "integer"
+                },
                 "session_dir": {
                     "type": "string"
                 },
@@ -5617,6 +6729,44 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.DevEnvironmentKanbanResponse": {
+            "type": "object",
+            "properties": {
+                "admin_id": {
+                    "type": "integer"
+                },
+                "cpu_limit": {
+                    "type": "number"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "docker_image": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "memory_limit": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "provider_id": {
+                    "type": "integer"
+                },
+                "system_prompt": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }
@@ -5742,6 +6892,73 @@ const docTemplate = `{
                 }
             }
         },
+        "database.ProjectKanbanResponse": {
+            "type": "object",
+            "properties": {
+                "admin_id": {
+                    "type": "integer"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "system_prompt": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.Provider": {
+            "type": "object",
+            "properties": {
+                "admin": {
+                    "$ref": "#/definitions/database.Admin"
+                },
+                "admin_id": {
+                    "type": "integer"
+                },
+                "config": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/database.ProviderType"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.ProviderType": {
+            "type": "string",
+            "enum": [
+                "claude-code"
+            ],
+            "x-enum-varnames": [
+                "ProviderTypeClaudeCode"
+            ]
+        },
         "database.Task": {
             "type": "object",
             "properties": {
@@ -5856,6 +7073,68 @@ const docTemplate = `{
                 }
             }
         },
+        "database.TaskKanbanResponse": {
+            "type": "object",
+            "properties": {
+                "admin": {
+                    "$ref": "#/definitions/database.AdminKanbanResponse"
+                },
+                "admin_id": {
+                    "type": "integer"
+                },
+                "conversation_count": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "dev_environment": {
+                    "$ref": "#/definitions/database.DevEnvironmentKanbanResponse"
+                },
+                "dev_environment_id": {
+                    "type": "integer"
+                },
+                "has_pull_request": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "latest_execution_time": {
+                    "type": "string"
+                },
+                "project": {
+                    "$ref": "#/definitions/database.ProjectKanbanResponse"
+                },
+                "project_id": {
+                    "type": "integer"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "start_branch": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/database.TaskStatus"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "work_branch": {
+                    "type": "string"
+                },
+                "workspace_path": {
+                    "type": "string"
+                }
+            }
+        },
         "database.TaskStatus": {
             "type": "string",
             "enum": [
@@ -5905,6 +7184,17 @@ const docTemplate = `{
                 "admin_id": {
                     "type": "integer",
                     "example": 1
+                }
+            }
+        },
+        "handlers.AssociateMCPRequest": {
+            "type": "object",
+            "required": [
+                "mcp_id"
+            ],
+            "properties": {
+                "mcp_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -6086,6 +7376,7 @@ const docTemplate = `{
             "required": [
                 "docker_image",
                 "name",
+                "provider_id",
                 "type"
             ],
             "properties": {
@@ -6114,10 +7405,34 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "provider_id": {
+                    "type": "integer"
+                },
                 "system_prompt": {
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.CreateMCPRequest": {
+            "type": "object",
+            "required": [
+                "config",
+                "name"
+            ],
+            "properties": {
+                "config": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -6150,6 +7465,28 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "system_prompt": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.CreateProviderRequest": {
+            "type": "object",
+            "required": [
+                "config",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "config": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }
@@ -6273,25 +7610,25 @@ const docTemplate = `{
                 "cancelled": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Task"
+                        "$ref": "#/definitions/database.TaskKanbanResponse"
                     }
                 },
                 "done": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Task"
+                        "$ref": "#/definitions/database.TaskKanbanResponse"
                     }
                 },
                 "in_progress": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Task"
+                        "$ref": "#/definitions/database.TaskKanbanResponse"
                     }
                 },
                 "todo": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Task"
+                        "$ref": "#/definitions/database.TaskKanbanResponse"
                     }
                 }
             }
@@ -6345,6 +7682,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "docker_image": {
+                    "type": "string"
+                },
                 "env_vars": {
                     "type": "object",
                     "additionalProperties": {
@@ -6357,7 +7697,27 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "provider_id": {
+                    "type": "integer"
+                },
                 "system_prompt": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.UpdateMCPRequest": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -6378,13 +7738,23 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Updated project name"
                 },
-                "repo_url": {
-                    "type": "string",
-                    "example": "https://github.com/user/repo.git"
-                },
                 "system_prompt": {
                     "type": "string",
                     "example": "Custom system prompt"
+                }
+            }
+        },
+        "handlers.UpdateProviderRequest": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },

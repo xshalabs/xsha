@@ -32,7 +32,7 @@
     "name": "Enter project name",
     "description": "Enter project description (optional)",
     "systemPrompt": "Enter system prompt for AI conversations (optional)",
-    "repoUrl": "https://github.com/user/repo.git or git@github.com:user/repo.git",
+    "repoUrl": "https://github.com/user/repo.git",
     "selectCredential": "Select access credential (optional)"
   },
   "validation": {
