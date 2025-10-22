@@ -6,7 +6,6 @@ import type {
   DevEnvironmentDetailResponse,
   DevEnvironmentListResponse,
   DevEnvironmentListParams,
-  DevEnvironmentImageConfig,
   AddAdminToEnvironmentRequest,
   EnvironmentAdminsResponse,
 } from "@/types/dev-environment";

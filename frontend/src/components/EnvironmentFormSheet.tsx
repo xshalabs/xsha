@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Shield } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useEnvironmentForm } from "@/hooks/useEnvironmentForm";
 import { BasicFormFields } from "@/components/forms/BasicFormFields";
 import { DockerImageSelector } from "@/components/forms/DockerImageSelector";
