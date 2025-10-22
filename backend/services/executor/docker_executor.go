@@ -152,8 +152,53 @@ func (d *dockerExecutor) buildDockerCommandCore(conv *database.TaskConversation,
 	devEnv := conv.Task.DevEnvironment
 
 	envVars := make(map[string]string)
+
+	// Step 1: Load provider config as base environment variables
+	if devEnv.Provider != nil && devEnv.Provider.Config != "" {
+		var providerConfig map[string]interface{}
+		if err := json.Unmarshal([]byte(devEnv.Provider.Config), &providerConfig); err == nil {
+			// Convert provider config to environment variables
+			for key, value := range providerConfig {
+				// Only accept string values as environment variables
+				if strValue, ok := value.(string); ok {
+					envVars[key] = strValue
+				}
+			}
+			utils.Debug("Loaded provider config as base environment variables",
+				"provider_id", devEnv.Provider.ID,
+				"provider_name", devEnv.Provider.Name,
+				"env_count", len(envVars))
+		} else {
+			utils.Warn("Failed to parse provider config as JSON",
+				"provider_id", devEnv.Provider.ID,
+				"error", err)
+		}
+	}
+
+	// Step 2: Load dev_environment env_vars and override same-named variables
 	if devEnv.EnvVars != "" {
-		json.Unmarshal([]byte(devEnv.EnvVars), &envVars)
+		var devEnvVars map[string]string
+		if err := json.Unmarshal([]byte(devEnv.EnvVars), &devEnvVars); err == nil {
+			overrideCount := 0
+			for key, value := range devEnvVars {
+				if _, exists := envVars[key]; exists {
+					overrideCount++
+					utils.Debug("DevEnvironment env var overrides provider config",
+						"key", key,
+						"dev_env_id", devEnv.ID)
+				}
+				envVars[key] = value // Override provider config with dev env vars
+			}
+			utils.Debug("Loaded dev environment variables",
+				"dev_env_id", devEnv.ID,
+				"dev_env_name", devEnv.Name,
+				"total_env_count", len(envVars),
+				"override_count", overrideCount)
+		} else {
+			utils.Warn("Failed to parse dev environment env_vars as JSON",
+				"dev_env_id", devEnv.ID,
+				"error", err)
+		}
 	}
 
 	isInContainer := utils.NewDockerDetector().IsRunningInDocker()
