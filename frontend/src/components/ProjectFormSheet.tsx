@@ -20,9 +20,10 @@ export function ProjectFormSheet({
   onSubmit,
   formId = "project-form-sheet",
 }: ProjectFormSheetProps) {
-  
+
   const {
     formData,
+    isEdit,
     loading,
     credentialsLoading,
     credentialValidating,
@@ -60,7 +61,7 @@ export function ProjectFormSheet({
         <RepositoryUrlField
           formData={formData}
           errors={errors}
-          disabled={loading}
+          disabled={loading || isEdit}
           onChange={handleInputChange}
         />
 

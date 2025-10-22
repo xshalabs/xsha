@@ -31,6 +31,7 @@ type CreateEnvironmentRequest struct {
 	CPULimit     float64           `json:"cpu_limit" binding:"min=0.1,max=16"`
 	MemoryLimit  int64             `json:"memory_limit" binding:"min=128,max=32768"`
 	EnvVars      map[string]string `json:"env_vars"`
+	ProviderID   uint              `json:"provider_id" binding:"required"`
 }
 
 // @Description Update environment request
@@ -42,6 +43,7 @@ type UpdateEnvironmentRequest struct {
 	CPULimit     float64           `json:"cpu_limit"`
 	MemoryLimit  int64             `json:"memory_limit"`
 	EnvVars      map[string]string `json:"env_vars"`
+	ProviderID   *uint             `json:"provider_id"`
 }
 
 // CreateEnvironment creates a development environment
@@ -73,9 +75,11 @@ func (h *DevEnvironmentHandlers) CreateEnvironment(c *gin.Context) {
 		req.EnvVars = make(map[string]string)
 	}
 
+	providerID := &req.ProviderID
+
 	env, err := h.devEnvService.CreateEnvironment(
 		req.Name, req.Description, req.SystemPrompt, req.Type, req.DockerImage,
-		req.CPULimit, req.MemoryLimit, req.EnvVars, adminID.(uint), username.(string),
+		req.CPULimit, req.MemoryLimit, req.EnvVars, providerID, adminID.(uint), username.(string),
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -242,6 +246,9 @@ func (h *DevEnvironmentHandlers) UpdateEnvironment(c *gin.Context) {
 	if req.MemoryLimit > 0 {
 		updates["memory_limit"] = req.MemoryLimit
 	}
+	if req.ProviderID != nil {
+		updates["provider_id"] = req.ProviderID
+	}
 
 	err = h.devEnvService.UpdateEnvironment(uint(id), updates)
 	if err != nil {
@@ -324,6 +331,43 @@ func (h *DevEnvironmentHandlers) GetAvailableImages(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"images": images,
+	})
+}
+
+// GetEnvironmentCreationData gets all data needed for environment creation
+// @Summary Get environment creation data
+// @Description Get providers and available images in a single request for environment creation
+// @Tags Development Environment
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} object{providers=[]object,images=[]object} "Environment creation data"
+// @Router /environments/creation-data [get]
+func (h *DevEnvironmentHandlers) GetEnvironmentCreationData(c *gin.Context) {
+	lang := middleware.GetLangFromContext(c)
+	admin := middleware.GetAdminFromContext(c)
+
+	// Get available environment images
+	images, err := h.devEnvService.GetAvailableEnvironmentImages()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	// Get all providers accessible to the admin
+	providers, err := h.devEnvService.GetAllProvidersForSelection(admin)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": i18n.MapErrorToI18nKey(err, lang),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"providers": providers,
+		"images":    images,
 	})
 }
 

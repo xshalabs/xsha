@@ -25,6 +25,7 @@ func (r *taskConversationRepository) GetByID(id uint) (*database.TaskConversatio
 		Preload("Task.Project").
 		Preload("Task.Project.Credential").
 		Preload("Task.DevEnvironment").
+		Preload("Task.DevEnvironment.Provider").
 		Where("id = ?", id).First(&conversation).Error
 	if err != nil {
 		return nil, err
@@ -38,6 +39,7 @@ func (r *taskConversationRepository) GetWithResult(id uint) (*database.TaskConve
 		Preload("Task.Project").
 		Preload("Task.Project.Credential").
 		Preload("Task.DevEnvironment").
+		Preload("Task.DevEnvironment.Provider").
 		Where("id = ?", id).First(&conversation).Error
 	if err != nil {
 		return nil, nil, nil, err
@@ -137,6 +139,7 @@ func (r *taskConversationRepository) GetPendingConversationsWithDetails() ([]dat
 		Preload("Task.Project").
 		Preload("Task.Project.Credential").
 		Preload("Task.DevEnvironment").
+		Preload("Task.DevEnvironment.Provider").
 		Where("status = ? AND (execution_time IS NULL OR execution_time <= ?)",
 			database.ConversationStatusPending, now).
 		Order("created_at ASC").

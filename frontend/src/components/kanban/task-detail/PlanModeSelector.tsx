@@ -9,12 +9,11 @@ interface PlanModeSelectorProps {
   isPlanMode?: boolean;
   disabled?: boolean;
   onChange: (isPlanMode: boolean) => void;
-  onModelChange?: (model: string) => void;
   onCloseOtherControls: () => void;
 }
 
 export const PlanModeSelector = memo<PlanModeSelectorProps>(
-  ({ isPlanMode, disabled, onChange, onModelChange, onCloseOtherControls }) => {
+  ({ isPlanMode, disabled, onChange, onCloseOtherControls }) => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const planModeSelectorRef = useRef<HTMLDivElement>(null);
@@ -26,11 +25,7 @@ export const PlanModeSelector = memo<PlanModeSelectorProps>(
 
     const handlePlanModeChange = useCallback((checked: boolean) => {
       onChange(checked);
-      // When enabling plan mode, automatically set model to opus
-      if (checked && onModelChange) {
-        onModelChange('opus');
-      }
-    }, [onChange, onModelChange]);
+    }, [onChange]);
 
     const handleClose = useCallback(() => {
       setIsOpen(false);

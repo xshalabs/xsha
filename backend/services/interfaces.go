@@ -107,7 +107,7 @@ type AdminOperationLogService interface {
 }
 
 type DevEnvironmentService interface {
-	CreateEnvironment(name, description, systemPrompt, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, adminID uint, createdBy string) (*database.DevEnvironment, error)
+	CreateEnvironment(name, description, systemPrompt, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, providerID *uint, adminID uint, createdBy string) (*database.DevEnvironment, error)
 	GetEnvironment(id uint) (*database.DevEnvironment, error)
 	GetEnvironmentWithAdmins(id uint) (*database.DevEnvironment, error)
 	ListEnvironments(name *string, dockerImage *string, page, pageSize int) ([]database.DevEnvironment, int64, error)
@@ -118,6 +118,7 @@ type DevEnvironmentService interface {
 	UpdateEnvironmentVars(id uint, envVars map[string]string) error
 	ValidateResourceLimits(cpuLimit float64, memoryLimit int64) error
 	GetAvailableEnvironmentImages() ([]map[string]interface{}, error)
+	GetAllProvidersForSelection(admin *database.Admin) ([]database.ProviderSelectionResponse, error)
 
 	// Admin management methods
 	AddAdminToEnvironment(envID, adminID uint) error
@@ -281,4 +282,21 @@ type MCPService interface {
 	// Permission helpers
 	CanAdminAccessMCP(mcpID uint, admin *database.Admin) (bool, error)
 	IsMCPOwner(mcpID uint, admin *database.Admin) (bool, error)
+}
+
+type ProviderService interface {
+	// CRUD operations with permission checks
+	CreateProvider(name, description, providerType, config string, admin *database.Admin) (*database.Provider, error)
+	GetProvider(id uint, admin *database.Admin) (*database.Provider, error)
+	ListProviders(admin *database.Admin, name *string, providerType *string, page, pageSize int) ([]database.ProviderListItemResponse, int64, error)
+	UpdateProvider(id uint, updates map[string]interface{}, admin *database.Admin) error
+	DeleteProvider(id uint, admin *database.Admin) error
+
+	// Provider-specific methods
+	ValidateConfig(config string) error
+	GetProviderTypes() []string
+
+	// Permission helpers
+	CanAdminAccessProvider(providerID uint, admin *database.Admin) (bool, error)
+	IsProviderOwner(providerID uint, admin *database.Admin) (bool, error)
 }

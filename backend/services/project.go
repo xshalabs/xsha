@@ -153,12 +153,6 @@ func (s *projectService) UpdateProject(id uint, updates map[string]interface{}) 
 	if systemPrompt, ok := updates["system_prompt"]; ok {
 		project.SystemPrompt = systemPrompt.(string)
 	}
-	if repoURL, ok := updates["repo_url"]; ok {
-		project.RepoURL = repoURL.(string)
-		if err := s.validateRepositoryURL(project.RepoURL, project.Protocol); err != nil {
-			return err
-		}
-	}
 
 	if credentialID, ok := updates["credential_id"]; ok {
 		if credentialID == nil {

@@ -2,7 +2,7 @@
   "title": "Users",
   "description": "Manage user accounts",
   "pageTitle": {
-    "list": "Users - xsha"
+    "list": "Users"
   },
   "table": {
     "username": "Username",
@@ -59,7 +59,7 @@
     "zh-CN": "Chinese"
   },
   "actions": {
-    "create": "Create User",
+    "create": "Create",
     "changePassword": "Change Password",
     "changingPassword": "Changing..."
   },

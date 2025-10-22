@@ -1,11 +1,19 @@
 import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Shield } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useEnvironmentForm } from "@/hooks/useEnvironmentForm";
 import { BasicFormFields } from "@/components/forms/BasicFormFields";
 import { DockerImageSelector } from "@/components/forms/DockerImageSelector";
 import { ResourceLimits } from "@/components/forms/ResourceLimits";
 import { EnvironmentVariables } from "@/components/forms/EnvironmentVariables";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { DevEnvironmentDisplay } from "@/types/dev-environment";
 
 interface EnvironmentFormSheetProps {
@@ -18,7 +26,6 @@ interface EnvironmentFormSheetProps {
 export function EnvironmentFormSheet({
   environment,
   onSubmit,
-  onCancel: _onCancel,
   formId = "environment-form-sheet",
 }: EnvironmentFormSheetProps) {
   const { t } = useTranslation();
@@ -28,11 +35,12 @@ export function EnvironmentFormSheet({
     formData,
     envVars,
     environmentImages,
+    providers,
     loading,
     loadingImages,
+    loadingProviders,
     error,
     errors,
-    isEdit: _isEdit,
     handleInputChange,
     handleDockerImageChange,
     handleSubmit,
@@ -62,6 +70,37 @@ export function EnvironmentFormSheet({
           errors={{ name: errors.name }}
           disabled={loading}
         />
+
+        {/* Provider Selection (Required) */}
+        <div className="space-y-2">
+          <Label htmlFor="provider-select">
+            {t("devEnvironments.form.provider", "Provider")} <span className="text-destructive">*</span>
+          </Label>
+          <Select
+            value={formData.provider_id?.toString() || ""}
+            onValueChange={(value) =>
+              handleInputChange("provider_id", value ? parseInt(value, 10) : undefined)
+            }
+            disabled={loading || loadingProviders}
+          >
+            <SelectTrigger id="provider-select" className={errors.provider_id ? "border-destructive" : ""}>
+              <SelectValue placeholder={t("devEnvironments.form.provider_placeholder", "Select a provider")} />
+            </SelectTrigger>
+            <SelectContent>
+              {providers.map((provider) => (
+                <SelectItem key={provider.id} value={provider.id.toString()}>
+                  {provider.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.provider_id && (
+            <p className="text-sm text-destructive">{errors.provider_id}</p>
+          )}
+          <p className="text-sm text-muted-foreground">
+            {t("devEnvironments.form.provider_help", "Select a provider configuration for this environment")}
+          </p>
+        </div>
 
         {/* Docker Image Selection */}
         <DockerImageSelector
@@ -94,14 +133,6 @@ export function EnvironmentFormSheet({
           onUpdateEnvVar={updateEnvVar}
           disabled={loading}
         />
-
-        {/* Configuration Help */}
-        <Alert>
-          <Shield className="h-4 w-4" />
-          <AlertDescription className="text-xs">
-            {t("devEnvironments.configurationHelp")}
-          </AlertDescription>
-        </Alert>
       </div>
     </form>
   );

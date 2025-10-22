@@ -33,6 +33,7 @@ import { dashboardApi } from "./dashboard";
 import { attachmentApi } from "./attachments";
 import { notifiersApi } from "./notifiers";
 import { mcpApi } from "./mcp";
+import { providerApi } from "./provider";
 
 export {
   authApi,
@@ -47,6 +48,7 @@ export {
   attachmentApi,
   notifiersApi,
   mcpApi,
+  providerApi,
 };
 
 export const apiService = {
@@ -78,4 +80,6 @@ export const apiService = {
   notifiers: notifiersApi,
 
   mcp: mcpApi,
+
+  providers: providerApi,
 };

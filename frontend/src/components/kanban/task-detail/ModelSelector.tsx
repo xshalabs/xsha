@@ -14,22 +14,20 @@ import {
 interface ModelSelectorProps {
   model: string;
   disabled?: boolean;
-  isPlanMode?: boolean;
   onChange: (model: string) => void;
   onCloseOtherControls: () => void;
 }
 
 export const ModelSelector = memo<ModelSelectorProps>(
-  ({ model, disabled, isPlanMode, onChange, onCloseOtherControls }) => {
+  ({ model, disabled, onChange, onCloseOtherControls }) => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const modelSelectorRef = useRef<HTMLDivElement>(null);
 
     const handleToggle = useCallback(() => {
-      if (isPlanMode) return; // Don't open when plan mode is active
       onCloseOtherControls(); // Close other controls first
       setIsOpen(!isOpen);
-    }, [isOpen, isPlanMode, onCloseOtherControls]);
+    }, [isOpen, onCloseOtherControls]);
 
     const handleModelChange = useCallback((newModel: string) => {
       onChange(newModel);
@@ -74,15 +72,13 @@ export const ModelSelector = memo<ModelSelectorProps>(
           variant="ghost"
           size="sm"
           onClick={handleToggle}
-          disabled={isPlanMode}
+          disabled={disabled}
           className={`h-7 w-7 p-0 rounded-md transition-colors ${
-            isPlanMode
-              ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/50 dark:text-orange-400 opacity-75 cursor-not-allowed'
-              : model && model !== 'default'
+            model && model !== 'default'
               ? 'bg-purple-100 text-purple-600 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-400'
               : 'text-muted-foreground hover:text-foreground hover:bg-muted'
           }`}
-          title={isPlanMode ? t("taskConversations.modelLockedInPlanMode") : (model ? t("taskConversations.selectModel") + ": " + model : t("taskConversations.selectModel"))}
+          title={model ? t("taskConversations.selectModel") + ": " + model : t("taskConversations.selectModel")}
         >
           <Sparkles className="h-3.5 w-3.5" />
         </Button>

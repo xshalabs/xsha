@@ -1,13 +1,16 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { usePageTitleContext } from "@/contexts/PageTitleContext";
 
 export const usePageTitle = (titleKey: string, fallback?: string) => {
   const { t } = useTranslation();
+  const { setPageTitle } = usePageTitleContext();
 
   useEffect(() => {
     const title = t(titleKey, fallback || titleKey);
     const appName = t("common.app.name", "XSHA");
 
+    // Set browser document title
     document.title =
       title === titleKey
         ? fallback
@@ -15,21 +18,12 @@ export const usePageTitle = (titleKey: string, fallback?: string) => {
           : appName
         : `${title} - ${appName}`;
 
-    return () => {
-      document.title = appName;
-    };
-  }, [titleKey, fallback, t]);
-};
-
-export const useDirectPageTitle = (title: string) => {
-  const { t } = useTranslation();
-
-  useEffect(() => {
-    const appName = t("common.app.name", "XSHA");
-    document.title = `${title} - ${appName}`;
+    // Set page title in context for SiteHeader
+    setPageTitle(title === titleKey ? (fallback || titleKey) : title);
 
     return () => {
       document.title = appName;
+      setPageTitle(null);
     };
-  }, [title, t]);
+  }, [titleKey, fallback, t, setPageTitle]);
 };

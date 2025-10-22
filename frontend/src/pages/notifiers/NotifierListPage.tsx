@@ -42,7 +42,8 @@ const NotifierListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { setItems } = useBreadcrumb();
   const { setActions } = usePageActions();
-  const { canCreateNotifier, canEditNotifier, canDeleteNotifier } = usePermissions();
+  const { canCreateNotifier, canEditNotifier, canDeleteNotifier } =
+    usePermissions();
 
   const [notifiers, setNotifiers] = useState<Notifier[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +52,6 @@ const NotifierListPage: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
-
 
   // Sheet state management
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
@@ -65,7 +65,7 @@ const NotifierListPage: React.FC = () => {
 
   const pageSize = 10;
 
-  usePageTitle(t("common.pageTitle.notifiers"));
+  usePageTitle("common.pageTitle.notifiers");
 
   // Check for action parameter to auto-open create sheet
   useEffect(() => {
@@ -103,13 +103,7 @@ const NotifierListPage: React.FC = () => {
       setActions(null);
     }
 
-    setItems([
-      {
-        type: "link",
-        label: t("navigation.notifiers"),
-        href: "/notifiers",
-      },
-    ]);
+    setItems([]);
 
     return () => {
       setActions(null);
@@ -118,38 +112,60 @@ const NotifierListPage: React.FC = () => {
   }, [setActions, setItems, t, canCreateNotifier]);
 
   // Build search parameters from filters
-  const buildSearchParams = useCallback((page: number, filters: ColumnFiltersState) => {
-    const params: NotifierListParams = {
-      page,
-      page_size: pageSize,
-    };
+  const buildSearchParams = useCallback(
+    (page: number, filters: ColumnFiltersState) => {
+      const params: NotifierListParams = {
+        page,
+        page_size: pageSize,
+      };
 
-    // Handle column filters
-    filters.forEach((filter) => {
-      if (filter.id === "search" && filter.value) {
-        // Handle search filter for name and description
-        params.name = filter.value as string;
-      } else if (filter.id === "type" && Array.isArray(filter.value) && filter.value.length > 0) {
-        // Handle type filter - pass all selected types as comma-separated string
-        params.type = filter.value.join(",") as NotifierType;
-      } else if (filter.id === "is_enabled" && Array.isArray(filter.value) && filter.value.length > 0) {
-        // Handle enabled filter
-        if (filter.value.length === 1) {
-          // Single selection
-          params.is_enabled = filter.value[0] === "enabled";
+      // Handle column filters
+      filters.forEach((filter) => {
+        if (filter.id === "search" && filter.value) {
+          // Handle search filter for name and description
+          params.name = filter.value as string;
+        } else if (
+          filter.id === "type" &&
+          Array.isArray(filter.value) &&
+          filter.value.length > 0
+        ) {
+          // Handle type filter - pass all selected types as comma-separated string
+          params.type = filter.value.join(",") as NotifierType;
+        } else if (
+          filter.id === "is_enabled" &&
+          Array.isArray(filter.value) &&
+          filter.value.length > 0
+        ) {
+          // Handle enabled filter
+          if (filter.value.length === 1) {
+            // Single selection
+            params.is_enabled = filter.value[0] === "enabled";
+          }
+          // Both enabled and disabled selected means no filter
         }
-        // Both enabled and disabled selected means no filter
-      }
-    });
+      });
 
-    return params;
-  }, [pageSize]);
+      return params;
+    },
+    [pageSize]
+  );
 
   // Load notifiers data
   const loadNotifiersData = useCallback(
-    async (page: number, filters: ColumnFiltersState, sortingState: SortingState, shouldDebounce = true, updateUrl = true) => {
+    async (
+      page: number,
+      filters: ColumnFiltersState,
+      sortingState: SortingState,
+      shouldDebounce = true,
+      updateUrl = true
+    ) => {
       // Create a unique request key for deduplication
-      const requestKey = JSON.stringify({ page, filters, sortingState, updateUrl });
+      const requestKey = JSON.stringify({
+        page,
+        filters,
+        sortingState,
+        updateUrl,
+      });
 
       // Skip if same request is already in progress or just completed
       if (
@@ -201,10 +217,18 @@ const NotifierListPage: React.FC = () => {
                 if (filter.id === "search") {
                   // Handle search parameter
                   urlParams.set(filter.id, String(filter.value));
-                } else if (filter.id === "type" && Array.isArray(filter.value) && filter.value.length > 0) {
+                } else if (
+                  filter.id === "type" &&
+                  Array.isArray(filter.value) &&
+                  filter.value.length > 0
+                ) {
                   // Handle type filter - join multiple values with comma
                   urlParams.set(filter.id, filter.value.join(","));
-                } else if (filter.id === "is_enabled" && Array.isArray(filter.value) && filter.value.length > 0) {
+                } else if (
+                  filter.id === "is_enabled" &&
+                  Array.isArray(filter.value) &&
+                  filter.value.length > 0
+                ) {
                   // Only set parameter if not both values are selected (which means no filter)
                   if (filter.value.length === 1) {
                     urlParams.set(filter.id, filter.value[0]);
@@ -274,7 +298,13 @@ const NotifierListPage: React.FC = () => {
     setSorting(initialSorting);
 
     // Load initial data using the unified function
-    loadNotifiersData(initialPage, initialFilters, initialSorting, false, false).then(() => {
+    loadNotifiersData(
+      initialPage,
+      initialFilters,
+      initialSorting,
+      false,
+      false
+    ).then(() => {
       setIsInitialized(true);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -295,28 +325,31 @@ const NotifierListPage: React.FC = () => {
   );
 
   // Handle edit notifier
-  const handleEdit = useCallback(async (notifier: Notifier) => {
-    // Prevent multiple clicks while loading
-    if (isLoadingEdit) {
-      return;
-    }
+  const handleEdit = useCallback(
+    async (notifier: Notifier) => {
+      // Prevent multiple clicks while loading
+      if (isLoadingEdit) {
+        return;
+      }
 
-    // Clear any existing create sheet state before opening edit sheet
-    setIsCreateSheetOpen(false);
+      // Clear any existing create sheet state before opening edit sheet
+      setIsCreateSheetOpen(false);
 
-    setIsLoadingEdit(true);
-    try {
-      const response = await apiService.notifiers.get(notifier.id);
-      // Response is the notifier object directly, not wrapped in data
-      setEditingNotifier(response);
-      setIsEditSheetOpen(true);
-    } catch (error) {
-      logError(error, "Failed to load notifier details");
-      toast.error(t("notifiers.errors.loadDetailsFailed"));
-    } finally {
-      setIsLoadingEdit(false);
-    }
-  }, [isLoadingEdit, t]);
+      setIsLoadingEdit(true);
+      try {
+        const response = await apiService.notifiers.get(notifier.id);
+        // Response is the notifier object directly, not wrapped in data
+        setEditingNotifier(response);
+        setIsEditSheetOpen(true);
+      } catch (error) {
+        logError(error, "Failed to load notifier details");
+        toast.error(t("notifiers.errors.loadDetailsFailed"));
+      } finally {
+        setIsLoadingEdit(false);
+      }
+    },
+    [isLoadingEdit, t]
+  );
 
   // Handle delete notifier
   const handleDelete = useCallback(
@@ -356,9 +389,7 @@ const NotifierListPage: React.FC = () => {
       try {
         await apiService.notifiers.update(id, { is_enabled: enabled });
         toast.success(
-          enabled
-            ? t("notifiers.enableSuccess")
-            : t("notifiers.disableSuccess")
+          enabled ? t("notifiers.enableSuccess") : t("notifiers.disableSuccess")
         );
         await loadNotifiersData(currentPage, columnFilters, sorting, false);
       } catch (error) {
@@ -414,9 +445,7 @@ const NotifierListPage: React.FC = () => {
     <SectionGroup>
       <SectionHeader>
         <SectionTitle>{t("notifiers.title")}</SectionTitle>
-        <SectionDescription>
-          {t("notifiers.description")}
-        </SectionDescription>
+        <SectionDescription>{t("notifiers.description")}</SectionDescription>
       </SectionHeader>
 
       <Section>

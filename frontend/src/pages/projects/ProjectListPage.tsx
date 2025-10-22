@@ -82,7 +82,7 @@ const ProjectListPage: React.FC = () => {
   const [total, setTotal] = useState(0);
   const pageSize = 10;
 
-  usePageTitle(t("common.pageTitle.projects"));
+  usePageTitle("common.pageTitle.projects");
 
   const loadProjectsData = useCallback(
     async (page: number, filters: ColumnFiltersState, sortingState: SortingState, updateUrl = true) => {

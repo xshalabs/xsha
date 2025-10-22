@@ -14,22 +14,24 @@ import (
 )
 
 type devEnvironmentService struct {
-	repo          repository.DevEnvironmentRepository
-	taskRepo      repository.TaskRepository
+	repo         repository.DevEnvironmentRepository
+	taskRepo     repository.TaskRepository
+	providerRepo repository.ProviderRepository
 	configService SystemConfigService
 	config        *config.Config
 }
 
-func NewDevEnvironmentService(repo repository.DevEnvironmentRepository, taskRepo repository.TaskRepository, configService SystemConfigService, cfg *config.Config) DevEnvironmentService {
+func NewDevEnvironmentService(repo repository.DevEnvironmentRepository, taskRepo repository.TaskRepository, providerRepo repository.ProviderRepository, configService SystemConfigService, cfg *config.Config) DevEnvironmentService {
 	return &devEnvironmentService{
 		repo:          repo,
 		taskRepo:      taskRepo,
+		providerRepo:  providerRepo,
 		configService: configService,
 		config:        cfg,
 	}
 }
 
-func (s *devEnvironmentService) CreateEnvironment(name, description, systemPrompt, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, adminID uint, createdBy string) (*database.DevEnvironment, error) {
+func (s *devEnvironmentService) CreateEnvironment(name, description, systemPrompt, envType, dockerImage string, cpuLimit float64, memoryLimit int64, envVars map[string]string, providerID *uint, adminID uint, createdBy string) (*database.DevEnvironment, error) {
 	if err := s.validateEnvironmentData(name, envType, cpuLimit, memoryLimit); err != nil {
 		return nil, err
 	}
@@ -67,6 +69,7 @@ func (s *devEnvironmentService) CreateEnvironment(name, description, systemPromp
 		MemoryLimit:  memoryLimit,
 		EnvVars:      string(envVarsJSON),
 		SessionDir:   sessionDir,
+		ProviderID:   providerID,
 		AdminID:      &adminID,
 		CreatedBy:    createdBy,
 	}
@@ -117,6 +120,14 @@ func (s *devEnvironmentService) UpdateEnvironment(id uint, updates map[string]in
 	}
 	if memoryLimit, ok := updates["memory_limit"]; ok {
 		env.MemoryLimit = memoryLimit.(int64)
+	}
+	if providerID, ok := updates["provider_id"]; ok {
+		if providerID == nil {
+			env.ProviderID = nil
+		} else {
+			pid := providerID.(*uint)
+			env.ProviderID = pid
+		}
 	}
 
 	if err := s.ValidateResourceLimits(env.CPULimit, env.MemoryLimit); err != nil {
@@ -234,6 +245,22 @@ func (s *devEnvironmentService) GetAvailableEnvironmentImages() ([]map[string]in
 	}
 
 	return envImages, nil
+}
+
+// GetAllProvidersForSelection gets all providers accessible to an admin for selection
+// SECURITY: Returns ProviderSelectionResponse which excludes sensitive Config field
+func (s *devEnvironmentService) GetAllProvidersForSelection(admin *database.Admin) ([]database.ProviderSelectionResponse, error) {
+	if admin == nil {
+		return []database.ProviderSelectionResponse{}, appErrors.NewI18nError("permission_denied", "en-US")
+	}
+
+	providers, err := s.providerRepo.ListAllForSelection(admin.ID, admin.Role)
+	if err != nil {
+		return nil, err
+	}
+
+	responses := database.ToProviderSelectionResponses(providers)
+	return responses, nil
 }
 
 // generateSessionDir creates a unique session directory for the dev environment

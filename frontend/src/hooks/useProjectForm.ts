@@ -120,8 +120,6 @@ export function useProjectForm({ project, onSubmit }: UseProjectFormOptions) {
           name: formData.name,
           description: formData.description,
           system_prompt: formData.system_prompt,
-          repo_url: formData.repo_url,
-          protocol: formData.protocol,
           credential_id: formData.credential_id,
         };
 

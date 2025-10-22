@@ -9,6 +9,7 @@ import type {
   CreateDevEnvironmentRequest,
   UpdateDevEnvironmentRequest,
 } from "@/types/dev-environment";
+import type { ProviderSelection } from "@/types/provider";
 
 export interface EnvironmentImageOption {
   image: string;
@@ -24,6 +25,7 @@ export interface EnvironmentFormData {
   docker_image: string;
   cpu_limit: number;
   memory_limit: number;
+  provider_id?: number;
 }
 
 export interface EnvVar {
@@ -48,6 +50,10 @@ export function useEnvironmentForm(
   const [environmentImages, setEnvironmentImages] = useState<EnvironmentImageOption[]>([]);
   const [loadingImages, setLoadingImages] = useState(true);
 
+  // Providers state
+  const [providers, setProviders] = useState<ProviderSelection[]>([]);
+  const [loadingProviders, setLoadingProviders] = useState(true);
+
   // Form state
   const [formData, setFormData] = useState<EnvironmentFormData>({
     name: environment?.name || "",
@@ -56,6 +62,7 @@ export function useEnvironmentForm(
     docker_image: environment?.docker_image || "",
     cpu_limit: environment?.cpu_limit || 1.0,
     memory_limit: environment?.memory_limit || 1024,
+    provider_id: environment?.provider_id,
   });
 
   // Environment variables state
@@ -66,12 +73,16 @@ export function useEnvironmentForm(
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Load environment images
+  // Load environment creation data (images and providers)
   useEffect(() => {
-    const loadEnvironmentImages = async () => {
+    const loadCreationData = async () => {
       try {
         setLoadingImages(true);
-        const response = await devEnvironmentsApi.getAvailableImages();
+        setLoadingProviders(true);
+
+        const response = await devEnvironmentsApi.getCreationData();
+
+        // Process images
         const images: EnvironmentImageOption[] = response.images.map((item) => ({
           image: item.image,
           name: item.name,
@@ -88,9 +99,14 @@ export function useEnvironmentForm(
             docker_image: defaultImage.image,
           }));
         }
+
+        // Process providers
+        setProviders(response.providers);
       } catch (error: any) {
         const errorMessage = handleApiError(error);
-        console.error("Failed to load environment images:", errorMessage);
+        console.error("Failed to load environment creation data:", errorMessage);
+
+        // Fallback for images
         const fallbackImage = {
           image: "claude-code:latest",
           name: "Claude Code",
@@ -104,12 +120,16 @@ export function useEnvironmentForm(
             docker_image: fallbackImage.image,
           }));
         }
+
+        // Providers are optional, so just set empty array
+        setProviders([]);
       } finally {
         setLoadingImages(false);
+        setLoadingProviders(false);
       }
     };
 
-    loadEnvironmentImages();
+    loadCreationData();
   }, [isEdit]);
 
   // Initialize form data from environment
@@ -122,8 +142,9 @@ export function useEnvironmentForm(
         docker_image: environment.docker_image,
         cpu_limit: environment.cpu_limit,
         memory_limit: environment.memory_limit,
+        provider_id: environment.provider_id,
       });
-      
+
       // Convert env_vars_map to array structure
       const envVarsArray = Object.entries(environment.env_vars_map || {}).map(([key, value], index) => ({
         id: `env-${index}-${Date.now()}`,
@@ -145,6 +166,10 @@ export function useEnvironmentForm(
       newErrors.name = t("devEnvironments.validation.name_required");
     }
 
+    if (!formData.provider_id) {
+      newErrors.provider_id = t("devEnvironments.validation.provider_required");
+    }
+
     if (!formData.docker_image.trim()) {
       newErrors.docker_image = t("devEnvironments.validation.docker_image_required");
     }
@@ -162,7 +187,7 @@ export function useEnvironmentForm(
   };
 
   // Handlers
-  const handleInputChange = (field: keyof EnvironmentFormData, value: string | number) => {
+  const handleInputChange = (field: keyof EnvironmentFormData, value: string | number | undefined) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -262,9 +287,10 @@ export function useEnvironmentForm(
           cpu_limit: formData.cpu_limit,
           memory_limit: formData.memory_limit,
           env_vars: envVarsObj,
+          provider_id: formData.provider_id,
         };
         await apiService.devEnvironments.update(environment.id, requestData);
-        
+
         const response = await apiService.devEnvironments.get(environment.id);
         result = {
           ...response.environment,
@@ -280,6 +306,7 @@ export function useEnvironmentForm(
           ...formData,
           type: envType,
           env_vars: envVarsObj,
+          provider_id: formData.provider_id,
         };
         const response = await apiService.devEnvironments.create(requestData);
         result = {
@@ -314,8 +341,10 @@ export function useEnvironmentForm(
     formData,
     envVars,
     environmentImages,
+    providers,
     loading,
     loadingImages,
+    loadingProviders,
     error,
     errors,
     isEdit,

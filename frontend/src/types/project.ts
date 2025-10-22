@@ -40,8 +40,6 @@ export interface UpdateProjectRequest {
   name?: string;
   description?: string;
   system_prompt?: string;
-  repo_url?: string;
-  protocol?: GitProtocolType;
   credential_id?: number;
 }
 

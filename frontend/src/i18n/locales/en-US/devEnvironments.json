@@ -38,10 +38,15 @@
     "docker_image": "Docker Image",
     "docker_image_placeholder": "Select a Docker image",
     "cpu_limit": "CPU Limit",
-    "memory_limit": "Memory Limit"
+    "memory_limit": "Memory Limit",
+    "provider": "Provider",
+    "provider_placeholder": "Select a provider",
+    "no_provider": "No Provider",
+    "provider_help": "Select a provider configuration for this environment"
   },
   "validation": {
     "name_required": "Environment name is required",
+    "provider_required": "Provider is required",
     "docker_image_required": "Docker image is required",
     "cpu_limit_invalid": "CPU limit must be between 0.1-16 cores",
     "memory_limit_invalid": "Memory limit must be between 128-32768MB"
@@ -50,13 +55,13 @@
   "createHelpText": "Set up development environments with custom Docker images, resource limits, and environment variables.",
   "editAndUpdate": "Edit and update configuration",
   "editHelpText": "Modify environment settings, adjust resource limits, and manage environment variables.",
-  "configurationHelp": "Environment configurations are applied when containers are created or restarted.",
   "noImagesAvailable": "No Docker images available",
   "env_vars": {
     "title": "Environment Variables",
     "key": "Variable Name",
     "value": "Variable Value",
     "add": "Add",
+    "count": "variables",
     "empty_message": "No environment variables configured. Add one below.",
     "key_required": "Variable name cannot be empty",
     "key_exists": "Variable name already exists"
