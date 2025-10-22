@@ -1,7 +1,7 @@
 {
   "title": "MCP Management",
   "description": "Manage Model Context Protocol configurations for AI tools integration",
-  "create": "Create MCP",
+  "create": "Create",
   "edit": "Edit",
   "delete": "Delete",
   "enable": "Enable",

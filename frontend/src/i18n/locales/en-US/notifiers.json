@@ -1,7 +1,7 @@
 {
   "title": "Notifier Management",
   "description": "Manage notification channels for projects and system events",
-  "create": "Create Notifier",
+  "create": "Create",
   "edit": "Edit",
   "delete": "Delete",
   "test": "Test",

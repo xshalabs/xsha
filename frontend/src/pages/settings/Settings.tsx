@@ -27,7 +27,7 @@ import type { SystemConfig, ConfigUpdateItem } from "@/types/system-config";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
-  usePageTitle(t("systemConfig.title"));
+  usePageTitle("systemConfig.title");
 
   const [configs, setConfigs] = useState<SystemConfig[]>([]);
   const [formData, setFormData] = useState<{ [key: string]: string }>({});

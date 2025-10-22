@@ -29,10 +29,7 @@ import { MCPTemplates } from "@/components/mcp/MCPTemplates";
 
 import { apiService } from "@/lib/api/index";
 import { logError } from "@/lib/errors";
-import type {
-  MCP,
-  MCPListParams,
-} from "@/types/mcp";
+import type { MCP, MCPListParams } from "@/types/mcp";
 import { Plus } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
@@ -64,7 +61,7 @@ const MCPListPage: React.FC = () => {
 
   const pageSize = 10;
 
-  usePageTitle(t("common.pageTitle.mcp"));
+  usePageTitle("common.pageTitle.mcp");
 
   // Check for action parameter to auto-open create sheet
   useEffect(() => {
@@ -102,13 +99,7 @@ const MCPListPage: React.FC = () => {
       setActions(null);
     }
 
-    setItems([
-      {
-        type: "link",
-        label: t("navigation.mcp"),
-        href: "/mcp",
-      },
-    ]);
+    setItems([]);
 
     return () => {
       setActions(null);
@@ -117,35 +108,53 @@ const MCPListPage: React.FC = () => {
   }, [setActions, setItems, t, canCreateMCP]);
 
   // Build search parameters from filters
-  const buildSearchParams = useCallback((page: number, filters: ColumnFiltersState) => {
-    const params: MCPListParams = {
-      page,
-      page_size: pageSize,
-    };
+  const buildSearchParams = useCallback(
+    (page: number, filters: ColumnFiltersState) => {
+      const params: MCPListParams = {
+        page,
+        page_size: pageSize,
+      };
 
-    // Handle column filters
-    filters.forEach((filter) => {
-      if (filter.id === "search" && filter.value) {
-        // Handle search filter for name and description
-        params.name = filter.value as string;
-      } else if (filter.id === "enabled" && Array.isArray(filter.value) && filter.value.length > 0) {
-        // Handle enabled filter
-        if (filter.value.length === 1) {
-          // Single selection
-          params.enabled = filter.value[0] === "enabled";
+      // Handle column filters
+      filters.forEach((filter) => {
+        if (filter.id === "search" && filter.value) {
+          // Handle search filter for name and description
+          params.name = filter.value as string;
+        } else if (
+          filter.id === "enabled" &&
+          Array.isArray(filter.value) &&
+          filter.value.length > 0
+        ) {
+          // Handle enabled filter
+          if (filter.value.length === 1) {
+            // Single selection
+            params.enabled = filter.value[0] === "enabled";
+          }
+          // Both enabled and disabled selected means no filter
         }
-        // Both enabled and disabled selected means no filter
-      }
-    });
+      });
 
-    return params;
-  }, [pageSize]);
+      return params;
+    },
+    [pageSize]
+  );
 
   // Load MCPs data
   const loadMCPsData = useCallback(
-    async (page: number, filters: ColumnFiltersState, sortingState: SortingState, shouldDebounce = true, updateUrl = true) => {
+    async (
+      page: number,
+      filters: ColumnFiltersState,
+      sortingState: SortingState,
+      shouldDebounce = true,
+      updateUrl = true
+    ) => {
       // Create a unique request key for deduplication
-      const requestKey = JSON.stringify({ page, filters, sortingState, updateUrl });
+      const requestKey = JSON.stringify({
+        page,
+        filters,
+        sortingState,
+        updateUrl,
+      });
 
       // Skip if same request is already in progress or just completed
       if (
@@ -197,7 +206,11 @@ const MCPListPage: React.FC = () => {
                 if (filter.id === "search") {
                   // Handle search parameter
                   urlParams.set(filter.id, String(filter.value));
-                } else if (filter.id === "enabled" && Array.isArray(filter.value) && filter.value.length > 0) {
+                } else if (
+                  filter.id === "enabled" &&
+                  Array.isArray(filter.value) &&
+                  filter.value.length > 0
+                ) {
                   // Only set parameter if not both values are selected (which means no filter)
                   if (filter.value.length === 1) {
                     urlParams.set(filter.id, filter.value[0]);
@@ -262,7 +275,13 @@ const MCPListPage: React.FC = () => {
     setSorting(initialSorting);
 
     // Load initial data using the unified function
-    loadMCPsData(initialPage, initialFilters, initialSorting, false, false).then(() => {
+    loadMCPsData(
+      initialPage,
+      initialFilters,
+      initialSorting,
+      false,
+      false
+    ).then(() => {
       setIsInitialized(true);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -283,28 +302,31 @@ const MCPListPage: React.FC = () => {
   );
 
   // Handle edit MCP
-  const handleEdit = useCallback(async (mcp: MCP) => {
-    // Prevent multiple clicks while loading
-    if (isLoadingEdit) {
-      return;
-    }
+  const handleEdit = useCallback(
+    async (mcp: MCP) => {
+      // Prevent multiple clicks while loading
+      if (isLoadingEdit) {
+        return;
+      }
 
-    // Clear any existing create sheet state before opening edit sheet
-    setIsCreateSheetOpen(false);
+      // Clear any existing create sheet state before opening edit sheet
+      setIsCreateSheetOpen(false);
 
-    setIsLoadingEdit(true);
-    try {
-      const response = await apiService.mcp.get(mcp.id);
-      // Response is the MCP object directly, not wrapped in data
-      setEditingMCP(response);
-      setIsEditSheetOpen(true);
-    } catch (error) {
-      logError(error, "Failed to load MCP details");
-      toast.error(t("mcp.errors.loadDetailsFailed"));
-    } finally {
-      setIsLoadingEdit(false);
-    }
-  }, [isLoadingEdit, t]);
+      setIsLoadingEdit(true);
+      try {
+        const response = await apiService.mcp.get(mcp.id);
+        // Response is the MCP object directly, not wrapped in data
+        setEditingMCP(response);
+        setIsEditSheetOpen(true);
+      } catch (error) {
+        logError(error, "Failed to load MCP details");
+        toast.error(t("mcp.errors.loadDetailsFailed"));
+      } finally {
+        setIsLoadingEdit(false);
+      }
+    },
+    [isLoadingEdit, t]
+  );
 
   // Handle delete MCP
   const handleDelete = useCallback(
@@ -329,9 +351,7 @@ const MCPListPage: React.FC = () => {
       try {
         await apiService.mcp.update(id, { enabled: enabled });
         toast.success(
-          enabled
-            ? t("mcp.enableSuccess")
-            : t("mcp.disableSuccess")
+          enabled ? t("mcp.enableSuccess") : t("mcp.disableSuccess")
         );
         await loadMCPsData(currentPage, columnFilters, sorting, false);
       } catch (error) {
@@ -378,9 +398,7 @@ const MCPListPage: React.FC = () => {
     <SectionGroup>
       <SectionHeader>
         <SectionTitle>{t("mcp.title")}</SectionTitle>
-        <SectionDescription>
-          {t("mcp.description")}
-        </SectionDescription>
+        <SectionDescription>{t("mcp.description")}</SectionDescription>
       </SectionHeader>
 
       <Section>

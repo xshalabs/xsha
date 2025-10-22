@@ -1,5 +1,5 @@
 {
-  "title": "System Configuration",
+  "title": "Settings",
   "edit_page_description": "Manage system-wide configuration settings organized by category",
   "readonly": "Read-only",
   "update_success": "Configuration updated successfully"
