@@ -11,10 +11,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed page title display error bug
 - Fixed project edit repo_url field editing bug
 
-## v0.11.0 - 20251012
-
-- Removed the mandatory requirement to use Opus model in plan mode, allowing users to select their preferred model
-
 ## v0.10.0 - 20251011
 
 - MCP (Model Context Protocol) support for enhanced AI integration
