@@ -13,7 +13,7 @@
     "title": "Quick Actions",
     "description": "Get started quickly with common tasks.",
     "newProject": "New Project",
-    "newProjectDesc": "Create a new project to start your development workflow.",
+    "newProjectDesc": "Create a new project to start your development.",
     "newEnvironment": "New Environment",
     "newEnvironmentDesc": "Set up a new development environment for your team.",
     "addCredential": "Add Credential",
